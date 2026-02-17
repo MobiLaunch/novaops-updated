@@ -1,0 +1,14 @@
+<script setup lang="ts">
+import { MenubarSubTrigger, type MenubarSubTriggerProps } from 'radix-vue'
+import { ChevronRight } from 'lucide-vue-next'
+import { cn } from '~/lib/utils'
+
+const props = defineProps<MenubarSubTriggerProps & { class?: string; inset?: boolean }>()
+</script>
+
+<template>
+  <MenubarSubTrigger v-bind="props" :class="cn('flex cursor-default select-none items-center rounded-md px-2 py-1.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground', props.inset && 'pl-8', props.class)">
+    <slot />
+    <ChevronRight class="ml-auto h-4 w-4" />
+  </MenubarSubTrigger>
+</template>
