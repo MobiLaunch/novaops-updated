@@ -1,5 +1,4 @@
 import { defineEventHandler, readBody, createError } from 'h3'
-import { Client, Environment } from 'square'
 
 export default defineEventHandler(async (event) => {
   const accessToken = process.env.SQUARE_ACCESS_TOKEN
@@ -19,14 +18,17 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Missing amountCents or deviceId' })
   }
 
-  const client = new Client({
-    accessToken,
-    environment: Environment.Production,
-  })
-
-  const idempotencyKey = `${referenceId || 'novaops'}-${Date.now()}`
-
   try {
+    const squarePkg = await import('square')
+    const { Client, Environment } = (squarePkg.default ?? squarePkg) as any
+
+    const client = new Client({
+      accessToken,
+      environment: Environment.Production,
+    })
+
+    const idempotencyKey = `${referenceId || 'novaops'}-${Date.now()}`
+
     const { result } = await client.terminalApi.createTerminalCheckout({
       idempotencyKey,
       checkout: {

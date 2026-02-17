@@ -1,5 +1,4 @@
 import { defineEventHandler, getQuery, createError } from 'h3'
-import { Client, Environment } from 'square'
 
 export default defineEventHandler(async (event) => {
   const accessToken = process.env.SQUARE_ACCESS_TOKEN
@@ -13,16 +12,20 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Missing checkoutId' })
   }
 
-  const client = new Client({
-    accessToken,
-    environment: Environment.Production,
-  })
-
   try {
+    const squarePkg = await import('square')
+    const { Client, Environment } = (squarePkg.default ?? squarePkg) as any
+
+    const client = new Client({
+      accessToken,
+      environment: Environment.Production,
+    })
+
     const { result } = await client.terminalApi.getTerminalCheckout(checkoutId as string)
     const checkout = JSON.parse(JSON.stringify(result.checkout, (_, v) =>
       typeof v === 'bigint' ? v.toString() : v
     ))
+
     return { status: checkout.status, checkoutId: checkout.id }
   } catch (error: any) {
     const msg = error.errors?.[0]?.detail || error.message || 'Status check failed'

@@ -5,15 +5,9 @@ export default defineNuxtConfig({
   modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],
 
   runtimeConfig: {
-    // Server-only (never sent to client)
-    squareAccessToken: process.env.SQUARE_ACCESS_TOKEN || '',
-    squareLocationId: process.env.SQUARE_LOCATION_ID || '',
-
     public: {
-      // Safe to expose to client — needed for Web Payments SDK
       squareApplicationId: process.env.SQUARE_APPLICATION_ID || '',
       squareLocationId: process.env.SQUARE_LOCATION_ID || '',
-
       supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL || '',
       supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY || '',
     }
@@ -33,9 +27,10 @@ export default defineNuxtConfig({
 
   nitro: {
     preset: process.env.VERCEL ? 'vercel' : 'node-server',
-    // Prevent Nitro from trying to bundle the Square SDK — use the installed package as-is
     externals: {
-      external: ['square']
+      // Don't bundle square — use it from node_modules at runtime
+      external: ['square'],
+      inline: []
     }
   }
 })
