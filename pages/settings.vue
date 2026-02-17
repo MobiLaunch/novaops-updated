@@ -90,13 +90,64 @@
 
             <div class="space-y-2">
               <Label for="square-device-id">Terminal Device ID</Label>
-              <Input 
-                id="square-device-id" 
-                v-model="squareSettings.deviceId"
-                placeholder="device:..."
-                @change="saveSquareSettings"
-              />
-              <p class="text-xs text-muted-foreground">Found in your Square Dashboard under Devices. Leave blank to use the browser card form only.</p>
+              <div class="flex gap-2">
+                <Input 
+                  id="square-device-id" 
+                  v-model="squareSettings.deviceId"
+                  placeholder="device:..."
+                  @change="saveSquareSettings"
+                />
+                <Button variant="outline" size="sm" @click="startPairing" :disabled="isPairing" class="flex-shrink-0">
+                  <MonitorSmartphone class="w-4 h-4 mr-1.5" />
+                  Pair
+                </Button>
+              </div>
+              <p class="text-xs text-muted-foreground">Leave blank to use browser card form only.</p>
+            </div>
+
+            <!-- Pairing Flow -->
+            <div v-if="pairingState !== 'idle'" class="p-4 rounded-lg border space-y-3"
+              :class="pairingState === 'paired' ? 'bg-emerald-500/5 border-emerald-500/20' : pairingState === 'expired' ? 'bg-red-500/5 border-red-500/20' : 'bg-blue-500/5 border-blue-500/20'">
+              
+              <div v-if="pairingState === 'loading'" class="flex items-center gap-2 text-sm text-muted-foreground">
+                <div class="w-4 h-4 rounded-full border-2 border-primary border-t-transparent animate-spin flex-shrink-0" />
+                Generating pairing code...
+              </div>
+
+              <div v-else-if="pairingState === 'waiting'" class="space-y-3">
+                <div class="flex items-start gap-3">
+                  <MonitorSmartphone class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p class="text-sm font-medium">Enter this code on your Square Terminal</p>
+                    <p class="text-xs text-muted-foreground">On the terminal: Sign In → Use a Device Code</p>
+                  </div>
+                </div>
+                <div class="flex items-center justify-center">
+                  <div class="bg-background border-2 border-primary/30 rounded-xl px-8 py-4">
+                    <span class="text-4xl font-bold tracking-[0.3em] font-mono text-primary">{{ pairingCode }}</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-muted-foreground justify-center">
+                  <div class="w-3 h-3 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+                  Waiting for terminal to pair...
+                </div>
+              </div>
+
+              <div v-else-if="pairingState === 'paired'" class="flex items-center gap-3">
+                <CheckCircle class="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                <div>
+                  <p class="text-sm font-medium text-emerald-700">Terminal paired successfully!</p>
+                  <p class="text-xs text-muted-foreground font-mono">{{ squareSettings.deviceId }}</p>
+                </div>
+              </div>
+
+              <div v-else-if="pairingState === 'expired'" class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <AlertCircle class="w-5 h-5 text-red-500 flex-shrink-0" />
+                  <p class="text-sm text-red-600">Pairing code expired</p>
+                </div>
+                <Button variant="outline" size="sm" @click="startPairing">Try Again</Button>
+              </div>
             </div>
 
             <div class="flex items-center justify-between p-3 rounded-lg bg-muted/30">
@@ -283,7 +334,8 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useAppStore } from '~/stores/app'
 import { 
   Save, CreditCard, Info, Zap, ExternalLink, Download, 
-  RefreshCw, Trash2, LogOut, Database, AlertCircle, Copy 
+  RefreshCw, Trash2, LogOut, Database, AlertCircle, Copy,
+  MonitorSmartphone, CheckCircle
 } from 'lucide-vue-next'
 import { Card, CardHeader, CardTitle, CardContent } from '~/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
@@ -352,6 +404,54 @@ onMounted(() => {
     } catch(e) {}
   }
 })
+
+const isPairing = ref(false)
+const pairingState = ref<'idle' | 'loading' | 'waiting' | 'paired' | 'expired'>('idle')
+const pairingCode = ref('')
+const pairingDeviceCodeId = ref('')
+let pairingPollTimer: ReturnType<typeof setInterval> | null = null
+
+const startPairing = async () => {
+  isPairing.value = true
+  pairingState.value = 'loading'
+  pairingCode.value = ''
+  pairingDeviceCodeId.value = ''
+  if (pairingPollTimer) clearInterval(pairingPollTimer)
+
+  try {
+    const data: any = await $fetch('/api/square/pair-device', { method: 'POST' })
+    pairingCode.value = data.pairingCode
+    pairingDeviceCodeId.value = data.deviceCodeId
+    pairingState.value = 'waiting'
+    startPairingPoll()
+  } catch (err: any) {
+    isPairing.value = false
+    pairingState.value = 'idle'
+    alert('❌ Failed to generate pairing code: ' + (err.data?.statusMessage || err.message) + '\n\nMake sure your Vercel environment variables are set correctly.')
+  }
+}
+
+const startPairingPoll = () => {
+  pairingPollTimer = setInterval(async () => {
+    try {
+      const data: any = await $fetch('/api/square/device-status?deviceCodeId=' + pairingDeviceCodeId.value)
+      if (data.status === 'PAIRED' && data.deviceId) {
+        clearInterval(pairingPollTimer!)
+        pairingState.value = 'paired'
+        isPairing.value = false
+        squareSettings.value.deviceId = data.deviceId
+        squareSettings.value.enabled = true
+        saveSquareSettings()
+      } else if (data.status === 'EXPIRED') {
+        clearInterval(pairingPollTimer!)
+        pairingState.value = 'expired'
+        isPairing.value = false
+      }
+    } catch (e) {
+      console.error('Pairing poll error', e)
+    }
+  }, 3000)
+}
 
 const saveSquareSettings = () => {
   localStorage.setItem('squareSettings', JSON.stringify(squareSettings.value))
