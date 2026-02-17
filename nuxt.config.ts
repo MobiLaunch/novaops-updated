@@ -27,10 +27,5 @@ export default defineNuxtConfig({
 
   nitro: {
     preset: process.env.VERCEL ? 'vercel' : 'node-server',
-    externals: {
-      // Don't bundle square — use it from node_modules at runtime
-      external: ['square'],
-      inline: []
-    }
   }
 })

@@ -1,5 +1,9 @@
-// Shared Square client factory used by all API routes
-export async function getSquareClient() {
+// Raw fetch-based Square API client — no SDK, works in all Nitro/Vercel environments
+
+const SQUARE_API = 'https://connect.squareup.com/v2'
+const SQUARE_VERSION = '2024-01-18'
+
+export function getSquareCredentials() {
   const accessToken = process.env.SQUARE_ACCESS_TOKEN
   const locationId = process.env.SQUARE_LOCATION_ID
 
@@ -7,22 +11,30 @@ export async function getSquareClient() {
     throw new Error('SQUARE_ACCESS_TOKEN and SQUARE_LOCATION_ID must be set in Vercel environment variables.')
   }
 
-  const squarePkg = await import('square')
-  // Handle CJS default export wrapping
-  const square = (squarePkg as any).default ?? squarePkg
-  const SquareClient = square.Client ?? square.SquareClient
-
-  const client = new SquareClient({
-    accessToken,
-    // Use string directly — avoids the Environment enum resolution issue
-    environment: 'production',
-  })
-
-  return { client, locationId, accessToken }
+  return { accessToken, locationId }
 }
 
-export function serializeBigInt(obj: any) {
-  return JSON.parse(JSON.stringify(obj, (_, v) =>
-    typeof v === 'bigint' ? v.toString() : v
-  ))
+export async function squareFetch(
+  path: string,
+  accessToken: string,
+  options: { method?: string; body?: any } = {}
+) {
+  const res = await fetch(`${SQUARE_API}${path}`, {
+    method: options.method ?? 'GET',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'Square-Version': SQUARE_VERSION,
+    },
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  })
+
+  const data = await res.json()
+
+  if (!res.ok) {
+    const msg = data?.errors?.[0]?.detail || data?.errors?.[0]?.code || 'Square API error'
+    throw new Error(msg)
+  }
+
+  return data
 }

@@ -1,5 +1,5 @@
 import { defineEventHandler, readBody, createError } from 'h3'
-import { getSquareClient, serializeBigInt } from '~/server/utils/squareClient'
+import { getSquareCredentials, squareFetch } from '~/server/utils/squareClient'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -10,25 +10,27 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const { client, locationId } = await getSquareClient()
-    const idempotencyKey = `${referenceId || 'novaops'}-${Date.now()}`
-
-    const { result } = await client.terminalApi.createTerminalCheckout({
-      idempotencyKey,
-      checkout: {
-        amountMoney: { amount: BigInt(amountCents), currency: 'USD' },
-        deviceOptions: { deviceId, skipReceiptScreen: false, collectSignature: false },
-        locationId,
-        referenceId: referenceId || 'novaops-pos',
-        note: note || 'NovaOps Sale',
-        paymentType: 'CARD_PRESENT',
+    const { accessToken, locationId } = getSquareCredentials()
+    const data = await squareFetch('/terminals/checkouts', accessToken, {
+      method: 'POST',
+      body: {
+        idempotency_key: `${referenceId || 'novaops'}-${Date.now()}`,
+        checkout: {
+          amount_money: { amount: amountCents, currency: 'USD' },
+          device_options: {
+            device_id: deviceId,
+            skip_receipt_screen: false,
+            collect_signature: false,
+          },
+          location_id: locationId,
+          reference_id: referenceId || 'novaops-pos',
+          note: note || 'NovaOps Sale',
+          payment_type: 'CARD_PRESENT',
+        },
       },
     })
-
-    const checkout = serializeBigInt(result.checkout)
-    return { success: true, checkoutId: checkout.id, status: checkout.status }
+    return { success: true, checkoutId: data.checkout?.id, status: data.checkout?.status }
   } catch (error: any) {
-    const msg = error.errors?.[0]?.detail || error.message || 'Terminal request failed'
-    throw createError({ statusCode: 400, statusMessage: msg })
+    throw createError({ statusCode: 400, statusMessage: error.message || 'Terminal request failed' })
   }
 })

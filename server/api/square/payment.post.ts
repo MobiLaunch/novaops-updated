@@ -1,5 +1,5 @@
 import { defineEventHandler, readBody, createError } from 'h3'
-import { getSquareClient, serializeBigInt } from '~/server/utils/squareClient'
+import { getSquareCredentials, squareFetch } from '~/server/utils/squareClient'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -10,22 +10,20 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const { client, locationId } = await getSquareClient()
-    const idempotencyKey = `${referenceId || 'novaops'}-${Date.now()}`
-
-    const { result } = await client.paymentsApi.createPayment({
-      sourceId,
-      idempotencyKey,
-      amountMoney: { amount: BigInt(amountCents), currency: 'USD' },
-      locationId,
-      referenceId: referenceId || 'novaops-pos',
-      note: note || 'NovaOps Sale',
+    const { accessToken, locationId } = getSquareCredentials()
+    const data = await squareFetch('/payments', accessToken, {
+      method: 'POST',
+      body: {
+        source_id: sourceId,
+        idempotency_key: `${referenceId || 'novaops'}-${Date.now()}`,
+        amount_money: { amount: amountCents, currency: 'USD' },
+        location_id: locationId,
+        reference_id: referenceId || 'novaops-pos',
+        note: note || 'NovaOps Sale',
+      },
     })
-
-    const payment = serializeBigInt(result.payment)
-    return { success: true, paymentId: payment.id, status: payment.status }
+    return { success: true, paymentId: data.payment?.id, status: data.payment?.status }
   } catch (error: any) {
-    const msg = error.errors?.[0]?.detail || error.message || 'Payment failed'
-    throw createError({ statusCode: 400, statusMessage: msg })
+    throw createError({ statusCode: 400, statusMessage: error.message || 'Payment failed' })
   }
 })
