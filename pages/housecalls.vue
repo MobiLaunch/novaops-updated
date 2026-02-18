@@ -259,7 +259,7 @@
             <Button
               v-if="editingCall"
               variant="destructive"
-              @click="deleteHouseCall"
+              @click="handleDeleteHouseCall"
             >
               <Trash2 class="w-4 h-4 mr-2" />
               Delete
@@ -322,7 +322,7 @@ interface HouseCall {
 
 const appStore = useAppStore()
 const { customers, houseCalls, isLoaded } = storeToRefs(appStore)
-const { createHouseCall, updateHouseCall, deleteHouseCall, initializeData } = appStore
+const { createHouseCall: storeCreateHouseCall, updateHouseCall: storeUpdateHouseCall, deleteHouseCall: storeDeleteHouseCall, initializeData } = appStore
 const { addNotification } = useNotifications()
 
 onMounted(() => {
@@ -417,7 +417,7 @@ const saveHouseCall = async () => {
   }
   try {
     if (editingCall.value) {
-      await updateHouseCall(editingCall.value.id, {
+      await storeUpdateHouseCall(editingCall.value.id, {
         customerId: callForm.value.customerId,
         description: callForm.value.description,
         date: callForm.value.date,
@@ -428,7 +428,7 @@ const saveHouseCall = async () => {
       })
       addNotification('Updated', 'House call updated successfully', 'success')
     } else {
-      await createHouseCall({ ...callForm.value })
+      await storeCreateHouseCall({ ...callForm.value })
       addNotification('Scheduled', 'House call scheduled successfully', 'success')
     }
     cancelEdit()
@@ -451,11 +451,11 @@ const editHouseCall = (call: HouseCall) => {
   }
 }
 
-const deleteHouseCall = async () => {
+const handleDeleteHouseCall = async () => {
   if (!editingCall.value) return
   if (confirm('Delete this house call?')) {
     try {
-      await deleteHouseCall(editingCall.value.id)
+      await storeDeleteHouseCall(editingCall.value.id)
       addNotification('Deleted', 'House call deleted', 'info')
       cancelEdit()
     } catch (err: any) {
