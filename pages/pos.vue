@@ -734,11 +734,18 @@ const processPayment = async (method: 'card' | 'cash') => {
     return
   }
 
-  // Try terminal first if device ID is configured, otherwise go straight to card form
+  const hasCredentials = !!(runtimeConfig.public.squareApplicationId && runtimeConfig.public.squareLocationId)
+
+  // Try terminal first if device ID is configured
   if (squareDeviceId.value) {
     await startTerminalPayment()
-  } else {
+  } else if (hasCredentials) {
+    // Web Payments SDK card form
     await openCardForm()
+  } else {
+    // Square enabled in settings but credentials not configured — just complete sale
+    addNotification('Square Not Configured', 'Add SQUARE_APPLICATION_ID and SQUARE_LOCATION_ID to your Vercel env vars to enable card payments. Recording sale as Card.', 'warning')
+    completeSale('Card')
   }
 }
 </script>
