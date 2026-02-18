@@ -300,7 +300,14 @@ definePageMeta({ middleware: ['auth'] })
 
 const appStore = useAppStore()
 const { appointments, customers, houseCalls } = storeToRefs(appStore)
-const { createAppointment, updateAppointment, deleteAppointment, createHouseCall, updateHouseCall, deleteHouseCall } = appStore
+const { 
+  createAppointment: storeCreateAppointment, 
+  updateAppointment: storeUpdateAppointment, 
+  deleteAppointment: storeDeleteAppointment,
+  createHouseCall: storeCreateHouseCall,
+  updateHouseCall: storeUpdateHouseCall,
+  deleteHouseCall: storeDeleteHouseCall
+} = appStore
 
 const currentDate = ref(new Date())
 const selectedDay = ref<Date | null>(null)
@@ -521,9 +528,9 @@ const saveAppointment = async () => {
   }
   try {
     if (editingAppointment.value) {
-      await updateAppointment(editingAppointment.value.id, { ...appointmentForm.value })
+      await storeUpdateAppointment(editingAppointment.value.id, { ...appointmentForm.value })
     } else {
-      await createAppointment({ ...appointmentForm.value, notes: '' })
+      await storeCreateAppointment({ ...appointmentForm.value, notes: '' })
     }
     appointmentDialogOpen.value = false
     editingAppointment.value = null
@@ -535,7 +542,7 @@ const saveAppointment = async () => {
 const deleteAppointment = async () => {
   if (!editingAppointment.value || !confirm('Delete this appointment?')) return
   try {
-    await deleteAppointment(editingAppointment.value.id)
+    await storeDeleteAppointment(editingAppointment.value.id)
   } catch (err: any) {
     alert('Failed to delete: ' + (err.message || err))
   }
@@ -559,9 +566,9 @@ const saveHouseCall = async () => {
   }
   try {
     if (editingHouseCall.value) {
-      await updateHouseCall(editingHouseCall.value.id, { ...houseCallForm.value })
+      await storeUpdateHouseCall(editingHouseCall.value.id, { ...houseCallForm.value })
     } else {
-      await createHouseCall({ ...houseCallForm.value })
+      await storeCreateHouseCall({ ...houseCallForm.value })
     }
     houseCallDialogOpen.value = false
     editingHouseCall.value = null
@@ -573,7 +580,7 @@ const saveHouseCall = async () => {
 const deleteHouseCall = async () => {
   if (!editingHouseCall.value || !confirm('Delete this house call?')) return
   try {
-    await deleteHouseCall(editingHouseCall.value.id)
+    await storeDeleteHouseCall(editingHouseCall.value.id)
   } catch (err: any) {
     alert('Failed to delete: ' + (err.message || err))
   }
