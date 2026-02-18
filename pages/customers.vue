@@ -214,6 +214,14 @@ const createCustomer = async () => {
 
   saving.value = true
   try {
+    console.log('[customers] user:', user.value)
+    console.log('[customers] supabase:', $supabase)
+
+    if (!user.value?.id) {
+      alert('Not logged in — user is null. Please refresh and try again.')
+      return
+    }
+
     const { data, error } = await ($supabase as any)
       .from('customers')
       .insert({
