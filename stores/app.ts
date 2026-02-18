@@ -77,7 +77,15 @@ export const useAppStore = defineStore('app', () => {
     category: i.category ?? 'Parts',
   })
 
-  // --- Data Loading ---
+  const normalizeHouseCall = (h: any) => ({
+    ...h,
+    customerId: h.customer_id ?? h.customerId,
+  })
+
+  const normalizeAppointment = (a: any) => ({
+    ...a,
+    customerId: a.customer_id ?? a.customerId,
+  })
   const initializeData = async () => {
     if (!$supabase) {
       console.warn('[NovaOps] Supabase not configured. Running in offline mode.')
@@ -107,8 +115,8 @@ export const useAppStore = defineStore('app', () => {
       tickets.value = (t.data || []).map(normalizeTicket)
       customers.value = (c.data || []).map(normalizeCustomer)
       inventory.value = (i.data || []).map(normalizeInventory)
-      houseCalls.value = h.data || []
-      appointments.value = a.data || []
+      houseCalls.value = (h.data || []).map(normalizeHouseCall)
+      appointments.value = (a.data || []).map(normalizeAppointment)
 
       if (p.data) {
         settings.value = {
@@ -161,6 +169,8 @@ export const useAppStore = defineStore('app', () => {
         const norm = table === 'tickets' ? normalizeTicket(newRecord)
           : table === 'customers' ? normalizeCustomer(newRecord)
           : table === 'inventory' ? normalizeInventory(newRecord)
+          : table === 'house_calls' ? normalizeHouseCall(newRecord)
+          : table === 'appointments' ? normalizeAppointment(newRecord)
           : newRecord
         targetArray.value.unshift(norm)
         break
@@ -279,7 +289,7 @@ export const useAppStore = defineStore('app', () => {
       notes: call.notes || '',
     }).select().single()
     if (error) throw error
-    houseCalls.value.push(data)
+    houseCalls.value.push(normalizeHouseCall(data))
     return data
   }
 
@@ -290,7 +300,7 @@ export const useAppStore = defineStore('app', () => {
     const { data, error } = await ($supabase as any).from('house_calls').update(payload).eq('id', id).select().single()
     if (error) throw error
     const index = houseCalls.value.findIndex(h => h.id === id)
-    if (index !== -1) houseCalls.value[index] = data
+    if (index !== -1) houseCalls.value[index] = normalizeHouseCall(data)
     return data
   }
 
@@ -315,7 +325,7 @@ export const useAppStore = defineStore('app', () => {
       notes: appt.notes || '',
     }).select().single()
     if (error) throw error
-    appointments.value.push(data)
+    appointments.value.push(normalizeAppointment(data))
     return data
   }
 
@@ -326,7 +336,7 @@ export const useAppStore = defineStore('app', () => {
     const { data, error } = await ($supabase as any).from('appointments').update(payload).eq('id', id).select().single()
     if (error) throw error
     const index = appointments.value.findIndex(a => a.id === id)
-    if (index !== -1) appointments.value[index] = data
+    if (index !== -1) appointments.value[index] = normalizeAppointment(data)
     return data
   }
 
