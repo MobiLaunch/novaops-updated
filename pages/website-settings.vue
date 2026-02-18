@@ -429,12 +429,15 @@ async function saveSettings() {
   saveStatus.value = 'idle'
 
   try {
+    // Include profile_id so the portal knows which shop it belongs to
+    const { data: { user } } = await supabase.auth.getUser()
+
     const payload = {
       ...form.value,
-      // Ensure JSONB arrays are proper objects (not strings)
       services: form.value.services,
       features: form.value.features,
       updated_at: new Date().toISOString(),
+      ...(user ? { profile_id: user.id } : {}),
     }
 
     // Try update first, then insert (upsert on id=1 row)
