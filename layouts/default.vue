@@ -163,10 +163,8 @@
 </template>
 
 <script setup lang="ts">
-import { Globe } from 'lucide-vue-next'
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useAppStore } from '~/stores/app'
-import { ScanLine, Upload, FileText, Globe } from 'lucide-vue-next'
 
 import { 
   LayoutDashboard, 
@@ -180,6 +178,9 @@ import {
   Menu,
   X,
   MapPin,
+  ScanLine,
+  Upload,
+  Globe,
 } from 'lucide-vue-next'
 import { Button } from '~/components/ui/button'
 import NotificationsPanel from "~/components/NotificationsPanel.vue"
@@ -263,41 +264,6 @@ const navigation = [
     color: '#ec4899',
     badge: { label: 'Live', color: '#10b981' }
   },
-  {
-  name: 'Website',
-  path: '/website-settings',
-  icon: Globe,
-  color: '#06b6d4',
-  badge: { label: 'Portal', color: '#06b6d4' }
-  },
-  {
-  name: 'Barcodes',
-  path: '/barcodes',
-  icon: ScanLine,
-  color: '#06b6d4',
-  badge: null,
-},
-{
-  name: 'Import',
-  path: '/import',
-  icon: Upload,
-  color: '#8b5cf6',
-  badge: null,
-},
-{
-  name: 'Forms',
-  path: '/forms',
-  icon: FileText,
-  color: '#10b981',
-  badge: { label: 'New', color: '#10b981' },
-},
-{
-  name: 'Website',
-  path: '/website-settings',
-  icon: Globe,
-  color: '#f59e0b',
-  badge: { label: 'Portal', color: '#f59e0b' },
-},
   { 
     name: 'Reports', path: '/reports', icon: FileText, 
     color: '#f97316',
