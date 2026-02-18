@@ -184,7 +184,7 @@ definePageMeta({
 
 const appStore = useAppStore()
 const { tickets, customers, settings, isLoaded } = storeToRefs(appStore)
-const { saveAll, trackDevice, initializeData } = appStore
+const { createTicket, trackDevice, initializeData } = appStore
 const { addNotification } = useNotifications()
 
 onMounted(() => {
@@ -257,45 +257,35 @@ const openTicket = (ticket: Ticket) => {
   selectedTicket.value = { ...ticket }
 }
 
-const handleCreateTicket = (ticketData: any) => {
-  const existingIds = (tickets.value || []).map(t => t.id)
-  const nextId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 101
-
-  const ticket: Ticket = {
-    id: nextId,
-    customerId: ticketData.customerId,
-    device: ticketData.device,
-    deviceModel: ticketData.deviceModel,
-    deviceDescription: ticketData.deviceDescription,
-    issue: ticketData.issue,
-    status: 'Open',
-    tracking: null,
-    price: 0,
-    serialNumber: ticketData.serialNumber,
-    warrantyDays: 0,
-    warrantyStart: null,
-    photos: [],
-    signature: ticketData.signature,
-    notes: [],
-    parts: [],
-    payments: [],
-    timeLog: [],
-    priority: (ticketData.priority as 'low' | 'normal' | 'high') || 'normal',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+const handleCreateTicket = async (ticketData: any) => {
+  try {
+    await createTicket({
+      customerId: ticketData.customerId,
+      device: ticketData.device,
+      deviceModel: ticketData.deviceModel,
+      deviceDescription: ticketData.deviceDescription,
+      issue: ticketData.issue,
+      status: 'Open',
+      price: ticketData.price || 0,
+      serialNumber: ticketData.serialNumber,
+      warrantyDays: ticketData.warrantyDays || 0,
+      warrantyStart: null,
+      photos: [],
+      signature: ticketData.signature,
+      notes: [],
+      parts: [],
+      payments: [],
+      timeLog: [],
+      priority: ticketData.priority || 'normal',
+      tracking: null,
+    })
+    if (trackDevice) trackDevice(ticketData.device)
+    addNotification('Ticket Created', 'Ticket created successfully', 'success')
+    newTicketOpen.value = false
+  } catch (err: any) {
+    addNotification('Error', 'Failed to create ticket: ' + (err.message || err), 'error')
   }
-
-  if (!tickets.value) {
-    tickets.value = []
-  }
-  
-  tickets.value.push(ticket)
-  
-  if (trackDevice) trackDevice(ticket.device)
-  
-  saveAll()
-
-  addNotification('Ticket Created', `Ticket #${ticket.id} created successfully`, 'success')
-  newTicketOpen.value = false
 }
+
+
 </script>

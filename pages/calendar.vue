@@ -300,7 +300,7 @@ definePageMeta({ middleware: ['auth'] })
 
 const appStore = useAppStore()
 const { appointments, customers, houseCalls } = storeToRefs(appStore)
-const { saveAll } = appStore
+const { createAppointment, updateAppointment, deleteAppointment, createHouseCall, updateHouseCall, deleteHouseCall } = appStore
 
 const currentDate = ref(new Date())
 const selectedDay = ref<Date | null>(null)
@@ -514,26 +514,31 @@ const openNewAppointment = () => {
   appointmentDialogOpen.value = true
 }
 
-const saveAppointment = () => {
+const saveAppointment = async () => {
   if (!appointmentForm.value.customerId || !appointmentForm.value.description || !appointmentForm.value.date || !appointmentForm.value.time) {
     alert('Please fill in all required fields')
     return
   }
-  if (editingAppointment.value) {
-    const idx = appointments.value.findIndex((a: any) => a.id === editingAppointment.value.id)
-    if (idx > -1) appointments.value[idx] = { ...editingAppointment.value, ...appointmentForm.value }
-  } else {
-    appointments.value.push({ id: Date.now().toString(), ...appointmentForm.value, notes: '' })
+  try {
+    if (editingAppointment.value) {
+      await updateAppointment(editingAppointment.value.id, { ...appointmentForm.value })
+    } else {
+      await createAppointment({ ...appointmentForm.value, notes: '' })
+    }
+    appointmentDialogOpen.value = false
+    editingAppointment.value = null
+  } catch (err: any) {
+    alert('Failed to save appointment: ' + (err.message || err))
   }
-  saveAll()
-  appointmentDialogOpen.value = false
-  editingAppointment.value = null
 }
 
-const deleteAppointment = () => {
+const deleteAppointment = async () => {
   if (!editingAppointment.value || !confirm('Delete this appointment?')) return
-  const idx = appointments.value.findIndex((a: any) => a.id === editingAppointment.value.id)
-  if (idx > -1) { appointments.value.splice(idx, 1); saveAll() }
+  try {
+    await deleteAppointment(editingAppointment.value.id)
+  } catch (err: any) {
+    alert('Failed to delete: ' + (err.message || err))
+  }
   appointmentDialogOpen.value = false
   editingAppointment.value = null
 }
@@ -547,27 +552,31 @@ const openNewHouseCall = () => {
   houseCallDialogOpen.value = true
 }
 
-const saveHouseCall = () => {
+const saveHouseCall = async () => {
   if (!houseCallForm.value.customerId || !houseCallForm.value.description || !houseCallForm.value.date || !houseCallForm.value.time) {
     alert('Please fill in all required fields')
     return
   }
-  if (editingHouseCall.value) {
-    const idx = (houseCalls.value || []).findIndex((h: any) => h.id === editingHouseCall.value.id)
-    if (idx > -1) houseCalls.value[idx] = { ...editingHouseCall.value, ...houseCallForm.value }
-  } else {
-    if (!houseCalls.value) appStore.houseCalls = []
-    houseCalls.value.push({ id: Date.now().toString(), ...houseCallForm.value })
+  try {
+    if (editingHouseCall.value) {
+      await updateHouseCall(editingHouseCall.value.id, { ...houseCallForm.value })
+    } else {
+      await createHouseCall({ ...houseCallForm.value })
+    }
+    houseCallDialogOpen.value = false
+    editingHouseCall.value = null
+  } catch (err: any) {
+    alert('Failed to save house call: ' + (err.message || err))
   }
-  saveAll()
-  houseCallDialogOpen.value = false
-  editingHouseCall.value = null
 }
 
-const deleteHouseCall = () => {
+const deleteHouseCall = async () => {
   if (!editingHouseCall.value || !confirm('Delete this house call?')) return
-  const idx = (houseCalls.value || []).findIndex((h: any) => h.id === editingHouseCall.value.id)
-  if (idx > -1) { houseCalls.value.splice(idx, 1); saveAll() }
+  try {
+    await deleteHouseCall(editingHouseCall.value.id)
+  } catch (err: any) {
+    alert('Failed to delete: ' + (err.message || err))
+  }
   houseCallDialogOpen.value = false
   editingHouseCall.value = null
 }

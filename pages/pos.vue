@@ -384,7 +384,7 @@ definePageMeta({ middleware: ['auth'] })
 
 const appStore = useAppStore()
 const { inventory, settings } = storeToRefs(appStore)
-const { saveAll, initializeData } = appStore
+const { updateInventoryItem, initializeData } = appStore
 const { addNotification } = useNotifications()
 
 // ── Square State ────────────────────────────────────────────────────────────
@@ -579,15 +579,22 @@ const addCustomAmount = () => {
 }
 
 // ── Complete sale (deduct stock, save, clear) ────────────────────────────────
-const completeSale = (method: string) => {
-  cart.value.forEach(cartItem => {
-    if (cartItem.isVirtual) return
-    const inv = inventory.value.find(i => i.id === cartItem.id)
-    if (inv) inv.stock -= cartItem.quantity
-  })
-  saveAll()
-  addNotification('Sale Complete', `Payment of ${formatCurrency(total.value)} received via ${method}`, 'success')
-  clearCart()
+const completeSale = async (method: string) => {
+  try {
+    for (const cartItem of cart.value) {
+      if (cartItem.isVirtual) continue
+      const inv = inventory.value.find(i => i.id === cartItem.id)
+      if (inv) {
+        const newStock = inv.stock - cartItem.quantity
+        await updateInventoryItem(cartItem.id, { stock: newStock })
+      }
+    }
+    addNotification('Sale Complete', `Payment of ${formatCurrency(total.value)} received via ${method}`, 'success')
+    clearCart()
+  } catch (err: any) {
+    addNotification('Error', 'Sale recorded but stock update failed: ' + (err.message || err), 'error')
+    clearCart()
+  }
 }
 
 // ── Terminal flow ─────────────────────────────────────────────────────────────

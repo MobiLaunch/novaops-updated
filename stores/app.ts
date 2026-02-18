@@ -177,23 +177,204 @@ export const useAppStore = defineStore('app', () => {
   }
 
   // --- CRUD ---
+
+  // ── Tickets ──────────────────────────────────────────────────────────────
   const createTicket = async (ticketData: any) => {
     if (!$supabase) throw new Error('Supabase not configured')
     if (!user.value) throw new Error('Not authenticated')
-    const { error } = await ($supabase as any).from('tickets').insert({
-      ...ticketData,
-      profile_id: user.value.id
-    })
+    const { data, error } = await ($supabase as any).from('tickets').insert({
+      profile_id: user.value.id,
+      customer_id: ticketData.customerId,
+      device: ticketData.device,
+      device_model: ticketData.deviceModel || '',
+      device_description: ticketData.deviceDescription || '',
+      issue: ticketData.issue,
+      status: ticketData.status || 'Open',
+      price: ticketData.price || 0,
+      serial_number: ticketData.serialNumber || '',
+      warranty_days: ticketData.warrantyDays || 0,
+      warranty_start: ticketData.warrantyStart || null,
+      photos: ticketData.photos || [],
+      signature: ticketData.signature || null,
+      notes: ticketData.notes || [],
+      parts: ticketData.parts || [],
+      payments: ticketData.payments || [],
+      time_log: ticketData.timeLog || [],
+      priority: ticketData.priority || 'normal',
+      tracking: ticketData.tracking || null,
+    }).select().single()
     if (error) throw error
+    tickets.value.unshift(normalizeTicket(data))
+    return data
+  }
+
+  const updateTicket = async (id: number, updates: any) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    const { data, error } = await ($supabase as any).from('tickets').update(updates).eq('id', id).select().single()
+    if (error) throw error
+    const index = tickets.value.findIndex(t => t.id === id)
+    if (index !== -1) tickets.value[index] = normalizeTicket(data)
+    return data
   }
 
   const updateTicketStatus = async (id: number, status: string) => {
-    if (!$supabase) throw new Error('Supabase not configured')
-    const { error } = await ($supabase as any).from('tickets').update({ status }).eq('id', id)
-    if (error) throw error
+    return updateTicket(id, { status })
   }
 
-  // saveAll: persists settings to Supabase (called by pages after local mutations)
+  const deleteTicket = async (id: number) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    const { error } = await ($supabase as any).from('tickets').delete().eq('id', id)
+    if (error) throw error
+    tickets.value = tickets.value.filter(t => t.id !== id)
+  }
+
+  // ── Inventory ─────────────────────────────────────────────────────────────
+  const createInventoryItem = async (item: any) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    if (!user.value) throw new Error('Not authenticated')
+    const { data, error } = await ($supabase as any).from('inventory').insert({
+      profile_id: user.value.id,
+      name: item.name,
+      sku: item.sku || '',
+      category: item.category || 'Parts',
+      stock: item.stock || 0,
+      low: item.low || 5,
+      cost: item.cost || 0,
+      price: item.price || 0,
+      model: item.model || '',
+    }).select().single()
+    if (error) throw error
+    inventory.value.push(normalizeInventory(data))
+    return data
+  }
+
+  const updateInventoryItem = async (id: number, updates: any) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    const { data, error } = await ($supabase as any).from('inventory').update(updates).eq('id', id).select().single()
+    if (error) throw error
+    const index = inventory.value.findIndex(i => i.id === id)
+    if (index !== -1) inventory.value[index] = normalizeInventory(data)
+    return data
+  }
+
+  const deleteInventoryItem = async (id: number) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    const { error } = await ($supabase as any).from('inventory').delete().eq('id', id)
+    if (error) throw error
+    inventory.value = inventory.value.filter(i => i.id !== id)
+  }
+
+  // ── House Calls ───────────────────────────────────────────────────────────
+  const createHouseCall = async (call: any) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    if (!user.value) throw new Error('Not authenticated')
+    const { data, error } = await ($supabase as any).from('house_calls').insert({
+      profile_id: user.value.id,
+      customer_id: call.customerId,
+      description: call.description || '',
+      address: call.address || '',
+      date: call.date || null,
+      time: call.time || '',
+      status: call.status || 'scheduled',
+      notes: call.notes || '',
+    }).select().single()
+    if (error) throw error
+    houseCalls.value.push(data)
+    return data
+  }
+
+  const updateHouseCall = async (id: any, updates: any) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    const payload: any = { ...updates }
+    if (updates.customerId !== undefined) { payload.customer_id = updates.customerId; delete payload.customerId }
+    const { data, error } = await ($supabase as any).from('house_calls').update(payload).eq('id', id).select().single()
+    if (error) throw error
+    const index = houseCalls.value.findIndex(h => h.id === id)
+    if (index !== -1) houseCalls.value[index] = data
+    return data
+  }
+
+  const deleteHouseCall = async (id: any) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    const { error } = await ($supabase as any).from('house_calls').delete().eq('id', id)
+    if (error) throw error
+    houseCalls.value = houseCalls.value.filter(h => h.id !== id)
+  }
+
+  // ── Appointments ──────────────────────────────────────────────────────────
+  const createAppointment = async (appt: any) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    if (!user.value) throw new Error('Not authenticated')
+    const { data, error } = await ($supabase as any).from('appointments').insert({
+      profile_id: user.value.id,
+      customer_id: appt.customerId,
+      description: appt.description || '',
+      date: appt.date || null,
+      time: appt.time || '',
+      status: appt.status || 'scheduled',
+      notes: appt.notes || '',
+    }).select().single()
+    if (error) throw error
+    appointments.value.push(data)
+    return data
+  }
+
+  const updateAppointment = async (id: any, updates: any) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    const payload: any = { ...updates }
+    if (updates.customerId !== undefined) { payload.customer_id = updates.customerId; delete payload.customerId }
+    const { data, error } = await ($supabase as any).from('appointments').update(payload).eq('id', id).select().single()
+    if (error) throw error
+    const index = appointments.value.findIndex(a => a.id === id)
+    if (index !== -1) appointments.value[index] = data
+    return data
+  }
+
+  const deleteAppointment = async (id: any) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    const { error } = await ($supabase as any).from('appointments').delete().eq('id', id)
+    if (error) throw error
+    appointments.value = appointments.value.filter(a => a.id !== id)
+  }
+
+  // ── Customers ─────────────────────────────────────────────────────────────
+  const createCustomer = async (c: any) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    if (!user.value) throw new Error('Not authenticated')
+    const { data, error } = await ($supabase as any).from('customers').insert({
+      profile_id: user.value.id,
+      name: c.name,
+      phone: c.phone || '',
+      email: c.email || '',
+      drivers_license: c.driversLicense || '',
+      address: c.address || '',
+      tags: c.tags || [],
+      notes: c.notes || '',
+    }).select().single()
+    if (error) throw error
+    customers.value.unshift(normalizeCustomer(data))
+    return data
+  }
+
+  const updateCustomer = async (id: number, updates: any) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    const payload: any = { ...updates }
+    if (updates.driversLicense !== undefined) { payload.drivers_license = updates.driversLicense; delete payload.driversLicense }
+    const { data, error } = await ($supabase as any).from('customers').update(payload).eq('id', id).select().single()
+    if (error) throw error
+    const index = customers.value.findIndex(c => c.id === id)
+    if (index !== -1) customers.value[index] = normalizeCustomer(data)
+    return data
+  }
+
+  const deleteCustomer = async (id: number) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    const { error } = await ($supabase as any).from('customers').delete().eq('id', id)
+    if (error) throw error
+    customers.value = customers.value.filter(c => c.id !== id)
+  }
+
+  // ── Settings ──────────────────────────────────────────────────────────────
   const saveAll = async () => {
     if (!$supabase || !user.value) return
     await ($supabase as any).from('profiles').update({
@@ -238,7 +419,21 @@ export const useAppStore = defineStore('app', () => {
     initializeData,
     checkAuth,
     createTicket,
+    updateTicket,
     updateTicketStatus,
+    deleteTicket,
+    createInventoryItem,
+    updateInventoryItem,
+    deleteInventoryItem,
+    createHouseCall,
+    updateHouseCall,
+    deleteHouseCall,
+    createAppointment,
+    updateAppointment,
+    deleteAppointment,
+    createCustomer,
+    updateCustomer,
+    deleteCustomer,
     saveAll,
     trackDevice,
     logout

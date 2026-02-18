@@ -322,7 +322,7 @@ interface HouseCall {
 
 const appStore = useAppStore()
 const { customers, houseCalls, isLoaded } = storeToRefs(appStore)
-const { saveAll, initializeData } = appStore
+const { createHouseCall, updateHouseCall, deleteHouseCall, initializeData } = appStore
 const { addNotification } = useNotifications()
 
 onMounted(() => {
@@ -409,42 +409,32 @@ const getStatusVariant = (status: string) => {
   return variants[status] || 'outline'
 }
 
-const saveHouseCall = () => {
+const saveHouseCall = async () => {
   if (!callForm.value.customerId || !callForm.value.description || 
       !callForm.value.date || !callForm.value.time || !callForm.value.address) {
     addNotification('Missing Information', 'Please fill in all required fields', 'warning')
     return
   }
-
-  if (editingCall.value) {
-    const index = (houseCalls.value || []).findIndex(c => c.id === editingCall.value!.id)
-    if (index > -1) {
-      houseCalls.value[index] = {
-        ...editingCall.value,
-        ...callForm.value,
-        customerId: callForm.value.customerId!
-      }
+  try {
+    if (editingCall.value) {
+      await updateHouseCall(editingCall.value.id, {
+        customerId: callForm.value.customerId,
+        description: callForm.value.description,
+        date: callForm.value.date,
+        time: callForm.value.time,
+        address: callForm.value.address,
+        status: callForm.value.status,
+        notes: callForm.value.notes,
+      })
       addNotification('Updated', 'House call updated successfully', 'success')
+    } else {
+      await createHouseCall({ ...callForm.value })
+      addNotification('Scheduled', 'House call scheduled successfully', 'success')
     }
-  } else {
-    const newCall: HouseCall = {
-      id: Date.now().toString(),
-      customerId: callForm.value.customerId!,
-      description: callForm.value.description,
-      date: callForm.value.date,
-      time: callForm.value.time,
-      address: callForm.value.address,
-      estimatedDuration: callForm.value.estimatedDuration,
-      status: callForm.value.status,
-      notes: callForm.value.notes
-    }
-    if (!houseCalls.value) houseCalls.value = []
-    houseCalls.value.push(newCall)
-    addNotification('Scheduled', 'House call scheduled successfully', 'success')
+    cancelEdit()
+  } catch (err: any) {
+    addNotification('Error', 'Failed to save house call: ' + (err.message || err), 'error')
   }
-
-  saveAll()
-  cancelEdit()
 }
 
 const editHouseCall = (call: HouseCall) => {
@@ -461,16 +451,15 @@ const editHouseCall = (call: HouseCall) => {
   }
 }
 
-const deleteHouseCall = () => {
+const deleteHouseCall = async () => {
   if (!editingCall.value) return
-  
   if (confirm('Delete this house call?')) {
-    const index = (houseCalls.value || []).findIndex(c => c.id === editingCall.value!.id)
-    if (index > -1) {
-      houseCalls.value.splice(index, 1)
-      saveAll()
+    try {
+      await deleteHouseCall(editingCall.value.id)
       addNotification('Deleted', 'House call deleted', 'info')
       cancelEdit()
+    } catch (err: any) {
+      addNotification('Error', 'Failed to delete: ' + (err.message || err), 'error')
     }
   }
 }

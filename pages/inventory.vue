@@ -342,7 +342,7 @@ definePageMeta({
 
 const appStore = useAppStore()
 const { inventory, settings, isLoaded } = storeToRefs(appStore)
-const { saveAll } = appStore
+const { createInventoryItem, updateInventoryItem, deleteInventoryItem } = appStore
 
 const searchQuery = ref('')
 const filterCategory = ref<string | null>(null)
@@ -386,25 +386,21 @@ const calculateNewStock = () => {
   else return adjustmentQty.value
 }
 
-const saveItem = () => {
+const saveItem = async () => {
   if (!itemForm.value.name || !itemForm.value.sku) {
     alert('Name and SKU are required')
     return
   }
-  if (editingItem.value) {
-    const index = (inventory.value || []).findIndex(i => i.id === editingItem.value!.id)
-    if (index > -1) {
-      inventory.value[index] = { ...editingItem.value, ...itemForm.value }
+  try {
+    if (editingItem.value) {
+      await updateInventoryItem(editingItem.value.id, { ...itemForm.value })
+    } else {
+      await createInventoryItem({ ...itemForm.value })
     }
-  } else {
-    const newItem: any = {
-      id: Math.max(...(inventory.value || []).map(i => i.id), 0) + 1,
-      ...itemForm.value
-    }
-    inventory.value.push(newItem)
+    cancelEdit()
+  } catch (err: any) {
+    alert('Failed to save item: ' + (err.message || err))
   }
-  saveAll()
-  cancelEdit()
 }
 
 const editItem = (item: InventoryItem) => {
@@ -426,25 +422,25 @@ const adjustStock = (item: InventoryItem) => {
   adjustStockOpen.value = true
 }
 
-const applyStockAdjustment = () => {
+const applyStockAdjustment = async () => {
   if (!selectedItem.value) return
-  const item = (inventory.value || []).find(i => i.id === selectedItem.value!.id)
-  if (item) {
-    item.stock = calculateNewStock()
-    saveAll()
+  try {
+    await updateInventoryItem(selectedItem.value.id, { stock: calculateNewStock() })
+  } catch (err: any) {
+    alert('Failed to adjust stock: ' + (err.message || err))
   }
   adjustStockOpen.value = false
   selectedItem.value = null
 }
 
-const deleteItem = (id: number) => {
+const deleteItem = async (id: number) => {
   const item = (inventory.value || []).find(i => i.id === id)
   if (!item) return
   if (confirm(`Delete ${item.name}? This cannot be undone.`)) {
-    const index = (inventory.value || []).findIndex(i => i.id === id)
-    if (index > -1) {
-      inventory.value.splice(index, 1)
-      saveAll()
+    try {
+      await deleteInventoryItem(id)
+    } catch (err: any) {
+      alert('Failed to delete item: ' + (err.message || err))
     }
   }
 }
