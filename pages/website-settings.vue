@@ -132,10 +132,21 @@
               <div class="flex items-center gap-2 flex-shrink-0">
                 <Input v-model="service.icon" placeholder="🔧" class="w-14 text-center text-lg h-8 p-1" />
                 <div class="flex items-center gap-1.5">
-                  <Switch
-                    :checked="service.enabled !== false"
-                    @update:checked="v => service.enabled = v"
-                  />
+                  <button
+                    type="button"
+                    @click="service.enabled = !(service.enabled !== false)"
+                    :class="[
+                      'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none',
+                      service.enabled !== false ? 'bg-primary' : 'bg-muted'
+                    ]"
+                  >
+                    <span
+                      :class="[
+                        'pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200',
+                        service.enabled !== false ? 'translate-x-4' : 'translate-x-0'
+                      ]"
+                    />
+                  </button>
                   <span class="text-xs text-muted-foreground">{{ service.enabled !== false ? 'On' : 'Off' }}</span>
                 </div>
                 <Button
@@ -318,7 +329,6 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Textarea } from '~/components/ui/textarea'
-import { Switch } from '~/components/ui/switch'
 
 // ── Supabase ──────────────────────────────────────
 const config = useRuntimeConfig()
