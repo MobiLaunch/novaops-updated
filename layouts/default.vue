@@ -270,6 +270,26 @@ const navigation = [
     badge: null
   },
   { 
+    name: 'Barcodes', path: '/barcodes', icon: ScanLine, 
+    color: '#06b6d4',
+    badge: null
+  },
+  { 
+    name: 'Import', path: '/import', icon: Upload, 
+    color: '#8b5cf6',
+    badge: null
+  },
+  { 
+    name: 'Forms', path: '/forms', icon: FileText, 
+    color: '#10b981',
+    badge: { label: 'New', color: '#10b981' }
+  },
+  { 
+    name: 'Website', path: '/website-settings', icon: Globe, 
+    color: '#f59e0b',
+    badge: { label: 'Portal', color: '#f59e0b' }
+  },
+  { 
     name: 'Settings', path: '/settings', icon: SettingsIcon, 
     color: '#64748b',
     badge: null
