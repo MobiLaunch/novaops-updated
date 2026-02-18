@@ -163,6 +163,7 @@
 </template>
 
 <script setup lang="ts">
+import { Globe } from 'lucide-vue-next'
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useAppStore } from '~/stores/app'
 
@@ -260,6 +261,13 @@ const navigation = [
     name: 'POS', path: '/pos', icon: ShoppingCart, 
     color: '#ec4899',
     badge: { label: 'Live', color: '#10b981' }
+  },
+  {
+  name: 'Website',
+  path: '/website-settings',
+  icon: Globe,
+  color: '#06b6d4',
+  badge: { label: 'Portal', color: '#06b6d4' }
   },
   { 
     name: 'Reports', path: '/reports', icon: FileText, 
