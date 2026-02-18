@@ -146,9 +146,10 @@
             </Button>
             <Button 
               class="flex-1"
+              :disabled="saving"
               @click="createCustomer"
             >
-              Create Customer
+              {{ saving ? 'Saving...' : 'Create Customer' }}
             </Button>
           </div>
         </div>
@@ -177,11 +178,12 @@ definePageMeta({
 })
 
 const appStore = useAppStore()
-const { customers, tickets, isLoaded } = storeToRefs(appStore)
-const { saveAll } = appStore
+const { customers, tickets, isLoaded, user } = storeToRefs(appStore)
+const { $supabase } = useNuxtApp()
 
 const searchQuery = ref('')
 const newCustomerOpen = ref(false)
+const saving = ref(false)
 const newCustomer = ref({
   name: '',
   phone: '',
@@ -204,26 +206,37 @@ const getCustomerTickets = (customerId: number) => {
   return (tickets.value || []).filter(t => t.customerId === customerId).length
 }
 
-const createCustomer = () => {
+const createCustomer = async () => {
   if (!newCustomer.value.name || !newCustomer.value.phone) {
     alert('Name and phone are required')
     return
   }
 
-  const customer: Customer = {
-    id: Math.max(...(customers.value || []).map(c => c.id), 0) + 1,
-    name: newCustomer.value.name,
-    phone: newCustomer.value.phone,
-    email: newCustomer.value.email,
-    tags: [],
-    notes: newCustomer.value.notes
+  saving.value = true
+  try {
+    const { data, error } = await ($supabase as any)
+      .from('customers')
+      .insert({
+        profile_id: user.value.id,
+        name: newCustomer.value.name,
+        phone: newCustomer.value.phone,
+        email: newCustomer.value.email || '',
+        notes: newCustomer.value.notes || '',
+        tags: []
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    customers.value.unshift(data)
+    newCustomerOpen.value = false
+    newCustomer.value = { name: '', phone: '', email: '', notes: '' }
+  } catch (err: any) {
+    alert('Failed to save customer: ' + (err.message || err))
+  } finally {
+    saving.value = false
   }
-
-  customers.value.push(customer)
-  saveAll()
-
-  newCustomerOpen.value = false
-  newCustomer.value = { name: '', phone: '', email: '', notes: '' }
 }
 
 const viewCustomer = (customer: Customer) => {
@@ -231,15 +244,23 @@ const viewCustomer = (customer: Customer) => {
   alert(`View customer: ${customer.name}`)
 }
 
-const deleteCustomer = (id: number) => {
+const deleteCustomer = async (id: number) => {
   const customer = (customers.value || []).find(c => c.id === id)
   if (!customer) return
 
   if (confirm(`Delete ${customer.name}? This cannot be undone.`)) {
-    const index = (customers.value || []).findIndex(c => c.id === id)
-    if (index > -1) {
-      customers.value.splice(index, 1)
-      saveAll()
+    try {
+      const { error } = await ($supabase as any)
+        .from('customers')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+
+      const index = (customers.value || []).findIndex(c => c.id === id)
+      if (index > -1) customers.value.splice(index, 1)
+    } catch (err: any) {
+      alert('Failed to delete customer: ' + (err.message || err))
     }
   }
 }
