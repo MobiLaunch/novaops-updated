@@ -394,7 +394,20 @@ const squareSettings = ref({
   deviceId: '',
 })
 
-onMounted(() => {
+onMounted(async () => {
+  // Load from Supabase profile first, fall back to localStorage
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data } = await supabase.from('profiles').select('square_settings').eq('id', user.id).single()
+      if (data?.square_settings) {
+        squareSettings.value.enabled = data.square_settings.enabled || false
+        squareSettings.value.deviceId = data.square_settings.deviceId || ''
+        return
+      }
+    }
+  } catch(e) {}
+  // Fallback: localStorage
   const saved = localStorage.getItem('squareSettings')
   if (saved) {
     try {
@@ -453,8 +466,20 @@ const startPairingPoll = () => {
   }, 3000)
 }
 
-const saveSquareSettings = () => {
+const saveSquareSettings = async () => {
+  // Always save to localStorage as immediate fallback
   localStorage.setItem('squareSettings', JSON.stringify(squareSettings.value))
+  // Also persist to Supabase profile
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      await supabase.from('profiles').update({
+        square_settings: squareSettings.value
+      }).eq('id', user.id)
+    }
+  } catch(e) {
+    console.warn('Could not save Square settings to Supabase:', e)
+  }
 }
 
 const toggleSquare = () => {

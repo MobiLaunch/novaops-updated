@@ -165,6 +165,56 @@
               </Select>
             </div>
 
+            <!-- INVENTORY fields -->
+            <template v-if="labelConfig.type === 'inventory'">
+              <div class="space-y-2">
+                <Label>Select Item to Preview</Label>
+                <Select v-model="previewItemId">
+                  <SelectTrigger><SelectValue placeholder="Choose an item..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="item in inventory" :key="item.id" :value="String(item.id)">{{ item.name }}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="flex items-center gap-2"><input type="checkbox" id="showPrice" v-model="labelConfig.showPrice" class="w-4 h-4 rounded" /><Label for="showPrice" class="cursor-pointer">Show Price</Label></div>
+                <div class="flex items-center gap-2"><input type="checkbox" id="showSku" v-model="labelConfig.showSku" class="w-4 h-4 rounded" /><Label for="showSku" class="cursor-pointer">Show SKU</Label></div>
+                <div class="flex items-center gap-2"><input type="checkbox" id="showName" v-model="labelConfig.showName" class="w-4 h-4 rounded" /><Label for="showName" class="cursor-pointer">Show Name</Label></div>
+                <div class="flex items-center gap-2"><input type="checkbox" id="showBiz" v-model="labelConfig.showBiz" class="w-4 h-4 rounded" /><Label for="showBiz" class="cursor-pointer">Show Business</Label></div>
+              </div>
+            </template>
+
+            <!-- TICKET fields -->
+            <template v-else-if="labelConfig.type === 'ticket'">
+              <div class="space-y-2">
+                <Label>Ticket Number</Label>
+                <Input v-model="labelConfig.ticketId" placeholder="e.g. 1042" />
+              </div>
+              <div class="space-y-2">
+                <Label>Customer Name</Label>
+                <Input v-model="labelConfig.ticketCustomer" placeholder="e.g. John Smith" />
+              </div>
+              <div class="space-y-2">
+                <Label>Device</Label>
+                <Input v-model="labelConfig.ticketDevice" placeholder="e.g. iPhone 14 Pro" />
+              </div>
+              <div class="flex items-center gap-2"><input type="checkbox" id="showBizT" v-model="labelConfig.showBiz" class="w-4 h-4 rounded" /><Label for="showBizT" class="cursor-pointer">Show Business Name</Label></div>
+            </template>
+
+            <!-- ASSET TAG fields -->
+            <template v-else-if="labelConfig.type === 'asset'">
+              <div class="space-y-2">
+                <Label>Asset ID / Tag Number</Label>
+                <Input v-model="labelConfig.assetId" placeholder="e.g. ASSET-0042" />
+              </div>
+              <div class="space-y-2">
+                <Label>Asset Description</Label>
+                <Input v-model="labelConfig.assetDesc" placeholder="e.g. Dell Laptop" />
+              </div>
+              <div class="flex items-center gap-2"><input type="checkbox" id="showBizA" v-model="labelConfig.showBiz" class="w-4 h-4 rounded" /><Label for="showBizA" class="cursor-pointer">Show Business Name</Label></div>
+            </template>
+
+            <!-- Shared fields for all types -->
             <div class="space-y-2">
               <Label>Barcode Format</Label>
               <Select v-model="labelConfig.barcodeFormat">
@@ -190,25 +240,6 @@
                   <SelectItem value="4x6">4" × 6" (shipping)</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div class="flex items-center gap-2">
-                <input type="checkbox" id="showPrice" v-model="labelConfig.showPrice" class="w-4 h-4 rounded" />
-                <Label for="showPrice" class="cursor-pointer">Show Price</Label>
-              </div>
-              <div class="flex items-center gap-2">
-                <input type="checkbox" id="showSku" v-model="labelConfig.showSku" class="w-4 h-4 rounded" />
-                <Label for="showSku" class="cursor-pointer">Show SKU</Label>
-              </div>
-              <div class="flex items-center gap-2">
-                <input type="checkbox" id="showName" v-model="labelConfig.showName" class="w-4 h-4 rounded" />
-                <Label for="showName" class="cursor-pointer">Show Name</Label>
-              </div>
-              <div class="flex items-center gap-2">
-                <input type="checkbox" id="showBiz" v-model="labelConfig.showBiz" class="w-4 h-4 rounded" />
-                <Label for="showBiz" class="cursor-pointer">Show Business</Label>
-              </div>
             </div>
 
             <div class="space-y-2">
@@ -369,6 +400,8 @@
             <Barcode class="w-4 h-4 mr-2" />
             Generate
           </Button>
+
+          <p v-if="genBarcode.error" class="text-sm text-destructive">{{ genBarcode.error }}</p>
 
           <!-- Generated barcode display -->
           <div v-if="genBarcode.generated" class="flex flex-col items-center gap-4 p-6 border rounded-xl bg-white">
@@ -632,6 +665,17 @@ const labelConfig = ref({
   showBiz:       true,
   customText:    '',
   copies:        1,
+  // Ticket fields
+  ticketId:      '',
+  ticketCustomer:'',
+  ticketDevice:  '',
+  // Asset fields
+  assetId:       '',
+  assetDesc:     '',
+  // Shipping fields
+  shipTo:        '',
+  shipAddress:   '',
+  shipRef:       '',
 })
 
 const previewItemId = ref('')
@@ -687,26 +731,72 @@ function addSelectedToPrintQueue() {
 }
 
 // ── Barcode Generator ─────────────────────────────
-const genBarcode = ref({ value: '', format: 'CODE128', generated: false })
+const genBarcode = ref({ value: '', format: 'CODE128', generated: false, error: '' })
 
-function generateBarcode() {
+async function loadJsBarcode(): Promise<void> {
+  if ((window as any).JsBarcode) return
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script')
+    script.src = 'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js'
+    script.onload = () => resolve()
+    script.onerror = () => reject(new Error('Failed to load JsBarcode'))
+    document.head.appendChild(script)
+  })
+}
+
+async function generateBarcode() {
+  if (!genBarcode.value.value.trim()) return
+  genBarcode.value.error = ''
   genBarcode.value.generated = true
-  // JsBarcode would render to #gen-barcode-canvas here
+  await nextTick()
+  try {
+    await loadJsBarcode()
+    const canvas = document.getElementById('gen-barcode-canvas') as HTMLCanvasElement
+    if (!canvas) return
+    const fmt = genBarcode.value.format
+    if (fmt === 'QR') {
+      // QR fallback using a free API since JsBarcode doesn't do QR
+      const img = document.createElement('img')
+      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(genBarcode.value.value)}`
+      img.style.maxWidth = '100%'
+      canvas.replaceWith(img)
+      img.id = 'gen-barcode-canvas'
+    } else {
+      ;(window as any).JsBarcode(canvas, genBarcode.value.value, {
+        format: fmt,
+        width: 2,
+        height: 80,
+        displayValue: true,
+        fontSize: 14,
+        margin: 10,
+        background: '#ffffff',
+        lineColor: '#000000',
+      })
+    }
+  } catch(e: any) {
+    genBarcode.value.error = e.message || 'Failed to generate barcode'
+    genBarcode.value.generated = false
+  }
 }
 
 function downloadBarcode() {
-  const canvas = document.getElementById('gen-barcode-canvas') as HTMLCanvasElement
+  const canvas = document.getElementById('gen-barcode-canvas') as HTMLCanvasElement | HTMLImageElement
   if (!canvas) return
   const link = document.createElement('a')
   link.download = `barcode-${genBarcode.value.value}.png`
-  link.href = canvas.toDataURL()
+  if (canvas instanceof HTMLCanvasElement) {
+    link.href = canvas.toDataURL()
+  } else {
+    link.href = (canvas as HTMLImageElement).src
+  }
   link.click()
 }
 
 function printGeneratedBarcode() {
-  const canvas = document.getElementById('gen-barcode-canvas') as HTMLCanvasElement
+  const canvas = document.getElementById('gen-barcode-canvas') as HTMLCanvasElement | HTMLImageElement
   if (!canvas) return
-  const html = `<html><body style="margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${canvas.toDataURL()}" style="max-width:100%"/></body></html>`
+  const src = canvas instanceof HTMLCanvasElement ? canvas.toDataURL() : (canvas as HTMLImageElement).src
+  const html = `<html><body style="margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${src}" style="max-width:100%"/></body></html>`
   openPrintWindow(html)
 }
 
@@ -775,16 +865,57 @@ function stopCamera() {
 function buildPrintHTML(items: InventoryItem[]): string {
   const cfg = labelConfig.value
   const [w, h] = cfg.size.split('x').map(Number)
-  const labelsHtml = items.map(item => `
-    <div class="label" style="width:${w}in;height:${h}in">
-      ${cfg.showBiz ? `<div class="biz">${settings.value?.businessName || 'NovaOps'}</div>` : ''}
-      ${cfg.showName ? `<div class="name">${item.name}</div>` : ''}
-      <div class="sku-bar">${item.sku || String(item.id)}</div>
-      ${cfg.showSku ? `<div class="sku">${item.sku}</div>` : ''}
-      ${cfg.showPrice ? `<div class="price">${formatCurrency(item.price)}</div>` : ''}
-      ${cfg.customText ? `<div class="custom">${cfg.customText}</div>` : ''}
-    </div>
-  `).join('')
+
+  let labelsHtml = ''
+
+  if (cfg.type === 'ticket') {
+    const biz = cfg.showBiz ? settings.value?.businessName || 'NovaOps' : ''
+    const barVal = `TK-${cfg.ticketId || '0000'}`
+    labelsHtml = `
+      <div class="label" style="width:${w}in;height:${h}in">
+        ${biz ? `<div class="biz">${biz}</div>` : ''}
+        <div class="name">Ticket #${cfg.ticketId || '—'}</div>
+        <div class="detail">${cfg.ticketCustomer || ''}</div>
+        <div class="detail">${cfg.ticketDevice || ''}</div>
+        <div class="sku-bar">${barVal}</div>
+        ${cfg.customText ? `<div class="custom">${cfg.customText}</div>` : ''}
+      </div>
+    `
+  } else if (cfg.type === 'asset') {
+    const biz = cfg.showBiz ? settings.value?.businessName || 'NovaOps' : ''
+    labelsHtml = `
+      <div class="label" style="width:${w}in;height:${h}in">
+        ${biz ? `<div class="biz">${biz}</div>` : ''}
+        <div class="name">${cfg.assetDesc || 'Asset'}</div>
+        <div class="sku-bar">${cfg.assetId || 'ASSET-00000'}</div>
+        <div class="sku">${cfg.assetId || ''}</div>
+        ${cfg.customText ? `<div class="custom">${cfg.customText}</div>` : ''}
+      </div>
+    `
+  } else if (cfg.type === 'shipping') {
+    labelsHtml = `
+      <div class="label" style="width:${w}in;height:${h}in;text-align:left;padding:8px;">
+        <div class="biz" style="font-size:8px;margin-bottom:4px;">${settings.value?.businessName || 'NovaOps'} — SHIP TO:</div>
+        <div class="name" style="font-size:14px;margin-bottom:4px;">${cfg.shipTo || '—'}</div>
+        <div class="detail" style="font-size:10px;line-height:1.4;">${cfg.shipAddress || ''}</div>
+        <div style="flex:1"></div>
+        <div class="sku-bar" style="font-size:20px;">${cfg.shipRef || 'REF-00000'}</div>
+        <div class="sku">${cfg.shipRef || ''}</div>
+      </div>
+    `
+  } else {
+    // Inventory (default)
+    labelsHtml = items.map(item => `
+      <div class="label" style="width:${w}in;height:${h}in">
+        ${cfg.showBiz ? `<div class="biz">${settings.value?.businessName || 'NovaOps'}</div>` : ''}
+        ${cfg.showName ? `<div class="name">${item.name}</div>` : ''}
+        <div class="sku-bar">${item.sku || String(item.id)}</div>
+        ${cfg.showSku ? `<div class="sku">${item.sku || ''}</div>` : ''}
+        ${cfg.showPrice ? `<div class="price">${formatCurrency(item.price)}</div>` : ''}
+        ${cfg.customText ? `<div class="custom">${cfg.customText}</div>` : ''}
+      </div>
+    `).join('')
+  }
 
   return `<!DOCTYPE html><html><head>
     <style>
@@ -794,6 +925,7 @@ function buildPrintHTML(items: InventoryItem[]): string {
       .label { border: 1px solid #ccc; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; box-sizing: border-box; page-break-inside: avoid; }
       .biz { font-size: 7px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; }
       .name { font-size: 9px; font-weight: bold; text-align: center; line-height: 1.2; }
+      .detail { font-size: 9px; color: #333; text-align: center; }
       .sku-bar { font-family: 'Libre Barcode 128', monospace; font-size: 24px; line-height: 1; }
       .sku { font-size: 7px; font-family: monospace; }
       .price { font-size: 14px; font-weight: bold; }
