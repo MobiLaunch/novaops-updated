@@ -261,9 +261,9 @@
           <ArrowLeft class="w-4 h-4 mr-2" />
           Back to Mapping
         </Button>
-        <Button @click="executeImport" :disabled="previewStats.willImport === 0" class="flex-1 max-w-xs">
+        <Button @click="executeImport" :disabled="previewStats.willImport === 0 || isImporting" class="flex-1 max-w-xs">
           <CheckCircle class="w-4 h-4 mr-2" />
-          Import {{ previewStats.willImport }} Records
+          {{ isImporting ? 'Importing...' : `Import ${previewStats.willImport} Records` }}
         </Button>
       </div>
     </div>
@@ -312,7 +312,7 @@ definePageMeta({ middleware: ['auth'] })
 
 const appStore = useAppStore()
 const { inventory, customers, settings } = storeToRefs(appStore)
-const { saveAll } = appStore
+const { createInventoryItem, updateInventoryItem, createCustomer, updateCustomer } = appStore
 
 // ── Tabs ──────────────────────────────────────────
 const tabs = [
@@ -348,6 +348,7 @@ function switchTab(id: string) {
 
 // ── Upload / Parse ────────────────────────────────
 const stage       = ref<'upload' | 'mapping' | 'preview' | 'done'>('upload')
+const isImporting = ref(false)
 const isDragging  = ref(false)
 const fileInput   = ref<HTMLInputElement | null>(null)
 const pastedCsv   = ref('')
@@ -504,65 +505,71 @@ function runPreview() {
 }
 
 // ── Execute Import ────────────────────────────────
-function executeImport() {
+async function executeImport() {
+  isImporting.value = true
   let imported = 0, skipped = 0
 
-  previewRows.value.forEach(row => {
-    if (row._status === 'error') return
+  for (const row of previewRows.value) {
+    if (row._status === 'error') continue
 
     if (row._status === 'duplicate' && duplicateMode.value === 'skip') {
       skipped++
-      return
+      continue
     }
 
-    if (activeTab.value === 'inventory') {
-      const newItem = {
-        id:       Math.max(...(inventory.value || []).map(i => i.id), 0) + imported + 1,
-        name:     row.name || '',
-        sku:      row.sku || '',
-        category: row.category || 'Parts',
-        stock:    parseInt(row.stock) || 0,
-        low:      parseInt(row.low) || 5,
-        cost:     parseFloat(row.cost) || 0,
-        price:    parseFloat(row.price) || 0,
-        model:    '',
-      }
-
-      if (row._status === 'duplicate' && duplicateMode.value === 'overwrite') {
-        const idx = (inventory.value || []).findIndex(i => i.sku?.toLowerCase() === row.sku?.toLowerCase() || i.name?.toLowerCase() === row.name?.toLowerCase())
-        if (idx > -1) { inventory.value[idx] = { ...inventory.value[idx], ...newItem } }
+    try {
+      if (activeTab.value === 'inventory') {
+        const item = {
+          name:     row.name || '',
+          sku:      row.sku || '',
+          category: row.category || 'Parts',
+          stock:    parseInt(row.stock) || 0,
+          low:      parseInt(row.low) || 5,
+          cost:     parseFloat(row.cost) || 0,
+          price:    parseFloat(row.price) || 0,
+          model:    '',
+        }
+        if (row._status === 'duplicate' && duplicateMode.value === 'overwrite') {
+          const existing = (inventory.value || []).find(i =>
+            i.sku?.toLowerCase() === row.sku?.toLowerCase() ||
+            i.name?.toLowerCase() === row.name?.toLowerCase()
+          )
+          if (existing) await updateInventoryItem(existing.id, item)
+        } else {
+          await createInventoryItem(item)
+        }
       } else {
-        inventory.value = [...(inventory.value || []), newItem]
+        const customer = {
+          name:    row.name || '',
+          phone:   row.phone || '',
+          email:   row.email || '',
+          address: row.address || '',
+          notes:   row.notes || '',
+          tags:    [],
+          driversLicense: '',
+        }
+        if (row._status === 'duplicate' && duplicateMode.value === 'overwrite') {
+          const existing = (customers.value || []).find(c =>
+            (row.email && c.email?.toLowerCase() === row.email?.toLowerCase()) ||
+            (row.phone && c.phone === row.phone)
+          )
+          if (existing) await updateCustomer(existing.id, customer)
+        } else {
+          await createCustomer(customer)
+        }
       }
-    } else {
-      const newCustomer = {
-        id:      Math.max(...(customers.value || []).map(c => c.id), 0) + imported + 1,
-        name:    row.name || '',
-        phone:   row.phone || '',
-        email:   row.email || '',
-        address: row.address || '',
-        notes:   row.notes || '',
-        tags:    [],
-        driversLicense: '',
-      }
-
-      if (row._status === 'duplicate' && duplicateMode.value === 'overwrite') {
-        const idx = (customers.value || []).findIndex(c =>
-          (row.email && c.email?.toLowerCase() === row.email?.toLowerCase()) ||
-          (row.phone && c.phone === row.phone)
-        )
-        if (idx > -1) customers.value[idx] = { ...customers.value[idx], ...newCustomer }
-      } else {
-        customers.value = [...(customers.value || []), newCustomer]
-      }
+      imported++
+    } catch (err) {
+      console.error('[import] row failed:', row, err)
+      skipped++
     }
-    imported++
-  })
+  }
 
-  saveAll()
   importResult.value = { imported, skipped }
+  isImporting.value = false
   stage.value = 'done'
 }
+
 
 // ── Template Download ─────────────────────────────
 function downloadTemplate() {
