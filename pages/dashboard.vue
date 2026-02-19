@@ -4,60 +4,60 @@
     <!-- Page Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">Dashboard</h1>
         <p class="text-sm text-muted-foreground mt-0.5">Welcome back — here's what's happening today.</p>
       </div>
-      <Button size="sm" @click="newTicketOpen = true">
+      <Button size="sm" @click="newTicketOpen = true" class="shadow-sm">
         <Wrench class="w-4 h-4 mr-2" /> New Repair
       </Button>
     </div>
 
     <!-- Stat Cards -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-      <Card class="group cursor-pointer hover:shadow-md transition-all hover:-translate-y-0.5">
+      <Card class="group cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 border-0 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent ring-1 ring-emerald-500/20">
         <CardContent class="p-5">
           <div class="flex items-start justify-between mb-3">
-            <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center shadow-inner">
               <Banknote class="w-5 h-5 text-emerald-500" />
             </div>
-            <span class="text-xs font-semibold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">+12.5%</span>
+            <span class="text-xs font-semibold text-emerald-500 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/20">+12.5%</span>
           </div>
           <p class="text-xs text-muted-foreground mb-0.5">Total Revenue</p>
-          <p class="text-2xl font-bold tracking-tight">{{ formatCurrency(totalRevenue) }}</p>
+          <p class="text-2xl font-bold tracking-tight text-emerald-700 dark:text-emerald-400">{{ formatCurrency(totalRevenue) }}</p>
           <p class="text-xs text-muted-foreground mt-1">{{ completedTickets.length }} completed</p>
         </CardContent>
       </Card>
 
-      <Card class="group cursor-pointer hover:shadow-md transition-all hover:-translate-y-0.5" @click="navigateTo('/tickets')">
+      <Card class="group cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 border-0 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent ring-1 ring-blue-500/20" @click="navigateTo('/tickets')">
         <CardContent class="p-5">
           <div class="flex items-start justify-between mb-3">
-            <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shadow-inner">
               <TicketCheck class="w-5 h-5 text-blue-500" />
             </div>
-            <span class="text-2xl font-bold">{{ activeTickets.length }}</span>
+            <span class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ activeTickets.length }}</span>
           </div>
           <p class="text-xs text-muted-foreground mb-0.5">Active Tickets</p>
           <p class="text-xs text-muted-foreground">{{ completedToday }} completed today</p>
         </CardContent>
       </Card>
 
-      <Card class="group cursor-pointer hover:shadow-md transition-all hover:-translate-y-0.5" @click="navigateTo('/customers')">
+      <Card class="group cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 border-0 bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent ring-1 ring-purple-500/20" @click="navigateTo('/customers')">
         <CardContent class="p-5">
           <div class="flex items-start justify-between mb-3">
-            <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center shadow-inner">
               <Users class="w-5 h-5 text-purple-500" />
             </div>
-            <span class="text-2xl font-bold">{{ (customers || []).length }}</span>
+            <span class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ (customers || []).length }}</span>
           </div>
           <p class="text-xs text-muted-foreground mb-0.5">Total Customers</p>
           <p class="text-xs text-muted-foreground">Lifetime value tracked</p>
         </CardContent>
       </Card>
 
-      <Card class="group cursor-pointer hover:shadow-md transition-all hover:-translate-y-0.5" @click="loadWeather">
+      <Card class="group cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 border-0 bg-gradient-to-br from-cyan-500/10 via-cyan-500/5 to-transparent ring-1 ring-cyan-500/20" @click="loadWeather">
         <CardContent class="p-5">
           <div class="flex items-start justify-between mb-3">
-            <div class="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center shadow-inner">
               <component
                 :is="weather.loaded ? Sun : Cloud"
                 class="w-5 h-5 text-cyan-500"
@@ -66,18 +66,18 @@
             </div>
           </div>
           <p class="text-xs text-muted-foreground mb-0.5">{{ weather.location || 'Local' }}</p>
-          <p class="text-2xl font-bold tracking-tight">{{ weather.loaded ? weather.temp + '°' : '--°' }}</p>
+          <p class="text-2xl font-bold tracking-tight text-cyan-600 dark:text-cyan-400">{{ weather.loaded ? weather.temp + '°' : '--°' }}</p>
           <p class="text-xs text-muted-foreground mt-1">{{ weather.description || 'Tap to load' }}</p>
         </CardContent>
       </Card>
 
-      <Card class="group cursor-pointer hover:shadow-md transition-all hover:-translate-y-0.5" @click="navigateTo('/inventory')">
+      <Card class="group cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1 border-0 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent ring-1 ring-amber-500/20" @click="navigateTo('/inventory')">
         <CardContent class="p-5">
           <div class="flex items-start justify-between mb-3">
-            <div class="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center shadow-inner">
               <Box class="w-5 h-5 text-amber-500" />
             </div>
-            <span class="text-2xl font-bold">{{ (inventory || []).length }}</span>
+            <span class="text-2xl font-bold text-amber-600 dark:text-amber-400">{{ (inventory || []).length }}</span>
           </div>
           <p class="text-xs text-muted-foreground mb-0.5">Inventory Items</p>
           <p class="text-xs mt-1">
@@ -90,11 +90,11 @@
 
     <!-- Quick Actions -->
     <div>
-      <h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Quick Actions</h2>
+      <h2 class="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">Quick Actions</h2>
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <Card class="cursor-pointer group hover:shadow-md transition-all hover:-translate-y-0.5 border-dashed hover:border-solid" @click="newTicketOpen = true">
+        <Card class="cursor-pointer group hover:shadow-lg transition-all duration-200 hover:-translate-y-1 border border-emerald-500/20 bg-gradient-to-b from-emerald-500/5 to-transparent" @click="newTicketOpen = true">
           <CardContent class="p-4 flex flex-col items-center text-center gap-2">
-            <div class="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-md shadow-emerald-500/30">
               <Wrench class="w-6 h-6 text-white" />
             </div>
             <div>
@@ -104,9 +104,9 @@
           </CardContent>
         </Card>
 
-        <Card class="cursor-pointer group hover:shadow-md transition-all hover:-translate-y-0.5 border-dashed hover:border-solid" @click="navigateTo('/pos')">
+        <Card class="cursor-pointer group hover:shadow-lg transition-all duration-200 hover:-translate-y-1 border border-blue-500/20 bg-gradient-to-b from-blue-500/5 to-transparent" @click="navigateTo('/pos')">
           <CardContent class="p-4 flex flex-col items-center text-center gap-2">
-            <div class="w-12 h-12 rounded-xl bg-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-md shadow-blue-500/30">
               <ShoppingCart class="w-6 h-6 text-white" />
             </div>
             <div>
@@ -116,9 +116,9 @@
           </CardContent>
         </Card>
 
-        <Card class="cursor-pointer group hover:shadow-md transition-all hover:-translate-y-0.5 border-dashed hover:border-solid" @click="navigateTo('/calendar')">
+        <Card class="cursor-pointer group hover:shadow-lg transition-all duration-200 hover:-translate-y-1 border border-purple-500/20 bg-gradient-to-b from-purple-500/5 to-transparent" @click="navigateTo('/calendar')">
           <CardContent class="p-4 flex flex-col items-center text-center gap-2">
-            <div class="w-12 h-12 rounded-xl bg-purple-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-md shadow-purple-500/30">
               <CalendarDays class="w-6 h-6 text-white" />
             </div>
             <div>
@@ -128,9 +128,9 @@
           </CardContent>
         </Card>
 
-        <Card class="cursor-pointer group hover:shadow-md transition-all hover:-translate-y-0.5 border-dashed hover:border-solid" @click="navigateTo('/inventory')">
+        <Card class="cursor-pointer group hover:shadow-lg transition-all duration-200 hover:-translate-y-1 border border-indigo-500/20 bg-gradient-to-b from-indigo-500/5 to-transparent" @click="navigateTo('/inventory')">
           <CardContent class="p-4 flex flex-col items-center text-center gap-2">
-            <div class="w-12 h-12 rounded-xl bg-indigo-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-md shadow-indigo-500/30">
               <Package class="w-6 h-6 text-white" />
             </div>
             <div>
@@ -140,9 +140,9 @@
           </CardContent>
         </Card>
 
-        <Card class="cursor-pointer group hover:shadow-md transition-all hover:-translate-y-0.5 border-dashed hover:border-solid" @click="navigateTo('/tickets')">
+        <Card class="cursor-pointer group hover:shadow-lg transition-all duration-200 hover:-translate-y-1 border border-cyan-500/20 bg-gradient-to-b from-cyan-500/5 to-transparent" @click="navigateTo('/tickets')">
           <CardContent class="p-4 flex flex-col items-center text-center gap-2">
-            <div class="w-12 h-12 rounded-xl bg-cyan-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-md shadow-cyan-500/30">
               <ClipboardCheck class="w-6 h-6 text-white" />
             </div>
             <div>
@@ -152,9 +152,9 @@
           </CardContent>
         </Card>
 
-        <Card class="cursor-pointer group hover:shadow-md transition-all hover:-translate-y-0.5 border-dashed hover:border-solid" @click="navigateTo('/customers')">
+        <Card class="cursor-pointer group hover:shadow-lg transition-all duration-200 hover:-translate-y-1 border border-pink-500/20 bg-gradient-to-b from-pink-500/5 to-transparent" @click="navigateTo('/customers')">
           <CardContent class="p-4 flex flex-col items-center text-center gap-2">
-            <div class="w-12 h-12 rounded-xl bg-pink-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-md shadow-pink-500/30">
               <UserPlus class="w-6 h-6 text-white" />
             </div>
             <div>
@@ -170,59 +170,59 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
       <!-- Today's Summary -->
-      <Card class="p-5">
+      <Card class="p-5 border-0 ring-1 ring-border shadow-sm">
         <h3 class="text-sm font-semibold mb-4 flex items-center gap-2">
-          <TrendingUp class="w-4 h-4 text-muted-foreground" />
+          <TrendingUp class="w-4 h-4 text-primary" />
           Today's Summary
         </h3>
         <div class="grid grid-cols-2 gap-3">
-          <div class="bg-muted/30 rounded-lg p-3 border border-border">
+          <div class="bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-xl p-3 border border-blue-500/15">
             <div class="flex items-center gap-2 mb-1">
-              <div class="w-7 h-7 rounded-md bg-blue-500/10 flex items-center justify-center">
+              <div class="w-7 h-7 rounded-lg bg-blue-500/20 flex items-center justify-center">
                 <DollarSign class="w-3.5 h-3.5 text-blue-500" />
               </div>
               <p class="text-xs text-muted-foreground">Total Sales</p>
             </div>
-            <p class="text-lg font-bold">{{ formatCurrency(totalRevenue) }}</p>
+            <p class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ formatCurrency(totalRevenue) }}</p>
           </div>
-          <div class="bg-muted/30 rounded-lg p-3 border border-border">
+          <div class="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 rounded-xl p-3 border border-emerald-500/15">
             <div class="flex items-center gap-2 mb-1">
-              <div class="w-7 h-7 rounded-md bg-emerald-500/10 flex items-center justify-center">
+              <div class="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center">
                 <TicketCheck class="w-3.5 h-3.5 text-emerald-500" />
               </div>
               <p class="text-xs text-muted-foreground">Completed</p>
             </div>
-            <p class="text-lg font-bold">{{ completedToday }}</p>
+            <p class="text-lg font-bold text-emerald-600 dark:text-emerald-400">{{ completedToday }}</p>
           </div>
-          <div class="bg-muted/30 rounded-lg p-3 border border-border">
+          <div class="bg-gradient-to-br from-orange-500/10 to-orange-500/5 rounded-xl p-3 border border-orange-500/15">
             <div class="flex items-center gap-2 mb-1">
-              <div class="w-7 h-7 rounded-md bg-orange-500/10 flex items-center justify-center">
+              <div class="w-7 h-7 rounded-lg bg-orange-500/20 flex items-center justify-center">
                 <TicketCheck class="w-3.5 h-3.5 text-orange-500" />
               </div>
               <p class="text-xs text-muted-foreground">Active</p>
             </div>
-            <p class="text-lg font-bold">{{ activeTickets.length }}</p>
+            <p class="text-lg font-bold text-orange-600 dark:text-orange-400">{{ activeTickets.length }}</p>
           </div>
-          <div class="bg-muted/30 rounded-lg p-3 border border-border">
+          <div class="bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-xl p-3 border border-purple-500/15">
             <div class="flex items-center gap-2 mb-1">
-              <div class="w-7 h-7 rounded-md bg-purple-500/10 flex items-center justify-center">
+              <div class="w-7 h-7 rounded-lg bg-purple-500/20 flex items-center justify-center">
                 <CalendarDays class="w-3.5 h-3.5 text-purple-500" />
               </div>
               <p class="text-xs text-muted-foreground">Scheduled</p>
             </div>
-            <p class="text-lg font-bold">{{ upcomingAppointments }}</p>
+            <p class="text-lg font-bold text-purple-600 dark:text-purple-400">{{ upcomingAppointments }}</p>
           </div>
         </div>
       </Card>
 
       <!-- Recent Tickets -->
-      <Card class="lg:col-span-2 p-5">
+      <Card class="lg:col-span-2 p-5 border-0 ring-1 ring-border shadow-sm">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-sm font-semibold flex items-center gap-2">
-            <TicketCheck class="w-4 h-4 text-muted-foreground" />
+            <TicketCheck class="w-4 h-4 text-primary" />
             Recent Tickets
           </h3>
-          <Button variant="ghost" size="sm" class="text-xs h-7" @click="navigateTo('/tickets')">
+          <Button variant="ghost" size="sm" class="text-xs h-7 text-primary hover:text-primary" @click="navigateTo('/tickets')">
             View all →
           </Button>
         </div>
@@ -230,11 +230,11 @@
           <div
             v-for="ticket in recentTickets"
             :key="ticket.id"
-            class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-muted/20 hover:bg-muted/40 cursor-pointer transition-colors group"
+            class="flex items-center justify-between px-3 py-2.5 rounded-xl bg-muted/20 hover:bg-muted/50 cursor-pointer transition-all hover:shadow-sm group border border-transparent hover:border-border"
             @click="navigateTo('/tickets')"
           >
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center flex-shrink-0 border border-primary/10">
                 <span class="text-xs font-bold text-primary">#{{ ticket.id }}</span>
               </div>
               <div class="min-w-0">
@@ -244,13 +244,13 @@
             </div>
             <div class="flex items-center gap-2 flex-shrink-0">
               <span
-                class="px-2 py-0.5 rounded-full text-xs font-medium"
+                class="px-2 py-0.5 rounded-full text-xs font-medium border"
                 :class="{
-                  'bg-blue-500/10 text-blue-500': ticket.status === 'Open',
-                  'bg-yellow-500/10 text-yellow-500': ticket.status === 'In Progress',
-                  'bg-orange-500/10 text-orange-500': ticket.status === 'Waiting for Parts',
-                  'bg-green-500/10 text-green-500': ticket.status === 'Completed',
-                  'bg-gray-500/10 text-gray-500': ticket.status === 'Delivered'
+                  'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20': ticket.status === 'Open',
+                  'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20': ticket.status === 'In Progress',
+                  'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20': ticket.status === 'Waiting for Parts',
+                  'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20': ticket.status === 'Completed',
+                  'bg-gray-500/10 text-gray-500 border-gray-500/20': ticket.status === 'Delivered'
                 }"
               >
                 {{ ticket.status }}

@@ -7,7 +7,7 @@
           Manage on-site repair appointments
         </p>
       </div>
-      <Button size="lg" @click="newHouseCallOpen = true">
+      <Button size="lg" @click="newHouseCallOpen = true" class="shadow-sm">
         <Plus class="w-4 h-4 mr-2" />
         Schedule House Call
       </Button>
@@ -30,51 +30,59 @@
     </div>
 
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card>
+      <Card class="border-0 ring-1 ring-blue-500/25 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent">
         <CardHeader class="flex flex-row items-center justify-between pb-2">
           <CardTitle class="text-sm font-medium text-muted-foreground">
             Today
           </CardTitle>
-          <Clock class="h-4 w-4 text-muted-foreground" />
+          <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+            <Clock class="h-4 w-4 text-blue-500" />
+          </div>
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold">{{ todayCount }}</div>
+          <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ todayCount }}</div>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card class="border-0 ring-1 ring-purple-500/25 bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent">
         <CardHeader class="flex flex-row items-center justify-between pb-2">
           <CardTitle class="text-sm font-medium text-muted-foreground">
             Upcoming
           </CardTitle>
-          <CalendarClock class="h-4 w-4 text-muted-foreground" />
+          <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+            <CalendarClock class="h-4 w-4 text-purple-500" />
+          </div>
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold">{{ upcomingCount }}</div>
+          <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ upcomingCount }}</div>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card class="border-0 ring-1 ring-emerald-500/25 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent">
         <CardHeader class="flex flex-row items-center justify-between pb-2">
           <CardTitle class="text-sm font-medium text-muted-foreground">
             Completed
           </CardTitle>
-          <CheckCircle class="h-4 w-4 text-muted-foreground" />
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+            <CheckCircle class="h-4 w-4 text-emerald-500" />
+          </div>
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold">{{ completedCount }}</div>
+          <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{{ completedCount }}</div>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card class="border-0 ring-1 ring-amber-500/25 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent">
         <CardHeader class="flex flex-row items-center justify-between pb-2">
           <CardTitle class="text-sm font-medium text-muted-foreground">
             This Week
           </CardTitle>
-          <Calendar class="h-4 w-4 text-muted-foreground" />
+          <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+            <Calendar class="h-4 w-4 text-amber-500" />
+          </div>
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold">{{ thisWeekCount }}</div>
+          <div class="text-2xl font-bold text-amber-600 dark:text-amber-400">{{ thisWeekCount }}</div>
         </CardContent>
       </Card>
     </div>
@@ -83,36 +91,45 @@
       <Card
         v-for="call in filteredHouseCalls"
         :key="call.id"
-        class="cursor-pointer transition-colors hover:bg-accent"
+        class="cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 border-0 ring-1 ring-border hover:ring-primary/30 bg-gradient-to-r from-background to-muted/10"
         @click="editHouseCall(call)"
       >
         <CardHeader>
           <div class="flex items-start justify-between">
             <div class="space-y-1">
               <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center ring-1 ring-primary/20 flex-shrink-0">
+                  <span class="text-xs font-bold text-primary">{{ getCustomerName(call.customerId).charAt(0).toUpperCase() }}</span>
+                </div>
                 <CardTitle class="text-base">{{ getCustomerName(call.customerId) }}</CardTitle>
-                <Badge :variant="getStatusVariant(call.status)">
+                <Badge :variant="getStatusVariant(call.status)" class="capitalize text-xs">
                   {{ call.status }}
                 </Badge>
               </div>
-              <p class="text-sm text-muted-foreground">
+              <p class="text-sm text-muted-foreground pl-10">
                 {{ call.description }}
               </p>
             </div>
           </div>
         </CardHeader>
         <CardContent class="space-y-3">
-          <div class="grid gap-2 text-sm">
+          <div class="grid gap-2 text-sm pl-1">
             <div class="flex items-center gap-2">
-              <Clock class="h-4 w-4 text-muted-foreground" />
+              <div class="w-6 h-6 rounded-md bg-muted/60 flex items-center justify-center">
+                <Clock class="h-3.5 w-3.5 text-muted-foreground" />
+              </div>
               <span>{{ formatDateTime(call.date, call.time) }}</span>
             </div>
             <div v-if="call.address" class="flex items-center gap-2">
-              <MapPin class="h-4 w-4 text-muted-foreground" />
+              <div class="w-6 h-6 rounded-md bg-muted/60 flex items-center justify-center">
+                <MapPin class="h-3.5 w-3.5 text-muted-foreground" />
+              </div>
               <span class="line-clamp-1">{{ call.address }}</span>
             </div>
             <div v-if="call.estimatedDuration" class="flex items-center gap-2">
-              <Timer class="h-4 w-4 text-muted-foreground" />
+              <div class="w-6 h-6 rounded-md bg-muted/60 flex items-center justify-center">
+                <Timer class="h-3.5 w-3.5 text-muted-foreground" />
+              </div>
               <span>{{ call.estimatedDuration }} min</span>
             </div>
           </div>
@@ -122,17 +139,19 @@
               v-if="call.address"
               variant="outline"
               size="sm"
+              class="gap-1.5 hover:bg-blue-500/10 hover:text-blue-600 hover:border-blue-500/30 transition-colors"
               @click.stop="openMaps(call.address)"
             >
-              <Navigation class="w-4 h-4 mr-2" />
+              <Navigation class="w-3.5 h-3.5" />
               Directions
             </Button>
             <Button
               variant="outline"
               size="sm"
+              class="gap-1.5 hover:bg-emerald-500/10 hover:text-emerald-600 hover:border-emerald-500/30 transition-colors"
               @click.stop="callCustomer(call.customerId)"
             >
-              <Phone class="w-4 h-4 mr-2" />
+              <Phone class="w-3.5 h-3.5" />
               Call
             </Button>
           </div>

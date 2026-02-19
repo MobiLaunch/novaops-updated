@@ -29,11 +29,11 @@
           <Card
             v-for="item in filteredProducts"
             :key="item.id"
-            class="cursor-pointer transition-all hover:bg-accent hover:scale-[1.02] active:scale-[0.98]"
+            class="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 active:scale-[0.98] border-0 ring-1 ring-border hover:ring-primary/30 bg-gradient-to-b from-background to-muted/20"
             @click="addToCart(item)"
           >
             <CardContent class="p-4 flex flex-col items-center text-center gap-2">
-              <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center ring-1 ring-primary/15">
                 <Package class="h-6 w-6 text-primary" />
               </div>
               <div>
@@ -43,7 +43,7 @@
               <div class="font-bold text-lg text-primary">
                 {{ formatCurrency(item.price) }}
               </div>
-              <Badge variant="secondary" class="mt-1">
+              <Badge variant="secondary" class="mt-1 text-xs">
                 Stock: {{ item.stock }}
               </Badge>
             </CardContent>
@@ -51,10 +51,13 @@
         </div>
       </div>
 
-      <Card class="w-[400px] flex flex-col shadow-lg border-l">
-        <CardHeader class="pb-2 border-b">
+      <Card class="w-[400px] flex flex-col shadow-xl border-0 ring-1 ring-border">
+        <CardHeader class="pb-2 border-b bg-muted/30">
           <CardTitle class="flex items-center justify-between">
-            <span>Current Sale</span>
+            <span class="flex items-center gap-2">
+              <ShoppingCart class="w-4 h-4 text-primary" />
+              Current Sale
+            </span>
             <div class="flex gap-2">
               <Button variant="ghost" size="icon" @click="clearCart" :disabled="!cart.length">
                 <Trash2 class="h-4 w-4 text-muted-foreground hover:text-destructive" />
@@ -70,7 +73,7 @@
           </div>
           
           <div v-else class="divide-y">
-            <div v-for="(item, index) in cart" :key="index" class="p-4 flex items-center gap-3">
+            <div v-for="(item, index) in cart" :key="index" class="p-4 flex items-center gap-3 hover:bg-muted/20 transition-colors">
               <div class="flex-1 min-w-0">
                 <h4 class="font-medium truncate">{{ item.name }}</h4>
                 <div class="text-sm text-muted-foreground">
@@ -78,30 +81,30 @@
                 </div>
               </div>
               
-              <div class="flex items-center gap-2 bg-secondary rounded-md p-1">
-                <Button variant="ghost" size="icon" class="h-6 w-6" @click="decrementItem(index)">
+              <div class="flex items-center gap-2 bg-muted/60 rounded-lg p-1 ring-1 ring-border">
+                <Button variant="ghost" size="icon" class="h-6 w-6 hover:bg-background" @click="decrementItem(index)">
                   <Minus class="h-3 w-3" />
                 </Button>
                 <span class="w-8 text-center text-sm font-medium">{{ item.quantity }}</span>
-                <Button variant="ghost" size="icon" class="h-6 w-6" @click="incrementItem(index)">
+                <Button variant="ghost" size="icon" class="h-6 w-6 hover:bg-background" @click="incrementItem(index)">
                   <Plus class="h-3 w-3" />
                 </Button>
               </div>
               
-              <div class="text-right font-medium min-w-[80px]">
+              <div class="text-right font-semibold min-w-[80px] text-primary">
                 {{ formatCurrency(item.price * item.quantity) }}
               </div>
             </div>
           </div>
         </CardContent>
 
-        <div class="p-4 bg-muted/20 border-t space-y-4">
-          <div class="space-y-2 text-sm">
+        <div class="p-4 bg-muted/30 border-t space-y-4">
+          <div class="space-y-2 text-sm bg-background/60 rounded-xl p-3 ring-1 ring-border">
             <div class="flex justify-between text-muted-foreground">
               <span>Subtotal</span>
               <span>{{ formatCurrency(subtotal) }}</span>
             </div>
-            <div v-if="discountPercent > 0" class="flex justify-between text-green-600">
+            <div v-if="discountPercent > 0" class="flex justify-between text-emerald-600">
               <span>Discount ({{ discountPercent }}%)</span>
               <span>-{{ formatCurrency(discountAmount) }}</span>
             </div>
@@ -109,9 +112,9 @@
               <span>Tax ({{ taxRate }}%)</span>
               <span>{{ formatCurrency(taxAmount) }}</span>
             </div>
-            <div class="flex justify-between text-lg font-bold border-t pt-2">
+            <div class="flex justify-between text-lg font-bold border-t pt-2 mt-1">
               <span>Total</span>
-              <span>{{ formatCurrency(total) }}</span>
+              <span class="text-primary">{{ formatCurrency(total) }}</span>
             </div>
           </div>
 

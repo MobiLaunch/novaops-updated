@@ -7,17 +7,17 @@
         <h1 class="text-2xl font-bold tracking-tight">Tickets</h1>
         <p class="text-sm text-muted-foreground mt-0.5">Manage and track repair tickets</p>
       </div>
-      <Button size="sm" @click="newTicketOpen = true">
+      <Button size="sm" @click="newTicketOpen = true" class="shadow-sm">
         <Plus class="w-4 h-4 mr-2" />New Ticket
       </Button>
     </div>
 
     <!-- Stat Cards -->
     <div class="grid gap-3 grid-cols-2 lg:grid-cols-4">
-      <Card class="cursor-pointer hover:shadow-sm transition-shadow" @click="filterStatus = null">
+      <Card class="cursor-pointer hover:shadow-lg transition-all hover:-translate-y-0.5 border-0 ring-1 ring-border bg-gradient-to-br from-muted/50 to-transparent" @click="filterStatus = null">
         <CardContent class="p-4 flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-            <BarChart3 class="h-4 w-4 text-muted-foreground" />
+          <div class="w-10 h-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 shadow-inner">
+            <BarChart3 class="h-5 w-5 text-muted-foreground" />
           </div>
           <div>
             <p class="text-xs text-muted-foreground">Total</p>
@@ -25,36 +25,36 @@
           </div>
         </CardContent>
       </Card>
-      <Card class="cursor-pointer hover:shadow-sm transition-shadow" @click="filterStatus = 'Open'">
+      <Card class="cursor-pointer hover:shadow-lg transition-all hover:-translate-y-0.5 border-0 ring-1 ring-blue-500/25 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent" @click="filterStatus = 'Open'">
         <CardContent class="p-4 flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-            <Inbox class="h-4 w-4 text-blue-500" />
+          <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0 shadow-inner">
+            <Inbox class="h-5 w-5 text-blue-500" />
           </div>
           <div>
             <p class="text-xs text-muted-foreground">Open</p>
-            <p class="text-2xl font-bold">{{ getStatusCount('Open') }}</p>
+            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ getStatusCount('Open') }}</p>
           </div>
         </CardContent>
       </Card>
-      <Card class="cursor-pointer hover:shadow-sm transition-shadow" @click="filterStatus = 'In Progress'">
+      <Card class="cursor-pointer hover:shadow-lg transition-all hover:-translate-y-0.5 border-0 ring-1 ring-yellow-500/25 bg-gradient-to-br from-yellow-500/10 via-yellow-500/5 to-transparent" @click="filterStatus = 'In Progress'">
         <CardContent class="p-4 flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg bg-yellow-500/10 flex items-center justify-center flex-shrink-0">
-            <Clock class="h-4 w-4 text-yellow-500" />
+          <div class="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center flex-shrink-0 shadow-inner">
+            <Clock class="h-5 w-5 text-yellow-500" />
           </div>
           <div>
             <p class="text-xs text-muted-foreground">In Progress</p>
-            <p class="text-2xl font-bold">{{ getStatusCount('In Progress') }}</p>
+            <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ getStatusCount('In Progress') }}</p>
           </div>
         </CardContent>
       </Card>
-      <Card class="cursor-pointer hover:shadow-sm transition-shadow" @click="filterStatus = 'Completed'">
+      <Card class="cursor-pointer hover:shadow-lg transition-all hover:-translate-y-0.5 border-0 ring-1 ring-emerald-500/25 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent" @click="filterStatus = 'Completed'">
         <CardContent class="p-4 flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-            <CheckCircle class="h-4 w-4 text-emerald-500" />
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0 shadow-inner">
+            <CheckCircle class="h-5 w-5 text-emerald-500" />
           </div>
           <div>
             <p class="text-xs text-muted-foreground">Completed</p>
-            <p class="text-2xl font-bold">{{ getStatusCount('Completed') }}</p>
+            <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{{ getStatusCount('Completed') }}</p>
           </div>
         </CardContent>
       </Card>
@@ -79,11 +79,11 @@
     </div>
 
     <!-- Tickets Table -->
-    <Card>
+    <Card class="border-0 ring-1 ring-border shadow-sm overflow-hidden">
       <CardContent class="p-0">
         <Table>
           <TableHeader>
-            <TableRow class="hover:bg-transparent">
+            <TableRow class="hover:bg-transparent bg-muted/30 border-b">
               <TableHead class="w-[60px]">ID</TableHead>
               <TableHead>Customer</TableHead>
               <TableHead>Device</TableHead>
@@ -98,7 +98,7 @@
             <TableRow
               v-for="ticket in filteredTickets"
               :key="ticket.id"
-              class="cursor-pointer hover:bg-muted/40 transition-colors"
+              class="cursor-pointer hover:bg-muted/40 transition-colors group"
               @click="openTicket(ticket)"
             >
               <!-- Priority indicator bar + ID -->
@@ -107,8 +107,8 @@
                   <div
                     class="w-1 h-8 rounded-full flex-shrink-0"
                     :class="{
-                      'bg-red-500': ticket.priority === 'high',
-                      'bg-yellow-400': ticket.priority === 'normal',
+                      'bg-gradient-to-b from-red-400 to-red-600': ticket.priority === 'high',
+                      'bg-gradient-to-b from-yellow-300 to-yellow-500': ticket.priority === 'normal',
                       'bg-muted': ticket.priority === 'low' || !ticket.priority
                     }"
                   />
@@ -117,7 +117,7 @@
               </TableCell>
               <TableCell>
                 <div class="flex items-center gap-2">
-                  <div class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <div class="w-7 h-7 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center flex-shrink-0 ring-1 ring-primary/20">
                     <span class="text-xs font-semibold text-primary">
                       {{ getCustomerName(ticket.customerId).charAt(0).toUpperCase() }}
                     </span>
@@ -141,13 +141,13 @@
               </TableCell>
               <TableCell>
                 <span
-                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap border"
                   :class="{
-                    'bg-blue-500/10 text-blue-600 dark:text-blue-400': ticket.status === 'Open',
-                    'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400': ticket.status === 'In Progress',
-                    'bg-orange-500/10 text-orange-600 dark:text-orange-400': ticket.status === 'Waiting for Parts',
-                    'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400': ticket.status === 'Completed',
-                    'bg-gray-500/10 text-gray-500': ticket.status === 'Delivered'
+                    'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/25': ticket.status === 'Open',
+                    'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/25': ticket.status === 'In Progress',
+                    'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/25': ticket.status === 'Waiting for Parts',
+                    'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25': ticket.status === 'Completed',
+                    'bg-gray-500/10 text-gray-500 border-gray-500/20': ticket.status === 'Delivered'
                   }"
                 >
                   {{ ticket.status }}
