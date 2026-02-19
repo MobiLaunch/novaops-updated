@@ -275,7 +275,34 @@ const SidebarContent = defineComponent({
 
       // ── Logo header ──
       h('div', { class: 'flex items-center justify-between px-4 py-3.5 border-b border-border flex-shrink-0' }, [
-        h('img', { src: '/posicon.svg', alt: 'NovaOps', class: 'h-6 w-auto' }),
+        // Badge-style logo
+        h('div', { class: 'flex items-center gap-2.5' }, [
+          // Icon badge
+          h('div', {
+            class: 'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm',
+            style: 'background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
+          }, [
+            h('svg', {
+              xmlns: 'http://www.w3.org/2000/svg',
+              viewBox: '0 0 16 16',
+              fill: 'white',
+              class: 'w-4.5 h-4.5',
+              style: 'width:18px;height:18px'
+            }, [
+              // Stylized wrench/bolt hybrid
+              h('path', {
+                d: 'M13.5 2.5a.5.5 0 0 0-.707 0L11.5 3.793l-.647-.646a.5.5 0 0 0-.707.707L11 4.707 9.146 6.561A4 4 0 0 0 4 11.5a.5.5 0 0 0 .854.354l1.292-1.293a.5.5 0 0 1 .708 0l.585.585a.5.5 0 0 1 0 .708L6.146 13.146A.5.5 0 0 0 6.5 14a4 4 0 0 0 4.939-4.146L13.5 7.707l.293.293a.5.5 0 0 0 .707-.707l-.646-.647 1.293-1.293a.5.5 0 0 0 0-.707L13.5 2.5Z',
+                'fill-rule': 'evenodd',
+                'clip-rule': 'evenodd'
+              })
+            ])
+          ]),
+          // Wordmark
+          h('div', { class: 'leading-none' }, [
+            h('span', { class: 'text-sm font-bold tracking-tight text-foreground' }, 'Nova'),
+            h('span', { class: 'text-sm font-bold tracking-tight', style: 'color: #6366f1' }, 'Ops'),
+          ])
+        ]),
         h(Button, {
           variant: 'ghost', size: 'icon',
           class: 'h-7 w-7 lg:hidden',
@@ -466,5 +493,3 @@ const SidebarContent = defineComponent({
   opacity: 0;
 }
 </style>
-
-

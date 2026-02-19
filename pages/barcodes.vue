@@ -8,15 +8,15 @@
         <p class="text-sm text-muted-foreground mt-0.5">Scan inventory, print labels, and generate barcodes</p>
       </div>
       <div class="flex gap-2">
-        <Button variant="outline" size="sm" @click="openPrintQueue" :disabled="printQueue.length === 0" class="relative">
+        <Button variant="outline" size="sm" @click="openPrintQueue" :disabled="printQueue.length === 0" class="relative shadow-sm">
           <Printer class="w-4 h-4 mr-2" />
           Print Queue
           <span
             v-if="printQueue.length > 0"
-            class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center"
+            class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow"
           >{{ printQueue.length }}</span>
         </Button>
-        <Button size="sm" @click="scannerOpen = true">
+        <Button size="sm" @click="scannerOpen = true" class="shadow-sm">
           <ScanLine class="w-4 h-4 mr-2" />
           Camera Scan
         </Button>
@@ -24,18 +24,19 @@
     </div>
 
     <!-- Mode Tabs -->
-    <div class="flex gap-1 p-1 bg-muted rounded-lg w-fit">
+    <div class="flex gap-1 p-1 bg-muted/60 rounded-xl w-fit border border-border/50">
       <button
         v-for="tab in tabs"
         :key="tab.id"
         @click="activeTab = tab.id"
         :class="[
-          'px-4 py-2 rounded-md text-sm font-medium transition-all',
+          'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all',
           activeTab === tab.id
-            ? 'bg-background shadow-sm text-foreground'
-            : 'text-muted-foreground hover:text-foreground'
+            ? 'bg-background shadow-sm text-foreground ring-1 ring-border/60'
+            : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
         ]"
       >
+        <component :is="tab.icon" class="w-3.5 h-3.5" :class="activeTab === tab.id ? tab.color : ''" />
         {{ tab.label }}
       </button>
     </div>
@@ -44,7 +45,7 @@
     <div v-if="activeTab === 'scan'" class="space-y-4">
 
       <!-- Input Card -->
-      <Card>
+      <Card class="border-0 ring-1 ring-border shadow-sm">
         <CardContent class="p-5">
           <div class="flex gap-3 items-end">
             <div class="flex-1 space-y-1.5">
@@ -61,10 +62,10 @@
                 />
               </div>
             </div>
-            <Button @click="performScan" :disabled="!scanQuery.trim()" class="h-10">Lookup</Button>
+            <Button @click="performScan" :disabled="!scanQuery.trim()" class="h-10 shadow-sm">Lookup</Button>
           </div>
           <p class="text-xs text-muted-foreground mt-2.5 flex items-center gap-1.5">
-            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-bold flex-shrink-0">i</span>
+            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-500/15 text-blue-500 text-[10px] font-bold flex-shrink-0 border border-blue-500/20">i</span>
             USB / Bluetooth scanners act as a keyboard — just focus this field and scan.
           </p>
         </CardContent>
@@ -76,16 +77,16 @@
         <!-- Scan Result (wider) -->
         <div class="lg:col-span-3 space-y-3">
           <!-- Found -->
-          <Card v-if="scanResult" class="border-emerald-500/30 bg-emerald-500/5">
+          <Card v-if="scanResult" class="border-0 ring-1 ring-emerald-500/30 bg-gradient-to-br from-emerald-500/8 via-emerald-500/4 to-transparent shadow-sm">
             <CardContent class="p-5">
               <div class="flex items-start gap-4">
-                <div class="w-12 h-12 rounded-xl bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0 shadow-inner">
                   <Package class="w-6 h-6 text-emerald-500" />
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-start justify-between gap-2 mb-1">
                     <p class="font-bold text-lg leading-tight">{{ scanResult.name }}</p>
-                    <Badge :class="scanResult.stock <= scanResult.low ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'" class="flex-shrink-0 text-xs">
+                    <Badge :class="scanResult.stock <= scanResult.low ? 'bg-red-500/10 text-red-500 border-red-500/25' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/25'" class="flex-shrink-0 text-xs border">
                       {{ scanResult.stock }} in stock
                     </Badge>
                   </div>
@@ -94,14 +95,14 @@
 
                   <div class="flex items-center justify-between mt-4 pt-3 border-t border-emerald-500/20">
                     <div>
-                      <p class="text-2xl font-bold text-emerald-600">{{ formatCurrency(scanResult.price) }}</p>
+                      <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{{ formatCurrency(scanResult.price) }}</p>
                       <p class="text-xs text-muted-foreground">Cost: {{ formatCurrency(scanResult.cost) }}</p>
                     </div>
                     <div class="flex gap-2">
-                      <Button size="sm" variant="outline" @click="addToPrintQueue(scanResult)">
+                      <Button size="sm" variant="outline" @click="addToPrintQueue(scanResult)" class="hover:bg-cyan-500/10 hover:text-cyan-600 hover:border-cyan-500/30 transition-colors">
                         <Printer class="w-3.5 h-3.5 mr-1.5" />Print Label
                       </Button>
-                      <Button size="sm" variant="outline" @click="editInventoryItem(scanResult)">
+                      <Button size="sm" variant="outline" @click="editInventoryItem(scanResult)" class="hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors">
                         <Pencil class="w-3.5 h-3.5 mr-1.5" />Edit
                       </Button>
                     </div>
@@ -112,44 +113,47 @@
           </Card>
 
           <!-- Not Found -->
-          <Card v-else-if="scanResult === null" class="border-amber-500/30 bg-amber-500/5">
+          <Card v-else-if="scanResult === null" class="border-0 ring-1 ring-amber-500/30 bg-gradient-to-br from-amber-500/8 via-amber-500/4 to-transparent shadow-sm">
             <CardContent class="p-5 flex items-center gap-4">
-              <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0 shadow-inner">
                 <Search class="w-5 h-5 text-amber-500" />
               </div>
               <div class="flex-1 min-w-0">
-                <p class="font-semibold text-amber-600">No item found</p>
+                <p class="font-semibold text-amber-600 dark:text-amber-400">No item found</p>
                 <p class="text-sm text-muted-foreground font-mono truncate">{{ lastScanned }}</p>
               </div>
-              <Button variant="outline" size="sm" class="flex-shrink-0" @click="createFromScan">
+              <Button variant="outline" size="sm" class="flex-shrink-0 hover:bg-emerald-500/10 hover:text-emerald-600 hover:border-emerald-500/30 transition-colors" @click="createFromScan">
                 <Plus class="w-3.5 h-3.5 mr-1.5" />Add Item
               </Button>
             </CardContent>
           </Card>
 
           <!-- Empty state -->
-          <div v-else class="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
-            <ScanLine class="w-10 h-10 opacity-20 mb-3" />
-            <p class="text-sm">Scan or type a barcode above to look up an item</p>
+          <div v-else class="flex flex-col items-center justify-center py-20 text-center text-muted-foreground">
+            <div class="w-16 h-16 rounded-2xl bg-muted/60 flex items-center justify-center mb-4 border border-border/50">
+              <ScanLine class="w-7 h-7 opacity-40" />
+            </div>
+            <p class="text-sm font-medium">Ready to scan</p>
+            <p class="text-xs text-muted-foreground/70 mt-1">Type or scan a barcode above to look up an item</p>
           </div>
         </div>
 
         <!-- Recent Scans (narrower) -->
-        <Card class="lg:col-span-2">
-          <CardHeader class="pb-2 pt-4 px-4">
+        <Card class="lg:col-span-2 border-0 ring-1 ring-border shadow-sm overflow-hidden">
+          <CardHeader class="pb-2 pt-4 px-4 bg-muted/20 border-b border-border/50">
             <CardTitle class="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Recent Scans</CardTitle>
           </CardHeader>
           <CardContent class="p-0">
-            <div v-if="recentScans.length === 0" class="px-4 py-8 text-center text-xs text-muted-foreground opacity-60">
+            <div v-if="recentScans.length === 0" class="px-4 py-10 text-center text-xs text-muted-foreground opacity-60">
               No scans yet
             </div>
             <div
               v-for="scan in recentScans"
               :key="scan.ts"
-              class="flex items-center gap-3 px-4 py-2.5 border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
+              class="flex items-center gap-3 px-4 py-2.5 border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer group"
               @click="quickLookup(scan.sku)"
             >
-              <div :class="['w-2 h-2 rounded-full flex-shrink-0', scan.found ? 'bg-emerald-500' : 'bg-red-400']" />
+              <div :class="['w-2 h-2 rounded-full flex-shrink-0 ring-2', scan.found ? 'bg-emerald-500 ring-emerald-500/20' : 'bg-red-400 ring-red-400/20']" />
               <div class="flex-1 min-w-0">
                 <p class="font-mono text-xs truncate">{{ scan.sku }}</p>
                 <p v-if="scan.name" class="text-xs text-muted-foreground truncate">{{ scan.name }}</p>
@@ -167,10 +171,10 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         <!-- Label Builder -->
-        <Card>
-          <CardHeader class="pb-3">
+        <Card class="border-0 ring-1 ring-border shadow-sm">
+          <CardHeader class="pb-3 border-b border-border/50 bg-muted/20">
             <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center ring-1 ring-primary/15">
                 <Tag class="w-4 h-4 text-primary" />
               </div>
               <CardTitle class="text-base">Label Builder</CardTitle>
@@ -299,10 +303,10 @@
         </Card>
 
         <!-- Label Preview -->
-        <Card>
-          <CardHeader class="pb-3">
+        <Card class="border-0 ring-1 ring-border shadow-sm">
+          <CardHeader class="pb-3 border-b border-border/50 bg-muted/20">
             <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500/20 to-cyan-500/10 flex items-center justify-center ring-1 ring-cyan-500/15">
                 <Eye class="w-4 h-4 text-cyan-500" />
               </div>
               <CardTitle class="text-base">Label Preview</CardTitle>
@@ -312,7 +316,7 @@
             <div class="flex flex-col items-center gap-5">
               <!-- Preview Box -->
               <div
-                class="border-2 border-dashed border-border rounded-lg bg-white text-black shadow-sm flex flex-col items-center justify-between gap-1 p-3"
+                class="border-2 border-dashed border-border rounded-xl bg-white text-black shadow-md flex flex-col items-center justify-between gap-1 p-3 ring-4 ring-muted/30"
                 :style="getLabelPreviewStyle()"
               >
                 <div v-if="labelConfig.showBiz" class="text-center font-bold tracking-wide" style="font-size:9px">
@@ -368,19 +372,19 @@
       </div>
 
       <!-- Bulk Print -->
-      <Card>
-        <CardHeader class="pb-3">
+      <Card class="border-0 ring-1 ring-border shadow-sm overflow-hidden">
+        <CardHeader class="pb-3 border-b border-border/50 bg-muted/20">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500/20 to-purple-500/10 flex items-center justify-center ring-1 ring-purple-500/15">
                 <Layers class="w-4 h-4 text-purple-500" />
               </div>
               <CardTitle class="text-base">Bulk Print from Inventory</CardTitle>
             </div>
-            <span v-if="selectedItems.size > 0" class="text-xs text-muted-foreground">{{ selectedItems.size }} selected</span>
+            <span v-if="selectedItems.size > 0" class="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">{{ selectedItems.size }} selected</span>
           </div>
         </CardHeader>
-        <CardContent class="space-y-3">
+        <CardContent class="space-y-3 pt-4">
           <div class="flex gap-2 flex-wrap">
             <div class="relative flex-1 min-w-[160px]">
               <Search class="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-muted-foreground" />
@@ -388,23 +392,23 @@
             </div>
             <Button variant="outline" size="sm" @click="selectAllFiltered">Select All</Button>
             <Button variant="outline" size="sm" @click="clearSelection" :disabled="selectedItems.size === 0">Clear</Button>
-            <Button size="sm" @click="addSelectedToPrintQueue" :disabled="selectedItems.size === 0">
+            <Button size="sm" @click="addSelectedToPrintQueue" :disabled="selectedItems.size === 0" class="shadow-sm">
               <Printer class="w-3.5 h-3.5 mr-1.5" />Queue ({{ selectedItems.size }})
             </Button>
           </div>
 
-          <div class="border rounded-lg overflow-hidden">
+          <div class="border border-border/60 rounded-xl overflow-hidden">
             <div
               v-for="item in filteredBulkInventory"
               :key="item.id"
               class="flex items-center gap-3 px-4 py-2.5 border-b last:border-0 hover:bg-muted/30 cursor-pointer transition-colors"
-              :class="selectedItems.has(item.id) ? 'bg-primary/5' : ''"
+              :class="selectedItems.has(item.id) ? 'bg-primary/5 border-l-2 border-l-primary/40' : ''"
               @click="toggleItemSelect(item.id)"
             >
               <input
                 type="checkbox"
                 :checked="selectedItems.has(item.id)"
-                class="w-4 h-4 rounded flex-shrink-0"
+                class="w-4 h-4 rounded flex-shrink-0 accent-primary"
                 @click.stop="toggleItemSelect(item.id)"
               />
               <div class="flex-1 min-w-0">
@@ -414,7 +418,7 @@
               <span class="text-sm font-semibold flex-shrink-0">{{ formatCurrency(item.price) }}</span>
               <Badge variant="outline" class="text-xs flex-shrink-0">{{ item.stock }} units</Badge>
             </div>
-            <div v-if="filteredBulkInventory.length === 0" class="px-4 py-8 text-center text-sm text-muted-foreground">
+            <div v-if="filteredBulkInventory.length === 0" class="px-4 py-10 text-center text-sm text-muted-foreground">
               No items match your filter
             </div>
           </div>
@@ -427,10 +431,10 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         <!-- Generator -->
-        <Card>
-          <CardHeader class="pb-3">
+        <Card class="border-0 ring-1 ring-border shadow-sm">
+          <CardHeader class="pb-3 border-b border-border/50 bg-muted/20">
             <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-500/10 flex items-center justify-center ring-1 ring-amber-500/15">
                 <Barcode class="w-4 h-4 text-amber-500" />
               </div>
               <div>
@@ -462,7 +466,7 @@
             <p v-if="genBarcode.error" class="text-sm text-destructive">{{ genBarcode.error }}</p>
 
             <!-- Generated Result -->
-            <div v-if="genBarcode.generated" class="flex flex-col items-center gap-4 p-5 border rounded-xl bg-white mt-2">
+            <div v-if="genBarcode.generated" class="flex flex-col items-center gap-4 p-5 border border-border/60 rounded-xl bg-white mt-2 shadow-sm ring-4 ring-muted/20">
               <canvas id="gen-barcode-canvas" class="max-w-full"></canvas>
               <div class="flex gap-2">
                 <Button variant="outline" size="sm" @click="downloadBarcode">
@@ -477,10 +481,10 @@
         </Card>
 
         <!-- Auto-assign SKUs -->
-        <Card>
-          <CardHeader class="pb-3">
+        <Card class="border-0 ring-1 ring-border shadow-sm">
+          <CardHeader class="pb-3 border-b border-border/50 bg-muted/20">
             <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500/20 to-emerald-500/10 flex items-center justify-center ring-1 ring-emerald-500/15">
                 <Wand2 class="w-4 h-4 text-emerald-500" />
               </div>
               <div>
@@ -499,17 +503,17 @@
             </div>
 
             <div v-else class="space-y-2">
-              <div v-for="item in itemsWithoutSku" :key="item.id" class="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/20 transition-colors">
+              <div v-for="item in itemsWithoutSku" :key="item.id" class="flex items-center gap-3 p-3 rounded-xl border border-border/60 hover:bg-muted/30 hover:border-border transition-all">
                 <div class="flex-1 min-w-0">
                   <p class="font-medium text-sm truncate">{{ item.name }}</p>
                   <p class="text-xs text-muted-foreground">No SKU assigned</p>
                 </div>
-                <Button size="sm" variant="outline" @click="autoAssignSku(item)" class="flex-shrink-0">
+                <Button size="sm" variant="outline" @click="autoAssignSku(item)" class="flex-shrink-0 hover:bg-emerald-500/10 hover:text-emerald-600 hover:border-emerald-500/30 transition-colors">
                   <Wand2 class="w-3 h-3 mr-1.5" />Assign
                 </Button>
               </div>
 
-              <Button class="w-full mt-2" variant="outline" @click="autoAssignAll">
+              <Button class="w-full mt-2 shadow-sm" variant="outline" @click="autoAssignAll">
                 <Wand2 class="w-4 h-4 mr-2" />
                 Auto-Assign All ({{ itemsWithoutSku.length }})
               </Button>
@@ -672,9 +676,9 @@ const { saveAll } = appStore
 
 // ── Tabs ──────────────────────────────────────────
 const tabs = [
-  { id: 'scan',     label: '🔍 Scan' },
-  { id: 'print',    label: '🖨 Print Labels' },
-  { id: 'generate', label: '📊 Generate' },
+  { id: 'scan',     label: 'Scan',         icon: ScanLine, color: 'text-cyan-500' },
+  { id: 'print',    label: 'Print Labels', icon: Printer,  color: 'text-purple-500' },
+  { id: 'generate', label: 'Generate',     icon: Barcode,  color: 'text-amber-500' },
 ]
 const activeTab = ref('scan')
 
