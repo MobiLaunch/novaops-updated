@@ -78,12 +78,6 @@
   </div>
 </template>
 
-<!-- ─────────────────────────────────────────────────────────────────
-     SidebarContent — extracted so mobile & desktop share identical markup
-──────────────────────────────────────────────────────────────────── -->
-<template id="sidebar-content">
-</template>
-
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, defineComponent, h, resolveComponent } from 'vue'
 import { useAppStore } from '~/stores/app'
