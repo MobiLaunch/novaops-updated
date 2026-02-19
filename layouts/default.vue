@@ -122,8 +122,8 @@
             <p class="text-xs text-muted-foreground">Loading your data...</p>
           </div>
         </div>
-        <Transition v-else name="page" mode="out-in">
-          <div :key="route.path">
+        <Transition v-else name="page" mode="out-in" appear>
+          <div :key="route.path" style="will-change: opacity">
             <slot />
           </div>
         </Transition>
@@ -726,20 +726,14 @@ const DrawerContent = defineComponent({
   opacity: 0;
 }
 
-/* Page transition — soft fade + subtle upward drift */
-.page-enter-active {
-  transition: opacity 0.2s ease, transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-}
+/* Page transition — pure crossfade, no position shift to prevent flash */
+.page-enter-active,
 .page-leave-active {
-  transition: opacity 0.15s ease, transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.18s ease;
 }
-.page-enter-from {
-  opacity: 0;
-  transform: translateY(6px);
-}
+.page-enter-from,
 .page-leave-to {
   opacity: 0;
-  transform: translateY(-4px);
 }
 
 @keyframes popIn {
@@ -747,4 +741,3 @@ const DrawerContent = defineComponent({
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 </style>
-

@@ -6,11 +6,11 @@
         <p class="text-sm text-muted-foreground mt-1">Create invoices, customer intake forms, repair estimates, and custom documents.</p>
       </div>
       <div class="flex gap-2 flex-wrap">
-        <Button variant="outline" @click="activeView = 'list'">
+        <Button variant="outline" @click="activeView = 'list'" class="shadow-sm">
           <FileText class="w-4 h-4 mr-2" />
           View All
         </Button>
-        <Button @click="startNew('invoice')">
+        <Button @click="startNew('invoice')" class="shadow-sm">
           <Plus class="w-4 h-4 mr-2" />
           New Invoice
         </Button>
@@ -24,10 +24,11 @@
         <div
           v-for="template in formTemplates"
           :key="template.id"
-          class="group cursor-pointer rounded-xl border border-border p-5 hover:border-primary/40 hover:bg-muted/30 transition-all"
+          class="group cursor-pointer rounded-xl border-0 ring-1 ring-border p-5 hover:ring-primary/40 hover:bg-gradient-to-br hover:shadow-md transition-all hover:-translate-y-0.5"
+          :style="''"
           @click="startNew(template.id)"
         >
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3" :style="`background: ${template.color}20`">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-transform group-hover:scale-110" :style="`background: ${template.color}18`">
             <component :is="template.icon" class="w-5 h-5" :style="`color: ${template.color}`" />
           </div>
           <p class="font-semibold text-sm">{{ template.name }}</p>
@@ -36,8 +37,8 @@
       </div>
 
       <!-- Saved documents -->
-      <Card>
-        <CardHeader>
+      <Card class="border-0 ring-1 ring-border shadow-sm overflow-hidden">
+        <CardHeader class="border-b border-border/50 bg-muted/20">
           <div class="flex items-center justify-between">
             <CardTitle>Saved Documents</CardTitle>
             <Input v-model="docSearch" placeholder="Search docs…" class="w-48 h-8 text-sm" />
@@ -103,14 +104,14 @@
     <!-- ── BUILDER VIEW ── -->
     <div v-if="activeView === 'builder'" class="space-y-4">
       <!-- Toolbar -->
-      <div class="flex items-center gap-3 flex-wrap">
-        <Button variant="ghost" size="sm" @click="activeView = 'list'">
+      <div class="flex items-center gap-3 flex-wrap bg-muted/30 rounded-xl px-3 py-2 border border-border/50">
+        <Button variant="ghost" size="sm" @click="activeView = 'list'" class="h-8">
           <ArrowLeft class="w-4 h-4 mr-2" />
           Back
         </Button>
         <div class="h-5 w-px bg-border" />
         <Select v-model="doc.type">
-          <SelectTrigger class="w-40 h-8 text-sm"><SelectValue /></SelectTrigger>
+          <SelectTrigger class="w-40 h-8 text-sm border-0 bg-background shadow-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="invoice">Invoice</SelectItem>
             <SelectItem value="estimate">Estimate</SelectItem>
@@ -120,20 +121,21 @@
           </SelectContent>
         </Select>
         <Badge :class="{
-          'bg-emerald-500/10 text-emerald-600': doc.status === 'paid',
-          'bg-amber-500/10 text-amber-600': doc.status === 'pending',
-          'bg-blue-500/10 text-blue-600': doc.status === 'draft',
-        }">{{ doc.status }}</Badge>
+          'bg-emerald-500/10 text-emerald-600 border-emerald-500/25': doc.status === 'paid',
+          'bg-amber-500/10 text-amber-600 border-amber-500/25': doc.status === 'pending',
+          'bg-blue-500/10 text-blue-600 border-blue-500/25': doc.status === 'draft',
+          'bg-red-500/10 text-red-600 border-red-500/25': doc.status === 'overdue',
+        }" class="border capitalize">{{ doc.status }}</Badge>
         <div class="ml-auto flex gap-2">
-          <Button variant="outline" size="sm" @click="saveDoc">
+          <Button variant="outline" size="sm" @click="saveDoc" class="shadow-sm">
             <Save class="w-4 h-4 mr-2" />
             Save Draft
           </Button>
-          <Button variant="outline" size="sm" @click="printDoc(doc)">
+          <Button variant="outline" size="sm" @click="printDoc(doc)" class="shadow-sm">
             <Printer class="w-4 h-4 mr-2" />
             Print / PDF
           </Button>
-          <Button size="sm" @click="markAsSent">
+          <Button size="sm" @click="markAsSent" class="shadow-sm">
             <Send class="w-4 h-4 mr-2" />
             Mark Sent
           </Button>
@@ -145,12 +147,19 @@
         <div class="xl:col-span-2 space-y-4">
 
           <!-- Header info -->
-          <Card>
-            <CardHeader><CardTitle class="text-sm">Document Info</CardTitle></CardHeader>
-            <CardContent class="space-y-3">
+          <Card class="border-0 ring-1 ring-border shadow-sm">
+            <CardHeader class="pb-3 border-b border-border/50 bg-muted/20">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg flex items-center justify-center" :style="`background: ${currentTemplate.color}18`">
+                  <component :is="currentTemplate.icon" class="w-4 h-4" :style="`color: ${currentTemplate.color}`" />
+                </div>
+                <CardTitle class="text-sm">Document Info</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent class="space-y-3 pt-4">
               <div class="space-y-1.5">
                 <Label>Title / Description</Label>
-                <Input v-model="doc.title" placeholder="e.g. Repair Invoice – iPhone 15 Pro" />
+                <Input v-model="doc.title" :placeholder="currentTemplate.titlePlaceholder" />
               </div>
               <div class="grid grid-cols-2 gap-3">
                 <div class="space-y-1.5">
@@ -162,7 +171,8 @@
                   <Input v-model="doc.date" type="date" />
                 </div>
               </div>
-              <div class="space-y-1.5">
+              <!-- Due date only for invoice/estimate -->
+              <div v-if="doc.type === 'invoice' || doc.type === 'estimate'" class="space-y-1.5">
                 <Label>Due Date</Label>
                 <Input v-model="doc.dueDate" type="date" />
               </div>
@@ -172,9 +182,13 @@
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
-                    <SelectItem value="overdue">Overdue</SelectItem>
+                    <SelectItem v-if="doc.type === 'invoice' || doc.type === 'receipt'" value="pending">Pending</SelectItem>
+                    <SelectItem v-if="doc.type === 'invoice' || doc.type === 'receipt'" value="paid">Paid</SelectItem>
+                    <SelectItem v-if="doc.type === 'invoice'" value="overdue">Overdue</SelectItem>
+                    <SelectItem v-if="doc.type === 'estimate'" value="pending">Sent</SelectItem>
+                    <SelectItem v-if="doc.type === 'estimate'" value="paid">Accepted</SelectItem>
+                    <SelectItem v-if="doc.type === 'intake'" value="pending">In Progress</SelectItem>
+                    <SelectItem v-if="doc.type === 'intake'" value="paid">Completed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -182,9 +196,11 @@
           </Card>
 
           <!-- Customer -->
-          <Card>
-            <CardHeader><CardTitle class="text-sm">Customer</CardTitle></CardHeader>
-            <CardContent class="space-y-3">
+          <Card class="border-0 ring-1 ring-border shadow-sm">
+            <CardHeader class="pb-3 border-b border-border/50 bg-muted/20">
+              <CardTitle class="text-sm">Customer</CardTitle>
+            </CardHeader>
+            <CardContent class="space-y-3 pt-4">
               <div class="space-y-1.5">
                 <Label>Search or select customer</Label>
                 <Select v-model="selectedCustomerId" @update:modelValue="fillCustomer">
@@ -217,10 +233,12 @@
             </CardContent>
           </Card>
 
-          <!-- Device / Ticket link -->
-          <Card>
-            <CardHeader><CardTitle class="text-sm">Device / Ticket</CardTitle></CardHeader>
-            <CardContent class="space-y-3">
+          <!-- Device / Ticket — shown for invoice, estimate, intake, receipt (repair-related) but NOT custom -->
+          <Card v-if="doc.type !== 'custom'" class="border-0 ring-1 ring-border shadow-sm">
+            <CardHeader class="pb-3 border-b border-border/50 bg-muted/20">
+              <CardTitle class="text-sm">{{ doc.type === 'intake' ? 'Device Drop-Off' : 'Device / Ticket' }}</CardTitle>
+            </CardHeader>
+            <CardContent class="space-y-3 pt-4">
               <div class="space-y-1.5">
                 <Label>Link to Ticket</Label>
                 <Select v-model="selectedTicketId" @update:modelValue="fillTicket">
@@ -243,18 +261,57 @@
                 </div>
               </div>
               <div class="space-y-1.5">
-                <Label>Issue / Description</Label>
+                <Label>{{ doc.type === 'intake' ? 'Reported Issue' : 'Issue / Description' }}</Label>
                 <Textarea v-model="doc.issue" :rows="2" placeholder="Cracked screen, water damage…" />
               </div>
+
+              <!-- Intake-specific: condition, accessories, PIN -->
+              <template v-if="doc.type === 'intake'">
+                <div class="space-y-1.5">
+                  <Label>Device Condition</Label>
+                  <Select v-model="doc.deviceCondition">
+                    <SelectTrigger><SelectValue placeholder="Select condition…" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="excellent">Excellent — no visible damage</SelectItem>
+                      <SelectItem value="good">Good — minor scratches</SelectItem>
+                      <SelectItem value="fair">Fair — visible wear</SelectItem>
+                      <SelectItem value="poor">Poor — heavy damage</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="space-y-1.5">
+                    <Label>Passcode / PIN</Label>
+                    <Input v-model="doc.devicePin" placeholder="Leave blank if none" class="font-mono" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <Label>Accessories</Label>
+                    <Input v-model="doc.accessories" placeholder="Charger, case…" />
+                  </div>
+                </div>
+                <div class="space-y-1.5">
+                  <Label>Estimated Completion</Label>
+                  <Input v-model="doc.dueDate" type="date" />
+                </div>
+                <div class="space-y-1.5">
+                  <Label>Repair Estimate</Label>
+                  <div class="relative">
+                    <span class="absolute left-3 top-2 text-muted-foreground text-sm">{{ settings?.currency || '$' }}</span>
+                    <Input v-model.number="doc.estimatedCost" type="number" min="0" step="0.01" class="pl-7" placeholder="0.00" />
+                  </div>
+                </div>
+              </template>
             </CardContent>
           </Card>
 
           <!-- Notes & Terms -->
-          <Card>
-            <CardHeader><CardTitle class="text-sm">Notes & Terms</CardTitle></CardHeader>
-            <CardContent class="space-y-3">
+          <Card class="border-0 ring-1 ring-border shadow-sm">
+            <CardHeader class="pb-3 border-b border-border/50 bg-muted/20">
+              <CardTitle class="text-sm">{{ doc.type === 'intake' ? 'Authorization & Terms' : 'Notes & Terms' }}</CardTitle>
+            </CardHeader>
+            <CardContent class="space-y-3 pt-4">
               <div class="space-y-1.5">
-                <Label>Notes to Customer</Label>
+                <Label>{{ doc.type === 'intake' ? 'Tech Notes' : 'Notes to Customer' }}</Label>
                 <Textarea v-model="doc.notes" :rows="3" placeholder="Thank you for choosing us…" />
               </div>
               <div class="space-y-1.5">
@@ -264,7 +321,7 @@
               <div class="space-y-1.5">
                 <Label>Signature Line</Label>
                 <div class="flex items-center gap-2">
-                  <input type="checkbox" id="sig" v-model="doc.requireSignature" class="w-4 h-4 rounded" />
+                  <input type="checkbox" id="sig" v-model="doc.requireSignature" class="w-4 h-4 rounded accent-primary" />
                   <Label for="sig" class="cursor-pointer font-normal">Include customer signature line</Label>
                 </div>
               </div>
@@ -272,12 +329,12 @@
           </Card>
         </div>
 
-        <!-- ── Right: Line Items + Preview ── -->
+        <!-- ── Right: Line Items (invoice/estimate/receipt/custom) or Intake summary + Preview ── -->
         <div class="xl:col-span-3 space-y-4">
 
-          <!-- Line Items -->
-          <Card>
-            <CardHeader>
+          <!-- Line Items — only for invoice, estimate, receipt, custom -->
+          <Card v-if="doc.type !== 'intake'" class="border-0 ring-1 ring-border shadow-sm">
+            <CardHeader class="pb-3 border-b border-border/50 bg-muted/20">
               <div class="flex items-center justify-between">
                 <CardTitle class="text-sm">Line Items</CardTitle>
                 <div class="flex gap-2">
@@ -339,9 +396,30 @@
             </CardContent>
           </Card>
 
+          <!-- Intake checklist summary — only for intake forms -->
+          <Card v-if="doc.type === 'intake'" class="border-0 ring-1 ring-border shadow-sm">
+            <CardHeader class="pb-3 border-b border-border/50 bg-muted/20">
+              <CardTitle class="text-sm">Intake Checklist</CardTitle>
+            </CardHeader>
+            <CardContent class="space-y-3 pt-4">
+              <p class="text-xs text-muted-foreground">Check items present / verified at drop-off</p>
+              <div class="grid grid-cols-2 gap-2">
+                <label v-for="item in intakeChecklist" :key="item.key" class="flex items-center gap-2 cursor-pointer text-sm p-2 rounded-lg hover:bg-muted/40 transition-colors">
+                  <input type="checkbox" v-model="doc.checklist[item.key]" class="w-4 h-4 rounded accent-primary flex-shrink-0" />
+                  {{ item.label }}
+                </label>
+              </div>
+              <!-- Estimated cost summary -->
+              <div v-if="doc.estimatedCost > 0" class="flex justify-between items-center pt-3 border-t border-border/60">
+                <span class="text-sm font-medium">Repair Estimate</span>
+                <span class="text-sm font-bold text-primary">{{ formatCurrency(doc.estimatedCost) }}</span>
+              </div>
+            </CardContent>
+          </Card>
+
           <!-- Custom Fields -->
-          <Card>
-            <CardHeader>
+          <Card class="border-0 ring-1 ring-border shadow-sm">
+            <CardHeader class="pb-3 border-b border-border/50 bg-muted/20">
               <div class="flex items-center justify-between">
                 <CardTitle class="text-sm">Custom Fields</CardTitle>
                 <Button size="sm" variant="ghost" @click="addCustomField">
@@ -367,8 +445,8 @@
           </Card>
 
           <!-- Print Preview -->
-          <Card class="overflow-hidden">
-            <CardHeader>
+          <Card class="border-0 ring-1 ring-border shadow-sm overflow-hidden">
+            <CardHeader class="pb-3 border-b border-border/50 bg-muted/20">
               <div class="flex items-center justify-between">
                 <CardTitle class="text-sm flex items-center gap-2">
                   <Eye class="w-4 h-4 text-cyan-500" />
@@ -381,8 +459,8 @@
               </div>
             </CardHeader>
             <CardContent class="p-0">
-              <!-- Scaled preview iframe-like div -->
-              <div class="bg-white text-black p-8 text-xs font-sans" style="min-height:500px;transform-origin:top left">
+              <!-- INVOICE / ESTIMATE / RECEIPT / CUSTOM preview -->
+              <div v-if="doc.type !== 'intake'" class="bg-white text-black p-8 text-xs font-sans" style="min-height:500px">
                 <!-- Header -->
                 <div class="flex justify-between items-start mb-6">
                   <div>
@@ -400,7 +478,6 @@
                     >{{ doc.status }}</span>
                   </div>
                 </div>
-
                 <!-- Bill To / Device -->
                 <div class="grid grid-cols-2 gap-6 mb-6">
                   <div>
@@ -417,8 +494,7 @@
                     <p class="text-gray-500 mt-0.5">{{ doc.issue }}</p>
                   </div>
                 </div>
-
-                <!-- Line Items table -->
+                <!-- Line Items -->
                 <table class="w-full mb-4 border-collapse">
                   <thead>
                     <tr class="border-b-2 border-gray-200">
@@ -435,9 +511,11 @@
                       <td class="py-1.5 text-right">{{ formatCurrency(line.unitPrice) }}</td>
                       <td class="py-1.5 text-right font-medium">{{ formatCurrency(line.qty * line.unitPrice) }}</td>
                     </tr>
+                    <tr v-if="doc.lineItems.length === 0">
+                      <td colspan="4" class="py-4 text-center text-gray-400">No line items</td>
+                    </tr>
                   </tbody>
                 </table>
-
                 <!-- Totals -->
                 <div class="flex justify-end mb-4">
                   <div class="w-48 space-y-1">
@@ -447,7 +525,6 @@
                     <div class="flex justify-between font-bold text-base border-t border-gray-300 pt-1"><span>Total</span><span>{{ formatCurrency(docTotal) }}</span></div>
                   </div>
                 </div>
-
                 <!-- Custom fields -->
                 <div v-if="doc.customFields.length > 0" class="mb-4 grid grid-cols-2 gap-2">
                   <div v-for="f in doc.customFields" :key="f.label" class="bg-gray-50 rounded p-2">
@@ -455,7 +532,6 @@
                     <p class="font-medium">{{ f.value }}</p>
                   </div>
                 </div>
-
                 <!-- Notes / Terms -->
                 <div v-if="doc.notes || doc.terms" class="border-t border-gray-200 pt-3 grid grid-cols-2 gap-4">
                   <div v-if="doc.notes">
@@ -467,7 +543,6 @@
                     <p class="text-gray-600">{{ doc.terms }}</p>
                   </div>
                 </div>
-
                 <!-- Signature -->
                 <div v-if="doc.requireSignature" class="mt-6 border-t border-gray-200 pt-4 flex gap-8">
                   <div class="flex-1">
@@ -475,6 +550,82 @@
                     <p class="text-xs text-gray-400">Customer Signature</p>
                   </div>
                   <div class="flex-1">
+                    <div class="h-10 border-b border-gray-400 mb-1"></div>
+                    <p class="text-xs text-gray-400">Date</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- INTAKE FORM preview -->
+              <div v-else class="bg-white text-black p-8 text-xs font-sans" style="min-height:500px">
+                <!-- Header -->
+                <div class="flex justify-between items-start mb-5 pb-4 border-b-2 border-gray-800">
+                  <div>
+                    <h1 class="text-xl font-bold text-gray-900">{{ settings?.businessName || 'NovaOps Repair' }}</h1>
+                    <p v-if="settings?.phone" class="text-gray-500 text-xs mt-0.5">{{ settings.phone }}</p>
+                  </div>
+                  <div class="text-right">
+                    <h2 class="text-base font-bold uppercase tracking-wider text-gray-700">Device Intake Form</h2>
+                    <p class="text-gray-500">#{{ doc.number }}</p>
+                    <p class="text-gray-500">Date: {{ doc.date }}</p>
+                  </div>
+                </div>
+                <!-- Customer + Device side by side -->
+                <div class="grid grid-cols-2 gap-6 mb-5">
+                  <div>
+                    <p class="font-bold text-gray-400 uppercase text-xs tracking-wider mb-2">Customer</p>
+                    <div class="space-y-1">
+                      <div class="flex gap-2"><span class="text-gray-400 w-12">Name</span><span class="font-semibold">{{ doc.customerName || '—' }}</span></div>
+                      <div class="flex gap-2"><span class="text-gray-400 w-12">Phone</span><span>{{ doc.customerPhone || '—' }}</span></div>
+                      <div class="flex gap-2"><span class="text-gray-400 w-12">Email</span><span>{{ doc.customerEmail || '—' }}</span></div>
+                    </div>
+                  </div>
+                  <div>
+                    <p class="font-bold text-gray-400 uppercase text-xs tracking-wider mb-2">Device</p>
+                    <div class="space-y-1">
+                      <div class="flex gap-2"><span class="text-gray-400 w-16">Model</span><span class="font-semibold">{{ doc.device || '—' }}</span></div>
+                      <div class="flex gap-2"><span class="text-gray-400 w-16">Serial</span><span class="font-mono">{{ doc.serialNumber || '—' }}</span></div>
+                      <div class="flex gap-2"><span class="text-gray-400 w-16">Condition</span><span class="capitalize">{{ doc.deviceCondition || '—' }}</span></div>
+                      <div class="flex gap-2"><span class="text-gray-400 w-16">Passcode</span><span class="font-mono">{{ doc.devicePin || '—' }}</span></div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Issue -->
+                <div class="mb-4 p-3 bg-gray-50 rounded">
+                  <p class="font-bold text-gray-400 uppercase text-xs tracking-wider mb-1">Reported Issue</p>
+                  <p class="font-medium">{{ doc.issue || '—' }}</p>
+                </div>
+                <!-- Accessories + estimate -->
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <p class="font-bold text-gray-400 uppercase text-xs tracking-wider mb-1">Accessories Received</p>
+                    <p>{{ doc.accessories || 'None' }}</p>
+                  </div>
+                  <div>
+                    <p class="font-bold text-gray-400 uppercase text-xs tracking-wider mb-1">Repair Estimate</p>
+                    <p class="font-bold text-base">{{ doc.estimatedCost > 0 ? formatCurrency(doc.estimatedCost) : 'TBD' }}</p>
+                    <p v-if="doc.dueDate" class="text-gray-500">Est. completion: {{ doc.dueDate }}</p>
+                  </div>
+                </div>
+                <!-- Custom fields -->
+                <div v-if="doc.customFields.length > 0" class="mb-4 grid grid-cols-2 gap-2">
+                  <div v-for="f in doc.customFields" :key="f.label" class="bg-gray-50 rounded p-2">
+                    <p class="text-gray-400 text-xs uppercase tracking-wider">{{ f.label }}</p>
+                    <p class="font-medium">{{ f.value }}</p>
+                  </div>
+                </div>
+                <!-- Notes / Terms -->
+                <div v-if="doc.notes || doc.terms" class="border-t border-gray-200 pt-3 mb-4 grid grid-cols-2 gap-4">
+                  <div v-if="doc.notes"><p class="font-bold text-gray-400 text-xs uppercase tracking-wider mb-1">Tech Notes</p><p class="text-gray-600">{{ doc.notes }}</p></div>
+                  <div v-if="doc.terms"><p class="font-bold text-gray-400 text-xs uppercase tracking-wider mb-1">Terms</p><p class="text-gray-600">{{ doc.terms }}</p></div>
+                </div>
+                <!-- Signature line always on intake -->
+                <div class="border-t border-gray-200 pt-4 flex gap-8">
+                  <div class="flex-1">
+                    <div class="h-10 border-b border-gray-400 mb-1"></div>
+                    <p class="text-xs text-gray-400">Customer Signature — I authorize the above repair</p>
+                  </div>
+                  <div class="w-32">
                     <div class="h-10 border-b border-gray-400 mb-1"></div>
                     <p class="text-xs text-gray-400">Date</p>
                   </div>
@@ -542,10 +693,23 @@ const { saveAll } = appStore
 
 // ── Form templates for quick create ───────────────
 const formTemplates = [
-  { id: 'invoice',  name: 'Invoice',         desc: 'Bill a customer for completed work',      icon: Receipt,       color: '#10b981' },
-  { id: 'estimate', name: 'Repair Estimate', desc: 'Send a quote before starting repairs',    icon: ClipboardList, color: '#6366f1' },
-  { id: 'intake',   name: 'Intake Form',     desc: 'Document device drop-off details',        icon: FileSignature, color: '#f59e0b' },
-  { id: 'custom',   name: 'Custom Form',     desc: 'Build any document from scratch',         icon: FilePlus,      color: '#ec4899' },
+  { id: 'invoice',  name: 'Invoice',         desc: 'Bill a customer for completed work',      icon: Receipt,       color: '#10b981', titlePlaceholder: 'e.g. Repair Invoice – iPhone 15 Pro' },
+  { id: 'estimate', name: 'Repair Estimate', desc: 'Send a quote before starting repairs',    icon: ClipboardList, color: '#6366f1', titlePlaceholder: 'e.g. Screen Repair Estimate' },
+  { id: 'intake',   name: 'Intake Form',     desc: 'Document device drop-off details',        icon: FileSignature, color: '#f59e0b', titlePlaceholder: 'e.g. iPhone 15 Pro Drop-Off' },
+  { id: 'custom',   name: 'Custom Form',     desc: 'Build any document from scratch',         icon: FilePlus,      color: '#ec4899', titlePlaceholder: 'e.g. Warranty Certificate' },
+]
+
+const currentTemplate = computed(() =>
+  formTemplates.find(t => t.id === doc.value.type) || formTemplates[0]
+)
+
+const intakeChecklist = [
+  { key: 'powerOn',      label: 'Powers on' },
+  { key: 'screenOk',     label: 'Screen intact' },
+  { key: 'chargerIncl',  label: 'Charger included' },
+  { key: 'caseIncl',     label: 'Case included' },
+  { key: 'dataBackup',   label: 'Customer backed up' },
+  { key: 'findMyOff',    label: 'Find My disabled' },
 ]
 
 // ── Views ──────────────────────────────────────────
@@ -611,6 +775,12 @@ const blankDoc = () => ({
   lineItems:        [] as LineItem[],
   customFields:     [] as CustomField[],
   createdAt:        new Date().toISOString(),
+  // Intake-specific
+  deviceCondition:  '',
+  devicePin:        '',
+  accessories:      '',
+  estimatedCost:    0,
+  checklist:        {} as Record<string, boolean>,
 })
 
 const doc = ref(blankDoc())
