@@ -1,104 +1,136 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 max-w-6xl">
+
+    <!-- Page Header -->
     <div>
-      <h2 class="text-2xl font-bold">Settings</h2>
-      <p class="text-sm text-muted-foreground mt-1">Configure your business and integrations</p>
+      <h1 class="text-2xl font-bold tracking-tight">Settings</h1>
+      <p class="text-sm text-muted-foreground mt-0.5">Configure your business, integrations, and account</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      
-      <Card class="lg:col-span-2">
-        <CardHeader>
-          <CardTitle>Business Information</CardTitle>
-        </CardHeader>
-        <CardContent class="space-y-4">
-          <div class="space-y-2">
-            <Label for="business-name">Business Name</Label>
-            <Input id="business-name" v-model="form.businessName" placeholder="Your Repair Shop" />
-          </div>
 
-          <div class="space-y-2">
-            <Label for="email">Email</Label>
-            <Input id="email" v-model="form.email" type="email" placeholder="contact@yourshop.com" />
-          </div>
+      <!-- ── LEFT: Business Settings ── -->
+      <div class="lg:col-span-2 space-y-6">
 
-          <div class="space-y-2">
-            <Label for="phone">Phone</Label>
-            <Input id="phone" v-model="form.phone" placeholder="(555) 123-4567" />
-          </div>
-
-          <div class="space-y-2">
-            <Label for="address">Address</Label>
-            <Textarea id="address" v-model="form.address" :rows="3" placeholder="123 Main St, City, State ZIP" />
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <Label for="currency">Currency</Label>
-              <Input id="currency" v-model="form.currency" placeholder="$" />
-            </div>
-
-            <div class="space-y-2">
-              <Label for="tax-rate">Tax Rate (%)</Label>
-              <Input id="tax-rate" v-model.number="form.taxRate" type="number" step="0.01" />
-            </div>
-          </div>
-
-          <div class="space-y-2">
-            <Label for="statuses">Ticket Statuses (comma separated)</Label>
-            <Input id="statuses" v-model="form.statuses" placeholder="Open, In Progress, Completed" />
-          </div>
-
-          <div class="space-y-2">
-            <Label for="pin">Screen Lock PIN (4 digits)</Label>
-            <Input 
-              id="pin" 
-              v-model="form.pin" 
-              type="password"
-              maxlength="4"
-              placeholder="1234" 
-            />
-            <p class="text-xs text-muted-foreground">Screen locks after 3 minutes of inactivity</p>
-          </div>
-
-          <Button @click="saveSettings">
-            <Save class="w-4 h-4 mr-2" />
-            Save Business Settings
-          </Button>
-        </CardContent>
-      </Card>
-
-      <div class="space-y-6">
-        
+        <!-- Business Info -->
         <Card>
-          <CardHeader>
-            <CardTitle class="flex items-center gap-2">
-              <CreditCard class="w-5 h-5" />
-              Square Integration
-            </CardTitle>
+          <CardHeader class="pb-4">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Building class="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <CardTitle class="text-base">Business Information</CardTitle>
+                <p class="text-xs text-muted-foreground mt-0.5">Your shop's public details and preferences</p>
+              </div>
+            </div>
           </CardHeader>
           <CardContent class="space-y-4">
-            <div class="p-4 rounded-lg bg-blue-500/5 border border-blue-500/20">
-              <div class="flex items-start gap-3">
-                <Info class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                <div class="text-sm text-blue-500">
-                  <p class="font-medium mb-1">Square Setup</p>
-                  <p class="text-xs opacity-80">Your Access Token, Application ID, and Location ID must be set as Vercel environment variables: <code class="font-mono">SQUARE_ACCESS_TOKEN</code>, <code class="font-mono">SQUARE_APPLICATION_ID</code>, <code class="font-mono">SQUARE_LOCATION_ID</code>. Enter your Terminal Device ID below to push payments directly to the terminal.</p>
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <Label for="business-name">Business Name</Label>
+                <Input id="business-name" v-model="form.businessName" placeholder="Your Repair Shop" />
+              </div>
+              <div class="space-y-1.5">
+                <Label for="phone">Phone</Label>
+                <Input id="phone" v-model="form.phone" placeholder="(555) 123-4567" />
               </div>
             </div>
 
-            <div class="space-y-2">
+            <div class="space-y-1.5">
+              <Label for="email">Email</Label>
+              <Input id="email" v-model="form.email" type="email" placeholder="contact@yourshop.com" />
+            </div>
+
+            <div class="space-y-1.5">
+              <Label for="address">Address</Label>
+              <Textarea id="address" v-model="form.address" :rows="2" placeholder="123 Main St, City, State ZIP" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <Label for="currency">Currency Symbol</Label>
+                <Input id="currency" v-model="form.currency" placeholder="$" />
+              </div>
+              <div class="space-y-1.5">
+                <Label for="tax-rate">Tax Rate (%)</Label>
+                <Input id="tax-rate" v-model.number="form.taxRate" type="number" step="0.01" placeholder="0.00" />
+              </div>
+            </div>
+
+            <div class="space-y-1.5">
+              <Label for="statuses">Ticket Statuses</Label>
+              <Input id="statuses" v-model="form.statuses" placeholder="Open, In Progress, Completed" />
+              <p class="text-xs text-muted-foreground">Separate each status with a comma</p>
+            </div>
+
+            <div class="space-y-1.5">
+              <Label for="pin">Screen Lock PIN</Label>
+              <Input
+                id="pin"
+                v-model="form.pin"
+                type="password"
+                maxlength="4"
+                placeholder="4-digit PIN"
+                class="max-w-[140px] font-mono tracking-widest"
+              />
+              <p class="text-xs text-muted-foreground">Screen locks after 3 minutes of inactivity</p>
+            </div>
+
+            <div class="pt-2 border-t">
+              <Button @click="saveSettings">
+                <Save class="w-4 h-4 mr-2" />
+                Save Business Settings
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Square Integration -->
+        <Card>
+          <CardHeader class="pb-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                  <CreditCard class="w-4 h-4 text-blue-500" />
+                </div>
+                <div>
+                  <CardTitle class="text-base">Square Integration</CardTitle>
+                  <p class="text-xs text-muted-foreground mt-0.5">Card payments and terminal pairing</p>
+                </div>
+              </div>
+              <!-- Status pill -->
+              <div class="flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full"
+                :class="squareSettings.enabled ? 'bg-emerald-500/10 text-emerald-600' : 'bg-muted text-muted-foreground'">
+                <div class="w-1.5 h-1.5 rounded-full" :class="squareSettings.enabled ? 'bg-emerald-500' : 'bg-gray-400'" />
+                {{ squareSettings.enabled ? 'Connected' : 'Disconnected' }}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent class="space-y-4">
+
+            <!-- Info notice -->
+            <div class="p-3 rounded-lg bg-blue-500/5 border border-blue-500/15 flex items-start gap-3">
+              <Info class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+              <div class="text-xs text-blue-600 dark:text-blue-400 space-y-1">
+                <p class="font-medium">Environment Variables Required</p>
+                <p class="opacity-80">Set <code class="font-mono bg-blue-500/10 px-1 rounded">SQUARE_ACCESS_TOKEN</code>, <code class="font-mono bg-blue-500/10 px-1 rounded">SQUARE_APPLICATION_ID</code>, and <code class="font-mono bg-blue-500/10 px-1 rounded">SQUARE_LOCATION_ID</code> in your Vercel project settings.</p>
+              </div>
+            </div>
+
+            <!-- Terminal Device ID -->
+            <div class="space-y-1.5">
               <Label for="square-device-id">Terminal Device ID</Label>
               <div class="flex gap-2">
-                <Input 
-                  id="square-device-id" 
+                <Input
+                  id="square-device-id"
                   v-model="squareSettings.deviceId"
                   placeholder="device:..."
                   @change="saveSquareSettings"
+                  class="font-mono text-sm"
                 />
-                <Button variant="outline" size="sm" @click="startPairing" :disabled="isPairing" class="flex-shrink-0">
-                  <MonitorSmartphone class="w-4 h-4 mr-1.5" />
+                <Button variant="outline" size="sm" @click="startPairing" :disabled="isPairing" class="flex-shrink-0 gap-1.5">
+                  <MonitorSmartphone class="w-4 h-4" />
                   Pair
                 </Button>
               </div>
@@ -106,24 +138,25 @@
             </div>
 
             <!-- Pairing Flow -->
-            <div v-if="pairingState !== 'idle'" class="p-4 rounded-lg border space-y-3"
-              :class="pairingState === 'paired' ? 'bg-emerald-500/5 border-emerald-500/20' : pairingState === 'expired' ? 'bg-red-500/5 border-red-500/20' : 'bg-blue-500/5 border-blue-500/20'">
-              
+            <div v-if="pairingState !== 'idle'"
+              class="p-4 rounded-lg border space-y-3 transition-colors"
+              :class="pairingState === 'paired' ? 'bg-emerald-500/5 border-emerald-500/20' : pairingState === 'expired' ? 'bg-red-500/5 border-red-500/20' : 'bg-blue-500/5 border-blue-500/15'"
+            >
               <div v-if="pairingState === 'loading'" class="flex items-center gap-2 text-sm text-muted-foreground">
                 <div class="w-4 h-4 rounded-full border-2 border-primary border-t-transparent animate-spin flex-shrink-0" />
                 Generating pairing code...
               </div>
 
-              <div v-else-if="pairingState === 'waiting'" class="space-y-3">
+              <div v-else-if="pairingState === 'waiting'" class="space-y-4">
                 <div class="flex items-start gap-3">
-                  <MonitorSmartphone class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                  <MonitorSmartphone class="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
                   <div>
                     <p class="text-sm font-medium">Enter this code on your Square Terminal</p>
-                    <p class="text-xs text-muted-foreground">On the terminal: Sign In → Use a Device Code</p>
+                    <p class="text-xs text-muted-foreground">Sign In → Use a Device Code</p>
                   </div>
                 </div>
                 <div class="flex items-center justify-center">
-                  <div class="bg-background border-2 border-primary/30 rounded-xl px-8 py-4">
+                  <div class="bg-background border-2 border-primary/30 rounded-xl px-10 py-4">
                     <span class="text-4xl font-bold tracking-[0.3em] font-mono text-primary">{{ pairingCode }}</span>
                   </div>
                 </div>
@@ -136,130 +169,116 @@
               <div v-else-if="pairingState === 'paired'" class="flex items-center gap-3">
                 <CheckCircle class="w-5 h-5 text-emerald-500 flex-shrink-0" />
                 <div>
-                  <p class="text-sm font-medium text-emerald-700">Terminal paired successfully!</p>
-                  <p class="text-xs text-muted-foreground font-mono">{{ squareSettings.deviceId }}</p>
+                  <p class="text-sm font-medium text-emerald-700 dark:text-emerald-400">Terminal paired successfully!</p>
+                  <p class="text-xs text-muted-foreground font-mono mt-0.5">{{ squareSettings.deviceId }}</p>
                 </div>
               </div>
 
               <div v-else-if="pairingState === 'expired'" class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <AlertCircle class="w-5 h-5 text-red-500 flex-shrink-0" />
+                  <AlertCircle class="w-4 h-4 text-red-500 flex-shrink-0" />
                   <p class="text-sm text-red-600">Pairing code expired</p>
                 </div>
                 <Button variant="outline" size="sm" @click="startPairing">Try Again</Button>
               </div>
             </div>
 
-            <div class="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-              <div class="flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full" :class="squareSettings.enabled ? 'bg-emerald-500' : 'bg-gray-500'"></div>
-                <span class="text-sm font-medium">{{ squareSettings.enabled ? 'Connected' : 'Disconnected' }}</span>
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm"
-                @click="toggleSquare"
-              >
+            <!-- Actions row -->
+            <div class="flex gap-2 pt-1">
+              <Button variant="outline" class="flex-1" @click="testSquareConnection">
+                <Zap class="w-4 h-4 mr-2" />
+                Test Connection
+              </Button>
+              <Button variant="outline" size="sm" @click="toggleSquare">
                 {{ squareSettings.enabled ? 'Disable' : 'Enable' }}
               </Button>
             </div>
 
-            <Button 
-              variant="outline" 
-              class="w-full"
-              @click="testSquareConnection"
-            >
-              <Zap class="w-4 h-4 mr-2" />
-              Test Server Connection
-            </Button>
-            
-            <div class="pt-2 border-t text-center">
+            <div class="text-center">
               <a href="https://developer.squareup.com/apps" target="_blank" class="text-xs text-primary hover:underline inline-flex items-center gap-1">
-                Square Developer Dashboard
-                <ExternalLink class="w-3 h-3" />
+                Square Developer Dashboard <ExternalLink class="w-3 h-3" />
               </a>
             </div>
           </CardContent>
         </Card>
 
+        <!-- Supabase Integration -->
         <Card>
-          <CardHeader>
-            <CardTitle class="flex items-center gap-2">
-              <Database class="w-5 h-5" />
-              Supabase Integration
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent class="space-y-4">
-            <div class="p-4 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
-              <div class="flex items-start gap-3">
-                <Info class="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
-                <div class="text-sm text-emerald-500">
-                  <p class="font-medium mb-1">Cloud Database</p>
-                  <p class="text-xs opacity-80">
-                    Data syncs automatically using environment configuration.
-                  </p>
+          <CardHeader class="pb-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                  <Database class="w-4 h-4 text-emerald-500" />
+                </div>
+                <div>
+                  <CardTitle class="text-base">Supabase</CardTitle>
+                  <p class="text-xs text-muted-foreground mt-0.5">Cloud database and sync</p>
                 </div>
               </div>
-            </div>
-
-            <div class="space-y-2">
-              <Label>Project URL</Label>
-              <Input :model-value="supabaseUrl" disabled placeholder="Set in .env file" />
-            </div>
-
-            <div class="flex items-center justify-between p-3 rounded-lg border">
-              <div class="text-sm">
-                <p class="font-medium">
-                  <span v-if="supabaseStatus.state === 'checking'" class="text-yellow-600">Checking...</span>
-                  <span v-else-if="supabaseStatus.state === 'connected'" class="text-emerald-500">Connected</span>
-                  <span v-else class="text-red-500">Disconnected</span>
-                </p>
-                <p class="text-xs opacity-70">{{ supabaseStatus.message }}</p>
+              <!-- Status pill -->
+              <div class="flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full"
+                :class="{
+                  'bg-emerald-500/10 text-emerald-600': supabaseStatus.state === 'connected',
+                  'bg-red-500/10 text-red-600': supabaseStatus.state === 'error',
+                  'bg-muted text-muted-foreground': supabaseStatus.state === 'idle' || supabaseStatus.state === 'checking'
+                }">
+                <div class="w-1.5 h-1.5 rounded-full"
+                  :class="{
+                    'bg-emerald-500': supabaseStatus.state === 'connected',
+                    'bg-red-500': supabaseStatus.state === 'error',
+                    'bg-gray-400 animate-pulse': supabaseStatus.state === 'checking',
+                    'bg-gray-400': supabaseStatus.state === 'idle'
+                  }"
+                />
+                <span v-if="supabaseStatus.state === 'checking'">Checking...</span>
+                <span v-else-if="supabaseStatus.state === 'connected'">Connected</span>
+                <span v-else-if="supabaseStatus.state === 'error'">Error</span>
+                <span v-else>Not tested</span>
               </div>
+            </div>
+          </CardHeader>
+          <CardContent class="space-y-4">
+            <div class="p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/15 flex items-start gap-3">
+              <Info class="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+              <p class="text-xs text-emerald-600 dark:text-emerald-400 opacity-90">
+                Data syncs automatically using your environment configuration. No manual setup needed.
+              </p>
+            </div>
 
-              <Button variant="outline" size="sm" @click="checkSupabaseConnection" :disabled="supabaseStatus.state === 'checking'">
-                <RefreshCw v-if="supabaseStatus.state === 'checking'" class="w-3 h-3 animate-spin" />
+            <div class="space-y-1.5">
+              <Label>Project URL</Label>
+              <Input :model-value="supabaseUrl" disabled placeholder="Set in .env file" class="font-mono text-xs text-muted-foreground" />
+            </div>
+
+            <div class="flex items-center justify-between p-3 rounded-lg bg-muted/30 border">
+              <div>
+                <p class="text-sm font-medium">{{ supabaseStatus.message }}</p>
+              </div>
+              <Button variant="outline" size="sm" @click="checkSupabaseConnection" :disabled="supabaseStatus.state === 'checking'" class="flex-shrink-0">
+                <RefreshCw v-if="supabaseStatus.state === 'checking'" class="w-3.5 h-3.5 animate-spin" />
                 <span v-else>Test</span>
               </Button>
             </div>
           </CardContent>
         </Card>
+      </div>
 
+      <!-- ── RIGHT: Account + Data ── -->
+      <div class="space-y-4">
+
+        <!-- Account Card -->
         <Card>
-          <CardHeader>
-            <CardTitle>Data Management</CardTitle>
+          <CardHeader class="pb-3">
+            <CardTitle class="text-base">Account</CardTitle>
           </CardHeader>
           <CardContent class="space-y-3">
-            <Button variant="outline" class="w-full" @click="exportData">
-              <Download class="w-4 h-4 mr-2" />
-              Export All Data
-            </Button>
-
-            <Button variant="outline" class="w-full" @click="clearCache">
-              <RefreshCw class="w-4 h-4 mr-2" />
-              Clear Cache
-            </Button>
-
-            <Button variant="destructive" class="w-full" @click="resetData">
-              <Trash2 class="w-4 h-4 mr-2" />
-              Reset All Data
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Account</CardTitle>
-          </CardHeader>
-          <CardContent class="space-y-3">
-            <div class="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-              <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-                <span class="text-sm font-semibold text-primary-foreground">{{ userInitials }}</span>
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border">
+              <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                <span class="text-sm font-bold text-primary-foreground">{{ userInitials }}</span>
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium truncate">{{ userEmail }}</p>
-                <p class="text-xs text-muted-foreground truncate">{{ form.businessName || 'Business User' }}</p>
+                <p class="text-sm font-semibold truncate">{{ userEmail }}</p>
+                <p class="text-xs text-muted-foreground truncate">{{ form.businessName || 'Business Account' }}</p>
               </div>
             </div>
 
@@ -269,9 +288,74 @@
             </Button>
           </CardContent>
         </Card>
+
+        <!-- Data Management -->
+        <Card>
+          <CardHeader class="pb-3">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                <HardDrive class="w-4 h-4 text-muted-foreground" />
+              </div>
+              <CardTitle class="text-base">Data Management</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent class="space-y-2">
+            <Button variant="outline" class="w-full justify-start gap-2" @click="exportData">
+              <Download class="w-4 h-4 text-muted-foreground" />
+              Export All Data
+            </Button>
+
+            <Button variant="outline" class="w-full justify-start gap-2" @click="clearCache">
+              <RefreshCw class="w-4 h-4 text-muted-foreground" />
+              Clear Cache
+            </Button>
+
+            <div class="pt-2 border-t">
+              <Button variant="destructive" class="w-full justify-start gap-2" @click="resetData">
+                <Trash2 class="w-4 h-4" />
+                Reset All Data
+              </Button>
+              <p class="text-xs text-muted-foreground mt-2 text-center">This action cannot be undone.</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Quick Status Summary -->
+        <Card>
+          <CardHeader class="pb-3">
+            <CardTitle class="text-base">System Status</CardTitle>
+          </CardHeader>
+          <CardContent class="space-y-2">
+            <div class="flex items-center justify-between text-sm py-1.5 border-b">
+              <span class="text-muted-foreground">Square</span>
+              <span class="flex items-center gap-1.5 font-medium text-xs"
+                :class="squareSettings.enabled ? 'text-emerald-600' : 'text-muted-foreground'">
+                <div class="w-1.5 h-1.5 rounded-full" :class="squareSettings.enabled ? 'bg-emerald-500' : 'bg-gray-300'" />
+                {{ squareSettings.enabled ? 'Enabled' : 'Disabled' }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between text-sm py-1.5 border-b">
+              <span class="text-muted-foreground">Database</span>
+              <span class="flex items-center gap-1.5 font-medium text-xs"
+                :class="supabaseStatus.state === 'connected' ? 'text-emerald-600' : 'text-muted-foreground'">
+                <div class="w-1.5 h-1.5 rounded-full"
+                  :class="supabaseStatus.state === 'connected' ? 'bg-emerald-500' : 'bg-gray-300'" />
+                {{ supabaseStatus.state === 'connected' ? 'Connected' : 'Unknown' }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between text-sm py-1.5">
+              <span class="text-muted-foreground">Screen Lock</span>
+              <span class="flex items-center gap-1.5 font-medium text-xs text-emerald-600">
+                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                Active (3 min)
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
 
+    <!-- SQL Setup Modal (unchanged logic) -->
     <Dialog v-model:open="sqlModalOpen">
       <DialogContent class="sm:max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
@@ -280,9 +364,9 @@
             Manual SQL Setup Required
           </DialogTitle>
         </DialogHeader>
-        
+
         <div class="flex-1 overflow-y-auto space-y-4 py-4">
-          <div class="p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
+          <div class="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
             <p class="text-sm text-amber-600">
               Automatic table creation failed. Please run the SQL below in your Supabase SQL Editor.
             </p>
@@ -296,29 +380,23 @@
                 Copy SQL
               </Button>
             </div>
-            
-            <div class="relative">
-              <pre class="p-4 rounded-lg bg-muted text-xs overflow-x-auto max-h-96 overflow-y-auto"><code>{{ sqlCommands }}</code></pre>
-            </div>
+            <pre class="p-4 rounded-lg bg-muted text-xs overflow-x-auto max-h-80 overflow-y-auto"><code>{{ sqlCommands }}</code></pre>
           </div>
 
           <div class="space-y-3 pt-4 border-t">
-            <p class="font-medium">Steps to complete setup:</p>
-            <ol class="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+            <p class="font-medium text-sm">Steps to complete setup:</p>
+            <ol class="list-decimal list-inside space-y-1.5 text-sm text-muted-foreground">
               <li>Click "Copy SQL" button above</li>
               <li>Go to <a href="https://app.supabase.com" target="_blank" class="text-primary hover:underline">Supabase Dashboard</a></li>
               <li>Navigate to SQL Editor</li>
-              <li>Paste the SQL commands</li>
-              <li>Click "Run" to execute</li>
-              <li>Come back here and click "Test Connection"</li>
+              <li>Paste and run the SQL commands</li>
+              <li>Return here and click "Test Connection"</li>
             </ol>
           </div>
         </div>
 
         <div class="flex gap-3 pt-4 border-t">
-          <Button variant="outline" class="flex-1" @click="sqlModalOpen = false">
-            Close
-          </Button>
+          <Button variant="outline" class="flex-1" @click="sqlModalOpen = false">Close</Button>
           <Button class="flex-1" @click="openSupabaseDashboard">
             <ExternalLink class="w-4 h-4 mr-2" />
             Open Supabase
@@ -332,10 +410,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useAppStore } from '~/stores/app'
-import { 
-  Save, CreditCard, Info, Zap, ExternalLink, Download, 
+import {
+  Save, CreditCard, Info, Zap, ExternalLink, Download,
   RefreshCw, Trash2, LogOut, Database, AlertCircle, Copy,
-  MonitorSmartphone, CheckCircle
+  MonitorSmartphone, CheckCircle, Building, HardDrive
 } from 'lucide-vue-next'
 import { Card, CardHeader, CardTitle, CardContent } from '~/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
@@ -369,7 +447,7 @@ const form = ref({
 const saveSettings = async () => {
   // Update local store
   appStore.settings = { ...appStore.settings, ...form.value }
-  
+
   // Persist to Supabase if logged in
   if (appStore.user) {
     try {
@@ -383,7 +461,7 @@ const saveSettings = async () => {
       console.error('Failed to sync settings to cloud', e)
     }
   }
-  
+
   appStore.saveAll() // Fallback to local storage
   alert('Settings saved successfully!')
 }
@@ -517,7 +595,7 @@ const checkSupabaseConnection = async () => {
   try {
     // Simple query to check connectivity
     const { error } = await supabase.from('tickets').select('id').limit(1)
-    
+
     // Check for "table missing" error codes (Postgres 42P01 or PGRST204)
     if (error && (error.code === 'PGRST204' || error.code === '42P01')) {
       sqlModalOpen.value = true
@@ -529,9 +607,9 @@ const checkSupabaseConnection = async () => {
     }
   } catch (err: any) {
     console.error('Supabase connection error:', err)
-    supabaseStatus.value = { 
-      state: 'error', 
-      message: err.message || 'Connection failed' 
+    supabaseStatus.value = {
+      state: 'error',
+      message: err.message || 'Connection failed'
     }
   }
 }
