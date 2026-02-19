@@ -1,12 +1,13 @@
 <template>
   <div class="space-y-4">
-    <!-- Header -->
+
+    <!-- Page Header -->
     <div class="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
       <div class="flex items-center gap-2">
         <Button variant="outline" size="icon" @click="previousMonth">
           <ChevronLeft class="w-4 h-4" />
         </Button>
-        <h2 class="text-xl font-semibold min-w-[200px] text-center" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+        <h2 class="text-xl font-bold min-w-[200px] text-center">
           {{ currentMonthYear }}
         </h2>
         <Button variant="outline" size="icon" @click="nextMonth">
@@ -18,8 +19,8 @@
       <div class="flex items-center gap-2">
         <!-- Legend -->
         <div class="hidden sm:flex items-center gap-3 mr-2 text-xs text-muted-foreground">
-          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block" /> Appointment</span>
-          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" /> House Call</span>
+          <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-indigo-500 inline-block" /> Appointment</span>
+          <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> House Call</span>
         </div>
         <Button size="sm" @click="openNewAppointment">
           <Plus class="w-4 h-4 mr-1.5" /> Appointment
@@ -30,12 +31,12 @@
       </div>
     </div>
 
-    <!-- Stats row -->
+    <!-- Stats Row -->
     <div class="grid grid-cols-3 gap-3">
       <Card>
-        <CardContent class="p-4 flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-            <CalendarDays class="w-5 h-5 text-blue-500" />
+        <CardContent class="p-3 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+            <CalendarDays class="w-4 h-4 text-blue-500" />
           </div>
           <div>
             <p class="text-xs text-muted-foreground">This Month</p>
@@ -44,9 +45,9 @@
         </CardContent>
       </Card>
       <Card>
-        <CardContent class="p-4 flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-            <Clock class="w-5 h-5 text-amber-500" />
+        <CardContent class="p-3 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+            <Clock class="w-4 h-4 text-amber-500" />
           </div>
           <div>
             <p class="text-xs text-muted-foreground">Today</p>
@@ -55,9 +56,9 @@
         </CardContent>
       </Card>
       <Card>
-        <CardContent class="p-4 flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-            <CheckCircle class="w-5 h-5 text-emerald-500" />
+        <CardContent class="p-3 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+            <CheckCircle class="w-4 h-4 text-emerald-500" />
           </div>
           <div>
             <p class="text-xs text-muted-foreground">Upcoming</p>
@@ -67,79 +68,132 @@
       </Card>
     </div>
 
-    <!-- Calendar Grid -->
-    <Card>
-      <CardContent class="p-0">
-        <!-- Day headers -->
-        <div class="grid grid-cols-7 border-b">
-          <div
-            v-for="day in dayHeaders"
-            :key="day"
-            class="py-2 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wide"
-          >
-            {{ day }}
-          </div>
-        </div>
+    <!-- Calendar + Sidebar layout -->
+    <div class="flex gap-4 items-start">
 
-        <!-- Calendar cells -->
-        <div class="grid grid-cols-7">
-          <div
-            v-for="(cell, i) in calendarCells"
-            :key="i"
-            class="min-h-[110px] border-b border-r last:border-r-0 p-1.5 relative"
-            :class="[
-              !cell.currentMonth && 'bg-muted/20',
-              cell.isToday && 'bg-primary/5',
-              i % 7 === 6 && 'border-r-0',
-              Math.floor(i / 7) === Math.floor((calendarCells.length - 1) / 7) && 'border-b-0'
-            ]"
-            @click="handleDayClick(cell)"
-          >
-            <!-- Date number -->
-            <div class="flex items-center justify-between mb-1">
-              <span
-                class="text-sm font-medium w-6 h-6 flex items-center justify-center rounded-full"
-                :class="[
-                  !cell.currentMonth && 'text-muted-foreground/40',
-                  cell.isToday && 'bg-primary text-primary-foreground font-bold',
-                  !cell.isToday && cell.currentMonth && 'text-foreground'
-                ]"
-              >
-                {{ cell.date.getDate() }}
-              </span>
-            </div>
-
-            <!-- Events -->
-            <div class="space-y-0.5">
-              <div
-                v-for="event in cell.events.slice(0, 3)"
-                :key="event.id"
-                class="text-[10px] leading-tight px-1.5 py-0.5 rounded font-medium truncate cursor-pointer hover:opacity-80 transition-opacity"
-                :class="event.type === 'appointment'
-                  ? 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300'
-                  : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'"
-                :title="`${event.time} — ${event.title}`"
-                @click.stop="openEvent(event)"
-              >
-                {{ event.time }} {{ event.title }}
-              </div>
-              <div
-                v-if="cell.events.length > 3"
-                class="text-[10px] text-muted-foreground px-1.5 cursor-pointer hover:text-foreground"
-                @click.stop="showDayEvents(cell)"
-              >
-                +{{ cell.events.length - 3 }} more
-              </div>
+      <!-- Calendar Grid -->
+      <Card class="flex-1 min-w-0">
+        <CardContent class="p-0">
+          <!-- Day headers -->
+          <div class="grid grid-cols-7 border-b">
+            <div
+              v-for="day in dayHeaders"
+              :key="day"
+              class="py-2.5 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+            >
+              {{ day }}
             </div>
           </div>
+
+          <!-- Calendar cells -->
+          <div class="grid grid-cols-7">
+            <div
+              v-for="(cell, i) in calendarCells"
+              :key="i"
+              class="min-h-[100px] border-b border-r p-1.5 relative cursor-pointer transition-colors"
+              :class="[
+                !cell.currentMonth && 'bg-muted/20',
+                cell.isToday && 'bg-primary/5 ring-1 ring-inset ring-primary/20',
+                i % 7 === 6 && 'border-r-0',
+                Math.floor(i / 7) === Math.floor((calendarCells.length - 1) / 7) && 'border-b-0',
+                cell.currentMonth && !cell.isToday && 'hover:bg-muted/30'
+              ]"
+              @click="handleDayClick(cell)"
+            >
+              <!-- Date number -->
+              <div class="flex items-center justify-between mb-1">
+                <span
+                  class="text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full"
+                  :class="[
+                    !cell.currentMonth && 'text-muted-foreground/30',
+                    cell.isToday && 'bg-primary text-primary-foreground',
+                    !cell.isToday && cell.currentMonth && 'text-foreground'
+                  ]"
+                >
+                  {{ cell.date.getDate() }}
+                </span>
+                <span v-if="cell.events.length > 0 && cell.currentMonth" class="text-[9px] text-muted-foreground">
+                  {{ cell.events.length }}
+                </span>
+              </div>
+
+              <!-- Events -->
+              <div class="space-y-0.5">
+                <div
+                  v-for="event in cell.events.slice(0, 3)"
+                  :key="event.id"
+                  class="text-[10px] leading-tight px-1.5 py-0.5 rounded font-medium truncate cursor-pointer hover:opacity-80 transition-opacity"
+                  :class="event.type === 'appointment'
+                    ? 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300'
+                    : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'"
+                  :title="`${event.time} — ${event.title}`"
+                  @click.stop="openEvent(event)"
+                >
+                  {{ event.time }} {{ event.title }}
+                </div>
+                <div
+                  v-if="cell.events.length > 3"
+                  class="text-[10px] text-muted-foreground px-1.5 cursor-pointer hover:text-foreground"
+                  @click.stop="showDayEvents(cell)"
+                >
+                  +{{ cell.events.length - 3 }} more
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Today's Events Sidebar (desktop) -->
+      <Card class="hidden lg:flex flex-col w-[240px] flex-shrink-0">
+        <div class="p-4 border-b">
+          <h3 class="text-sm font-semibold">
+            {{ new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) }}
+          </h3>
+          <p class="text-xs text-muted-foreground mt-0.5">
+            {{ todayCount === 0 ? 'Nothing scheduled today' : `${todayCount} event${todayCount !== 1 ? 's' : ''} today` }}
+          </p>
         </div>
-      </CardContent>
-    </Card>
+        <div class="flex-1 overflow-y-auto">
+          <div v-if="todayEvents.length === 0" class="flex flex-col items-center justify-center py-8 px-4 text-center">
+            <CalendarDays class="w-8 h-8 text-muted-foreground opacity-30 mb-2" />
+            <p class="text-xs text-muted-foreground">No events today</p>
+          </div>
+          <div
+            v-for="event in todayEvents"
+            :key="event.id"
+            class="flex items-start gap-3 p-3 hover:bg-muted/40 cursor-pointer transition-colors border-b last:border-b-0"
+            @click="openEvent(event)"
+          >
+            <div
+              class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+              :class="event.type === 'appointment' ? 'bg-indigo-500/10' : 'bg-emerald-500/10'"
+            >
+              <CalendarDays v-if="event.type === 'appointment'" class="w-3.5 h-3.5 text-indigo-500" />
+              <MapPin v-else class="w-3.5 h-3.5 text-emerald-500" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-semibold truncate">{{ event.title }}</p>
+              <p class="text-xs text-muted-foreground truncate">{{ event.subtitle }}</p>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="text-[10px] text-muted-foreground">{{ event.time }}</span>
+                <Badge class="text-[9px] h-4 px-1.5" :class="getStatusClass(event.status)">{{ event.status }}</Badge>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="p-3 border-t">
+          <Button size="sm" class="w-full" variant="outline" @click="openNewAppointment">
+            <Plus class="w-3.5 h-3.5 mr-1.5" />Add Event
+          </Button>
+        </div>
+      </Card>
+    </div>
 
     <!-- Day detail panel (shown when a day with events is clicked) -->
     <Card v-if="selectedDayEvents.length > 0">
       <CardHeader class="pb-2">
-        <CardTitle class="text-base flex items-center justify-between">
+        <CardTitle class="text-sm flex items-center justify-between">
           <span>{{ selectedDayLabel }}</span>
           <Button variant="ghost" size="icon" class="h-7 w-7" @click="selectedDay = null">
             <X class="w-4 h-4" />
@@ -173,7 +227,7 @@
       </CardContent>
     </Card>
 
-    <!-- Appointment Dialog -->
+    <!-- Appointment Dialog (unchanged) -->
     <Dialog v-model:open="appointmentDialogOpen">
       <DialogContent>
         <DialogHeader>
@@ -224,7 +278,7 @@
       </DialogContent>
     </Dialog>
 
-    <!-- House Call Dialog -->
+    <!-- House Call Dialog (unchanged) -->
     <Dialog v-model:open="houseCallDialogOpen">
       <DialogContent>
         <DialogHeader>
@@ -300,9 +354,9 @@ definePageMeta({ middleware: ['auth'] })
 
 const appStore = useAppStore()
 const { appointments, customers, houseCalls } = storeToRefs(appStore)
-const { 
-  createAppointment: storeCreateAppointment, 
-  updateAppointment: storeUpdateAppointment, 
+const {
+  createAppointment: storeCreateAppointment,
+  updateAppointment: storeUpdateAppointment,
   deleteAppointment: storeDeleteAppointment,
   createHouseCall: storeCreateHouseCall,
   updateHouseCall: storeUpdateHouseCall,
@@ -337,7 +391,6 @@ interface CalendarCell {
 }
 
 const allEvents = computed<CalendarEvent[]>(() => {
-  const today = new Date().toISOString().split('T')[0]
   const evts: CalendarEvent[] = []
 
   ;(appointments.value || []).forEach((apt: any) => {
@@ -377,23 +430,18 @@ const calendarCells = computed<CalendarCell[]>(() => {
 
   const cells: CalendarCell[] = []
 
-  // Pad start
   for (let i = 0; i < firstDay.getDay(); i++) {
     const d = new Date(year, month, -firstDay.getDay() + i + 1)
     cells.push({ date: d, currentMonth: false, isToday: false, events: [] })
   }
 
-  // Current month days
   for (let d = 1; d <= lastDay.getDate(); d++) {
     const date = new Date(year, month, d)
     const dateStr = date.toISOString().split('T')[0]
     date.setHours(0, 0, 0, 0)
 
     const events = allEvents.value
-      .filter(e => {
-        const eDate = e.raw.date
-        return eDate === dateStr
-      })
+      .filter(e => e.raw.date === dateStr)
       .sort((a, b) => a.time.localeCompare(b.time))
 
     cells.push({
@@ -404,7 +452,6 @@ const calendarCells = computed<CalendarCell[]>(() => {
     })
   }
 
-  // Pad end to complete the grid
   const remaining = 7 - (cells.length % 7)
   if (remaining < 7) {
     for (let i = 1; i <= remaining; i++) {
@@ -437,6 +484,14 @@ const upcomingCount = computed(() => {
     const d = new Date(`${e.raw.date}T${e.raw.time}`)
     return d >= now && e.status !== 'cancelled' && e.status !== 'completed'
   }).length
+})
+
+// ── Today's events for sidebar ────────────────────────────────────────────────
+const todayEvents = computed(() => {
+  const today = new Date().toISOString().split('T')[0]
+  return allEvents.value
+    .filter(e => e.raw.date === today)
+    .sort((a, b) => a.time.localeCompare(b.time))
 })
 
 // ── Selected day ──────────────────────────────────────────────────────────────

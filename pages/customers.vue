@@ -1,19 +1,31 @@
 <template>
   <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row gap-4 justify-between">
-      <div class="relative flex-1">
-        <Search class="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-        <Input
-          v-model="searchQuery"
-          placeholder="Search customers..."
-          class="pl-10 h-11"
-        />
+
+    <!-- Page Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">Customers</h1>
+        <p class="text-sm text-muted-foreground mt-0.5">{{ (customers || []).length }} total customers</p>
       </div>
-      <Button size="lg" @click="newCustomerOpen = true">
+      <Button size="sm" @click="newCustomerOpen = true">
         <Plus class="w-4 h-4 mr-2" />
         Add Customer
       </Button>
+    </div>
+
+    <!-- Search -->
+    <div class="flex items-center gap-3">
+      <div class="relative flex-1 max-w-sm">
+        <Search class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          v-model="searchQuery"
+          placeholder="Search by name, phone, or email..."
+          class="pl-9 h-9"
+        />
+      </div>
+      <span v-if="searchQuery" class="text-xs text-muted-foreground">
+        {{ filteredCustomers.length }} result{{ filteredCustomers.length !== 1 ? 's' : '' }}
+      </span>
     </div>
 
     <!-- Customers Table -->
@@ -21,47 +33,64 @@
       <CardContent class="p-0">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Tickets</TableHead>
-              <TableHead class="w-[100px]"></TableHead>
+            <TableRow class="hover:bg-transparent">
+              <TableHead>Customer</TableHead>
+              <TableHead class="hidden sm:table-cell">Phone</TableHead>
+              <TableHead class="hidden md:table-cell">Email</TableHead>
+              <TableHead class="hidden lg:table-cell text-right">Total Spent</TableHead>
+              <TableHead class="text-center">Tickets</TableHead>
+              <TableHead class="w-[80px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow
               v-for="customer in filteredCustomers"
               :key="customer.id"
+              class="hover:bg-muted/30 transition-colors"
             >
               <TableCell>
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <span class="text-sm font-semibold text-primary">
                       {{ customer.name.charAt(0).toUpperCase() }}
                     </span>
                   </div>
-                  <div>
-                    <p class="font-medium">{{ customer.name }}</p>
-                    <p class="text-sm text-muted-foreground">{{ customer.email }}</p>
+                  <div class="min-w-0">
+                    <p class="font-medium text-sm truncate">{{ customer.name }}</p>
+                    <!-- Phone shown inline on small screens -->
+                    <p class="text-xs text-muted-foreground sm:hidden">{{ customer.phone }}</p>
                   </div>
                 </div>
               </TableCell>
 
-              <TableCell>
-                <span>{{ customer.phone }}</span>
+              <TableCell class="hidden sm:table-cell">
+                <span class="text-sm">{{ customer.phone }}</span>
               </TableCell>
 
-              <TableCell>
-                <Badge variant="secondary">
+              <TableCell class="hidden md:table-cell">
+                <span class="text-sm text-muted-foreground">{{ customer.email || '—' }}</span>
+              </TableCell>
+
+              <TableCell class="hidden lg:table-cell text-right">
+                <span class="text-sm font-medium">{{ getCustomerSpend(customer.id) }}</span>
+              </TableCell>
+
+              <TableCell class="text-center">
+                <Badge
+                  variant="secondary"
+                  class="font-medium tabular-nums"
+                  :class="getCustomerTickets(customer.id) > 0 ? 'bg-primary/10 text-primary hover:bg-primary/20' : ''"
+                >
                   {{ getCustomerTickets(customer.id) }}
                 </Badge>
               </TableCell>
 
               <TableCell>
-                <div class="flex gap-2">
+                <div class="flex gap-1 justify-end">
                   <Button
                     variant="ghost"
                     size="icon"
+                    class="h-8 w-8"
                     @click="viewCustomer(customer)"
                   >
                     <Eye class="w-4 h-4" />
@@ -69,9 +98,10 @@
                   <Button
                     variant="ghost"
                     size="icon"
+                    class="h-8 w-8 text-muted-foreground hover:text-destructive"
                     @click="deleteCustomer(customer.id)"
                   >
-                    <Trash2 class="w-4 h-4 text-destructive" />
+                    <Trash2 class="w-4 h-4" />
                   </Button>
                 </div>
               </TableCell>
@@ -79,10 +109,18 @@
 
             <!-- Empty State -->
             <TableRow v-if="filteredCustomers.length === 0">
-              <TableCell colspan="4" class="h-24 text-center">
-                <div class="flex flex-col items-center justify-center py-8">
-                  <Users class="w-12 h-12 text-muted-foreground opacity-50 mb-2" />
-                  <p class="text-muted-foreground">No customers found</p>
+              <TableCell colspan="6" class="h-48 text-center">
+                <div class="flex flex-col items-center justify-center">
+                  <Users class="w-10 h-10 text-muted-foreground opacity-40 mb-3" />
+                  <p class="text-sm font-medium mb-1">
+                    {{ searchQuery ? 'No customers match your search' : 'No customers yet' }}
+                  </p>
+                  <p class="text-xs text-muted-foreground mb-4">
+                    {{ searchQuery ? 'Try a different name, phone, or email.' : 'Add your first customer to get started.' }}
+                  </p>
+                  <Button v-if="!searchQuery" size="sm" variant="outline" @click="newCustomerOpen = true">
+                    <Plus class="w-3.5 h-3.5 mr-1.5" />Add Customer
+                  </Button>
                 </div>
               </TableCell>
             </TableRow>
@@ -97,54 +135,55 @@
         <DialogHeader>
           <DialogTitle>Add New Customer</DialogTitle>
         </DialogHeader>
-        
+
         <div class="space-y-4 py-4">
           <div class="space-y-2">
             <Label for="name">Name *</Label>
-            <Input 
-              id="name" 
-              v-model="newCustomer.name" 
-              placeholder="John Doe" 
+            <Input
+              id="name"
+              v-model="newCustomer.name"
+              placeholder="John Doe"
             />
           </div>
-          
+
           <div class="space-y-2">
             <Label for="phone">Phone *</Label>
-            <Input 
-              id="phone" 
-              v-model="newCustomer.phone" 
-              placeholder="555-0123" 
+            <Input
+              id="phone"
+              v-model="newCustomer.phone"
+              placeholder="555-0123"
             />
           </div>
-          
+
           <div class="space-y-2">
             <Label for="email">Email</Label>
-            <Input 
-              id="email" 
-              v-model="newCustomer.email" 
-              type="email" 
-              placeholder="john@example.com" 
+            <Input
+              id="email"
+              v-model="newCustomer.email"
+              type="email"
+              placeholder="john@example.com"
             />
           </div>
-          
+
           <div class="space-y-2">
             <Label for="notes">Notes</Label>
-            <Textarea 
-              id="notes" 
-              v-model="newCustomer.notes" 
-              :rows="3" 
+            <Textarea
+              id="notes"
+              v-model="newCustomer.notes"
+              :rows="3"
+              placeholder="Any relevant notes..."
             />
           </div>
-          
-          <div class="flex gap-3 pt-4">
-            <Button 
-              variant="outline" 
+
+          <div class="flex gap-3 pt-2">
+            <Button
+              variant="outline"
               class="flex-1"
               @click="newCustomerOpen = false"
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               class="flex-1"
               :disabled="saving"
               @click="createCustomer"
@@ -178,7 +217,7 @@ definePageMeta({
 })
 
 const appStore = useAppStore()
-const { customers, tickets, isLoaded, user } = storeToRefs(appStore)
+const { customers, tickets, settings, isLoaded, user } = storeToRefs(appStore)
 const { $supabase } = useNuxtApp()
 
 const searchQuery = ref('')
@@ -204,6 +243,14 @@ const filteredCustomers = computed(() => {
 
 const getCustomerTickets = (customerId: number) => {
   return (tickets.value || []).filter(t => t.customerId === customerId).length
+}
+
+const getCustomerSpend = (customerId: number) => {
+  const total = (tickets.value || [])
+    .filter(t => t.customerId === customerId)
+    .reduce((sum, t) => sum + (t.price || 0), 0)
+  const currency = settings.value?.currency || '$'
+  return `${currency}${total.toFixed(2)}`
 }
 
 const createCustomer = async () => {
@@ -272,5 +319,4 @@ const deleteCustomer = async (id: number) => {
     }
   }
 }
-
 </script>
