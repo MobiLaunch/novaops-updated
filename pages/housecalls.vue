@@ -1,13 +1,13 @@
 <template>
   <div class="flex flex-col gap-8">
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-semibold tracking-tight">House Calls</h1>
+        <h1 class="text-3xl font-semibold tracking-tight text-foreground">House Calls</h1>
         <p class="text-sm text-muted-foreground mt-1">
           Manage on-site repair appointments
         </p>
       </div>
-      <Button size="lg" @click="newHouseCallOpen = true" class="shadow-sm">
+      <Button size="lg" @click="newHouseCallOpen = true" class="shadow-sm rounded-xl">
         <Plus class="w-4 h-4 mr-2" />
         Schedule House Call
       </Button>
@@ -15,10 +15,10 @@
 
     <div class="flex items-center gap-4">
       <Select v-model="filterStatus">
-        <SelectTrigger class="w-[180px]">
+        <SelectTrigger class="w-[180px] rounded-xl bg-card border-border">
           <SelectValue placeholder="All Statuses" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent class="rounded-xl">
           <SelectItem :value="null">All Statuses</SelectItem>
           <SelectItem value="scheduled">Scheduled</SelectItem>
           <SelectItem value="confirmed">Confirmed</SelectItem>
@@ -30,59 +30,59 @@
     </div>
 
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card class="border-0 ring-1 ring-blue-500/25 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent">
+      <Card class="bg-card border border-border rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200">
         <CardHeader class="flex flex-row items-center justify-between pb-2">
           <CardTitle class="text-sm font-medium text-muted-foreground">
             Today
           </CardTitle>
-          <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-            <Clock class="h-4 w-4 text-blue-500" />
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center transition-transform hover:scale-105" style="background: #3b82f618">
+            <Clock class="h-4 w-4" style="color: #3b82f6" />
           </div>
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ todayCount }}</div>
+          <div class="text-2xl font-bold" style="color: #3b82f6">{{ todayCount }}</div>
         </CardContent>
       </Card>
 
-      <Card class="border-0 ring-1 ring-purple-500/25 bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent">
+      <Card class="bg-card border border-border rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200">
         <CardHeader class="flex flex-row items-center justify-between pb-2">
           <CardTitle class="text-sm font-medium text-muted-foreground">
             Upcoming
           </CardTitle>
-          <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-            <CalendarClock class="h-4 w-4 text-purple-500" />
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center transition-transform hover:scale-105" style="background: #8b5cf618">
+            <CalendarClock class="h-4 w-4" style="color: #8b5cf6" />
           </div>
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ upcomingCount }}</div>
+          <div class="text-2xl font-bold" style="color: #8b5cf6">{{ upcomingCount }}</div>
         </CardContent>
       </Card>
 
-      <Card class="border-0 ring-1 ring-emerald-500/25 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent">
+      <Card class="bg-card border border-border rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200">
         <CardHeader class="flex flex-row items-center justify-between pb-2">
           <CardTitle class="text-sm font-medium text-muted-foreground">
             Completed
           </CardTitle>
-          <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-            <CheckCircle class="h-4 w-4 text-emerald-500" />
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center transition-transform hover:scale-105" style="background: #10b98118">
+            <CheckCircle class="h-4 w-4" style="color: #10b981" />
           </div>
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{{ completedCount }}</div>
+          <div class="text-2xl font-bold" style="color: #10b981">{{ completedCount }}</div>
         </CardContent>
       </Card>
 
-      <Card class="border-0 ring-1 ring-amber-500/25 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent">
+      <Card class="bg-card border border-border rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200">
         <CardHeader class="flex flex-row items-center justify-between pb-2">
           <CardTitle class="text-sm font-medium text-muted-foreground">
             This Week
           </CardTitle>
-          <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
-            <Calendar class="h-4 w-4 text-amber-500" />
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center transition-transform hover:scale-105" style="background: #f59e0b18">
+            <Calendar class="h-4 w-4" style="color: #f59e0b" />
           </div>
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold text-amber-600 dark:text-amber-400">{{ thisWeekCount }}</div>
+          <div class="text-2xl font-bold" style="color: #f59e0b">{{ thisWeekCount }}</div>
         </CardContent>
       </Card>
     </div>
@@ -91,55 +91,60 @@
       <Card
         v-for="call in filteredHouseCalls"
         :key="call.id"
-        class="cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 border-0 ring-1 ring-border hover:ring-primary/30 bg-gradient-to-r from-background to-muted/10"
+        class="cursor-pointer transition-all duration-200 hover:shadow-md border border-border bg-card rounded-2xl hover:border-emerald-500/40 group"
         @click="editHouseCall(call)"
       >
         <CardHeader>
           <div class="flex items-start justify-between">
-            <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center ring-1 ring-primary/20 flex-shrink-0">
-                  <span class="text-xs font-bold text-primary">{{ getCustomerName(call.customerId).charAt(0).toUpperCase() }}</span>
+            <div class="space-y-1 w-full">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-110" style="background: #10b98118">
+                  <span class="text-xs font-bold" style="color: #10b981">{{ getCustomerName(call.customerId).charAt(0).toUpperCase() }}</span>
                 </div>
-                <CardTitle class="text-base">{{ getCustomerName(call.customerId) }}</CardTitle>
-                <Badge :variant="getStatusVariant(call.status)" class="capitalize text-xs">
+                <CardTitle class="text-base font-semibold text-foreground flex-1 truncate">
+                  {{ getCustomerName(call.customerId) }}
+                </CardTitle>
+                <span 
+                  class="text-[10px] font-semibold px-2 py-0.5 rounded-md border flex-shrink-0 capitalize"
+                  :style="`background: ${getStatusColor(call.status)}15; color: ${getStatusColor(call.status)}; border-color: ${getStatusColor(call.status)}30`"
+                >
                   {{ call.status }}
-                </Badge>
+                </span>
               </div>
-              <p class="text-sm text-muted-foreground pl-10">
+              <p class="text-sm text-muted-foreground pl-11">
                 {{ call.description }}
               </p>
             </div>
           </div>
         </CardHeader>
-        <CardContent class="space-y-3">
-          <div class="grid gap-2 text-sm pl-1">
-            <div class="flex items-center gap-2">
-              <div class="w-6 h-6 rounded-md bg-muted/60 flex items-center justify-center">
-                <Clock class="h-3.5 w-3.5 text-muted-foreground" />
+        <CardContent class="space-y-4">
+          <div class="grid gap-2 text-sm pl-11">
+            <div class="flex items-center gap-2.5">
+              <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background: #64748b18">
+                <Clock class="h-3.5 w-3.5" style="color: #64748b" />
               </div>
-              <span>{{ formatDateTime(call.date, call.time) }}</span>
+              <span class="font-medium text-foreground/80">{{ formatDateTime(call.date, call.time) }}</span>
             </div>
-            <div v-if="call.address" class="flex items-center gap-2">
-              <div class="w-6 h-6 rounded-md bg-muted/60 flex items-center justify-center">
-                <MapPin class="h-3.5 w-3.5 text-muted-foreground" />
+            <div v-if="call.address" class="flex items-center gap-2.5">
+              <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background: #64748b18">
+                <MapPin class="h-3.5 w-3.5" style="color: #64748b" />
               </div>
-              <span class="line-clamp-1">{{ call.address }}</span>
+              <span class="line-clamp-1 text-foreground/80">{{ call.address }}</span>
             </div>
-            <div v-if="call.estimatedDuration" class="flex items-center gap-2">
-              <div class="w-6 h-6 rounded-md bg-muted/60 flex items-center justify-center">
-                <Timer class="h-3.5 w-3.5 text-muted-foreground" />
+            <div v-if="call.estimatedDuration" class="flex items-center gap-2.5">
+              <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background: #64748b18">
+                <Timer class="h-3.5 w-3.5" style="color: #64748b" />
               </div>
-              <span>{{ call.estimatedDuration }} min</span>
+              <span class="text-foreground/80">{{ call.estimatedDuration }} min</span>
             </div>
           </div>
           
-          <div class="flex items-center gap-2 pt-2">
+          <div class="flex items-center gap-2 pt-2 pl-11">
             <Button
               v-if="call.address"
               variant="outline"
               size="sm"
-              class="gap-1.5 hover:bg-blue-500/10 hover:text-blue-600 hover:border-blue-500/30 transition-colors"
+              class="rounded-xl h-8 px-3 text-xs gap-1.5 hover:bg-blue-500/10 hover:text-blue-600 hover:border-blue-500/30 transition-colors"
               @click.stop="openMaps(call.address)"
             >
               <Navigation class="w-3.5 h-3.5" />
@@ -148,7 +153,7 @@
             <Button
               variant="outline"
               size="sm"
-              class="gap-1.5 hover:bg-emerald-500/10 hover:text-emerald-600 hover:border-emerald-500/30 transition-colors"
+              class="rounded-xl h-8 px-3 text-xs gap-1.5 hover:bg-emerald-500/10 hover:text-emerald-600 hover:border-emerald-500/30 transition-colors"
               @click.stop="callCustomer(call.customerId)"
             >
               <Phone class="w-3.5 h-3.5" />
@@ -158,14 +163,16 @@
         </CardContent>
       </Card>
 
-      <Card v-if="filteredHouseCalls.length === 0">
+      <Card v-if="filteredHouseCalls.length === 0" class="bg-card border border-border rounded-2xl shadow-sm">
         <CardContent class="flex flex-col items-center justify-center py-16">
-          <MapPin class="h-12 w-12 text-muted-foreground mb-4" />
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style="background: #10b98118">
+            <MapPin class="h-6 w-6" style="color: #10b981" />
+          </div>
           <h3 class="text-lg font-semibold mb-2">No house calls found</h3>
           <p class="text-sm text-muted-foreground mb-6">
             Schedule your first on-site appointment
           </p>
-          <Button @click="newHouseCallOpen = true">
+          <Button @click="newHouseCallOpen = true" class="rounded-xl">
             <Plus class="w-4 h-4 mr-2" />
             Schedule House Call
           </Button>
@@ -174,7 +181,7 @@
     </div>
 
     <Dialog v-model:open="showDialog">
-      <DialogContent class="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent class="sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl">
         <DialogHeader>
           <DialogTitle>{{ editingCall ? 'Edit' : 'Schedule' }} House Call</DialogTitle>
         </DialogHeader>
@@ -183,10 +190,10 @@
           <div class="space-y-2">
             <Label for="customer">Customer *</Label>
             <Select v-model="callForm.customerId">
-              <SelectTrigger id="customer">
+              <SelectTrigger id="customer" class="rounded-xl">
                 <SelectValue placeholder="Select customer" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent class="rounded-xl">
                 <SelectItem
                   v-for="customer in customers"
                   :key="customer.id"
@@ -203,6 +210,7 @@
             <Textarea
               id="description"
               v-model="callForm.description"
+              class="rounded-xl"
               placeholder="e.g., MacBook screen replacement, on-site diagnosis"
               :rows="3"
             />
@@ -215,6 +223,7 @@
                 id="date"
                 v-model="callForm.date"
                 type="date"
+                class="rounded-xl"
               />
             </div>
             <div class="space-y-2">
@@ -223,6 +232,7 @@
                 id="time"
                 v-model="callForm.time"
                 type="time"
+                class="rounded-xl"
               />
             </div>
           </div>
@@ -232,6 +242,7 @@
             <Textarea
               id="address"
               v-model="callForm.address"
+              class="rounded-xl"
               placeholder="123 Main St, Suite 100, City, State 12345"
               :rows="2"
             />
@@ -244,16 +255,17 @@
                 id="duration"
                 v-model.number="callForm.estimatedDuration"
                 type="number"
+                class="rounded-xl"
                 placeholder="60"
               />
             </div>
             <div class="space-y-2">
               <Label for="status">Status</Label>
               <Select v-model="callForm.status">
-                <SelectTrigger id="status">
+                <SelectTrigger id="status" class="rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent class="rounded-xl">
                   <SelectItem value="scheduled">Scheduled</SelectItem>
                   <SelectItem value="confirmed">Confirmed</SelectItem>
                   <SelectItem value="in-progress">In Progress</SelectItem>
@@ -269,6 +281,7 @@
             <Textarea
               id="notes"
               v-model="callForm.notes"
+              class="rounded-xl"
               placeholder="Special instructions, parking info, etc."
               :rows="2"
             />
@@ -278,15 +291,16 @@
             <Button
               v-if="editingCall"
               variant="destructive"
+              class="rounded-xl"
               @click="handleDeleteHouseCall"
             >
               <Trash2 class="w-4 h-4 mr-2" />
               Delete
             </Button>
-            <Button variant="outline" class="flex-1" @click="cancelEdit">
+            <Button variant="outline" class="flex-1 rounded-xl" @click="cancelEdit">
               Cancel
             </Button>
-            <Button class="flex-1" @click="saveHouseCall">
+            <Button class="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white" @click="saveHouseCall">
               {{ editingCall ? 'Update' : 'Schedule' }}
             </Button>
           </div>
@@ -319,7 +333,6 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Textarea } from '~/components/ui/textarea'
-import { Badge } from '~/components/ui/badge'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '~/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 
@@ -417,15 +430,15 @@ const formatDateTime = (date: string, time: string) => {
   return `${new Date(date + 'T' + time).toLocaleDateString()} at ${time}`
 }
 
-const getStatusVariant = (status: string) => {
-  const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-    'scheduled': 'default',
-    'confirmed': 'secondary',
-    'in-progress': 'outline',
-    'completed': 'outline',
-    'cancelled': 'destructive'
+const getStatusColor = (status: string) => {
+  const colors: Record<string, string> = {
+    'scheduled': '#3b82f6', // blue
+    'confirmed': '#8b5cf6', // purple
+    'in-progress': '#f59e0b', // amber
+    'completed': '#10b981', // emerald
+    'cancelled': '#ef4444'  // red
   }
-  return variants[status] || 'outline'
+  return colors[status] || '#64748b' // slate
 }
 
 const saveHouseCall = async () => {
