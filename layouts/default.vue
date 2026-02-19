@@ -25,6 +25,7 @@
             :user-initials="userInitials"
             :active-drawer="activeDrawer"
             :current-theme="currentTheme"
+            :upcoming-items="upcomingItems"
             @set-drawer="setDrawer"
             @navigate="mobileMenuOpen = false"
             @set-theme="handleSetTheme"
@@ -57,6 +58,7 @@
         :user-initials="userInitials"
         :active-drawer="activeDrawer"
         :current-theme="currentTheme"
+        :upcoming-items="upcomingItems"
         @set-drawer="setDrawer"
         @navigate="() => {}"
         @set-theme="handleSetTheme"
@@ -120,7 +122,11 @@
             <p class="text-xs text-muted-foreground">Loading your data...</p>
           </div>
         </div>
-        <slot v-else />
+        <Transition v-else name="page" mode="out-in">
+          <div :key="route.path">
+            <slot />
+          </div>
+        </Transition>
       </main>
     </div>
   </div>
@@ -128,20 +134,60 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, defineComponent, h, resolveComponent } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useAppStore } from '~/stores/app'
 import {
   LayoutDashboard, TicketCheck, Users, Package, CalendarDays, ShoppingCart,
   FileText, Settings as SettingsIcon, Menu, X, MapPin, ScanLine, Upload,
-  Globe, Plus, Monitor, Moon, Sun, Download, Bell, ChevronRight,
-  TicketPlus, UserPlus, Tag, Barcode,
+  Globe, Plus, Monitor, Moon, Sun, Download, ChevronRight,
+  TicketPlus, UserPlus, Tag, Barcode, Clock, AlertCircle,
 } from 'lucide-vue-next'
 import NotificationsPanel from '~/components/NotificationsPanel.vue'
-import SidebarWidget from '~/components/SidebarWidget.vue'
 import { useScreenLock } from '~/composables/useScreenLock'
 
 const appStore = useAppStore()
+const { tickets, appointments } = storeToRefs(appStore)
 const settings = computed(() => appStore.settings ?? { businessName: '', email: '' })
 const route = useRoute()
+
+// ── Upcoming widget data ──────────────────────────────────────────
+const upcomingItems = computed(() => {
+  const now = new Date()
+  const todayStr = now.toISOString().split('T')[0]
+
+  const appts = (appointments.value || [])
+    .filter(a => a.status === 'scheduled' && a.date >= todayStr)
+    .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
+    .slice(0, 4)
+    .map(a => ({
+      id: a.id,
+      label: a.title || a.description || 'Appointment',
+      sub: formatApptTime(a.date, a.time),
+      color: '#06b6d4',
+      icon: CalendarDays,
+    }))
+
+  const openTickets = (tickets.value || [])
+    .filter(t => t.status === 'Open' || t.status === 'In Progress')
+    .sort((a, b) => (b.id || 0) - (a.id || 0))
+    .slice(0, 3)
+    .map(t => ({
+      id: t.id,
+      label: `#${t.id} ${t.device || ''}`.trim(),
+      sub: t.status,
+      color: t.status === 'In Progress' ? '#f59e0b' : '#6366f1',
+      icon: TicketCheck,
+    }))
+
+  return [...appts, ...openTickets]
+})
+
+function formatApptTime(date: string, time: string) {
+  try {
+    const d = new Date(`${date}T${time || '00:00'}`)
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' · ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  } catch { return date }
+}
 
 const mobileMenuOpen = ref(false)
 const activeDrawer = ref<string | null>(null)
@@ -244,19 +290,27 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 const RailContent = defineComponent({
   name: 'RailContent',
   props: {
-    navigation:    { type: Array as () => typeof navigation, required: true },
-    userInitials:  { type: String, required: true },
-    activeDrawer:  { type: String as () => string | null, default: null },
-    currentTheme:  { type: String, required: true },
+    navigation:     { type: Array as () => typeof navigation, required: true },
+    userInitials:   { type: String, required: true },
+    activeDrawer:   { type: String as () => string | null, default: null },
+    currentTheme:   { type: String, required: true },
+    upcomingItems:  { type: Array as () => typeof upcomingItems.value, default: () => [] },
   },
   emits: ['set-drawer', 'navigate', 'set-theme', 'export'],
   setup(props, { emit }) {
     const route = useRoute()
     const NuxtLink = resolveComponent('NuxtLink')
-    const NotifComp = NotificationsPanel
+    const upcomingOpen = ref(false)
 
     const coreNav  = computed(() => props.navigation.filter(n => n.group === 'core'))
     const toolsNav = computed(() => props.navigation.filter(n => n.group === 'tools'))
+
+    // Close upcoming popout when clicking outside
+    function onClickOutside(e: MouseEvent) {
+      if (!(e.target as HTMLElement).closest('[data-upcoming]')) upcomingOpen.value = false
+    }
+    onMounted(() => document.addEventListener('mousedown', onClickOutside))
+    onUnmounted(() => document.removeEventListener('mousedown', onClickOutside))
 
     function isActive(path: string) { return route.path === path }
 
@@ -387,11 +441,88 @@ const RailContent = defineComponent({
       // ── Bottom utilities ──
       h('div', { class: 'flex flex-col items-center gap-1 pt-2 border-t border-border w-full flex-shrink-0 pb-1' }, [
 
-        // Notifications
-        h('div', { class: 'flex flex-col items-center gap-1 w-full px-1' }, [
-          h('div', {
-            class: 'w-14 h-8 rounded-2xl flex items-center justify-center hover:bg-muted/60 transition-colors cursor-pointer',
-          }, [h(NotifComp)]),
+        // Upcoming widget
+        h('div', {
+          class: 'flex flex-col items-center gap-1 w-full px-1 relative',
+          'data-upcoming': '',
+        }, [
+          h('button', {
+            class: [
+              'w-14 h-8 rounded-2xl flex items-center justify-center transition-all duration-200 relative group',
+              upcomingOpen.value ? 'shadow-sm' : 'hover:bg-muted/60 group-hover:scale-105',
+            ].join(' '),
+            style: upcomingOpen.value ? 'background: #06b6d422' : '',
+            title: 'Upcoming',
+            onClick: () => { upcomingOpen.value = !upcomingOpen.value },
+          }, [
+            h(CalendarDays, {
+              class: 'w-4 h-4 transition-colors',
+              style: upcomingOpen.value ? 'color: #06b6d4' : 'color: hsl(var(--muted-foreground))',
+            }),
+            // Badge showing count if any
+            props.upcomingItems.length > 0
+              ? h('span', {
+                  class: 'absolute -top-0.5 -right-1 min-w-[14px] h-[14px] rounded-full bg-cyan-500 text-white text-[9px] font-bold flex items-center justify-center px-0.5 border-2 border-card',
+                }, String(props.upcomingItems.length))
+              : null,
+          ]),
+          h('span', {
+            class: 'text-[10px] font-medium leading-none',
+            style: upcomingOpen.value ? 'color: #06b6d4' : 'color: hsl(var(--muted-foreground))',
+          }, 'Upcoming'),
+
+          // ── Popout panel ──
+          upcomingOpen.value
+            ? h('div', {
+                class: 'absolute bottom-0 left-[calc(100%+8px)] w-64 bg-popover border border-border rounded-2xl shadow-2xl overflow-hidden z-50',
+                style: 'animation: popIn 0.18s cubic-bezier(0.34,1.56,0.64,1)',
+              }, [
+                // Header
+                h('div', { class: 'flex items-center justify-between px-3.5 py-3 border-b border-border' }, [
+                  h('div', { class: 'flex items-center gap-2' }, [
+                    h('div', { class: 'w-6 h-6 rounded-lg flex items-center justify-center', style: 'background: #06b6d418' }, [
+                      h(CalendarDays, { class: 'w-3.5 h-3.5', style: 'color: #06b6d4' }),
+                    ]),
+                    h('span', { class: 'text-sm font-semibold' }, 'Upcoming'),
+                  ]),
+                  h('button', {
+                    class: 'w-6 h-6 rounded-lg flex items-center justify-center hover:bg-muted/60 text-muted-foreground transition-colors',
+                    onClick: () => { upcomingOpen.value = false },
+                  }, [h(X, { class: 'w-3.5 h-3.5' })]),
+                ]),
+                // Items
+                props.upcomingItems.length === 0
+                  ? h('div', { class: 'px-4 py-8 text-center' }, [
+                      h('p', { class: 'text-xs text-muted-foreground' }, 'Nothing coming up'),
+                    ])
+                  : h('div', { class: 'py-1.5 max-h-72 overflow-y-auto' },
+                      props.upcomingItems.map(item =>
+                        h('div', {
+                          key: item.id,
+                          class: 'flex items-center gap-3 px-3.5 py-2 hover:bg-muted/40 transition-colors',
+                        }, [
+                          h('div', {
+                            class: 'w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0',
+                            style: `background: ${item.color}18`,
+                          }, [
+                            h(item.icon, { class: 'w-3.5 h-3.5', style: `color: ${item.color}` }),
+                          ]),
+                          h('div', { class: 'flex-1 min-w-0' }, [
+                            h('p', { class: 'text-xs font-medium text-foreground truncate' }, item.label),
+                            h('p', { class: 'text-[10px] text-muted-foreground truncate' }, item.sub),
+                          ]),
+                        ])
+                      )
+                    ),
+                // Footer link
+                h('div', { class: 'border-t border-border' }, [
+                  h('button', {
+                    class: 'w-full text-xs text-cyan-500 font-medium py-2.5 hover:bg-muted/40 transition-colors text-center',
+                    onClick: () => { navigateTo('/calendar'); upcomingOpen.value = false },
+                  }, 'Open Calendar →'),
+                ]),
+              ])
+            : null,
         ]),
 
         // Theme
@@ -594,4 +725,26 @@ const DrawerContent = defineComponent({
 .overlay-leave-to {
   opacity: 0;
 }
+
+/* Page transition — soft fade + subtle upward drift */
+.page-enter-active {
+  transition: opacity 0.2s ease, transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.page-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.92) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
 </style>
+
