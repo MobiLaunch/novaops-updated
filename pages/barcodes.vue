@@ -1,19 +1,24 @@
 <template>
   <div class="space-y-6">
+
+    <!-- Page Header -->
     <div class="flex items-start justify-between">
       <div>
-        <h2 class="text-2xl font-bold">Barcode Scanner & Printer</h2>
-        <p class="text-sm text-muted-foreground mt-1">Scan barcodes to look up inventory, or print labels for any item.</p>
+        <h1 class="text-2xl font-bold tracking-tight">Barcodes</h1>
+        <p class="text-sm text-muted-foreground mt-0.5">Scan inventory, print labels, and generate barcodes</p>
       </div>
       <div class="flex gap-2">
-        <Button variant="outline" @click="openPrintQueue" :disabled="printQueue.length === 0">
+        <Button variant="outline" size="sm" @click="openPrintQueue" :disabled="printQueue.length === 0" class="relative">
           <Printer class="w-4 h-4 mr-2" />
           Print Queue
-          <span v-if="printQueue.length > 0" class="ml-2 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">{{ printQueue.length }}</span>
+          <span
+            v-if="printQueue.length > 0"
+            class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center"
+          >{{ printQueue.length }}</span>
         </Button>
-        <Button @click="scannerOpen = true">
+        <Button size="sm" @click="scannerOpen = true">
           <ScanLine class="w-4 h-4 mr-2" />
-          Open Scanner
+          Camera Scan
         </Button>
       </div>
     </div>
@@ -26,7 +31,9 @@
         @click="activeTab = tab.id"
         :class="[
           'px-4 py-2 rounded-md text-sm font-medium transition-all',
-          activeTab === tab.id ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
+          activeTab === tab.id
+            ? 'bg-background shadow-sm text-foreground'
+            : 'text-muted-foreground hover:text-foreground'
         ]"
       >
         {{ tab.label }}
@@ -35,124 +42,142 @@
 
     <!-- ── SCAN TAB ── -->
     <div v-if="activeTab === 'scan'" class="space-y-4">
-      <!-- Manual barcode entry -->
+
+      <!-- Input Card -->
       <Card>
         <CardContent class="p-5">
           <div class="flex gap-3 items-end">
-            <div class="flex-1 space-y-2">
+            <div class="flex-1 space-y-1.5">
               <Label>Scan or Type Barcode / SKU</Label>
               <div class="relative">
-                <ScanLine class="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                <ScanLine class="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
                 <Input
                   ref="scanInput"
                   v-model="scanQuery"
-                  class="pl-9 font-mono text-base"
+                  class="pl-9 font-mono text-base h-10"
                   placeholder="Focus here, then scan with your scanner…"
                   @keyup.enter="performScan"
                   autofocus
                 />
               </div>
             </div>
-            <Button @click="performScan" :disabled="!scanQuery.trim()">Lookup</Button>
+            <Button @click="performScan" :disabled="!scanQuery.trim()" class="h-10">Lookup</Button>
           </div>
-          <p class="text-xs text-muted-foreground mt-2">
-            💡 USB / Bluetooth barcode scanners act as a keyboard — just focus this field and scan.
+          <p class="text-xs text-muted-foreground mt-2.5 flex items-center gap-1.5">
+            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-bold flex-shrink-0">i</span>
+            USB / Bluetooth scanners act as a keyboard — just focus this field and scan.
           </p>
         </CardContent>
       </Card>
 
-      <!-- Scan Result -->
-      <div v-if="scanResult !== null">
-        <!-- Found -->
-        <Card v-if="scanResult" class="border-emerald-500/30 bg-emerald-500/5">
-          <CardContent class="p-5">
-            <div class="flex items-start justify-between gap-4 flex-wrap">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+      <!-- Two-column: Result + Recent Scans -->
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+
+        <!-- Scan Result (wider) -->
+        <div class="lg:col-span-3 space-y-3">
+          <!-- Found -->
+          <Card v-if="scanResult" class="border-emerald-500/30 bg-emerald-500/5">
+            <CardContent class="p-5">
+              <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-xl bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
                   <Package class="w-6 h-6 text-emerald-500" />
                 </div>
-                <div>
-                  <div class="flex items-center gap-2">
-                    <p class="font-bold text-lg">{{ scanResult.name }}</p>
-                    <Badge :class="scanResult.stock <= scanResult.low ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-start justify-between gap-2 mb-1">
+                    <p class="font-bold text-lg leading-tight">{{ scanResult.name }}</p>
+                    <Badge :class="scanResult.stock <= scanResult.low ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'" class="flex-shrink-0 text-xs">
                       {{ scanResult.stock }} in stock
                     </Badge>
                   </div>
-                  <p class="text-sm text-muted-foreground font-mono">SKU: {{ scanResult.sku }}</p>
-                  <p class="text-sm text-muted-foreground">{{ scanResult.category || 'Uncategorized' }}</p>
-                </div>
-              </div>
-              <div class="text-right">
-                <p class="text-2xl font-bold text-emerald-500">{{ formatCurrency(scanResult.price) }}</p>
-                <p class="text-sm text-muted-foreground">Cost: {{ formatCurrency(scanResult.cost) }}</p>
-                <div class="flex gap-2 mt-2">
-                  <Button size="sm" variant="outline" @click="addToPrintQueue(scanResult)">
-                    <Printer class="w-3 h-3 mr-1" />
-                    Print Label
-                  </Button>
-                  <Button size="sm" variant="outline" @click="editInventoryItem(scanResult)">
-                    <Pencil class="w-3 h-3 mr-1" />
-                    Edit
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                  <p class="text-xs font-mono text-muted-foreground">SKU: {{ scanResult.sku }}</p>
+                  <p class="text-xs text-muted-foreground">{{ scanResult.category || 'Uncategorized' }}</p>
 
-        <!-- Not Found -->
-        <Card v-else class="border-amber-500/30 bg-amber-500/5">
-          <CardContent class="p-5 flex items-center gap-4">
-            <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-              <Search class="w-5 h-5 text-amber-500" />
+                  <div class="flex items-center justify-between mt-4 pt-3 border-t border-emerald-500/20">
+                    <div>
+                      <p class="text-2xl font-bold text-emerald-600">{{ formatCurrency(scanResult.price) }}</p>
+                      <p class="text-xs text-muted-foreground">Cost: {{ formatCurrency(scanResult.cost) }}</p>
+                    </div>
+                    <div class="flex gap-2">
+                      <Button size="sm" variant="outline" @click="addToPrintQueue(scanResult)">
+                        <Printer class="w-3.5 h-3.5 mr-1.5" />Print Label
+                      </Button>
+                      <Button size="sm" variant="outline" @click="editInventoryItem(scanResult)">
+                        <Pencil class="w-3.5 h-3.5 mr-1.5" />Edit
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <!-- Not Found -->
+          <Card v-else-if="scanResult === null" class="border-amber-500/30 bg-amber-500/5">
+            <CardContent class="p-5 flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                <Search class="w-5 h-5 text-amber-500" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="font-semibold text-amber-600">No item found</p>
+                <p class="text-sm text-muted-foreground font-mono truncate">{{ lastScanned }}</p>
+              </div>
+              <Button variant="outline" size="sm" class="flex-shrink-0" @click="createFromScan">
+                <Plus class="w-3.5 h-3.5 mr-1.5" />Add Item
+              </Button>
+            </CardContent>
+          </Card>
+
+          <!-- Empty state -->
+          <div v-else class="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
+            <ScanLine class="w-10 h-10 opacity-20 mb-3" />
+            <p class="text-sm">Scan or type a barcode above to look up an item</p>
+          </div>
+        </div>
+
+        <!-- Recent Scans (narrower) -->
+        <Card class="lg:col-span-2">
+          <CardHeader class="pb-2 pt-4 px-4">
+            <CardTitle class="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Recent Scans</CardTitle>
+          </CardHeader>
+          <CardContent class="p-0">
+            <div v-if="recentScans.length === 0" class="px-4 py-8 text-center text-xs text-muted-foreground opacity-60">
+              No scans yet
             </div>
-            <div>
-              <p class="font-semibold text-amber-600">No item found for "{{ lastScanned }}"</p>
-              <p class="text-sm text-muted-foreground">That barcode or SKU isn't in your inventory.</p>
+            <div
+              v-for="scan in recentScans"
+              :key="scan.ts"
+              class="flex items-center gap-3 px-4 py-2.5 border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
+              @click="quickLookup(scan.sku)"
+            >
+              <div :class="['w-2 h-2 rounded-full flex-shrink-0', scan.found ? 'bg-emerald-500' : 'bg-red-400']" />
+              <div class="flex-1 min-w-0">
+                <p class="font-mono text-xs truncate">{{ scan.sku }}</p>
+                <p v-if="scan.name" class="text-xs text-muted-foreground truncate">{{ scan.name }}</p>
+                <p v-else class="text-xs text-red-400">Not found</p>
+              </div>
+              <span class="text-[10px] text-muted-foreground flex-shrink-0">{{ formatTime(scan.ts) }}</span>
             </div>
-            <Button variant="outline" size="sm" class="ml-auto flex-shrink-0" @click="createFromScan">
-              <Plus class="w-3 h-3 mr-1" />
-              Add Item
-            </Button>
           </CardContent>
         </Card>
       </div>
-
-      <!-- Recent Scans -->
-      <Card v-if="recentScans.length > 0">
-        <CardHeader>
-          <CardTitle class="text-sm font-semibold text-muted-foreground uppercase tracking-widest">Recent Scans</CardTitle>
-        </CardHeader>
-        <CardContent class="p-0">
-          <div
-            v-for="scan in recentScans"
-            :key="scan.ts"
-            class="flex items-center gap-3 px-5 py-3 border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
-            @click="quickLookup(scan.sku)"
-          >
-            <div :class="['w-2 h-2 rounded-full flex-shrink-0', scan.found ? 'bg-emerald-500' : 'bg-red-400']" />
-            <span class="font-mono text-sm flex-1">{{ scan.sku }}</span>
-            <span v-if="scan.name" class="text-sm text-muted-foreground flex-1">{{ scan.name }}</span>
-            <span v-else class="text-sm text-red-400">Not found</span>
-            <span class="text-xs text-muted-foreground flex-shrink-0">{{ formatTime(scan.ts) }}</span>
-          </div>
-        </CardContent>
-      </Card>
     </div>
 
     <!-- ── PRINT TAB ── -->
     <div v-if="activeTab === 'print'" class="space-y-4">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
         <!-- Label Builder -->
         <Card>
-          <CardHeader>
-            <CardTitle class="flex items-center gap-2">
-              <Tag class="w-5 h-5 text-primary" />
-              Label Builder
-            </CardTitle>
+          <CardHeader class="pb-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Tag class="w-4 h-4 text-primary" />
+              </div>
+              <CardTitle class="text-base">Label Builder</CardTitle>
+            </div>
           </CardHeader>
           <CardContent class="space-y-4">
-            <div class="space-y-2">
+            <div class="space-y-1.5">
               <Label>Label Type</Label>
               <Select v-model="labelConfig.type">
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -167,7 +192,7 @@
 
             <!-- INVENTORY fields -->
             <template v-if="labelConfig.type === 'inventory'">
-              <div class="space-y-2">
+              <div class="space-y-1.5">
                 <Label>Select Item to Preview</Label>
                 <Select v-model="previewItemId">
                   <SelectTrigger><SelectValue placeholder="Choose an item..." /></SelectTrigger>
@@ -176,106 +201,126 @@
                   </SelectContent>
                 </Select>
               </div>
-              <div class="grid grid-cols-2 gap-3">
-                <div class="flex items-center gap-2"><input type="checkbox" id="showPrice" v-model="labelConfig.showPrice" class="w-4 h-4 rounded" /><Label for="showPrice" class="cursor-pointer">Show Price</Label></div>
-                <div class="flex items-center gap-2"><input type="checkbox" id="showSku" v-model="labelConfig.showSku" class="w-4 h-4 rounded" /><Label for="showSku" class="cursor-pointer">Show SKU</Label></div>
-                <div class="flex items-center gap-2"><input type="checkbox" id="showName" v-model="labelConfig.showName" class="w-4 h-4 rounded" /><Label for="showName" class="cursor-pointer">Show Name</Label></div>
-                <div class="flex items-center gap-2"><input type="checkbox" id="showBiz" v-model="labelConfig.showBiz" class="w-4 h-4 rounded" /><Label for="showBiz" class="cursor-pointer">Show Business</Label></div>
+              <div class="grid grid-cols-2 gap-x-4 gap-y-2 p-3 bg-muted/30 rounded-lg border">
+                <label class="flex items-center gap-2 cursor-pointer text-sm">
+                  <input type="checkbox" id="showName" v-model="labelConfig.showName" class="w-4 h-4 rounded" />
+                  Show Name
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer text-sm">
+                  <input type="checkbox" id="showPrice" v-model="labelConfig.showPrice" class="w-4 h-4 rounded" />
+                  Show Price
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer text-sm">
+                  <input type="checkbox" id="showSku" v-model="labelConfig.showSku" class="w-4 h-4 rounded" />
+                  Show SKU
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer text-sm">
+                  <input type="checkbox" id="showBiz" v-model="labelConfig.showBiz" class="w-4 h-4 rounded" />
+                  Show Business
+                </label>
               </div>
             </template>
 
             <!-- TICKET fields -->
             <template v-else-if="labelConfig.type === 'ticket'">
-              <div class="space-y-2">
+              <div class="space-y-1.5">
                 <Label>Ticket Number</Label>
                 <Input v-model="labelConfig.ticketId" placeholder="e.g. 1042" />
               </div>
-              <div class="space-y-2">
+              <div class="space-y-1.5">
                 <Label>Customer Name</Label>
                 <Input v-model="labelConfig.ticketCustomer" placeholder="e.g. John Smith" />
               </div>
-              <div class="space-y-2">
+              <div class="space-y-1.5">
                 <Label>Device</Label>
                 <Input v-model="labelConfig.ticketDevice" placeholder="e.g. iPhone 14 Pro" />
               </div>
-              <div class="flex items-center gap-2"><input type="checkbox" id="showBizT" v-model="labelConfig.showBiz" class="w-4 h-4 rounded" /><Label for="showBizT" class="cursor-pointer">Show Business Name</Label></div>
+              <label class="flex items-center gap-2 cursor-pointer text-sm">
+                <input type="checkbox" id="showBizT" v-model="labelConfig.showBiz" class="w-4 h-4 rounded" />
+                Show Business Name
+              </label>
             </template>
 
             <!-- ASSET TAG fields -->
             <template v-else-if="labelConfig.type === 'asset'">
-              <div class="space-y-2">
+              <div class="space-y-1.5">
                 <Label>Asset ID / Tag Number</Label>
                 <Input v-model="labelConfig.assetId" placeholder="e.g. ASSET-0042" />
               </div>
-              <div class="space-y-2">
+              <div class="space-y-1.5">
                 <Label>Asset Description</Label>
                 <Input v-model="labelConfig.assetDesc" placeholder="e.g. Dell Laptop" />
               </div>
-              <div class="flex items-center gap-2"><input type="checkbox" id="showBizA" v-model="labelConfig.showBiz" class="w-4 h-4 rounded" /><Label for="showBizA" class="cursor-pointer">Show Business Name</Label></div>
+              <label class="flex items-center gap-2 cursor-pointer text-sm">
+                <input type="checkbox" id="showBizA" v-model="labelConfig.showBiz" class="w-4 h-4 rounded" />
+                Show Business Name
+              </label>
             </template>
 
-            <!-- Shared fields for all types -->
-            <div class="space-y-2">
-              <Label>Barcode Format</Label>
-              <Select v-model="labelConfig.barcodeFormat">
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CODE128">Code 128 (recommended)</SelectItem>
-                  <SelectItem value="CODE39">Code 39</SelectItem>
-                  <SelectItem value="EAN13">EAN-13</SelectItem>
-                  <SelectItem value="QR">QR Code</SelectItem>
-                </SelectContent>
-              </Select>
+            <!-- Shared: format, size, copies, custom text -->
+            <div class="grid grid-cols-2 gap-3 pt-2 border-t">
+              <div class="space-y-1.5">
+                <Label>Barcode Format</Label>
+                <Select v-model="labelConfig.barcodeFormat">
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CODE128">Code 128</SelectItem>
+                    <SelectItem value="CODE39">Code 39</SelectItem>
+                    <SelectItem value="EAN13">EAN-13</SelectItem>
+                    <SelectItem value="QR">QR Code</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div class="space-y-1.5">
+                <Label>Label Size</Label>
+                <Select v-model="labelConfig.size">
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2x1">2" × 1" (small)</SelectItem>
+                    <SelectItem value="2x1.5">2" × 1.5" (medium)</SelectItem>
+                    <SelectItem value="2x2">2" × 2" (square)</SelectItem>
+                    <SelectItem value="4x2">4" × 2" (large)</SelectItem>
+                    <SelectItem value="4x6">4" × 6" (shipping)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div class="space-y-2">
-              <Label>Label Size</Label>
-              <Select v-model="labelConfig.size">
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="2x1">2" × 1" (small)</SelectItem>
-                  <SelectItem value="2x1.5">2" × 1.5" (medium)</SelectItem>
-                  <SelectItem value="2x2">2" × 2" (square)</SelectItem>
-                  <SelectItem value="4x2">4" × 2" (large)</SelectItem>
-                  <SelectItem value="4x6">4" × 6" (shipping)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div class="space-y-2">
-              <Label>Custom Text (optional)</Label>
+            <div class="space-y-1.5">
+              <Label>Custom Text <span class="text-muted-foreground font-normal">(optional)</span></Label>
               <Input v-model="labelConfig.customText" placeholder="e.g. 90-Day Warranty" />
             </div>
 
-            <div class="space-y-2">
+            <div class="space-y-1.5">
               <Label>Copies per Label</Label>
-              <Input v-model.number="labelConfig.copies" type="number" min="1" max="100" />
+              <Input v-model.number="labelConfig.copies" type="number" min="1" max="100" class="max-w-[100px]" />
             </div>
           </CardContent>
         </Card>
 
         <!-- Label Preview -->
         <Card>
-          <CardHeader>
-            <CardTitle class="flex items-center gap-2">
-              <Eye class="w-5 h-5 text-cyan-500" />
-              Label Preview
-            </CardTitle>
+          <CardHeader class="pb-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                <Eye class="w-4 h-4 text-cyan-500" />
+              </div>
+              <CardTitle class="text-base">Label Preview</CardTitle>
+            </div>
           </CardHeader>
           <CardContent>
-            <div class="flex flex-col items-center gap-4">
+            <div class="flex flex-col items-center gap-5">
               <!-- Preview Box -->
               <div
-                class="border-2 border-dashed border-border rounded-lg bg-white text-black p-3 flex flex-col items-center justify-between gap-1 shadow-sm"
+                class="border-2 border-dashed border-border rounded-lg bg-white text-black shadow-sm flex flex-col items-center justify-between gap-1 p-3"
                 :style="getLabelPreviewStyle()"
               >
-                <div v-if="labelConfig.showBiz" class="text-xs font-bold tracking-wide text-center" style="font-size:9px">
+                <div v-if="labelConfig.showBiz" class="text-center font-bold tracking-wide" style="font-size:9px">
                   {{ settings?.businessName || 'NovaOps Repair' }}
                 </div>
                 <div v-if="labelConfig.showName" class="font-bold text-center leading-tight" style="font-size:11px;max-width:100%">
                   {{ previewItem?.name || 'Item Name' }}
                 </div>
-                <!-- Barcode placeholder -->
                 <div class="w-full flex justify-center my-0.5">
                   <canvas :id="`preview-barcode`" style="max-width:100%;height:32px"></canvas>
                 </div>
@@ -290,13 +335,13 @@
                 </div>
               </div>
 
-              <div class="text-xs text-muted-foreground text-center">
-                {{ labelConfig.size }} label · {{ labelConfig.copies }} cop{{ labelConfig.copies === 1 ? 'y' : 'ies' }}
-              </div>
+              <p class="text-xs text-muted-foreground">
+                {{ labelConfig.size }} · {{ labelConfig.copies }} cop{{ labelConfig.copies === 1 ? 'y' : 'ies' }}
+              </p>
 
               <!-- Item picker -->
-              <div class="w-full space-y-2">
-                <Label class="text-xs">Preview with item:</Label>
+              <div class="w-full space-y-1.5">
+                <Label class="text-xs text-muted-foreground">Preview with item</Label>
                 <Select v-model="previewItemId" @update:modelValue="updatePreview">
                   <SelectTrigger class="text-sm">
                     <SelectValue placeholder="Select an item to preview…" />
@@ -311,12 +356,10 @@
 
               <div class="flex gap-2 w-full">
                 <Button variant="outline" class="flex-1" @click="addPreviewToPrintQueue" :disabled="!previewItem">
-                  <Plus class="w-4 h-4 mr-2" />
-                  Add to Queue
+                  <Plus class="w-4 h-4 mr-2" />Add to Queue
                 </Button>
                 <Button class="flex-1" @click="printPreviewNow" :disabled="!previewItem">
-                  <Printer class="w-4 h-4 mr-2" />
-                  Print Now
+                  <Printer class="w-4 h-4 mr-2" />Print Now
                 </Button>
               </div>
             </div>
@@ -326,41 +369,53 @@
 
       <!-- Bulk Print -->
       <Card>
-        <CardHeader>
-          <CardTitle class="flex items-center gap-2">
-            <Layers class="w-5 h-5 text-purple-500" />
-            Bulk Print from Inventory
-          </CardTitle>
+        <CardHeader class="pb-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                <Layers class="w-4 h-4 text-purple-500" />
+              </div>
+              <CardTitle class="text-base">Bulk Print from Inventory</CardTitle>
+            </div>
+            <span v-if="selectedItems.size > 0" class="text-xs text-muted-foreground">{{ selectedItems.size }} selected</span>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div class="flex gap-3 mb-4">
-            <Input v-model="bulkSearch" placeholder="Filter items…" class="max-w-xs" />
+        <CardContent class="space-y-3">
+          <div class="flex gap-2 flex-wrap">
+            <div class="relative flex-1 min-w-[160px]">
+              <Search class="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-muted-foreground" />
+              <Input v-model="bulkSearch" placeholder="Filter items…" class="pl-8 h-9 text-sm" />
+            </div>
             <Button variant="outline" size="sm" @click="selectAllFiltered">Select All</Button>
-            <Button variant="outline" size="sm" @click="clearSelection">Clear</Button>
+            <Button variant="outline" size="sm" @click="clearSelection" :disabled="selectedItems.size === 0">Clear</Button>
             <Button size="sm" @click="addSelectedToPrintQueue" :disabled="selectedItems.size === 0">
-              <Printer class="w-4 h-4 mr-2" />
-              Queue Selected ({{ selectedItems.size }})
+              <Printer class="w-3.5 h-3.5 mr-1.5" />Queue ({{ selectedItems.size }})
             </Button>
           </div>
+
           <div class="border rounded-lg overflow-hidden">
             <div
               v-for="item in filteredBulkInventory"
               :key="item.id"
               class="flex items-center gap-3 px-4 py-2.5 border-b last:border-0 hover:bg-muted/30 cursor-pointer transition-colors"
+              :class="selectedItems.has(item.id) ? 'bg-primary/5' : ''"
               @click="toggleItemSelect(item.id)"
             >
               <input
                 type="checkbox"
                 :checked="selectedItems.has(item.id)"
-                class="w-4 h-4 rounded"
+                class="w-4 h-4 rounded flex-shrink-0"
                 @click.stop="toggleItemSelect(item.id)"
               />
               <div class="flex-1 min-w-0">
                 <p class="font-medium text-sm truncate">{{ item.name }}</p>
                 <p class="text-xs text-muted-foreground font-mono">{{ item.sku }}</p>
               </div>
-              <span class="text-sm font-semibold">{{ formatCurrency(item.price) }}</span>
-              <Badge variant="outline" class="text-xs">{{ item.stock }} units</Badge>
+              <span class="text-sm font-semibold flex-shrink-0">{{ formatCurrency(item.price) }}</span>
+              <Badge variant="outline" class="text-xs flex-shrink-0">{{ item.stock }} units</Badge>
+            </div>
+            <div v-if="filteredBulkInventory.length === 0" class="px-4 py-8 text-center text-sm text-muted-foreground">
+              No items match your filter
             </div>
           </div>
         </CardContent>
@@ -369,21 +424,27 @@
 
     <!-- ── GENERATE TAB ── -->
     <div v-if="activeTab === 'generate'" class="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle class="flex items-center gap-2">
-            <Barcode class="w-5 h-5 text-amber-500" />
-            Generate Barcodes
-          </CardTitle>
-          <CardDescription>Create barcodes for items that don't have one yet, or generate standalone barcodes.</CardDescription>
-        </CardHeader>
-        <CardContent class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <Label>Barcode Value</Label>
-              <Input v-model="genBarcode.value" placeholder="e.g. SKU-12345 or any text" />
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Generator -->
+        <Card>
+          <CardHeader class="pb-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                <Barcode class="w-4 h-4 text-amber-500" />
+              </div>
+              <div>
+                <CardTitle class="text-base">Generate Barcode</CardTitle>
+                <p class="text-xs text-muted-foreground mt-0.5">Create standalone barcodes for any value</p>
+              </div>
             </div>
-            <div class="space-y-2">
+          </CardHeader>
+          <CardContent class="space-y-4">
+            <div class="space-y-1.5">
+              <Label>Barcode Value</Label>
+              <Input v-model="genBarcode.value" placeholder="e.g. SKU-12345 or any text" class="font-mono" />
+            </div>
+            <div class="space-y-1.5">
               <Label>Format</Label>
               <Select v-model="genBarcode.format">
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -395,115 +456,123 @@
                 </SelectContent>
               </Select>
             </div>
-          </div>
-          <Button @click="generateBarcode" :disabled="!genBarcode.value.trim()">
-            <Barcode class="w-4 h-4 mr-2" />
-            Generate
-          </Button>
-
-          <p v-if="genBarcode.error" class="text-sm text-destructive">{{ genBarcode.error }}</p>
-
-          <!-- Generated barcode display -->
-          <div v-if="genBarcode.generated" class="flex flex-col items-center gap-4 p-6 border rounded-xl bg-white">
-            <canvas id="gen-barcode-canvas" class="max-w-full"></canvas>
-            <div class="flex gap-2">
-              <Button variant="outline" size="sm" @click="downloadBarcode">
-                <Download class="w-4 h-4 mr-2" />
-                Download PNG
-              </Button>
-              <Button size="sm" @click="printGeneratedBarcode">
-                <Printer class="w-4 h-4 mr-2" />
-                Print
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <!-- Auto-generate for inventory items without barcodes -->
-      <Card>
-        <CardHeader>
-          <CardTitle class="text-base">Auto-Assign Barcodes to Inventory</CardTitle>
-          <CardDescription>Items below have no SKU or barcode. Generate and assign them automatically.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div v-if="itemsWithoutSku.length === 0" class="text-center py-8 text-muted-foreground">
-            <CheckCircle class="w-8 h-8 mx-auto mb-2 text-emerald-500" />
-            <p>All inventory items have SKUs assigned!</p>
-          </div>
-          <div v-else class="space-y-2">
-            <div v-for="item in itemsWithoutSku" :key="item.id" class="flex items-center gap-3 p-3 rounded-lg border">
-              <div class="flex-1">
-                <p class="font-medium text-sm">{{ item.name }}</p>
-                <p class="text-xs text-muted-foreground">No SKU assigned</p>
-              </div>
-              <Button size="sm" variant="outline" @click="autoAssignSku(item)">
-                <Wand2 class="w-3 h-3 mr-1" />
-                Auto-Assign
-              </Button>
-            </div>
-            <Button class="w-full mt-2" variant="outline" @click="autoAssignAll">
-              <Wand2 class="w-4 h-4 mr-2" />
-              Auto-Assign All ({{ itemsWithoutSku.length }})
+            <Button @click="generateBarcode" :disabled="!genBarcode.value.trim()" class="w-full">
+              <Barcode class="w-4 h-4 mr-2" />Generate
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+            <p v-if="genBarcode.error" class="text-sm text-destructive">{{ genBarcode.error }}</p>
+
+            <!-- Generated Result -->
+            <div v-if="genBarcode.generated" class="flex flex-col items-center gap-4 p-5 border rounded-xl bg-white mt-2">
+              <canvas id="gen-barcode-canvas" class="max-w-full"></canvas>
+              <div class="flex gap-2">
+                <Button variant="outline" size="sm" @click="downloadBarcode">
+                  <Download class="w-4 h-4 mr-2" />Download PNG
+                </Button>
+                <Button size="sm" @click="printGeneratedBarcode">
+                  <Printer class="w-4 h-4 mr-2" />Print
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Auto-assign SKUs -->
+        <Card>
+          <CardHeader class="pb-3">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                <Wand2 class="w-4 h-4 text-emerald-500" />
+              </div>
+              <div>
+                <CardTitle class="text-base">Auto-Assign SKUs</CardTitle>
+                <p class="text-xs text-muted-foreground mt-0.5">Items missing a SKU or barcode</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div v-if="itemsWithoutSku.length === 0" class="flex flex-col items-center justify-center py-10 text-center">
+              <div class="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-3">
+                <CheckCircle class="w-6 h-6 text-emerald-500" />
+              </div>
+              <p class="text-sm font-medium">All items have SKUs</p>
+              <p class="text-xs text-muted-foreground mt-1">Nothing to assign right now</p>
+            </div>
+
+            <div v-else class="space-y-2">
+              <div v-for="item in itemsWithoutSku" :key="item.id" class="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/20 transition-colors">
+                <div class="flex-1 min-w-0">
+                  <p class="font-medium text-sm truncate">{{ item.name }}</p>
+                  <p class="text-xs text-muted-foreground">No SKU assigned</p>
+                </div>
+                <Button size="sm" variant="outline" @click="autoAssignSku(item)" class="flex-shrink-0">
+                  <Wand2 class="w-3 h-3 mr-1.5" />Assign
+                </Button>
+              </div>
+
+              <Button class="w-full mt-2" variant="outline" @click="autoAssignAll">
+                <Wand2 class="w-4 h-4 mr-2" />
+                Auto-Assign All ({{ itemsWithoutSku.length }})
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
 
-    <!-- Print Queue Dialog -->
+    <!-- ── Print Queue Dialog ── -->
     <Dialog v-model:open="printQueueOpen">
-      <DialogContent class="sm:max-w-2xl">
+      <DialogContent class="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle class="flex items-center gap-2">
-            <Printer class="w-5 h-5 text-primary" />
-            Print Queue ({{ printQueue.length }} label{{ printQueue.length !== 1 ? 's' : '' }})
+            <Printer class="w-4 h-4 text-primary" />
+            Print Queue
+            <span class="text-sm font-normal text-muted-foreground">({{ printQueue.length }} label{{ printQueue.length !== 1 ? 's' : '' }})</span>
           </DialogTitle>
         </DialogHeader>
-        <div class="space-y-3 py-4 max-h-96 overflow-y-auto">
-          <div v-if="printQueue.length === 0" class="text-center py-8 text-muted-foreground">
-            Queue is empty. Add items from the Print tab.
+        <div class="space-y-2 py-2 max-h-80 overflow-y-auto">
+          <div v-if="printQueue.length === 0" class="flex flex-col items-center justify-center py-10 text-muted-foreground">
+            <Printer class="w-8 h-8 mb-2 opacity-30" />
+            <p class="text-sm">Queue is empty. Add items from the Print tab.</p>
           </div>
           <div
             v-for="(qItem, idx) in printQueue"
             :key="idx"
             class="flex items-center gap-3 p-3 rounded-lg border"
           >
-            <div class="flex-1">
-              <p class="font-medium text-sm">{{ qItem.item.name }}</p>
+            <div class="flex-1 min-w-0">
+              <p class="font-medium text-sm truncate">{{ qItem.item.name }}</p>
               <p class="text-xs text-muted-foreground font-mono">{{ qItem.item.sku }}</p>
             </div>
             <div class="flex items-center gap-2">
-              <Label class="text-xs text-muted-foreground">Qty:</Label>
+              <Label class="text-xs text-muted-foreground">Qty</Label>
               <Input
                 v-model.number="qItem.copies"
                 type="number"
                 min="1"
                 max="999"
-                class="w-16 h-7 text-sm"
+                class="w-16 h-7 text-sm text-center"
               />
             </div>
-            <Button variant="ghost" size="icon" class="h-7 w-7 text-destructive" @click="printQueue.splice(idx, 1)">
-              <X class="w-3 h-3" />
+            <Button variant="ghost" size="icon" class="h-7 w-7 text-muted-foreground hover:text-destructive flex-shrink-0" @click="printQueue.splice(idx, 1)">
+              <X class="w-3.5 h-3.5" />
             </Button>
           </div>
         </div>
-        <div class="flex gap-3 pt-2 border-t">
-          <Button variant="outline" @click="printQueue = []" :disabled="printQueue.length === 0">Clear All</Button>
+        <div class="flex gap-2 pt-3 border-t">
+          <Button variant="outline" size="sm" @click="printQueue = []" :disabled="printQueue.length === 0">Clear All</Button>
           <Button class="flex-1" @click="printAllQueued" :disabled="printQueue.length === 0">
-            <Printer class="w-4 h-4 mr-2" />
-            Print All Labels
+            <Printer class="w-4 h-4 mr-2" />Print All Labels
           </Button>
         </div>
       </DialogContent>
     </Dialog>
 
-    <!-- Camera Scanner Dialog -->
+    <!-- ── Camera Scanner Dialog ── -->
     <Dialog v-model:open="scannerOpen">
       <DialogContent class="sm:max-w-md">
         <DialogHeader>
           <DialogTitle class="flex items-center gap-2">
-            <ScanLine class="w-5 h-5 text-primary" />
+            <ScanLine class="w-4 h-4 text-primary" />
             Camera Scanner
           </DialogTitle>
         </DialogHeader>
@@ -520,25 +589,29 @@
               </div>
             </div>
           </div>
-          <p class="text-sm text-muted-foreground text-center">Position the barcode within the frame. Scanning uses your device camera.</p>
-          <p class="text-xs text-amber-600 bg-amber-500/10 rounded-lg px-3 py-2 text-center">Camera scanning requires the <strong>ZXing</strong> or <strong>QuaggaJS</strong> library to be configured. USB scanners work without this — just focus the input on the Scan tab.</p>
+          <p class="text-sm text-muted-foreground text-center">
+            Position the barcode within the frame to scan.
+          </p>
+          <div class="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-600 text-center">
+            Camera scanning requires <strong>ZXing</strong> or <strong>QuaggaJS</strong> to be configured. USB scanners work without this — just focus the input on the Scan tab.
+          </div>
           <Button variant="outline" class="w-full" @click="stopCamera">Close Camera</Button>
         </div>
       </DialogContent>
     </Dialog>
 
-    <!-- Edit Item Dialog (quick edit from scan result) -->
+    <!-- ── Quick Edit Dialog ── -->
     <Dialog v-model:open="editItemOpen">
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit: {{ editingItem?.name }}</DialogTitle>
         </DialogHeader>
         <div v-if="editingItem" class="space-y-4 py-4">
+          <div class="space-y-1.5">
+            <Label>Name</Label>
+            <Input v-model="editingItem.name" />
+          </div>
           <div class="grid grid-cols-2 gap-3">
-            <div class="space-y-1.5 col-span-2">
-              <Label>Name</Label>
-              <Input v-model="editingItem.name" />
-            </div>
             <div class="space-y-1.5">
               <Label>SKU / Barcode</Label>
               <Input v-model="editingItem.sku" class="font-mono" />
@@ -649,7 +722,6 @@ function addToPrintQueue(item: InventoryItem) {
 function openPrintQueue() { printQueueOpen.value = true }
 
 function printAllQueued() {
-  // Build a print-ready HTML page with all labels
   const html = buildPrintHTML(printQueue.value.flatMap(q => Array(q.copies).fill(q.item)))
   openPrintWindow(html)
 }
@@ -665,14 +737,11 @@ const labelConfig = ref({
   showBiz:       true,
   customText:    '',
   copies:        1,
-  // Ticket fields
   ticketId:      '',
   ticketCustomer:'',
   ticketDevice:  '',
-  // Asset fields
   assetId:       '',
   assetDesc:     '',
-  // Shipping fields
   shipTo:        '',
   shipAddress:   '',
   shipRef:       '',
@@ -755,7 +824,6 @@ async function generateBarcode() {
     if (!canvas) return
     const fmt = genBarcode.value.format
     if (fmt === 'QR') {
-      // QR fallback using a free API since JsBarcode doesn't do QR
       const img = document.createElement('img')
       img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(genBarcode.value.value)}`
       img.style.maxWidth = '100%'
@@ -830,12 +898,10 @@ function saveEditedItem() {
   if (idx > -1) { inventory.value[idx] = { ...editingItem.value } }
   saveAll()
   editItemOpen.value = false
-  // Refresh scan result
   if (scanResult.value?.id === editingItem.value.id) scanResult.value = { ...editingItem.value }
 }
 
 function createFromScan() {
-  // Pre-fill new item dialog with the scanned value as SKU
   navigateTo('/inventory')
 }
 
@@ -904,7 +970,6 @@ function buildPrintHTML(items: InventoryItem[]): string {
       </div>
     `
   } else {
-    // Inventory (default)
     labelsHtml = items.map(item => `
       <div class="label" style="width:${w}in;height:${h}in">
         ${cfg.showBiz ? `<div class="biz">${settings.value?.businessName || 'NovaOps'}</div>` : ''}
