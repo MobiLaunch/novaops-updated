@@ -12,55 +12,38 @@
       </div>
     </Transition>
 
-    <!-- ── Sidebar (shared styles via computed nav) ───────────────── -->
+    <!-- ── Mobile Sidebar ────────────────────────────────────────── -->
     <Transition name="sidebar">
       <aside
         v-show="mobileMenuOpen"
-        class="fixed left-0 top-0 z-50 h-screen w-60 bg-card border-r border-border flex flex-col lg:hidden shadow-xl"
+        class="fixed left-0 top-0 z-50 h-screen w-64 bg-card border-r border-border flex flex-col lg:hidden shadow-xl"
       >
         <SidebarContent :navigation="navigation" :user-initials="userInitials" :user-email="userEmail" :settings="settings" @close="mobileMenuOpen = false" @navigate="mobileMenuOpen = false" />
       </aside>
     </Transition>
 
     <!-- ── Desktop Sidebar ────────────────────────────────────────── -->
-    <aside class="hidden lg:flex fixed left-0 top-0 z-40 h-screen w-60 bg-card border-r border-border flex-col">
+    <aside class="hidden lg:flex fixed left-0 top-0 z-40 h-screen w-64 bg-card border-r border-border flex-col">
       <SidebarContent :navigation="navigation" :user-initials="userInitials" :user-email="userEmail" :settings="settings" />
     </aside>
 
     <!-- ── Main ───────────────────────────────────────────────────── -->
-    <div class="lg:pl-60 flex flex-col min-h-screen">
+    <div class="lg:pl-64 flex flex-col min-h-screen">
 
-      <!-- Top Bar -->
-      <header class="sticky top-0 z-30 h-13 flex items-center gap-3 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-4">
-
-        <!-- Mobile hamburger -->
-        <Button variant="ghost" size="icon" class="lg:hidden h-8 w-8 -ml-1" @click="mobileMenuOpen = true">
+      <!-- Mobile top bar — hamburger only, minimal height -->
+      <header class="sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-background/95 backdrop-blur px-4 h-12 lg:hidden">
+        <Button variant="ghost" size="icon" class="h-8 w-8 -ml-1" @click="mobileMenuOpen = true">
           <Menu class="h-4 w-4" />
         </Button>
-
-        <!-- Page title + icon -->
         <div class="flex items-center gap-2 flex-1 min-w-0">
           <div
             v-if="currentPageNav"
-            class="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
+            class="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0"
             :style="`background: ${currentPageNav.color}18`"
           >
-            <component :is="currentPageNav.icon" class="w-3.5 h-3.5" :style="`color: ${currentPageNav.color}`" />
+            <component :is="currentPageNav.icon" class="w-3 h-3" :style="`color: ${currentPageNav.color}`" />
           </div>
-          <h1 class="text-sm font-semibold truncate">{{ currentPageTitle }}</h1>
-          <div class="hidden md:flex ml-1">
-            <NavMenubar />
-          </div>
-        </div>
-
-        <!-- Right actions -->
-        <div class="flex items-center gap-0.5 flex-shrink-0">
-          <Button variant="ghost" size="icon" class="h-8 w-8">
-            <NotificationsPanel />
-          </Button>
-          <Button variant="ghost" size="icon" class="h-8 w-8" @click="navigateTo('/settings')">
-            <SettingsIcon class="h-4 w-4" />
-          </Button>
+          <span class="text-sm font-semibold truncate">{{ currentPageTitle }}</span>
         </div>
       </header>
 
@@ -97,6 +80,11 @@ import {
   ScanLine,
   Upload,
   Globe,
+  Plus,
+  Monitor,
+  Moon,
+  Sun,
+  Download,
 } from 'lucide-vue-next'
 import { Button } from '~/components/ui/button'
 import NotificationsPanel from '~/components/NotificationsPanel.vue'
@@ -167,6 +155,36 @@ watch(() => route.path, () => {
   mobileMenuOpen.value = false
 })
 
+// ── Shared helpers (passed into sidebar via closure) ──────────────
+function quickAction(type: string) {
+  const routes: Record<string, string> = {
+    ticket: '/tickets', housecall: '/housecalls', customer: '/customers',
+    register: '/pos', invoice: '/forms', scan: '/barcodes', import: '/import',
+  }
+  if (routes[type]) navigateTo(routes[type])
+}
+
+function exportData() {
+  const data = { settings: appStore.settings, tickets: appStore.tickets, customers: appStore.customers, inventory: appStore.inventory }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url; a.download = `novaops-backup-${new Date().toISOString().split('T')[0]}.json`; a.click()
+  URL.revokeObjectURL(url)
+}
+
+function applyTheme(theme: string) {
+  if (typeof localStorage !== 'undefined') localStorage.setItem('theme', theme)
+  const root = document.documentElement
+  if (theme === 'dark') root.classList.add('dark')
+  else if (theme === 'light') root.classList.remove('dark')
+  else root.classList.toggle('dark', window.matchMedia('(prefers-color-scheme: dark)').matches)
+}
+
+function getStoredTheme(): string {
+  return (typeof localStorage !== 'undefined' ? localStorage.getItem('theme') : null) || 'system'
+}
+
 // ── SidebarContent component (inline) ─────────────────────────────
 const SidebarContent = defineComponent({
   name: 'SidebarContent',
@@ -178,22 +196,85 @@ const SidebarContent = defineComponent({
   },
   emits: ['close', 'navigate'],
   setup(props, { emit }) {
-    const route = useRoute()
     const NuxtLink = resolveComponent('NuxtLink')
     const SidebarWidgetComp = SidebarWidget
+    const NotificationsPanelComp = NotificationsPanel
 
-    // Split nav into primary (first 8) and secondary (rest, excluding Settings)
     const primaryNav = computed(() => props.navigation.slice(0, 8))
     const secondaryNav = computed(() => props.navigation.slice(8, -1))
     const settingsNav = computed(() => props.navigation[props.navigation.length - 1])
 
+    const quickAddOpen = ref(false)
+    const themeMenuOpen = ref(false)
+    const currentTheme = ref(getStoredTheme())
+
     const navLinkClass = 'flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors duration-100 text-muted-foreground hover:bg-muted/60 hover:text-foreground group'
     const activeClass = '!bg-primary/10 !text-primary'
+
+    const quickItems = [
+      { type: 'ticket',    label: 'New Ticket',    icon: TicketCheck,  color: '#f59e0b', kbd: '⌘T' },
+      { type: 'housecall', label: 'House Call',     icon: MapPin,       color: '#10b981', kbd: '⌘H' },
+      { type: 'customer',  label: 'New Customer',   icon: Users,        color: '#3b82f6', kbd: '⌘U' },
+      { type: 'register',  label: 'Open Register',  icon: ShoppingCart, color: '#ec4899', kbd: '⌘R' },
+      { type: 'invoice',   label: 'New Invoice',    icon: FileText,     color: '#10b981', kbd: '⌘I' },
+      { type: 'scan',      label: 'Scan Barcode',   icon: ScanLine,     color: '#06b6d4', kbd: '⌘B' },
+    ]
+
+    const themeOptions = [
+      { key: 'system', label: 'System', icon: Monitor },
+      { key: 'dark',   label: 'Dark',   icon: Moon },
+      { key: 'light',  label: 'Light',  icon: Sun },
+    ]
+
+    function doNavigate(path: string) {
+      navigateTo(path)
+      emit('navigate')
+    }
+
+    function doQuickAction(type: string) {
+      quickAction(type)
+      quickAddOpen.value = false
+      emit('navigate')
+    }
+
+    function doSetTheme(theme: string) {
+      currentTheme.value = theme
+      applyTheme(theme)
+      themeMenuOpen.value = false
+    }
+
+    // Close theme menu on outside click
+    function onThemeClickOutside(e: MouseEvent) {
+      if (!(e.target as HTMLElement).closest('[data-theme-menu]')) {
+        themeMenuOpen.value = false
+      }
+    }
+    onMounted(() => document.addEventListener('mousedown', onThemeClickOutside))
+    onUnmounted(() => document.removeEventListener('mousedown', onThemeClickOutside))
+
+    // Keyboard shortcuts
+    function onKeydown(e: KeyboardEvent) {
+      if (!e.metaKey && !e.ctrlKey) return
+      const map: Record<string, () => void> = {
+        't': () => doQuickAction('ticket'),
+        'h': () => doQuickAction('housecall'),
+        'u': () => doQuickAction('customer'),
+        'r': () => doQuickAction('register'),
+        'i': () => doQuickAction('invoice'),
+        'b': () => doQuickAction('scan'),
+        'd': () => doNavigate('/dashboard'),
+        ',': () => doNavigate('/settings'),
+      }
+      const fn = map[e.key.toLowerCase()]
+      if (fn) { e.preventDefault(); fn() }
+    }
+    onMounted(() => window.addEventListener('keydown', onKeydown))
+    onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
     return () => h('div', { class: 'flex flex-col h-full' }, [
 
       // ── Logo header ──
-      h('div', { class: 'flex items-center justify-between h-13 px-4 border-b border-border flex-shrink-0' }, [
+      h('div', { class: 'flex items-center justify-between px-4 py-3.5 border-b border-border flex-shrink-0' }, [
         h('img', { src: '/posicon.svg', alt: 'NovaOps', class: 'h-6 w-auto' }),
         h(Button, {
           variant: 'ghost', size: 'icon',
@@ -202,10 +283,47 @@ const SidebarContent = defineComponent({
         }, () => h(X, { class: 'w-4 h-4' }))
       ]),
 
-      // ── Nav ──
-      h('nav', { class: 'flex-1 overflow-y-auto px-2 py-3 space-y-0.5' }, [
+      // ── Quick Add ──
+      h('div', { class: 'px-2 pt-2 pb-1 flex-shrink-0' }, [
+        // Collapsible header
+        h('button', {
+          class: 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 hover:bg-muted/40 hover:text-muted-foreground transition-colors',
+          onClick: () => { quickAddOpen.value = !quickAddOpen.value }
+        }, [
+          h('span', {}, 'Quick Add'),
+          h(Plus, {
+            class: 'w-3 h-3 transition-transform duration-200',
+            style: quickAddOpen.value ? 'transform: rotate(45deg)' : ''
+          })
+        ]),
 
-        // Primary nav items
+        // 2-col grid of quick action tiles
+        quickAddOpen.value
+          ? h('div', { class: 'mt-2 grid grid-cols-2 gap-1.5' },
+              quickItems.map(item =>
+                h('button', {
+                  key: item.type,
+                  class: 'flex flex-col items-start gap-1 px-2.5 py-2 rounded-lg border border-border/50 bg-muted/10 hover:bg-muted/50 hover:border-border transition-all text-left',
+                  onClick: () => doQuickAction(item.type)
+                }, [
+                  h('div', {
+                    class: 'w-5 h-5 rounded-md flex items-center justify-center',
+                    style: `background: ${item.color}18`
+                  }, [
+                    h(item.icon, { class: 'w-3 h-3', style: `color: ${item.color}` })
+                  ]),
+                  h('span', { class: 'text-[11px] font-medium text-foreground leading-tight' }, item.label),
+                  h('span', { class: 'text-[9px] text-muted-foreground/40 font-mono' }, item.kbd),
+                ])
+              )
+            )
+          : null,
+      ]),
+
+      // ── Nav ──
+      h('nav', { class: 'flex-1 overflow-y-auto px-2 py-2 space-y-0.5' }, [
+
+        // Primary
         ...primaryNav.value.map(item =>
           h(NuxtLink, {
             key: item.path,
@@ -217,9 +335,7 @@ const SidebarContent = defineComponent({
             h('div', {
               class: 'w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0',
               style: `background: ${item.color}18`
-            }, [
-              h(item.icon, { class: 'h-3.5 w-3.5', style: `color: ${item.color}` })
-            ]),
+            }, [h(item.icon, { class: 'h-3.5 w-3.5', style: `color: ${item.color}` })]),
             h('span', { class: 'flex-1 truncate' }, item.name),
             item.badge ? h('span', {
               class: 'text-[9px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0',
@@ -228,12 +344,12 @@ const SidebarContent = defineComponent({
           ])
         ),
 
-        // Divider + secondary label
+        // Tools divider
         h('div', { class: 'pt-3 pb-1' }, [
           h('p', { class: 'text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/50 px-2.5' }, 'Tools')
         ]),
 
-        // Secondary nav items
+        // Secondary
         ...secondaryNav.value.map(item =>
           h(NuxtLink, {
             key: item.path,
@@ -245,9 +361,7 @@ const SidebarContent = defineComponent({
             h('div', {
               class: 'w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0',
               style: `background: ${item.color}18`
-            }, [
-              h(item.icon, { class: 'h-3.5 w-3.5', style: `color: ${item.color}` })
-            ]),
+            }, [h(item.icon, { class: 'h-3.5 w-3.5', style: `color: ${item.color}` })]),
             h('span', { class: 'flex-1 truncate' }, item.name),
             item.badge ? h('span', {
               class: 'text-[9px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0',
@@ -256,27 +370,63 @@ const SidebarContent = defineComponent({
           ])
         ),
 
-        // Sidebar Widget
         h('div', { class: 'pt-3' }, [h(SidebarWidgetComp)])
       ]),
 
-      // ── Bottom: Settings + User ──
+      // ── Bottom ──
       h('div', { class: 'flex-shrink-0 border-t border-border' }, [
 
-        // Settings link
-        h(NuxtLink, {
-          to: settingsNav.value.path,
-          class: `${navLinkClass} mx-2 my-2`,
-          activeClass,
-          onClick: () => emit('navigate')
-        }, () => [
+        // Icon action row
+        h('div', { class: 'flex items-center justify-between gap-1 px-3 pt-2.5 pb-1.5' }, [
+
+          // Notifications
           h('div', {
-            class: 'w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0',
-            style: `background: ${settingsNav.value.color}18`
+            class: 'flex items-center justify-center w-8 h-8',
+            title: 'Notifications'
+          }, [h(NotificationsPanelComp)]),
+
+          // Theme toggle with popover
+          h('div', {
+            class: 'relative flex items-center justify-center',
+            'data-theme-menu': ''
           }, [
-            h(settingsNav.value.icon, { class: 'h-3.5 w-3.5', style: `color: ${settingsNav.value.color}` })
+            h('button', {
+              class: 'flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors',
+              title: 'Change theme',
+              onClick: () => { themeMenuOpen.value = !themeMenuOpen.value }
+            }, [
+              h(currentTheme.value === 'dark' ? Moon : currentTheme.value === 'light' ? Sun : Monitor, { class: 'h-4 w-4' })
+            ]),
+            themeMenuOpen.value ? h('div', {
+              class: 'absolute bottom-9 left-0 z-50 bg-popover border border-border rounded-xl shadow-xl p-1.5 flex flex-col gap-0.5 min-w-[130px]',
+            }, themeOptions.map(opt =>
+              h('button', {
+                key: opt.key,
+                class: `flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors hover:bg-muted/60 w-full text-left ${currentTheme.value === opt.key ? 'text-primary' : 'text-foreground'}`,
+                onClick: () => doSetTheme(opt.key)
+              }, [
+                h(opt.icon, { class: 'w-3.5 h-3.5' }),
+                opt.label,
+                currentTheme.value === opt.key ? h('span', { class: 'ml-auto text-primary' }, '✓') : null
+              ])
+            )) : null
           ]),
-          h('span', { class: 'flex-1' }, settingsNav.value.name)
+
+          // Export
+          h('button', {
+            class: 'flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors',
+            title: 'Export data',
+            onClick: () => exportData()
+          }, [h(Download, { class: 'h-4 w-4' })]),
+
+          // Settings
+          h(NuxtLink, {
+            to: '/settings',
+            onClick: () => emit('navigate')
+          }, () => h('div', {
+            class: 'flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors',
+            title: 'Settings'
+          }, [h(SettingsIcon, { class: 'h-4 w-4' })]))
         ]),
 
         // User row
@@ -286,9 +436,7 @@ const SidebarContent = defineComponent({
         }, [
           h('div', {
             class: 'w-7 h-7 rounded-full bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center flex-shrink-0 text-white shadow-sm shadow-primary/20'
-          }, [
-            h('span', { class: 'text-xs font-bold' }, props.userInitials)
-          ]),
+          }, [h('span', { class: 'text-xs font-bold' }, props.userInitials)]),
           h('div', { class: 'flex-1 min-w-0' }, [
             h('p', { class: 'text-xs font-semibold truncate' }, props.userEmail),
             h('p', { class: 'text-[10px] text-muted-foreground truncate' }, props.settings.businessName || 'NovaOps')
@@ -301,7 +449,6 @@ const SidebarContent = defineComponent({
 </script>
 
 <style scoped>
-/* Mobile sidebar slide transition */
 .sidebar-enter-active,
 .sidebar-leave-active {
   transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
@@ -310,8 +457,6 @@ const SidebarContent = defineComponent({
 .sidebar-leave-to {
   transform: translateX(-100%);
 }
-
-/* Overlay fade transition */
 .overlay-enter-active,
 .overlay-leave-active {
   transition: opacity 0.2s ease;
@@ -320,10 +465,6 @@ const SidebarContent = defineComponent({
 .overlay-leave-to {
   opacity: 0;
 }
-
-/* Topbar height utility */
-.h-13 {
-  height: 3.25rem;
-}
 </style>
+
 
