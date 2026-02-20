@@ -48,6 +48,9 @@ export default defineNuxtConfig({
       navigateFallback: '/index.html',
       navigateFallbackDenylist: [/^\/api\//],
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+      cleanupOutdatedCaches: true,
+      skipWaiting: true,
+      clientsClaim: true,
       runtimeCaching: [
         {
           urlPattern: /^https:\/\/pkluxhfcdbdjsyypxvrg\.supabase\.co\/.*/i,
