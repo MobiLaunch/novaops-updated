@@ -1,51 +1,51 @@
 <template>
   <div class="flex flex-col gap-8">
 
-    <!-- ── Page Header ───────────────────────────────────────────── -->
+    <!-- ── Page Header ─────────────────────────────────────────── -->
     <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0" style="background: #3b82f618">
-          <Users class="w-5 h-5" style="color: #3b82f6" />
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg" style="background: linear-gradient(135deg, #3b82f6, #2563eb)">
+          <Users class="w-6 h-6 text-white" />
         </div>
         <div>
-          <h1 class="text-2xl font-semibold tracking-tight">Customers</h1>
-          <p class="text-xs text-muted-foreground mt-0.5">{{ (customers || []).length }} total customers</p>
+          <h1 class="text-3xl font-black tracking-tight">Customers</h1>
+          <p class="text-sm text-muted-foreground font-medium mt-0.5">{{ (customers || []).length }} total customers</p>
         </div>
       </div>
       <button
-        class="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg hover:scale-[1.02]"
-        style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)"
+        class="m3-btn-primary flex items-center gap-2.5 px-6 py-3 rounded-full text-sm font-black text-white shadow-lg"
+        style="background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4px 20px #3b82f650"
         @click="newCustomerOpen = true"
       >
-        <Plus class="w-4 h-4" /> Add Customer
+        <Plus class="w-5 h-5" /> Add Customer
       </button>
     </div>
 
-    <!-- ── Search ────────────────────────────────────────────────── -->
+    <!-- ── Search ─────────────────────────────────────────────── -->
     <div class="flex items-center gap-3">
       <div class="relative flex-1 max-w-sm">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+        <Search class="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
         <input
           v-model="searchQuery"
           placeholder="Search by name, phone, or email…"
-          class="w-full h-10 pl-9 pr-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-blue-500/30 text-foreground"
+          class="w-full h-12 pl-11 pr-4 rounded-full text-sm bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all font-medium"
         />
       </div>
-      <span v-if="searchQuery" class="text-xs text-muted-foreground">
+      <span v-if="searchQuery" class="text-xs text-muted-foreground font-semibold">
         {{ filteredCustomers.length }} result{{ filteredCustomers.length !== 1 ? 's' : '' }}
       </span>
     </div>
 
-    <!-- ── Customers Table ───────────────────────────────────────── -->
-    <div class="rounded-3xl overflow-hidden bg-card" style="outline: 1px solid hsl(var(--border))">
+    <!-- ── Customers Table ──────────────────────────────────────── -->
+    <div class="rounded-[32px] overflow-hidden bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
       <Table>
         <TableHeader>
-          <TableRow class="hover:bg-transparent border-b" style="background: hsl(var(--muted)/0.3)">
-            <TableHead>Customer</TableHead>
-            <TableHead class="hidden sm:table-cell">Phone</TableHead>
-            <TableHead class="hidden md:table-cell">Email</TableHead>
-            <TableHead class="hidden lg:table-cell text-right">Total Spent</TableHead>
-            <TableHead class="text-center">Tickets</TableHead>
+          <TableRow class="hover:bg-transparent border-b border-border/60" style="background: #3b82f608">
+            <TableHead class="font-black text-xs uppercase tracking-widest py-4 px-6">Customer</TableHead>
+            <TableHead class="hidden sm:table-cell font-black text-xs uppercase tracking-widest">Phone</TableHead>
+            <TableHead class="hidden md:table-cell font-black text-xs uppercase tracking-widest">Email</TableHead>
+            <TableHead class="hidden lg:table-cell text-right font-black text-xs uppercase tracking-widest">Total Spent</TableHead>
+            <TableHead class="text-center font-black text-xs uppercase tracking-widest">Tickets</TableHead>
             <TableHead class="w-[80px]"></TableHead>
           </TableRow>
         </TableHeader>
@@ -53,54 +53,47 @@
           <TableRow
             v-for="customer in filteredCustomers"
             :key="customer.id"
-            class="transition-colors border-b border-border/40 last:border-0 hover:bg-muted/20"
+            class="m3-table-row border-b border-border/40 last:border-0 hover:bg-muted/20 transition-all cursor-pointer"
+            @click="openCustomer(customer)"
           >
-            <TableCell>
+            <TableCell class="py-4 px-6">
               <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0" style="background: #3b82f618">
-                  <span class="text-sm font-bold" style="color: #3b82f6">{{ customer.name.charAt(0).toUpperCase() }}</span>
+                <div class="w-11 h-11 rounded-[22px] flex items-center justify-center flex-shrink-0 font-black text-sm" style="background: linear-gradient(135deg, #3b82f620, #2563eb20); color: #3b82f6">
+                  {{ customer.name?.substring(0,2).toUpperCase() || '??' }}
                 </div>
-                <div class="min-w-0">
-                  <p class="font-medium text-sm truncate">{{ customer.name }}</p>
-                  <p class="text-xs text-muted-foreground sm:hidden">{{ customer.phone }}</p>
+                <div>
+                  <p class="font-bold text-sm">{{ customer.name }}</p>
+                  <p class="text-xs text-muted-foreground font-medium">ID #{{ customer.id }}</p>
                 </div>
               </div>
             </TableCell>
-            <TableCell class="hidden sm:table-cell"><span class="text-sm">{{ customer.phone }}</span></TableCell>
-            <TableCell class="hidden md:table-cell"><span class="text-sm text-muted-foreground">{{ customer.email || '—' }}</span></TableCell>
-            <TableCell class="hidden lg:table-cell text-right"><span class="text-sm font-medium">{{ getCustomerSpend(customer.id) }}</span></TableCell>
+            <TableCell class="hidden sm:table-cell text-sm font-semibold">{{ customer.phone || '—' }}</TableCell>
+            <TableCell class="hidden md:table-cell text-sm font-semibold text-muted-foreground">{{ customer.email || '—' }}</TableCell>
+            <TableCell class="hidden lg:table-cell text-right">
+              <span class="text-sm font-black" style="color: #10b981">{{ formatCurrency(getCustomerRevenue(customer.id)) }}</span>
+            </TableCell>
             <TableCell class="text-center">
-              <span
-                class="inline-block text-[10px] font-bold px-2.5 py-1 rounded-full tabular-nums"
-                :style="getCustomerTickets(customer.id) > 0 ? 'background: #3b82f618; color: #3b82f6' : 'background: hsl(var(--muted)/0.5); color: hsl(var(--muted-foreground))'"
-              >
+              <span class="text-xs font-black px-3 py-1.5 rounded-full" style="background: #3b82f618; color: #3b82f6">
                 {{ getCustomerTickets(customer.id) }}
               </span>
             </TableCell>
             <TableCell>
-              <div class="flex gap-1 justify-end">
-                <button class="w-7 h-7 rounded-xl flex items-center justify-center transition-all hover:scale-110" style="background: #3b82f612" @click="viewCustomer(customer)">
-                  <Eye class="w-3.5 h-3.5" style="color: #3b82f6" />
-                </button>
-                <button class="w-7 h-7 rounded-xl flex items-center justify-center transition-all hover:scale-110" style="background: #ef444412" @click="deleteCustomer(customer.id)">
-                  <Trash2 class="w-3.5 h-3.5" style="color: #ef4444" />
-                </button>
-              </div>
+              <button
+                class="w-9 h-9 rounded-[18px] flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90"
+                @click.stop="deleteCustomer(customer)"
+              >
+                <Trash2 class="w-4 h-4 text-muted-foreground" />
+              </button>
             </TableCell>
           </TableRow>
-
-          <!-- Empty State -->
           <TableRow v-if="filteredCustomers.length === 0">
-            <TableCell colspan="6" class="h-48 text-center">
-              <div class="flex flex-col items-center justify-center gap-3">
-                <div class="w-14 h-14 rounded-3xl flex items-center justify-center" style="background: #3b82f612">
-                  <Users class="w-7 h-7" style="color: #3b82f6" />
+            <TableCell colspan="6" class="py-20 text-center">
+              <div class="flex flex-col items-center gap-3">
+                <div class="w-16 h-16 rounded-[28px] flex items-center justify-center" style="background: #3b82f614">
+                  <Users class="w-8 h-8" style="color: #3b82f6; opacity: 0.5" />
                 </div>
-                <p class="text-sm font-medium">{{ searchQuery ? 'No customers match your search' : 'No customers yet' }}</p>
-                <p class="text-xs text-muted-foreground">{{ searchQuery ? 'Try a different name, phone, or email.' : 'Add your first customer to get started.' }}</p>
-                <button v-if="!searchQuery" class="flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-semibold" style="background: #3b82f618; color: #3b82f6" @click="newCustomerOpen = true">
-                  <Plus class="w-3.5 h-3.5" /> Add Customer
-                </button>
+                <p class="text-sm font-black">No customers found</p>
+                <p class="text-xs text-muted-foreground font-medium">Add your first customer to get started</p>
               </div>
             </TableCell>
           </TableRow>
@@ -108,167 +101,109 @@
       </Table>
     </div>
 
-    <!-- ── New Customer Dialog ───────────────────────────────────── -->
+    <!-- Add Customer Dialog -->
     <Dialog v-model:open="newCustomerOpen">
-      <DialogContent class="rounded-3xl p-0 gap-0">
-        <div class="flex items-center gap-3 px-6 py-5 border-b border-border" style="background: #3b82f608">
-          <div class="w-9 h-9 rounded-2xl flex items-center justify-center" style="background: #3b82f620">
-            <Users class="w-4 h-4" style="color: #3b82f6" />
+      <DialogContent class="rounded-[32px] max-w-md">
+        <div class="flex flex-col gap-5 p-1">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #3b82f6, #2563eb)">
+              <UserPlus class="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 class="text-base font-black">New Customer</h2>
+              <p class="text-xs text-muted-foreground font-medium">Add a customer to your shop</p>
+            </div>
           </div>
-          <div>
-            <h2 class="font-semibold text-base">Add New Customer</h2>
-            <p class="text-xs text-muted-foreground mt-0.5">Fill in their contact details</p>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="col-span-2 space-y-2">
+              <label class="text-xs font-black text-muted-foreground uppercase tracking-widest">Full Name *</label>
+              <input v-model="customerForm.name" placeholder="Jane Smith" class="m3-input" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-black text-muted-foreground uppercase tracking-widest">Phone</label>
+              <input v-model="customerForm.phone" placeholder="(555) 123-4567" class="m3-input" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-black text-muted-foreground uppercase tracking-widest">Email</label>
+              <input v-model="customerForm.email" type="email" placeholder="jane@email.com" class="m3-input" />
+            </div>
+            <div class="col-span-2 space-y-2">
+              <label class="text-xs font-black text-muted-foreground uppercase tracking-widest">Notes</label>
+              <textarea v-model="customerForm.notes" placeholder="Any additional notes…" class="m3-input resize-none" rows="2" style="height: auto; padding-top: 12px" />
+            </div>
           </div>
-        </div>
-        <div class="p-6 space-y-5">
-          <div class="space-y-1.5">
-            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Name *</label>
-            <input v-model="newCustomer.name" placeholder="John Doe" class="w-full h-11 px-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-blue-500/30 text-foreground" />
-          </div>
-          <div class="space-y-1.5">
-            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Phone *</label>
-            <input v-model="newCustomer.phone" placeholder="555-0123" class="w-full h-11 px-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-blue-500/30 text-foreground" />
-          </div>
-          <div class="space-y-1.5">
-            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Email</label>
-            <input v-model="newCustomer.email" type="email" placeholder="john@example.com" class="w-full h-11 px-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-blue-500/30 text-foreground" />
-          </div>
-          <div class="space-y-1.5">
-            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Notes</label>
-            <Textarea v-model="newCustomer.notes" :rows="3" placeholder="Any relevant notes…" class="rounded-2xl border-0 bg-muted/50 resize-none" />
-          </div>
-          <div class="flex gap-3 pt-2">
-            <button class="flex-1 flex items-center justify-center px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all hover:bg-muted/60" style="outline: 1.5px solid hsl(var(--border))" @click="newCustomerOpen = false">Cancel</button>
-            <button
-              class="flex-1 flex items-center justify-center px-4 py-2.5 rounded-2xl text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
-              style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)"
-              :disabled="saving"
-              @click="createCustomer"
-            >
-              {{ saving ? 'Saving…' : 'Create Customer' }}
-            </button>
+          <div class="flex gap-3 pt-1">
+            <button class="flex-1 h-12 rounded-full text-sm font-bold transition-all hover:scale-105 active:scale-95" style="outline: 2px solid hsl(var(--border)); outline-offset: 0" @click="newCustomerOpen = false">Cancel</button>
+            <button class="flex-1 h-12 rounded-full text-sm font-black text-white transition-all hover:scale-105 active:scale-95" style="background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4px 16px #3b82f640" @click="saveCustomer">Add Customer</button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { useAppStore } from '~/stores/app'
-import { storeToRefs } from 'pinia'
-
-import type { Customer } from '~/types'
-import { Search, Plus, Eye, Trash2, Users } from 'lucide-vue-next'
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '~/components/ui/table'
+import { Users, Plus, Search, Trash2, UserPlus } from 'lucide-vue-next'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 import { Dialog, DialogContent } from '~/components/ui/dialog'
-import { Textarea } from '~/components/ui/textarea'
 
-definePageMeta({
-  middleware: ['auth']
-})
-
+definePageMeta({ middleware: ['auth'] })
 const appStore = useAppStore()
-const { customers, tickets, settings, isLoaded, user } = storeToRefs(appStore)
-const { $supabase } = useNuxtApp()
+const customers = computed(() => appStore.customers ?? [])
+const tickets   = computed(() => appStore.tickets ?? [])
+const settings  = computed(() => appStore.settings ?? { currency: '$' })
 
 const searchQuery = ref('')
 const newCustomerOpen = ref(false)
-const saving = ref(false)
-const newCustomer = ref({
-  name: '',
-  phone: '',
-  email: '',
-  notes: ''
-})
+const customerForm = ref({ name: '', phone: '', email: '', notes: '' })
 
-const filteredCustomers = computed(() => {
-  return (customers.value || []).filter(customer => {
-    const query = searchQuery.value.toLowerCase()
-    return (
-      customer.name.toLowerCase().includes(query) ||
-      customer.phone.includes(query) ||
-      customer.email.toLowerCase().includes(query)
-    )
-  })
-})
+const filteredCustomers = computed(() =>
+  customers.value.filter(c =>
+    !searchQuery.value ||
+    c.name?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    c.phone?.includes(searchQuery.value) ||
+    c.email?.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+)
 
-const getCustomerTickets = (customerId: number) => {
-  return (tickets.value || []).filter(t => t.customerId === customerId).length
+const formatCurrency = (n: number) => `${settings.value?.currency || '$'}${(n || 0).toFixed(2)}`
+const getCustomerRevenue = (id: number) => tickets.value.filter(t => t.customerId === id).reduce((a, t) => a + (t.price || 0), 0)
+const getCustomerTickets = (id: number) => tickets.value.filter(t => t.customerId === id).length
+
+const openCustomer = (customer: any) => {
+  // Navigate to customer detail or open modal
 }
 
-const getCustomerSpend = (customerId: number) => {
-  const total = (tickets.value || [])
-    .filter(t => t.customerId === customerId)
-    .reduce((sum, t) => sum + (t.price || 0), 0)
-  const currency = settings.value?.currency || '$'
-  return `${currency}${total.toFixed(2)}`
+const saveCustomer = async () => {
+  if (!customerForm.value.name) return alert('Please enter a name')
+  await appStore.createCustomer({ ...customerForm.value })
+  newCustomerOpen.value = false
+  customerForm.value = { name: '', phone: '', email: '', notes: '' }
 }
 
-const createCustomer = async () => {
-  if (!newCustomer.value.name || !newCustomer.value.phone) {
-    alert('Name and phone are required')
-    return
-  }
-
-  saving.value = true
-  try {
-    console.log('[customers] user:', user.value)
-    console.log('[customers] supabase:', $supabase)
-
-    if (!user.value?.id) {
-      alert('Not logged in — user is null. Please refresh and try again.')
-      return
-    }
-
-    const { data, error } = await ($supabase as any)
-      .from('customers')
-      .insert({
-        profile_id: user.value.id,
-        name: newCustomer.value.name,
-        phone: newCustomer.value.phone,
-        email: newCustomer.value.email || '',
-        notes: newCustomer.value.notes || '',
-        tags: []
-      })
-      .select()
-      .single()
-
-    if (error) throw error
-
-    customers.value.unshift(data)
-    newCustomerOpen.value = false
-    newCustomer.value = { name: '', phone: '', email: '', notes: '' }
-  } catch (err: any) {
-    alert('Failed to save customer: ' + (err.message || err))
-  } finally {
-    saving.value = false
-  }
-}
-
-const viewCustomer = (customer: Customer) => {
-  // For now, just show an alert. You could navigate to a detail page later
-  alert(`View customer: ${customer.name}`)
-}
-
-const deleteCustomer = async (id: number) => {
-  const customer = (customers.value || []).find(c => c.id === id)
-  if (!customer) return
-
+const deleteCustomer = async (customer: any) => {
   if (confirm(`Delete ${customer.name}? This cannot be undone.`)) {
-    try {
-      const { error } = await ($supabase as any)
-        .from('customers')
-        .delete()
-        .eq('id', id)
-
-      if (error) throw error
-
-      const index = (customers.value || []).findIndex(c => c.id === id)
-      if (index > -1) customers.value.splice(index, 1)
-    } catch (err: any) {
-      alert('Failed to delete customer: ' + (err.message || err))
-    }
+    const idx = appStore.customers.findIndex((c: any) => c.id === customer.id)
+    if (idx > -1) appStore.customers.splice(idx, 1)
+    await appStore.saveAll()
   }
 }
 </script>
+
+<style scoped>
+.m3-btn-primary { transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease; }
+.m3-btn-primary:hover  { transform: scale(1.05) translateY(-2px); }
+.m3-btn-primary:active { transform: scale(0.92); }
+
+.m3-table-row { transition: transform 0.2s ease; }
+.m3-table-row:active { transform: scale(0.995); }
+
+.m3-input {
+  width: 100%; height: 48px; padding: 0 16px; border-radius: 20px;
+  font-size: 14px; font-weight: 500;
+  background: hsl(var(--muted)/0.5); border: 2px solid hsl(var(--border)/0.7);
+  outline: none; transition: all 0.2s ease;
+}
+.m3-input:focus { border-color: hsl(var(--primary)/0.5); box-shadow: 0 0 0 3px hsl(var(--primary)/0.12); }
+</style>
