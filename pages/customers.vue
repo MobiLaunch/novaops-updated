@@ -1,26 +1,34 @@
 <template>
-  <div class="space-y-6">
+  <div class="flex flex-col gap-8">
 
-    <!-- Page Header -->
+    <!-- ── Page Header ───────────────────────────────────────────── -->
     <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold tracking-tight">Customers</h1>
-        <p class="text-sm text-muted-foreground mt-0.5">{{ (customers || []).length }} total customers</p>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0" style="background: #3b82f618">
+          <Users class="w-5 h-5" style="color: #3b82f6" />
+        </div>
+        <div>
+          <h1 class="text-2xl font-semibold tracking-tight">Customers</h1>
+          <p class="text-xs text-muted-foreground mt-0.5">{{ (customers || []).length }} total customers</p>
+        </div>
       </div>
-      <Button size="sm" @click="newCustomerOpen = true">
-        <Plus class="w-4 h-4 mr-2" />
-        Add Customer
-      </Button>
+      <button
+        class="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg hover:scale-[1.02]"
+        style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)"
+        @click="newCustomerOpen = true"
+      >
+        <Plus class="w-4 h-4" /> Add Customer
+      </button>
     </div>
 
-    <!-- Search -->
+    <!-- ── Search ────────────────────────────────────────────────── -->
     <div class="flex items-center gap-3">
       <div class="relative flex-1 max-w-sm">
-        <Search class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+        <input
           v-model="searchQuery"
-          placeholder="Search by name, phone, or email..."
-          class="pl-9 h-9"
+          placeholder="Search by name, phone, or email…"
+          class="w-full h-10 pl-9 pr-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-blue-500/30 text-foreground"
         />
       </div>
       <span v-if="searchQuery" class="text-xs text-muted-foreground">
@@ -28,168 +36,117 @@
       </span>
     </div>
 
-    <!-- Customers Table -->
-    <Card>
-      <CardContent class="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow class="hover:bg-transparent">
-              <TableHead>Customer</TableHead>
-              <TableHead class="hidden sm:table-cell">Phone</TableHead>
-              <TableHead class="hidden md:table-cell">Email</TableHead>
-              <TableHead class="hidden lg:table-cell text-right">Total Spent</TableHead>
-              <TableHead class="text-center">Tickets</TableHead>
-              <TableHead class="w-[80px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow
-              v-for="customer in filteredCustomers"
-              :key="customer.id"
-              class="hover:bg-muted/30 transition-colors"
-            >
-              <TableCell>
-                <div class="flex items-center gap-3">
-                  <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <span class="text-sm font-semibold text-primary">
-                      {{ customer.name.charAt(0).toUpperCase() }}
-                    </span>
-                  </div>
-                  <div class="min-w-0">
-                    <p class="font-medium text-sm truncate">{{ customer.name }}</p>
-                    <!-- Phone shown inline on small screens -->
-                    <p class="text-xs text-muted-foreground sm:hidden">{{ customer.phone }}</p>
-                  </div>
+    <!-- ── Customers Table ───────────────────────────────────────── -->
+    <div class="rounded-3xl overflow-hidden bg-card" style="outline: 1px solid hsl(var(--border))">
+      <Table>
+        <TableHeader>
+          <TableRow class="hover:bg-transparent border-b" style="background: hsl(var(--muted)/0.3)">
+            <TableHead>Customer</TableHead>
+            <TableHead class="hidden sm:table-cell">Phone</TableHead>
+            <TableHead class="hidden md:table-cell">Email</TableHead>
+            <TableHead class="hidden lg:table-cell text-right">Total Spent</TableHead>
+            <TableHead class="text-center">Tickets</TableHead>
+            <TableHead class="w-[80px]"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow
+            v-for="customer in filteredCustomers"
+            :key="customer.id"
+            class="transition-colors border-b border-border/40 last:border-0 hover:bg-muted/20"
+          >
+            <TableCell>
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0" style="background: #3b82f618">
+                  <span class="text-sm font-bold" style="color: #3b82f6">{{ customer.name.charAt(0).toUpperCase() }}</span>
                 </div>
-              </TableCell>
-
-              <TableCell class="hidden sm:table-cell">
-                <span class="text-sm">{{ customer.phone }}</span>
-              </TableCell>
-
-              <TableCell class="hidden md:table-cell">
-                <span class="text-sm text-muted-foreground">{{ customer.email || '—' }}</span>
-              </TableCell>
-
-              <TableCell class="hidden lg:table-cell text-right">
-                <span class="text-sm font-medium">{{ getCustomerSpend(customer.id) }}</span>
-              </TableCell>
-
-              <TableCell class="text-center">
-                <Badge
-                  variant="secondary"
-                  class="font-medium tabular-nums"
-                  :class="getCustomerTickets(customer.id) > 0 ? 'bg-primary/10 text-primary hover:bg-primary/20' : ''"
-                >
-                  {{ getCustomerTickets(customer.id) }}
-                </Badge>
-              </TableCell>
-
-              <TableCell>
-                <div class="flex gap-1 justify-end">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    class="h-8 w-8"
-                    @click="viewCustomer(customer)"
-                  >
-                    <Eye class="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    class="h-8 w-8 text-muted-foreground hover:text-destructive"
-                    @click="deleteCustomer(customer.id)"
-                  >
-                    <Trash2 class="w-4 h-4" />
-                  </Button>
+                <div class="min-w-0">
+                  <p class="font-medium text-sm truncate">{{ customer.name }}</p>
+                  <p class="text-xs text-muted-foreground sm:hidden">{{ customer.phone }}</p>
                 </div>
-              </TableCell>
-            </TableRow>
+              </div>
+            </TableCell>
+            <TableCell class="hidden sm:table-cell"><span class="text-sm">{{ customer.phone }}</span></TableCell>
+            <TableCell class="hidden md:table-cell"><span class="text-sm text-muted-foreground">{{ customer.email || '—' }}</span></TableCell>
+            <TableCell class="hidden lg:table-cell text-right"><span class="text-sm font-medium">{{ getCustomerSpend(customer.id) }}</span></TableCell>
+            <TableCell class="text-center">
+              <span
+                class="inline-block text-[10px] font-bold px-2.5 py-1 rounded-full tabular-nums"
+                :style="getCustomerTickets(customer.id) > 0 ? 'background: #3b82f618; color: #3b82f6' : 'background: hsl(var(--muted)/0.5); color: hsl(var(--muted-foreground))'"
+              >
+                {{ getCustomerTickets(customer.id) }}
+              </span>
+            </TableCell>
+            <TableCell>
+              <div class="flex gap-1 justify-end">
+                <button class="w-7 h-7 rounded-xl flex items-center justify-center transition-all hover:scale-110" style="background: #3b82f612" @click="viewCustomer(customer)">
+                  <Eye class="w-3.5 h-3.5" style="color: #3b82f6" />
+                </button>
+                <button class="w-7 h-7 rounded-xl flex items-center justify-center transition-all hover:scale-110" style="background: #ef444412" @click="deleteCustomer(customer.id)">
+                  <Trash2 class="w-3.5 h-3.5" style="color: #ef4444" />
+                </button>
+              </div>
+            </TableCell>
+          </TableRow>
 
-            <!-- Empty State -->
-            <TableRow v-if="filteredCustomers.length === 0">
-              <TableCell colspan="6" class="h-48 text-center">
-                <div class="flex flex-col items-center justify-center">
-                  <Users class="w-10 h-10 text-muted-foreground opacity-40 mb-3" />
-                  <p class="text-sm font-medium mb-1">
-                    {{ searchQuery ? 'No customers match your search' : 'No customers yet' }}
-                  </p>
-                  <p class="text-xs text-muted-foreground mb-4">
-                    {{ searchQuery ? 'Try a different name, phone, or email.' : 'Add your first customer to get started.' }}
-                  </p>
-                  <Button v-if="!searchQuery" size="sm" variant="outline" @click="newCustomerOpen = true">
-                    <Plus class="w-3.5 h-3.5 mr-1.5" />Add Customer
-                  </Button>
+          <!-- Empty State -->
+          <TableRow v-if="filteredCustomers.length === 0">
+            <TableCell colspan="6" class="h-48 text-center">
+              <div class="flex flex-col items-center justify-center gap-3">
+                <div class="w-14 h-14 rounded-3xl flex items-center justify-center" style="background: #3b82f612">
+                  <Users class="w-7 h-7" style="color: #3b82f6" />
                 </div>
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+                <p class="text-sm font-medium">{{ searchQuery ? 'No customers match your search' : 'No customers yet' }}</p>
+                <p class="text-xs text-muted-foreground">{{ searchQuery ? 'Try a different name, phone, or email.' : 'Add your first customer to get started.' }}</p>
+                <button v-if="!searchQuery" class="flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-semibold" style="background: #3b82f618; color: #3b82f6" @click="newCustomerOpen = true">
+                  <Plus class="w-3.5 h-3.5" /> Add Customer
+                </button>
+              </div>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
 
-    <!-- New Customer Dialog -->
+    <!-- ── New Customer Dialog ───────────────────────────────────── -->
     <Dialog v-model:open="newCustomerOpen">
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add New Customer</DialogTitle>
-        </DialogHeader>
-
-        <div class="space-y-4 py-4">
-          <div class="space-y-2">
-            <Label for="name">Name *</Label>
-            <Input
-              id="name"
-              v-model="newCustomer.name"
-              placeholder="John Doe"
-            />
+      <DialogContent class="rounded-3xl p-0 gap-0">
+        <div class="flex items-center gap-3 px-6 py-5 border-b border-border" style="background: #3b82f608">
+          <div class="w-9 h-9 rounded-2xl flex items-center justify-center" style="background: #3b82f620">
+            <Users class="w-4 h-4" style="color: #3b82f6" />
           </div>
-
-          <div class="space-y-2">
-            <Label for="phone">Phone *</Label>
-            <Input
-              id="phone"
-              v-model="newCustomer.phone"
-              placeholder="555-0123"
-            />
+          <div>
+            <h2 class="font-semibold text-base">Add New Customer</h2>
+            <p class="text-xs text-muted-foreground mt-0.5">Fill in their contact details</p>
           </div>
-
-          <div class="space-y-2">
-            <Label for="email">Email</Label>
-            <Input
-              id="email"
-              v-model="newCustomer.email"
-              type="email"
-              placeholder="john@example.com"
-            />
+        </div>
+        <div class="p-6 space-y-5">
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Name *</label>
+            <input v-model="newCustomer.name" placeholder="John Doe" class="w-full h-11 px-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-blue-500/30 text-foreground" />
           </div>
-
-          <div class="space-y-2">
-            <Label for="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              v-model="newCustomer.notes"
-              :rows="3"
-              placeholder="Any relevant notes..."
-            />
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Phone *</label>
+            <input v-model="newCustomer.phone" placeholder="555-0123" class="w-full h-11 px-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-blue-500/30 text-foreground" />
           </div>
-
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Email</label>
+            <input v-model="newCustomer.email" type="email" placeholder="john@example.com" class="w-full h-11 px-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-blue-500/30 text-foreground" />
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Notes</label>
+            <Textarea v-model="newCustomer.notes" :rows="3" placeholder="Any relevant notes…" class="rounded-2xl border-0 bg-muted/50 resize-none" />
+          </div>
           <div class="flex gap-3 pt-2">
-            <Button
-              variant="outline"
-              class="flex-1"
-              @click="newCustomerOpen = false"
-            >
-              Cancel
-            </Button>
-            <Button
-              class="flex-1"
+            <button class="flex-1 flex items-center justify-center px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all hover:bg-muted/60" style="outline: 1.5px solid hsl(var(--border))" @click="newCustomerOpen = false">Cancel</button>
+            <button
+              class="flex-1 flex items-center justify-center px-4 py-2.5 rounded-2xl text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+              style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)"
               :disabled="saving"
               @click="createCustomer"
             >
-              {{ saving ? 'Saving...' : 'Create Customer' }}
-            </Button>
+              {{ saving ? 'Saving…' : 'Create Customer' }}
+            </button>
           </div>
         </div>
       </DialogContent>
@@ -203,14 +160,9 @@ import { storeToRefs } from 'pinia'
 
 import type { Customer } from '~/types'
 import { Search, Plus, Eye, Trash2, Users } from 'lucide-vue-next'
-import { Card, CardContent } from '~/components/ui/card'
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '~/components/ui/table'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
+import { Dialog, DialogContent } from '~/components/ui/dialog'
 import { Textarea } from '~/components/ui/textarea'
-import { Badge } from '~/components/ui/badge'
 
 definePageMeta({
   middleware: ['auth']

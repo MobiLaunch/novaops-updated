@@ -1,325 +1,256 @@
 <template>
-  <div class="space-y-6">
+  <div class="flex flex-col gap-8">
 
-    <!-- Page Header -->
+    <!-- ── Page Header ───────────────────────────────────────────── -->
     <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold tracking-tight">Inventory</h1>
-        <p class="text-sm text-muted-foreground mt-0.5">Track parts, tools, and accessories</p>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0" style="background: #8b5cf618">
+          <Package class="w-5 h-5" style="color: #8b5cf6" />
+        </div>
+        <div>
+          <h1 class="text-2xl font-semibold tracking-tight">Inventory</h1>
+          <p class="text-xs text-muted-foreground mt-0.5">Track parts, tools, and accessories</p>
+        </div>
       </div>
       <div class="flex gap-2">
-        <Button variant="outline" size="sm" @click="checkLowStock">
-          <RefreshCw class="w-4 h-4 mr-2" />
-          Check Stock
-        </Button>
-        <Button size="sm" @click="newItemOpen = true">
-          <Plus class="w-4 h-4 mr-2" />
-          Add Item
-        </Button>
+        <button
+          class="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all hover:scale-[1.02]"
+          style="background: hsl(var(--muted)/0.6); color: hsl(var(--foreground)); outline: 1.5px solid hsl(var(--border))"
+          @click="checkLowStock"
+        >
+          <RefreshCw class="w-4 h-4" /> Check Stock
+        </button>
+        <button
+          class="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg hover:scale-[1.02]"
+          style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)"
+          @click="newItemOpen = true"
+        >
+          <Plus class="w-4 h-4" /> Add Item
+        </button>
       </div>
     </div>
 
-    <!-- Stats -->
+    <!-- ── Stat Cards ────────────────────────────────────────────── -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <Card>
-        <CardContent class="p-4 flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-            <Package class="w-5 h-5 text-blue-500" />
-          </div>
-          <div>
-            <p class="text-xs text-muted-foreground">Total Items</p>
-            <p class="text-2xl font-bold">{{ (inventory || []).length }}</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card :class="lowStockCount > 0 ? 'border-amber-500/30' : ''">
-        <CardContent class="p-4 flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-            <AlertTriangle class="w-5 h-5 text-amber-500" />
-          </div>
-          <div>
-            <p class="text-xs text-muted-foreground">Low Stock</p>
-            <p class="text-2xl font-bold" :class="lowStockCount > 0 ? 'text-amber-500' : ''">{{ lowStockCount }}</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent class="p-4 flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-            <DollarSign class="w-5 h-5 text-emerald-500" />
-          </div>
-          <div>
-            <p class="text-xs text-muted-foreground">Total Value</p>
-            <p class="text-2xl font-bold">{{ formatCurrency(totalValue) }}</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent class="p-4 flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg bg-purple-500/10 flex items-center justify-center flex-shrink-0">
-            <BarChart3 class="w-5 h-5 text-purple-500" />
-          </div>
-          <div>
-            <p class="text-xs text-muted-foreground">In Stock</p>
-            <p class="text-2xl font-bold">{{ totalStock }}</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div v-for="stat in inventoryStats" :key="stat.label" class="rounded-3xl p-4 flex items-center gap-3" :style="`background: ${stat.color}12; outline: 1px solid ${stat.color}25`">
+        <div class="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0" :style="`background: ${stat.color}20`">
+          <component :is="stat.icon" class="w-5 h-5" :style="`color: ${stat.color}`" />
+        </div>
+        <div>
+          <p class="text-xs text-muted-foreground">{{ stat.label }}</p>
+          <p class="text-2xl font-bold" :style="`color: ${stat.color}`">{{ stat.value }}</p>
+        </div>
+      </div>
     </div>
 
-    <!-- Search & Filters -->
+    <!-- ── Search & Filters ──────────────────────────────────────── -->
     <div class="flex items-center gap-3">
       <div class="relative flex-1 max-w-sm">
-        <Search class="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+        <input
           v-model="searchQuery"
-          placeholder="Search by name or SKU..."
-          class="pl-9 h-9"
+          placeholder="Search by name or SKU…"
+          class="w-full h-10 pl-9 pr-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-violet-500/30 text-foreground"
         />
       </div>
-      <Select v-model="filterCategory">
-        <SelectTrigger class="w-[160px] h-9">
-          <SelectValue placeholder="All Categories" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem :value="null">All Categories</SelectItem>
-          <SelectItem value="Parts">Parts</SelectItem>
-          <SelectItem value="Tools">Tools</SelectItem>
-          <SelectItem value="Accessories">Accessories</SelectItem>
-        </SelectContent>
-      </Select>
+      <div class="flex items-center gap-2">
+        <button
+          v-for="cat in ['All', 'Parts', 'Tools', 'Accessories']"
+          :key="cat"
+          class="px-3 py-1.5 rounded-2xl text-xs font-medium transition-all"
+          :style="(filterCategory === null && cat === 'All') || filterCategory === cat
+            ? 'background: #8b5cf622; color: #8b5cf6; outline: 1.5px solid #8b5cf650'
+            : 'background: hsl(var(--muted)/0.5); color: hsl(var(--muted-foreground))'"
+          @click="filterCategory = cat === 'All' ? null : cat"
+        >{{ cat }}</button>
+      </div>
     </div>
 
-    <!-- Inventory Table -->
-    <Card>
-      <CardContent class="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow class="hover:bg-transparent">
-              <TableHead>Item</TableHead>
-              <TableHead class="hidden sm:table-cell">Category</TableHead>
-              <TableHead>Stock</TableHead>
-              <TableHead class="hidden md:table-cell">Cost</TableHead>
-              <TableHead class="hidden md:table-cell">Price</TableHead>
-              <TableHead class="hidden lg:table-cell">Margin</TableHead>
-              <TableHead class="w-[110px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow
-              v-for="item in filteredInventory"
-              :key="item.id"
-              :class="item.stock <= item.low ? 'bg-amber-500/5 hover:bg-amber-500/10' : 'hover:bg-muted/30'"
-              class="transition-colors"
-            >
-              <TableCell>
-                <div class="flex items-center gap-2">
-                  <!-- Low stock indicator dot -->
-                  <div
-                    v-if="item.stock <= item.low"
-                    class="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0"
-                    title="Low stock"
-                  />
-                  <div>
-                    <p class="font-medium text-sm">{{ item.name }}</p>
-                    <p class="text-xs text-muted-foreground">SKU: {{ item.sku }}</p>
-                  </div>
+    <!-- ── Inventory Table ───────────────────────────────────────── -->
+    <div class="rounded-3xl overflow-hidden bg-card" style="outline: 1px solid hsl(var(--border))">
+      <Table>
+        <TableHeader>
+          <TableRow class="hover:bg-transparent border-b" style="background: hsl(var(--muted)/0.3)">
+            <TableHead>Item</TableHead>
+            <TableHead class="hidden sm:table-cell">Category</TableHead>
+            <TableHead>Stock</TableHead>
+            <TableHead class="hidden md:table-cell">Cost</TableHead>
+            <TableHead class="hidden md:table-cell">Price</TableHead>
+            <TableHead class="hidden lg:table-cell">Margin</TableHead>
+            <TableHead class="w-[110px]"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow
+            v-for="item in filteredInventory"
+            :key="item.id"
+            class="transition-colors border-b border-border/40 last:border-0"
+            :style="item.stock <= item.low ? 'background: #f59e0b05' : ''"
+          >
+            <TableCell>
+              <div class="flex items-center gap-2">
+                <div v-if="item.stock <= item.low" class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background: #f59e0b" />
+                <div>
+                  <p class="font-medium text-sm">{{ item.name }}</p>
+                  <p class="text-xs text-muted-foreground">SKU: {{ item.sku }}</p>
                 </div>
-              </TableCell>
+              </div>
+            </TableCell>
+            <TableCell class="hidden sm:table-cell">
+              <span class="text-[10px] font-semibold px-2.5 py-1 rounded-full" style="background: #8b5cf618; color: #8b5cf6">
+                {{ item.category || 'Uncategorized' }}
+              </span>
+            </TableCell>
+            <TableCell>
+              <div class="flex items-center gap-1.5">
+                <span class="text-sm font-medium" :style="item.stock <= item.low ? 'color: #ef4444' : item.stock <= item.low * 2 ? 'color: #f59e0b' : ''">
+                  {{ item.stock }}
+                </span>
+                <span class="text-xs text-muted-foreground">units</span>
+                <AlertTriangle v-if="item.stock <= item.low" class="w-3 h-3" style="color: #f59e0b" />
+              </div>
+            </TableCell>
+            <TableCell class="hidden md:table-cell"><span class="text-sm">{{ formatCurrency(item.cost) }}</span></TableCell>
+            <TableCell class="hidden md:table-cell"><span class="text-sm font-medium" style="color: #10b981">{{ formatCurrency(item.price) }}</span></TableCell>
+            <TableCell class="hidden lg:table-cell"><span class="text-sm text-muted-foreground">{{ calculateMargin(item) }}%</span></TableCell>
+            <TableCell>
+              <div class="flex gap-1 justify-end">
+                <button class="w-7 h-7 rounded-xl flex items-center justify-center transition-all hover:scale-110" style="background: #6366f112" @click="editItem(item)">
+                  <Pencil class="w-3.5 h-3.5" style="color: #6366f1" />
+                </button>
+                <button class="w-7 h-7 rounded-xl flex items-center justify-center transition-all hover:scale-110" style="background: #3b82f612" @click="adjustStock(item)">
+                  <PlusCircle class="w-3.5 h-3.5" style="color: #3b82f6" />
+                </button>
+                <button class="w-7 h-7 rounded-xl flex items-center justify-center transition-all hover:scale-110" style="background: #ef444412" @click="deleteItem(item.id)">
+                  <Trash2 class="w-3.5 h-3.5" style="color: #ef4444" />
+                </button>
+              </div>
+            </TableCell>
+          </TableRow>
 
-              <TableCell class="hidden sm:table-cell">
-                <Badge variant="outline" class="text-xs font-normal">
-                  {{ item.category || 'Uncategorized' }}
-                </Badge>
-              </TableCell>
-
-              <TableCell>
-                <div class="flex items-center gap-1.5">
-                  <span
-                    class="text-sm font-medium"
-                    :class="{
-                      'text-red-500': item.stock <= item.low,
-                      'text-amber-500': item.stock > item.low && item.stock <= item.low * 2,
-                      'text-foreground': item.stock > item.low * 2
-                    }"
-                  >
-                    {{ item.stock }}
-                  </span>
-                  <span class="text-xs text-muted-foreground">units</span>
-                  <AlertTriangle v-if="item.stock <= item.low" class="w-3 h-3 text-amber-500" />
+          <TableRow v-if="filteredInventory.length === 0">
+            <TableCell colspan="7" class="h-48 text-center">
+              <div class="flex flex-col items-center justify-center gap-3">
+                <div class="w-14 h-14 rounded-3xl flex items-center justify-center" style="background: #8b5cf612">
+                  <Package class="w-7 h-7" style="color: #8b5cf6" />
                 </div>
-              </TableCell>
+                <p class="text-sm font-medium">{{ searchQuery || filterCategory ? 'No items match your filters' : 'No inventory items yet' }}</p>
+                <p class="text-xs text-muted-foreground">{{ searchQuery || filterCategory ? 'Try clearing your search or filter.' : 'Start by adding parts, tools, or accessories.' }}</p>
+                <button v-if="!searchQuery && !filterCategory" class="flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-semibold" style="background: #8b5cf618; color: #8b5cf6" @click="newItemOpen = true">
+                  <Plus class="w-3.5 h-3.5" /> Add First Item
+                </button>
+              </div>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
 
-              <TableCell class="hidden md:table-cell">
-                <span class="text-sm">{{ formatCurrency(item.cost) }}</span>
-              </TableCell>
-
-              <TableCell class="hidden md:table-cell">
-                <span class="text-sm font-medium text-emerald-600 dark:text-emerald-400">{{ formatCurrency(item.price) }}</span>
-              </TableCell>
-
-              <TableCell class="hidden lg:table-cell">
-                <span class="text-sm text-muted-foreground">{{ calculateMargin(item) }}%</span>
-              </TableCell>
-
-              <TableCell>
-                <div class="flex gap-1 justify-end">
-                  <Button variant="ghost" size="icon" class="h-7 w-7" @click="editItem(item)" title="Edit">
-                    <Pencil class="w-3.5 h-3.5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" class="h-7 w-7" @click="adjustStock(item)" title="Adjust stock">
-                    <PlusCircle class="w-3.5 h-3.5 text-blue-500" />
-                  </Button>
-                  <Button variant="ghost" size="icon" class="h-7 w-7 text-muted-foreground hover:text-destructive" @click="deleteItem(item.id)" title="Delete">
-                    <Trash2 class="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-
-            <TableRow v-if="filteredInventory.length === 0">
-              <TableCell colspan="7" class="h-48 text-center">
-                <div class="flex flex-col items-center justify-center">
-                  <Package class="w-10 h-10 text-muted-foreground opacity-40 mb-3" />
-                  <p class="text-sm font-medium mb-1">
-                    {{ searchQuery || filterCategory ? 'No items match your filters' : 'No inventory items yet' }}
-                  </p>
-                  <p class="text-xs text-muted-foreground mb-4">
-                    {{ searchQuery || filterCategory ? 'Try clearing your search or filter.' : 'Start by adding parts, tools, or accessories.' }}
-                  </p>
-                  <Button v-if="!searchQuery && !filterCategory" size="sm" variant="outline" @click="newItemOpen = true">
-                    <Plus class="w-3.5 h-3.5 mr-1.5" />Add First Item
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-
-    <!-- New/Edit Item Dialog -->
+    <!-- ── Add/Edit Item Dialog ──────────────────────────────────── -->
     <Dialog v-model:open="newItemOpen">
-      <DialogContent class="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{{ editingItem ? 'Edit Item' : 'Add New Item' }}</DialogTitle>
-        </DialogHeader>
-
-        <div class="space-y-4 py-4">
-          <div class="space-y-2">
-            <Label for="item-name">Item Name *</Label>
-            <Input id="item-name" v-model="itemForm.name" placeholder="e.g., iPhone 13 Screen" />
+      <DialogContent class="sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl p-0 gap-0">
+        <div class="flex items-center gap-3 px-6 py-5 border-b border-border" style="background: #8b5cf608">
+          <div class="w-9 h-9 rounded-2xl flex items-center justify-center" style="background: #8b5cf620">
+            <Package class="w-4 h-4" style="color: #8b5cf6" />
           </div>
-
+          <div>
+            <h2 class="font-semibold text-base">{{ editingItem ? 'Edit Item' : 'Add New Item' }}</h2>
+            <p class="text-xs text-muted-foreground mt-0.5">{{ editingItem ? 'Update item details' : 'Add a new inventory item' }}</p>
+          </div>
+        </div>
+        <div class="p-6 space-y-5">
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Item Name *</label>
+            <input v-model="itemForm.name" placeholder="e.g., iPhone 13 Screen" class="w-full h-11 px-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-violet-500/30 text-foreground" />
+          </div>
           <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <Label for="sku">SKU *</Label>
-              <Input id="sku" v-model="itemForm.sku" placeholder="e.g., SCR-IP13" />
+            <div class="space-y-1.5">
+              <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">SKU *</label>
+              <input v-model="itemForm.sku" placeholder="e.g., SCR-IP13" class="w-full h-11 px-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-violet-500/30 text-foreground" />
             </div>
-
-            <div class="space-y-2">
-              <Label for="category">Category *</Label>
-              <Select v-model="itemForm.category">
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Parts">Parts</SelectItem>
-                  <SelectItem value="Tools">Tools</SelectItem>
-                  <SelectItem value="Accessories">Accessories</SelectItem>
-                </SelectContent>
-              </Select>
+            <div class="space-y-1.5">
+              <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Category</label>
+              <div class="flex gap-1.5 flex-wrap pt-1">
+                <button v-for="cat in ['Parts','Tools','Accessories']" :key="cat"
+                  class="px-2.5 py-1 rounded-xl text-xs font-semibold transition-all"
+                  :style="itemForm.category === cat ? 'background: #8b5cf622; color: #8b5cf6; outline: 1.5px solid #8b5cf650' : 'background: hsl(var(--muted)/0.5); color: hsl(var(--muted-foreground))'"
+                  @click="itemForm.category = cat"
+                >{{ cat }}</button>
+              </div>
             </div>
           </div>
-
           <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <Label for="stock">Stock Quantity *</Label>
-              <Input id="stock" v-model.number="itemForm.stock" type="number" min="0" />
+            <div class="space-y-1.5">
+              <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Stock Quantity *</label>
+              <input v-model.number="itemForm.stock" type="number" min="0" class="w-full h-11 px-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-violet-500/30 text-foreground" />
             </div>
-
-            <div class="space-y-2">
-              <Label for="low">Low Stock Alert *</Label>
-              <Input id="low" v-model.number="itemForm.low" type="number" min="0" />
+            <div class="space-y-1.5">
+              <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Low Stock Alert *</label>
+              <input v-model.number="itemForm.low" type="number" min="0" class="w-full h-11 px-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-violet-500/30 text-foreground" />
             </div>
           </div>
-
           <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <Label for="cost">Cost Price *</Label>
-              <Input id="cost" v-model.number="itemForm.cost" type="number" min="0" step="0.01" />
+            <div class="space-y-1.5">
+              <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Cost Price *</label>
+              <input v-model.number="itemForm.cost" type="number" min="0" step="0.01" class="w-full h-11 px-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-violet-500/30 text-foreground" />
             </div>
-
-            <div class="space-y-2">
-              <Label for="price">Selling Price *</Label>
-              <Input id="price" v-model.number="itemForm.price" type="number" min="0" step="0.01" />
+            <div class="space-y-1.5">
+              <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Selling Price *</label>
+              <input v-model.number="itemForm.price" type="number" min="0" step="0.01" class="w-full h-11 px-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-violet-500/30 text-foreground" />
             </div>
           </div>
-
-          <div class="flex items-center justify-between bg-muted/40 rounded-lg px-4 py-2.5">
+          <div class="flex items-center justify-between rounded-2xl px-4 py-3" style="background: #10b98112">
             <p class="text-sm text-muted-foreground">Profit Margin</p>
-            <span class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{{ calculateFormMargin() }}%</span>
+            <span class="text-sm font-bold" style="color: #10b981">{{ calculateFormMargin() }}%</span>
           </div>
-
           <div class="flex gap-3 pt-2">
-            <Button variant="outline" class="flex-1" @click="cancelEdit">
-              Cancel
-            </Button>
-            <Button class="flex-1" @click="saveItem">
+            <button class="flex-1 flex items-center justify-center px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all hover:bg-muted/60" style="outline: 1.5px solid hsl(var(--border))" @click="cancelEdit">Cancel</button>
+            <button class="flex-1 flex items-center justify-center px-4 py-2.5 rounded-2xl text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:scale-[1.02]" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)" @click="saveItem">
               {{ editingItem ? 'Update Item' : 'Add Item' }}
-            </Button>
+            </button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
 
-    <!-- Adjust Stock Dialog -->
+    <!-- ── Adjust Stock Dialog ───────────────────────────────────── -->
     <Dialog v-model:open="adjustStockOpen">
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Adjust Stock — {{ selectedItem?.name }}</DialogTitle>
-        </DialogHeader>
-
-        <div class="space-y-4 py-4">
-          <div class="flex items-center justify-between bg-muted/40 rounded-lg px-4 py-3">
+      <DialogContent class="rounded-3xl p-0 gap-0">
+        <div class="flex items-center gap-3 px-6 py-5 border-b border-border" style="background: #3b82f608">
+          <div class="w-9 h-9 rounded-2xl flex items-center justify-center" style="background: #3b82f620">
+            <PlusCircle class="w-4 h-4" style="color: #3b82f6" />
+          </div>
+          <div>
+            <h2 class="font-semibold text-base">Adjust Stock</h2>
+            <p class="text-xs text-muted-foreground mt-0.5">{{ selectedItem?.name }}</p>
+          </div>
+        </div>
+        <div class="p-6 space-y-5">
+          <div class="flex items-center justify-between rounded-2xl px-4 py-3" style="background: hsl(var(--muted)/0.4)">
             <p class="text-sm text-muted-foreground">Current Stock</p>
             <p class="text-2xl font-bold">{{ selectedItem?.stock }} <span class="text-sm font-normal text-muted-foreground">units</span></p>
           </div>
-
-          <div class="space-y-2">
-            <Label>Adjustment Type</Label>
-            <Select v-model="adjustmentType">
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="add">Add Stock</SelectItem>
-                <SelectItem value="remove">Remove Stock</SelectItem>
-                <SelectItem value="set">Set Stock</SelectItem>
-              </SelectContent>
-            </Select>
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Adjustment Type</label>
+            <div class="flex gap-2">
+              <button v-for="type in [{v:'add',label:'Add'},{v:'remove',label:'Remove'},{v:'set',label:'Set'}]" :key="type.v"
+                class="flex-1 py-2 rounded-2xl text-xs font-semibold transition-all"
+                :style="adjustmentType === type.v ? 'background: #3b82f622; color: #3b82f6; outline: 1.5px solid #3b82f650' : 'background: hsl(var(--muted)/0.5); color: hsl(var(--muted-foreground))'"
+                @click="adjustmentType = type.v"
+              >{{ type.label }}</button>
+            </div>
           </div>
-
-          <div class="space-y-2">
-            <Label for="adj-qty">Quantity</Label>
-            <Input id="adj-qty" v-model.number="adjustmentQty" type="number" min="0" />
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Quantity</label>
+            <input v-model.number="adjustmentQty" type="number" min="0" class="w-full h-11 px-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-blue-500/30 text-foreground" />
           </div>
-
-          <div class="flex items-center justify-between bg-blue-500/5 border border-blue-500/20 rounded-lg px-4 py-2.5">
+          <div class="flex items-center justify-between rounded-2xl px-4 py-2.5" style="background: #3b82f608; outline: 1px solid #3b82f620">
             <p class="text-sm text-muted-foreground">New stock will be</p>
-            <span class="text-lg font-bold text-blue-500">{{ calculateNewStock() }} units</span>
+            <span class="text-lg font-bold" style="color: #3b82f6">{{ calculateNewStock() }} units</span>
           </div>
-
           <div class="flex gap-3 pt-2">
-            <Button variant="outline" class="flex-1" @click="adjustStockOpen = false">
-              Cancel
-            </Button>
-            <Button class="flex-1" @click="applyStockAdjustment">
-              Apply
-            </Button>
+            <button class="flex-1 flex items-center justify-center px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all hover:bg-muted/60" style="outline: 1.5px solid hsl(var(--border))" @click="adjustStockOpen = false">Cancel</button>
+            <button class="flex-1 flex items-center justify-center px-4 py-2.5 rounded-2xl text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:scale-[1.02]" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)" @click="applyStockAdjustment">Apply</button>
           </div>
         </div>
       </DialogContent>
@@ -333,25 +264,11 @@ import { storeToRefs } from 'pinia'
 
 import type { InventoryItem } from '~/types'
 import {
-  Search,
-  RefreshCw,
-  Plus,
-  Package,
-  AlertTriangle,
-  DollarSign,
-  BarChart3,
-  Pencil,
-  PlusCircle,
-  Trash2
+  Search, RefreshCw, Plus, Package, AlertTriangle, DollarSign, BarChart3, Pencil, PlusCircle, Trash2
 } from 'lucide-vue-next'
-import { Card, CardContent } from '~/components/ui/card'
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '~/components/ui/table'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
-import { Badge } from '~/components/ui/badge'
+import { Dialog, DialogContent } from '~/components/ui/dialog'
+import { ref, computed } from 'vue'
 
 definePageMeta({
   middleware: ['auth']
@@ -392,6 +309,13 @@ const filteredInventory = computed(() => {
 const lowStockCount = computed(() => (inventory.value || []).filter(item => item.stock <= item.low).length)
 const totalValue = computed(() => (inventory.value || []).reduce((sum, item) => sum + (item.price * item.stock), 0))
 const totalStock = computed(() => (inventory.value || []).reduce((sum, item) => sum + item.stock, 0))
+
+const inventoryStats = computed(() => [
+  { label: 'Total Items', value: (inventory.value || []).length,     color: '#3b82f6', icon: Package },
+  { label: 'Low Stock',   value: lowStockCount.value,                 color: '#f59e0b', icon: AlertTriangle },
+  { label: 'Total Value', value: formatCurrency(totalValue.value),    color: '#10b981', icon: DollarSign },
+  { label: 'In Stock',    value: totalStock.value,                    color: '#8b5cf6', icon: BarChart3 },
+])
 
 const formatCurrency = (amount: number) => `${settings.value.currency}${amount.toFixed(2)}`
 const calculateMargin = (item: InventoryItem) => item.price === 0 ? 0 : Math.round(((item.price - item.cost) / item.price) * 100)

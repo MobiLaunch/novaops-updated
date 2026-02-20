@@ -1,348 +1,322 @@
 <template>
   <div class="flex flex-col h-[calc(100vh-8rem)] gap-4">
     <div class="flex flex-1 gap-4 overflow-hidden">
+
+      <!-- ── Product Grid ──────────────────────────────────────── -->
       <div class="flex-1 flex flex-col gap-4 overflow-hidden">
-        <div class="flex gap-4">
+        <!-- Search + filter -->
+        <div class="flex gap-3">
           <div class="relative flex-1">
-            <Search class="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              v-model="searchQuery"
-              placeholder="Search products..."
-              class="pl-9"
-            />
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <input v-model="searchQuery" placeholder="Search products…" class="w-full h-10 pl-9 pr-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-pink-500/30 text-foreground" />
           </div>
-          <Select v-model="selectedCategory">
-            <SelectTrigger class="w-[180px]">
-              <SelectValue placeholder="All Categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem :value="null">All Categories</SelectItem>
-              <SelectItem value="Accessories">Accessories</SelectItem>
-              <SelectItem value="Parts">Parts</SelectItem>
-              <SelectItem value="Devices">Devices</SelectItem>
-              <SelectItem value="Services">Services</SelectItem>
-            </SelectContent>
-          </Select>
+          <div class="flex gap-2">
+            <button
+              v-for="cat in [null, 'Accessories', 'Parts', 'Devices', 'Services']"
+              :key="cat ?? 'all'"
+              class="px-3 py-2 rounded-2xl text-xs font-medium transition-all whitespace-nowrap"
+              :style="selectedCategory === cat ? 'background: #ec489922; color: #ec4899; outline: 1.5px solid #ec489950' : 'background: hsl(var(--muted)/0.5); color: hsl(var(--muted-foreground))'"
+              @click="selectedCategory = cat"
+            >{{ cat ?? 'All' }}</button>
+          </div>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto pr-2">
-          <Card
+        <!-- Product cards -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto pr-1">
+          <div
             v-for="item in filteredProducts"
             :key="item.id"
-            class="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 active:scale-[0.98] border-0 ring-1 ring-border hover:ring-primary/30 bg-gradient-to-b from-background to-muted/20"
+            class="rounded-3xl cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-md active:scale-[0.98] bg-card flex flex-col items-center text-center gap-2 p-4"
+            style="outline: 1px solid hsl(var(--border))"
             @click="addToCart(item)"
           >
-            <CardContent class="p-4 flex flex-col items-center text-center gap-2">
-              <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center ring-1 ring-primary/15">
-                <Package class="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 class="font-medium line-clamp-1" :title="item.name">{{ item.name }}</h3>
-                <p class="text-sm text-muted-foreground line-clamp-1">{{ item.sku }}</p>
-              </div>
-              <div class="font-bold text-lg text-primary">
-                {{ formatCurrency(item.price) }}
-              </div>
-              <Badge variant="secondary" class="mt-1 text-xs">
-                Stock: {{ item.stock }}
-              </Badge>
-            </CardContent>
-          </Card>
+            <div class="w-12 h-12 rounded-2xl flex items-center justify-center" style="background: #ec489918">
+              <Package class="h-6 w-6" style="color: #ec4899" />
+            </div>
+            <div>
+              <h3 class="font-semibold text-sm line-clamp-1">{{ item.name }}</h3>
+              <p class="text-xs text-muted-foreground line-clamp-1">{{ item.sku }}</p>
+            </div>
+            <p class="text-lg font-bold" style="color: #ec4899">{{ formatCurrency(item.price) }}</p>
+            <span class="text-[10px] font-semibold px-2.5 py-1 rounded-full" style="background: hsl(var(--muted)/0.5); color: hsl(var(--muted-foreground))">
+              Stock: {{ item.stock }}
+            </span>
+          </div>
         </div>
       </div>
 
-      <Card class="w-[400px] flex flex-col shadow-xl border-0 ring-1 ring-border">
-        <CardHeader class="pb-2 border-b bg-muted/30">
-          <CardTitle class="flex items-center justify-between">
-            <span class="flex items-center gap-2">
-              <ShoppingCart class="w-4 h-4 text-primary" />
-              Current Sale
-            </span>
-            <div class="flex gap-2">
-              <Button variant="ghost" size="icon" @click="clearCart" :disabled="!cart.length">
-                <Trash2 class="h-4 w-4 text-muted-foreground hover:text-destructive" />
-              </Button>
+      <!-- ── Cart Sidebar ──────────────────────────────────────── -->
+      <div class="w-[400px] flex flex-col rounded-3xl overflow-hidden bg-card" style="outline: 1px solid hsl(var(--border))">
+        <!-- Cart header -->
+        <div class="flex items-center justify-between px-5 py-4 border-b border-border" style="background: hsl(var(--muted)/0.3)">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: #ec489918">
+              <ShoppingCart class="w-4 h-4" style="color: #ec4899" />
             </div>
-          </CardTitle>
-        </CardHeader>
-        
-        <CardContent class="flex-1 overflow-y-auto p-0">
-          <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center text-muted-foreground p-8">
-            <ShoppingCart class="h-12 w-12 mb-4 opacity-20" />
-            <p>Cart is empty</p>
+            <span class="font-semibold text-sm">Current Sale</span>
           </div>
-          
-          <div v-else class="divide-y">
-            <div v-for="(item, index) in cart" :key="index" class="p-4 flex items-center gap-3 hover:bg-muted/20 transition-colors">
+          <button
+            class="w-7 h-7 rounded-xl flex items-center justify-center transition-all hover:scale-110 disabled:opacity-30"
+            style="background: #ef444412"
+            :disabled="!cart.length"
+            @click="clearCart"
+          >
+            <Trash2 class="h-3.5 w-3.5" style="color: #ef4444" />
+          </button>
+        </div>
+
+        <!-- Cart items -->
+        <div class="flex-1 overflow-y-auto">
+          <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center gap-3 text-muted-foreground p-8">
+            <div class="w-14 h-14 rounded-3xl flex items-center justify-center" style="background: #ec489912">
+              <ShoppingCart class="h-7 w-7" style="color: #ec4899; opacity: 0.4" />
+            </div>
+            <p class="text-sm">Cart is empty</p>
+          </div>
+          <div v-else class="divide-y divide-border/50">
+            <div v-for="(item, index) in cart" :key="index" class="px-4 py-3 flex items-center gap-3 hover:bg-muted/20 transition-colors">
               <div class="flex-1 min-w-0">
-                <h4 class="font-medium truncate">{{ item.name }}</h4>
-                <div class="text-sm text-muted-foreground">
-                  {{ formatCurrency(item.price) }}
-                </div>
+                <h4 class="font-medium text-sm truncate">{{ item.name }}</h4>
+                <p class="text-xs text-muted-foreground">{{ formatCurrency(item.price) }}</p>
               </div>
-              
-              <div class="flex items-center gap-2 bg-muted/60 rounded-lg p-1 ring-1 ring-border">
-                <Button variant="ghost" size="icon" class="h-6 w-6 hover:bg-background" @click="decrementItem(index)">
+              <!-- M3 quantity stepper -->
+              <div class="flex items-center gap-1 rounded-2xl p-1" style="background: hsl(var(--muted)/0.6)">
+                <button class="w-6 h-6 rounded-xl flex items-center justify-center hover:bg-background transition-colors" @click="decrementItem(index)">
                   <Minus class="h-3 w-3" />
-                </Button>
-                <span class="w-8 text-center text-sm font-medium">{{ item.quantity }}</span>
-                <Button variant="ghost" size="icon" class="h-6 w-6 hover:bg-background" @click="incrementItem(index)">
+                </button>
+                <span class="w-7 text-center text-sm font-semibold">{{ item.quantity }}</span>
+                <button class="w-6 h-6 rounded-xl flex items-center justify-center hover:bg-background transition-colors" @click="incrementItem(index)">
                   <Plus class="h-3 w-3" />
-                </Button>
+                </button>
               </div>
-              
-              <div class="text-right font-semibold min-w-[80px] text-primary">
+              <div class="text-right font-bold text-sm min-w-[60px]" style="color: #ec4899">
                 {{ formatCurrency(item.price * item.quantity) }}
               </div>
             </div>
           </div>
-        </CardContent>
+        </div>
 
-        <div class="p-4 bg-muted/30 border-t space-y-4">
-          <div class="space-y-2 text-sm bg-background/60 rounded-xl p-3 ring-1 ring-border">
-            <div class="flex justify-between text-muted-foreground">
-              <span>Subtotal</span>
-              <span>{{ formatCurrency(subtotal) }}</span>
-            </div>
-            <div v-if="discountPercent > 0" class="flex justify-between text-emerald-600">
-              <span>Discount ({{ discountPercent }}%)</span>
-              <span>-{{ formatCurrency(discountAmount) }}</span>
-            </div>
-            <div class="flex justify-between text-muted-foreground">
-              <span>Tax ({{ taxRate }}%)</span>
-              <span>{{ formatCurrency(taxAmount) }}</span>
-            </div>
-            <div class="flex justify-between text-lg font-bold border-t pt-2 mt-1">
-              <span>Total</span>
-              <span class="text-primary">{{ formatCurrency(total) }}</span>
-            </div>
+        <!-- Cart footer -->
+        <div class="p-4 border-t border-border space-y-4" style="background: hsl(var(--muted)/0.2)">
+          <!-- Totals -->
+          <div class="rounded-2xl px-4 py-3 space-y-2 text-sm bg-card" style="outline: 1px solid hsl(var(--border))">
+            <div class="flex justify-between text-muted-foreground"><span>Subtotal</span><span>{{ formatCurrency(subtotal) }}</span></div>
+            <div v-if="discountPercent > 0" class="flex justify-between" style="color: #10b981"><span>Discount ({{ discountPercent }}%)</span><span>-{{ formatCurrency(discountAmount) }}</span></div>
+            <div class="flex justify-between text-muted-foreground"><span>Tax ({{ taxRate }}%)</span><span>{{ formatCurrency(taxAmount) }}</span></div>
+            <div class="flex justify-between font-bold text-base border-t border-border pt-2"><span>Total</span><span style="color: #ec4899">{{ formatCurrency(total) }}</span></div>
           </div>
 
+          <!-- Utility buttons (M3 tonal) -->
           <div class="grid grid-cols-4 gap-2">
-            <Button variant="outline" class="col-span-1" @click="discountDialogOpen = true">
-              <Percent class="h-4 w-4" />
-            </Button>
-            <Button variant="outline" class="col-span-1" @click="warrantyDialogOpen = true">
-              <Shield class="h-4 w-4" />
-            </Button>
-            <Button variant="outline" class="col-span-1" @click="refundDialogOpen = true">
-              <RotateCcw class="h-4 w-4" />
-            </Button>
-            <Button variant="outline" class="col-span-1" @click="customAmountDialogOpen = true" title="Custom Amount">
-              <PenLine class="h-4 w-4" />
-            </Button>
+            <button v-for="util in utilityButtons" :key="util.label" class="rounded-2xl py-2 flex flex-col items-center gap-0.5 transition-all hover:scale-105" :style="`background: ${util.color}18`" @click="util.onClick()" :title="util.label">
+              <component :is="util.icon" class="h-4 w-4" :style="`color: ${util.color}`" />
+            </button>
           </div>
 
+          <!-- Payment buttons -->
           <div class="grid grid-cols-2 gap-3">
-            <Button size="lg" variant="outline" class="w-full" :disabled="!cart.length" @click="processPayment('cash')">
-              <DollarSign class="h-4 w-4 mr-2" />
-              Cash
-            </Button>
-            
-            <Button 
-              size="lg" 
-              class="w-full transition-colors" 
-              :class="squareEnabled ? 'bg-[#006AFF] hover:bg-[#0055CC]' : ''"
-              :disabled="!cart.length || isProcessing" 
+            <button
+              class="flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-semibold transition-all hover:scale-[1.02] disabled:opacity-40"
+              style="background: #10b98118; color: #10b981; outline: 1.5px solid #10b98130"
+              :disabled="!cart.length"
+              @click="processPayment('cash')"
+            >
+              <DollarSign class="h-4 w-4" /> Cash
+            </button>
+            <button
+              class="flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:scale-[1.02] disabled:opacity-40"
+              :style="squareEnabled ? 'background: #006AFF' : 'background: linear-gradient(135deg, #ec4899 0%, #db2777 100%)'"
+              :disabled="!cart.length || isProcessing"
               @click="processPayment('card')"
             >
-              <div v-if="isProcessing" class="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-b-transparent border-white" />
-              <MonitorSmartphone v-else-if="squareEnabled && squareDeviceId" class="h-4 w-4 mr-2" />
-              <CreditCard v-else class="h-4 w-4 mr-2" />
+              <div v-if="isProcessing" class="h-4 w-4 animate-spin rounded-full border-2 border-b-transparent border-white" />
+              <MonitorSmartphone v-else-if="squareEnabled && squareDeviceId" class="h-4 w-4" />
+              <CreditCard v-else class="h-4 w-4" />
               {{ payButtonLabel }}
-            </Button>
+            </button>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
 
+    <!-- ── Discount Dialog ───────────────────────────────────────── -->
     <Dialog v-model:open="discountDialogOpen">
-      <DialogContent class="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Apply Discount</DialogTitle>
-        </DialogHeader>
-        <div class="grid gap-4 py-4">
-          <div class="grid gap-2">
-            <Label>Discount Percentage</Label>
+      <DialogContent class="sm:max-w-[425px] rounded-3xl p-0 gap-0">
+        <div class="flex items-center gap-3 px-6 py-5 border-b border-border" style="background: #10b98108">
+          <div class="w-9 h-9 rounded-2xl flex items-center justify-center" style="background: #10b98120">
+            <Percent class="w-4 h-4" style="color: #10b981" />
+          </div>
+          <h2 class="font-semibold text-base">Apply Discount</h2>
+        </div>
+        <div class="p-6 space-y-4">
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Discount Percentage</label>
             <div class="flex gap-2">
-              <Input type="number" v-model.number="discountPercent" min="0" max="100" />
-              <div class="flex items-center justify-center w-10 bg-muted rounded-md">
-                <Percent class="h-4 w-4" />
-              </div>
+              <input type="number" v-model.number="discountPercent" min="0" max="100" class="flex-1 h-11 px-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-emerald-500/30 text-foreground" />
+              <div class="w-11 h-11 rounded-2xl flex items-center justify-center bg-muted/50"><Percent class="h-4 w-4 text-muted-foreground" /></div>
             </div>
           </div>
           <div class="flex gap-2">
-            <Button variant="outline" class="flex-1" @click="discountPercent = 5">5%</Button>
-            <Button variant="outline" class="flex-1" @click="discountPercent = 10">10%</Button>
-            <Button variant="outline" class="flex-1" @click="discountPercent = 20">20%</Button>
+            <button v-for="p in [5,10,20]" :key="p" class="flex-1 py-2 rounded-2xl text-sm font-semibold transition-all hover:scale-[1.02]" style="background: #10b98112; color: #10b981" @click="discountPercent = p">{{ p }}%</button>
           </div>
-          <Button @click="applyDiscount">Apply Discount</Button>
+          <button class="w-full py-2.5 rounded-2xl text-sm font-semibold text-white transition-all hover:scale-[1.02]" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%)" @click="applyDiscount">Apply Discount</button>
         </div>
       </DialogContent>
     </Dialog>
 
+    <!-- ── Warranty Dialog ───────────────────────────────────────── -->
     <Dialog v-model:open="warrantyDialogOpen">
-      <DialogContent class="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Add Warranty</DialogTitle>
-        </DialogHeader>
-        <div class="grid gap-4 py-4">
-          <div class="grid grid-cols-2 gap-4">
-            <Button variant="outline" class="h-auto py-4 flex flex-col gap-2" @click="addWarranty(30, 29.99)">
-              <span class="font-bold text-lg">30 Days</span>
-              <span class="text-muted-foreground">$29.99</span>
-            </Button>
-            <Button variant="outline" class="h-auto py-4 flex flex-col gap-2" @click="addWarranty(90, 59.99)">
-              <span class="font-bold text-lg">90 Days</span>
-              <span class="text-muted-foreground">$59.99</span>
-            </Button>
-            <Button variant="outline" class="h-auto py-4 flex flex-col gap-2" @click="addWarranty(180, 89.99)">
-              <span class="font-bold text-lg">6 Months</span>
-              <span class="text-muted-foreground">$89.99</span>
-            </Button>
-            <Button variant="outline" class="h-auto py-4 flex flex-col gap-2" @click="addWarranty(365, 149.99)">
-              <span class="font-bold text-lg">1 Year</span>
-              <span class="text-muted-foreground">$149.99</span>
-            </Button>
+      <DialogContent class="sm:max-w-[425px] rounded-3xl p-0 gap-0">
+        <div class="flex items-center gap-3 px-6 py-5 border-b border-border" style="background: #8b5cf608">
+          <div class="w-9 h-9 rounded-2xl flex items-center justify-center" style="background: #8b5cf620">
+            <Shield class="w-4 h-4" style="color: #8b5cf6" />
+          </div>
+          <h2 class="font-semibold text-base">Add Warranty</h2>
+        </div>
+        <div class="p-6">
+          <div class="grid grid-cols-2 gap-3">
+            <button v-for="w in warrantyOptions" :key="w.days" class="rounded-2xl py-4 flex flex-col items-center gap-1.5 transition-all hover:-translate-y-0.5 hover:shadow-md" style="background: #8b5cf612; outline: 1px solid #8b5cf625" @click="addWarranty(w.days, w.price)">
+              <span class="font-bold text-base" style="color: #8b5cf6">{{ w.label }}</span>
+              <span class="text-xs text-muted-foreground">{{ formatCurrency(w.price) }}</span>
+            </button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
 
+    <!-- ── Refund Dialog ─────────────────────────────────────────── -->
     <Dialog v-model:open="refundDialogOpen">
-      <DialogContent class="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Process Refund</DialogTitle>
-        </DialogHeader>
-        <div class="grid gap-4 py-4">
-          <div class="grid gap-2">
-            <Label>Refund Amount</Label>
+      <DialogContent class="sm:max-w-[425px] rounded-3xl p-0 gap-0">
+        <div class="flex items-center gap-3 px-6 py-5 border-b border-border" style="background: #ef444408">
+          <div class="w-9 h-9 rounded-2xl flex items-center justify-center" style="background: #ef444420">
+            <RotateCcw class="w-4 h-4" style="color: #ef4444" />
+          </div>
+          <h2 class="font-semibold text-base">Process Refund</h2>
+        </div>
+        <div class="p-6 space-y-4">
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Refund Amount</label>
             <div class="relative">
-              <DollarSign class="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input type="number" v-model.number="refundAmount" class="pl-9" />
+              <DollarSign class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <input type="number" v-model.number="refundAmount" class="w-full h-11 pl-9 pr-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-red-500/30 text-foreground" />
             </div>
           </div>
-          <div class="grid gap-2">
-            <Label>Reason</Label>
-            <Textarea v-model="refundReason" placeholder="Reason for refund..." />
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Reason</label>
+            <Textarea v-model="refundReason" placeholder="Reason for refund…" class="rounded-2xl border-0 bg-muted/50 resize-none" />
           </div>
-          <Button variant="destructive" @click="processRefund">Process Refund</Button>
+          <button class="w-full py-2.5 rounded-2xl text-sm font-semibold text-white transition-all hover:scale-[1.02]" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%)" @click="processRefund">Process Refund</button>
         </div>
       </DialogContent>
     </Dialog>
 
-    <!-- Terminal Payment Status Modal -->
+    <!-- ── Terminal Status Modal ─────────────────────────────────── -->
     <Dialog v-model:open="terminalModalOpen">
-      <DialogContent class="sm:max-w-[380px]" :show-close="terminalStatus === 'FAILED' || terminalStatus === 'CANCELED'">
-        <DialogHeader>
-          <DialogTitle>{{ terminalModalTitle }}</DialogTitle>
-        </DialogHeader>
-        <div class="py-6 flex flex-col items-center gap-4 text-center">
-          <!-- Waiting -->
+      <DialogContent class="sm:max-w-[380px] rounded-3xl p-0 gap-0" :show-close="terminalStatus === 'FAILED' || terminalStatus === 'CANCELED'">
+        <div class="flex items-center gap-3 px-6 py-5 border-b border-border" style="background: #3b82f608">
+          <div class="w-9 h-9 rounded-2xl flex items-center justify-center" style="background: #3b82f620">
+            <MonitorSmartphone class="w-4 h-4" style="color: #3b82f6" />
+          </div>
+          <h2 class="font-semibold text-base">{{ terminalModalTitle }}</h2>
+        </div>
+        <div class="py-8 px-6 flex flex-col items-center gap-4 text-center">
           <div v-if="terminalStatus === 'PENDING' || terminalStatus === 'IN_PROGRESS'" class="flex flex-col items-center gap-4">
-            <div class="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center">
-              <MonitorSmartphone class="w-8 h-8 text-blue-500" />
+            <div class="w-16 h-16 rounded-3xl flex items-center justify-center" style="background: #3b82f612">
+              <MonitorSmartphone class="w-8 h-8" style="color: #3b82f6" />
             </div>
-            <div class="space-y-1">
-              <p class="text-sm text-muted-foreground">Waiting for customer to tap, swipe, or insert card on the terminal.</p>
-              <p class="text-xs text-muted-foreground/60">Amount: <span class="font-semibold text-foreground">{{ formatCurrency(total) }}</span></p>
-            </div>
+            <p class="text-sm text-muted-foreground">Waiting for customer to tap, swipe, or insert card.</p>
+            <p class="text-xs text-muted-foreground">Amount: <span class="font-bold text-foreground">{{ formatCurrency(total) }}</span></p>
             <div class="flex gap-1">
-              <div class="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style="animation-delay: 0ms" />
-              <div class="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style="animation-delay: 150ms" />
-              <div class="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style="animation-delay: 300ms" />
+              <div class="w-2 h-2 rounded-full animate-bounce" style="background: #3b82f6; animation-delay: 0ms" />
+              <div class="w-2 h-2 rounded-full animate-bounce" style="background: #3b82f6; animation-delay: 150ms" />
+              <div class="w-2 h-2 rounded-full animate-bounce" style="background: #3b82f6; animation-delay: 300ms" />
             </div>
-            <Button variant="outline" size="sm" @click="cancelTerminalPayment">Cancel</Button>
+            <button class="px-4 py-2 rounded-2xl text-sm font-medium" style="outline: 1.5px solid hsl(var(--border))" @click="cancelTerminalPayment">Cancel</button>
           </div>
-
-          <!-- Success -->
           <div v-else-if="terminalStatus === 'COMPLETED'" class="flex flex-col items-center gap-3">
-            <div class="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center">
-              <CheckCircle class="w-8 h-8 text-emerald-500" />
+            <div class="w-16 h-16 rounded-3xl flex items-center justify-center" style="background: #10b98112">
+              <CheckCircle class="w-8 h-8" style="color: #10b981" />
             </div>
-            <p class="text-sm font-medium text-emerald-600">Payment complete!</p>
+            <p class="text-sm font-semibold" style="color: #10b981">Payment complete!</p>
           </div>
-
-          <!-- Failed / Canceled -->
           <div v-else-if="terminalStatus === 'FAILED' || terminalStatus === 'CANCELED'" class="flex flex-col items-center gap-3">
-            <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center">
-              <AlertCircle class="w-8 h-8 text-red-500" />
+            <div class="w-16 h-16 rounded-3xl flex items-center justify-center" style="background: #ef444412">
+              <AlertCircle class="w-8 h-8" style="color: #ef4444" />
             </div>
-            <div class="space-y-1">
-              <p class="text-sm font-medium text-red-600">{{ terminalStatus === 'CANCELED' ? 'Payment cancelled' : 'Terminal payment failed' }}</p>
-              <p class="text-xs text-muted-foreground">Falling back to browser card payment...</p>
-            </div>
+            <p class="text-sm font-semibold" style="color: #ef4444">{{ terminalStatus === 'CANCELED' ? 'Payment cancelled' : 'Terminal payment failed' }}</p>
+            <p class="text-xs text-muted-foreground">Falling back to browser card payment…</p>
           </div>
         </div>
       </DialogContent>
     </Dialog>
 
-    <!-- Web Payments SDK Card Form Modal (fallback) -->
+    <!-- ── Card Form Modal ───────────────────────────────────────── -->
     <Dialog v-model:open="cardFormOpen">
-      <DialogContent class="sm:max-w-[420px]">
-        <DialogHeader>
-          <DialogTitle class="flex items-center gap-2">
-            <CreditCard class="w-4 h-4" /> Card Payment
-          </DialogTitle>
-        </DialogHeader>
-        <div class="py-4 space-y-4">
+      <DialogContent class="sm:max-w-[420px] rounded-3xl p-0 gap-0">
+        <div class="flex items-center gap-3 px-6 py-5 border-b border-border" style="background: #006AFF0a">
+          <div class="w-9 h-9 rounded-2xl flex items-center justify-center" style="background: #006AFF20">
+            <CreditCard class="w-4 h-4" style="color: #006AFF" />
+          </div>
+          <h2 class="font-semibold text-base">Card Payment</h2>
+        </div>
+        <div class="p-6 space-y-4">
           <div class="flex justify-between text-sm font-semibold">
-            <span>Total Due</span>
-            <span class="text-primary text-lg">{{ formatCurrency(total) }}</span>
+            <span>Total Due</span><span class="text-lg" style="color: #006AFF">{{ formatCurrency(total) }}</span>
           </div>
           <div id="card-container" class="min-h-[90px]" />
-          <p v-if="cardFormError" class="text-xs text-red-500">{{ cardFormError }}</p>
-          <Button class="w-full bg-[#006AFF] hover:bg-[#0055CC]" :disabled="isProcessing || !cardFormReady" @click="submitCardPayment">
-            <div v-if="isProcessing" class="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-b-transparent border-white" />
-            <CreditCard v-else class="h-4 w-4 mr-2" />
-            {{ isProcessing ? 'Processing...' : `Pay ${formatCurrency(total)}` }}
-          </Button>
+          <p v-if="cardFormError" class="text-xs" style="color: #ef4444">{{ cardFormError }}</p>
+          <button
+            class="w-full py-3 rounded-2xl text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md disabled:opacity-50"
+            style="background: #006AFF"
+            :disabled="isProcessing || !cardFormReady"
+            @click="submitCardPayment"
+          >
+            <div v-if="isProcessing" class="flex items-center justify-center gap-2">
+              <div class="h-4 w-4 animate-spin rounded-full border-2 border-b-transparent border-white" /> Processing…
+            </div>
+            <div v-else class="flex items-center justify-center gap-2">
+              <CreditCard class="h-4 w-4" /> Pay {{ formatCurrency(total) }}
+            </div>
+          </button>
           <p class="text-center text-xs text-muted-foreground">Secured by Square</p>
         </div>
       </DialogContent>
     </Dialog>
 
-    <!-- Custom Amount Dialog -->
+    <!-- ── Custom Amount Dialog ──────────────────────────────────── -->
     <Dialog v-model:open="customAmountDialogOpen">
-      <DialogContent class="sm:max-w-[400px]">
-        <DialogHeader>
-          <DialogTitle>Add Custom Amount</DialogTitle>
-        </DialogHeader>
-        <div class="grid gap-4 py-4">
-          <div class="grid gap-2">
-            <Label>Description</Label>
-            <Input
-              v-model="customAmountName"
-              placeholder="e.g. Labor, Diagnostic fee..."
-              @keyup.enter="$refs.customAmountInput?.focus()"
-            />
+      <DialogContent class="sm:max-w-[400px] rounded-3xl p-0 gap-0">
+        <div class="flex items-center gap-3 px-6 py-5 border-b border-border" style="background: #f59e0b08">
+          <div class="w-9 h-9 rounded-2xl flex items-center justify-center" style="background: #f59e0b20">
+            <PenLine class="w-4 h-4" style="color: #f59e0b" />
           </div>
-          <div class="grid gap-2">
-            <Label>Amount</Label>
+          <h2 class="font-semibold text-base">Add Custom Amount</h2>
+        </div>
+        <div class="p-6 space-y-4">
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Description</label>
+            <input v-model="customAmountName" placeholder="e.g. Labor, Diagnostic fee…" class="w-full h-11 px-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-amber-500/30 text-foreground" @keyup.enter="$refs.customAmountInput?.focus()" />
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Amount</label>
             <div class="relative">
-              <DollarSign class="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                ref="customAmountInput"
-                type="number"
-                v-model.number="customAmountValue"
-                class="pl-9 text-lg font-semibold"
-                placeholder="0.00"
-                min="0"
-                step="0.01"
-                @keyup.enter="addCustomAmount"
-              />
+              <DollarSign class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <input ref="customAmountInput" type="number" v-model.number="customAmountValue" class="w-full h-11 pl-9 pr-3 rounded-2xl text-sm bg-muted/50 border-0 outline-none focus:ring-2 focus:ring-amber-500/30 text-foreground font-semibold" placeholder="0.00" min="0" step="0.01" @keyup.enter="addCustomAmount" />
             </div>
           </div>
           <div class="flex flex-wrap gap-2">
-            <Button v-for="preset in customAmountPresets" :key="preset" variant="outline" size="sm"
-              @click="customAmountValue = preset">
+            <button v-for="preset in customAmountPresets" :key="preset" class="px-3 py-1.5 rounded-2xl text-xs font-semibold transition-all hover:scale-105" style="background: #f59e0b12; color: #f59e0b" @click="customAmountValue = preset">
               {{ formatCurrency(preset) }}
-            </Button>
+            </button>
           </div>
-          <Button @click="addCustomAmount" :disabled="!customAmountValue || customAmountValue <= 0">
-            <PenLine class="h-4 w-4 mr-2" />
-            Add to Cart
-          </Button>
+          <button
+            class="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl text-sm font-semibold text-white shadow-sm transition-all hover:scale-[1.02] disabled:opacity-40"
+            style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
+            :disabled="!customAmountValue || customAmountValue <= 0"
+            @click="addCustomAmount"
+          >
+            <PenLine class="h-4 w-4" /> Add to Cart
+          </button>
         </div>
       </DialogContent>
     </Dialog>
@@ -357,33 +331,29 @@ import { useNotifications } from '~/composables/useNotifications'
 import type { InventoryItem } from '~/types/models'
 
 import {
-  Search,
-  Package,
-  Trash2,
-  Plus,
-  Minus,
-  ShoppingCart,
-  CreditCard,
-  DollarSign,
-  Percent,
-  Shield,
-  RotateCcw,
-  PenLine,
-  MonitorSmartphone,
-  CheckCircle,
-  AlertCircle
+  Search, Package, Trash2, Plus, Minus, ShoppingCart, CreditCard, DollarSign,
+  Percent, Shield, RotateCcw, PenLine, MonitorSmartphone, CheckCircle, AlertCircle
 } from 'lucide-vue-next'
 
-import { Card, CardHeader, CardTitle, CardContent } from '~/components/ui/card'
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
+import { Dialog, DialogContent } from '~/components/ui/dialog'
 import { Textarea } from '~/components/ui/textarea'
-import { Badge } from '~/components/ui/badge'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '~/components/ui/select'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 
 definePageMeta({ middleware: ['auth'] })
+
+// M3 computed helpers
+const utilityButtons = computed(() => [
+  { label: 'Discount',      color: '#10b981', icon: Percent,   onClick: () => { discountDialogOpen.value = true } },
+  { label: 'Warranty',      color: '#8b5cf6', icon: Shield,    onClick: () => { warrantyDialogOpen.value = true } },
+  { label: 'Refund',        color: '#ef4444', icon: RotateCcw, onClick: () => { refundDialogOpen.value = true } },
+  { label: 'Custom Amount', color: '#f59e0b', icon: PenLine,   onClick: () => { customAmountDialogOpen.value = true } },
+])
+
+const warrantyOptions = [
+  { days: 30,  label: '30 Days',  price: 29.99 },
+  { days: 90,  label: '90 Days',  price: 59.99 },
+  { days: 180, label: '6 Months', price: 89.99 },
+  { days: 365, label: '1 Year',   price: 149.99 },
+]
 
 const appStore = useAppStore()
 const { inventory, settings } = storeToRefs(appStore)
