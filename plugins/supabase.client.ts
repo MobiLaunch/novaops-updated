@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-// Module-level singleton — survives hot reload, guarantees one instance
 let _supabase: SupabaseClient | null = null
 
 export default defineNuxtPlugin(() => {
@@ -24,7 +23,7 @@ export default defineNuxtPlugin(() => {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
-        storageKey: 'novaops-auth', // unique key prevents conflicts with any other Supabase clients
+        storageKey: 'novaops-auth',
       }
     })
   }

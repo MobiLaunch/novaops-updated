@@ -194,7 +194,7 @@ const currentTheme = ref<string>('system')
 const { checkLockStatus, setupActivityListeners, cleanup } = useScreenLock()
 
 onMounted(() => {
-  appStore.initializeData()
+  appStore.setupAuthListener()
   checkLockStatus()
   setupActivityListeners()
   currentTheme.value = (typeof localStorage !== 'undefined' ? localStorage.getItem('theme') : null) || 'system'
@@ -739,5 +739,4 @@ const DrawerContent = defineComponent({
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 </style>
-
 

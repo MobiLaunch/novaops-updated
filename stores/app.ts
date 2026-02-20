@@ -89,16 +89,38 @@ export const useAppStore = defineStore('app', () => {
     ...a,
     customerId: a.customer_id ?? a.customerId,
   })
+  // Called once from the root layout. Subscribes to auth state so data loads
+  // as soon as Supabase restores the session — no race condition with onMounted.
+  const setupAuthListener = () => {
+    if (!$supabase) return
+    ;($supabase as any).auth.onAuthStateChange((event: string, session: any) => {
+      if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && session?.user) {
+        user.value = session.user
+        if (!isLoaded.value) initializeData()
+      }
+      if (event === 'SIGNED_OUT') {
+        user.value = null
+        tickets.value = []
+        customers.value = []
+        inventory.value = []
+        houseCalls.value = []
+        appointments.value = []
+        isLoaded.value = false
+        navigateTo('/login')
+      }
+    })
+  }
+
   const initializeData = async () => {
     if (!$supabase) {
       console.warn('[NovaOps] Supabase not configured. Running in offline mode.')
       return
     }
 
-    const authUser = await checkAuth()
-    if (!authUser) {
-      console.log('[NovaOps] No authenticated user')
-      return
+    // If called directly (e.g. from onMounted), make sure we have a user
+    if (!user.value) {
+      const authUser = await checkAuth()
+      if (!authUser) return
     }
 
     if (isLoaded.value) return
@@ -429,6 +451,7 @@ export const useAppStore = defineStore('app', () => {
     isLoaded,
     isLoading,
     supabaseReady,
+    setupAuthListener,
     initializeData,
     checkAuth,
     createTicket,
@@ -452,5 +475,4 @@ export const useAppStore = defineStore('app', () => {
     logout
   }
 })
-
 
