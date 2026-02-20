@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-background flex">
+  <div class="min-h-screen bg-surface-low flex">
 
     <!-- ── Mobile Overlay ─────────────────────────────────────────── -->
     <Transition name="overlay">
@@ -12,14 +12,13 @@
       </div>
     </Transition>
 
-    <!-- ── Mobile Full Sidebar (slides in) ───────────────────────── -->
+    <!-- ── Mobile Full Sidebar ────────────────────────────────────── -->
     <Transition name="sidebar">
       <aside
         v-if="mobileMenuOpen"
         class="fixed left-0 top-0 z-50 h-screen flex lg:hidden shadow-2xl"
       >
-        <!-- Rail -->
-        <div class="w-[72px] h-full bg-card border-r border-border flex flex-col items-center py-3 gap-1 flex-shrink-0">
+        <div class="w-[76px] h-full bg-card border-r border-border/60 flex flex-col items-center py-3 gap-1 flex-shrink-0">
           <RailContent
             :navigation="navigation"
             :user-initials="userInitials"
@@ -32,11 +31,10 @@
             @export="handleExport"
           />
         </div>
-        <!-- Drawer panel -->
         <Transition name="drawer">
           <div
             v-if="activeDrawer"
-            class="w-64 h-full bg-card border-r border-border flex flex-col"
+            class="w-64 h-full bg-card border-r border-border/60 flex flex-col"
           >
             <DrawerContent
               :drawer="activeDrawer"
@@ -52,7 +50,7 @@
     </Transition>
 
     <!-- ── Desktop Rail ───────────────────────────────────────────── -->
-    <aside class="hidden lg:flex fixed left-0 top-0 z-40 h-screen w-[72px] bg-card border-r border-border flex-col items-center py-3 gap-1">
+    <aside class="hidden lg:flex fixed left-0 top-0 z-40 h-screen w-[76px] bg-card border-r border-border/60 flex-col items-center py-3 gap-1">
       <RailContent
         :navigation="navigation"
         :user-initials="userInitials"
@@ -66,11 +64,11 @@
       />
     </aside>
 
-    <!-- ── Desktop Drawer (slides right of rail) ──────────────────── -->
+    <!-- ── Desktop Drawer ─────────────────────────────────────────── -->
     <Transition name="drawer">
       <aside
         v-if="activeDrawer && !mobileMenuOpen"
-        class="hidden lg:flex fixed left-[72px] top-0 z-30 h-screen w-64 bg-card border-r border-border flex-col shadow-xl"
+        class="hidden lg:flex fixed left-[76px] top-0 z-30 h-screen w-64 bg-card border-r border-border/60 flex-col shadow-xl"
       >
         <DrawerContent
           :drawer="activeDrawer"
@@ -83,7 +81,6 @@
       </aside>
     </Transition>
 
-    <!-- ── Drawer backdrop click-away ─────────────────────────────── -->
     <Transition name="overlay">
       <div
         v-if="activeDrawer && !mobileMenuOpen"
@@ -94,35 +91,41 @@
 
     <!-- ── Main ───────────────────────────────────────────────────── -->
     <div
-      class="flex flex-col min-h-screen w-full transition-[padding-left] duration-250 ease-[cubic-bezier(0.4,0,0.2,1)]"
-      :class="activeDrawer && !mobileMenuOpen ? 'lg:pl-[336px]' : 'lg:pl-[72px]'"
+      class="flex flex-col min-h-screen w-full transition-[padding-left] duration-300 ease-[cubic-bezier(0.34,1.2,0.64,1)]"
+      :class="activeDrawer && !mobileMenuOpen ? 'lg:pl-[340px]' : 'lg:pl-[76px]'"
     >
       <!-- Mobile top bar -->
-      <header class="sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-background/95 backdrop-blur px-4 h-12 lg:hidden">
-        <button class="h-8 w-8 flex items-center justify-center rounded-xl hover:bg-muted/60 transition-colors -ml-1" @click="mobileMenuOpen = true">
-          <Menu class="h-4 w-4" />
+      <header class="sticky top-0 z-30 flex items-center gap-3 border-b border-border/60 bg-card/90 backdrop-blur-xl px-4 h-14 lg:hidden">
+        <button
+          class="h-10 w-10 flex items-center justify-center rounded-[20px] hover:bg-muted/60 transition-all duration-200 hover:scale-105 active:scale-95 -ml-1"
+          @click="mobileMenuOpen = true"
+        >
+          <Menu class="h-5 w-5" />
         </button>
-        <div class="flex items-center gap-2 flex-1 min-w-0">
+        <div class="flex items-center gap-2.5 flex-1 min-w-0">
           <div
             v-if="currentPageNav"
-            class="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0"
-            :style="`background: ${currentPageNav.color}18`"
+            class="w-7 h-7 rounded-[14px] flex items-center justify-center flex-shrink-0"
+            :style="`background: ${currentPageNav.color}20`"
           >
-            <component :is="currentPageNav.icon" class="w-3 h-3" :style="`color: ${currentPageNav.color}`" />
+            <component :is="currentPageNav.icon" class="w-4 h-4" :style="`color: ${currentPageNav.color}`" />
           </div>
-          <span class="text-sm font-semibold truncate">{{ currentPageTitle }}</span>
+          <span class="text-sm font-bold truncate">{{ currentPageTitle }}</span>
         </div>
       </header>
 
       <!-- Page Content -->
       <main class="flex-1 p-4 sm:p-6">
         <div v-if="appStore.isLoading" class="flex items-center justify-center py-32">
-          <div class="flex flex-col items-center gap-3">
-            <div class="w-7 h-7 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
-            <p class="text-xs text-muted-foreground">Loading your data...</p>
+          <div class="flex flex-col items-center gap-4">
+            <!-- M3 Expressive elastic progress bar -->
+            <div class="w-48 h-2 rounded-full overflow-hidden relative" style="background: hsl(var(--muted))">
+              <div class="absolute top-0 h-full rounded-full m3-elastic-bar" style="background: linear-gradient(90deg, #6366f1, #8b5cf6)" />
+            </div>
+            <p class="text-xs text-muted-foreground font-medium">Loading your data…</p>
           </div>
         </div>
-        <div v-else>
+        <div v-else class="m3-page-enter">
           <slot />
         </div>
       </main>
@@ -140,7 +143,6 @@ import {
   Globe, Plus, Monitor, Moon, Sun, Download, ChevronRight,
   TicketPlus, UserPlus, Tag, Barcode, Clock, AlertCircle,
 } from 'lucide-vue-next'
-import NotificationsPanel from '~/components/NotificationsPanel.vue'
 import { useScreenLock } from '~/composables/useScreenLock'
 
 const appStore = useAppStore()
@@ -148,7 +150,6 @@ const { tickets, appointments } = storeToRefs(appStore)
 const settings = computed(() => appStore.settings ?? { businessName: '', email: '' })
 const route = useRoute()
 
-// ── Upcoming widget data ──────────────────────────────────────────
 const upcomingItems = computed(() => {
   const now = new Date()
   const todayStr = now.toISOString().split('T')[0]
@@ -242,10 +243,7 @@ const navigation = [
 const currentPageNav = computed(() => navigation.find(item => item.path === route.path))
 const currentPageTitle = computed(() => currentPageNav.value?.name || 'Dashboard')
 
-// Close drawer on route change
-watch(() => route.path, () => {
-  mobileMenuOpen.value = false
-})
+watch(() => route.path, () => { mobileMenuOpen.value = false })
 
 function setDrawer(name: string | null) {
   activeDrawer.value = activeDrawer.value === name ? null : name
@@ -269,7 +267,6 @@ function handleExport() {
   URL.revokeObjectURL(url)
 }
 
-// Keyboard shortcuts
 function onKeydown(e: KeyboardEvent) {
   if (!e.metaKey && !e.ctrlKey) return
   const map: Record<string, string> = {
@@ -283,9 +280,7 @@ function onKeydown(e: KeyboardEvent) {
 onMounted(() => window.addEventListener('keydown', onKeydown))
 onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
-// ──────────────────────────────────────────────────────────────────
-// Rail Component — narrow icon-only strip (Material nav rail style)
-// ──────────────────────────────────────────────────────────────────
+// ── Rail Component ────────────────────────────────────────────────
 const RailContent = defineComponent({
   name: 'RailContent',
   props: {
@@ -301,10 +296,8 @@ const RailContent = defineComponent({
     const NuxtLink = resolveComponent('NuxtLink')
     const upcomingOpen = ref(false)
 
-    const coreNav  = computed(() => props.navigation.filter(n => n.group === 'core'))
-    const toolsNav = computed(() => props.navigation.filter(n => n.group === 'tools'))
+    const coreNav = computed(() => props.navigation.filter(n => n.group === 'core'))
 
-    // Close upcoming popout when clicking outside
     function onClickOutside(e: MouseEvent) {
       if (!(e.target as HTMLElement).closest('[data-upcoming]')) upcomingOpen.value = false
     }
@@ -313,7 +306,6 @@ const RailContent = defineComponent({
 
     function isActive(path: string) { return route.path === path }
 
-    // Rail item: icon pill + label below (Material nav rail pattern)
     function railItem(item: typeof navigation[0]) {
       const active = isActive(item.path)
       return h(NuxtLink, {
@@ -323,29 +315,26 @@ const RailContent = defineComponent({
         style: 'text-decoration: none',
         onClick: () => emit('navigate'),
       }, () => [
-        // Pill highlight
         h('div', {
           class: [
-            'w-14 h-8 rounded-2xl flex items-center justify-center transition-all duration-200 relative',
-            active
-              ? 'shadow-sm'
-              : 'hover:bg-muted/60 group-hover:scale-105'
+            'w-14 h-9 rounded-[18px] flex items-center justify-center transition-all duration-300 relative',
+            active ? 'shadow-md' : 'hover:bg-muted/60',
           ].join(' '),
-          style: active ? `background: ${item.color}22` : '',
+          style: active
+            ? `background: ${item.color}28; transform: scale(1.05)`
+            : '',
         }, [
           h(item.icon, {
-            class: 'w-5 h-5 transition-colors',
+            class: 'w-5 h-5 transition-all duration-200',
             style: active ? `color: ${item.color}` : 'color: hsl(var(--muted-foreground))',
           }),
-          // Badge dot
           item.badge ? h('span', {
-            class: 'absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border-2 border-card',
+            class: 'absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-card',
             style: `background: ${item.badge.color}`,
           }) : null,
         ]),
-        // Label
         h('span', {
-          class: 'text-[10px] font-medium leading-none transition-colors',
+          class: 'text-[10px] font-semibold leading-none transition-all duration-200',
           style: active ? `color: ${item.color}` : 'color: hsl(var(--muted-foreground))',
         }, item.name),
       ])
@@ -353,18 +342,13 @@ const RailContent = defineComponent({
 
     return () => h('div', { class: 'flex flex-col items-center h-full w-full gap-0' }, [
 
-      // ── Logo badge ──
+      // Logo
       h('div', { class: 'flex flex-col items-center pb-3 pt-1 flex-shrink-0' }, [
         h('div', {
-          class: 'w-10 h-10 rounded-2xl flex items-center justify-center shadow-md flex-shrink-0',
+          class: 'w-11 h-11 rounded-[22px] flex items-center justify-center shadow-lg flex-shrink-0',
           style: 'background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
         }, [
-          h('svg', {
-            xmlns: 'http://www.w3.org/2000/svg',
-            viewBox: '0 0 16 16',
-            fill: 'white',
-            style: 'width:20px;height:20px',
-          }, [
+          h('svg', { xmlns: 'http://www.w3.org/2000/svg', viewBox: '0 0 16 16', fill: 'white', style: 'width:22px;height:22px' }, [
             h('path', {
               d: 'M13.5 2.5a.5.5 0 0 0-.707 0L11.5 3.793l-.647-.646a.5.5 0 0 0-.707.707L11 4.707 9.146 6.561A4 4 0 0 0 4 11.5a.5.5 0 0 0 .854.354l1.292-1.293a.5.5 0 0 1 .708 0l.585.585a.5.5 0 0 1 0 .708L6.146 13.146A.5.5 0 0 0 6.5 14a4 4 0 0 0 4.939-4.146L13.5 7.707l.293.293a.5.5 0 0 0 .707-.707l-.646-.647 1.293-1.293a.5.5 0 0 0 0-.707L13.5 2.5Z',
               'fill-rule': 'evenodd', 'clip-rule': 'evenodd',
@@ -373,54 +357,40 @@ const RailContent = defineComponent({
         ]),
       ]),
 
-      // ── Quick Add FAB ──
-      h('div', { class: 'flex flex-col items-center w-full px-1 pb-4 flex-shrink-0' }, [
+      // Quick Add button — vibrant tertiary FAB style
+      h('div', { class: 'flex flex-col items-center w-full px-2 pb-3 flex-shrink-0' }, [
         h('button', {
-          class: [
-            'w-14 h-8 rounded-2xl flex items-center justify-center transition-all duration-200',
-            props.activeDrawer === 'quickadd'
-              ? 'shadow-sm'
-              : 'hover:scale-105',
-          ].join(' '),
+          class: 'w-14 h-9 rounded-[18px] flex items-center justify-center transition-all duration-300 active:scale-[0.92]',
           style: props.activeDrawer === 'quickadd'
-            ? 'background: #6366f122'
-            : 'background: hsl(var(--muted)/0.5)',
+            ? 'background: #a855f728; transform: scale(1.06)'
+            : 'background: linear-gradient(135deg, #a855f7, #7c3aed); box-shadow: 0 4px 12px #a855f740',
           title: 'Quick Add',
           onClick: () => emit('set-drawer', 'quickadd'),
         }, [
           h(Plus, {
-            class: 'w-5 h-5 transition-all duration-300',
-            style: props.activeDrawer === 'quickadd'
-              ? 'color: #6366f1; transform: rotate(45deg)'
-              : 'color: hsl(var(--muted-foreground))',
-          })
+            class: 'w-5 h-5 text-white transition-transform duration-300',
+            style: props.activeDrawer === 'quickadd' ? 'transform: rotate(45deg)' : '',
+          }),
         ]),
         h('span', {
-          class: 'text-[10px] font-medium leading-none mt-1',
-          style: props.activeDrawer === 'quickadd' ? 'color: #6366f1' : 'color: hsl(var(--muted-foreground))',
+          class: 'text-[10px] font-semibold leading-none mt-1',
+          style: props.activeDrawer === 'quickadd' ? 'color: #a855f7' : 'color: hsl(var(--muted-foreground))',
         }, 'Add'),
       ]),
 
-      // ── Core nav ──
-      h('nav', { class: 'flex-1 flex flex-col items-center w-full gap-1 overflow-y-auto overflow-x-hidden py-1' }, [
+      // Core nav
+      h('nav', { class: 'flex-1 flex flex-col items-center w-full gap-0.5 overflow-y-auto overflow-x-hidden py-1' }, [
         ...coreNav.value.map(item => railItem(item)),
-
-        // Divider
-        h('div', { class: 'w-8 h-px bg-border/60 my-2 flex-shrink-0' }),
-
-        // Tools drawer toggle
+        h('div', { class: 'w-8 h-px my-2 flex-shrink-0', style: 'background: hsl(var(--border)/0.6)' }),
         h('button', {
-          class: [
-            'flex flex-col items-center gap-1 w-full px-1 group',
-          ].join(' '),
+          class: 'flex flex-col items-center gap-1 w-full px-1 group',
           onClick: () => emit('set-drawer', 'tools'),
         }, [
           h('div', {
-            class: [
-              'w-14 h-8 rounded-2xl flex items-center justify-center transition-all duration-200',
-              props.activeDrawer === 'tools' ? 'shadow-sm' : 'hover:bg-muted/60 group-hover:scale-105',
-            ].join(' '),
-            style: props.activeDrawer === 'tools' ? 'background: #64748b22' : '',
+            class: 'w-14 h-9 rounded-[18px] flex items-center justify-center transition-all duration-300',
+            style: props.activeDrawer === 'tools'
+              ? 'background: #64748b28; transform: scale(1.05)'
+              : '',
           }, [
             h(ChevronRight, {
               class: 'w-4 h-4 transition-all duration-300',
@@ -431,116 +401,85 @@ const RailContent = defineComponent({
             }),
           ]),
           h('span', {
-            class: 'text-[10px] font-medium leading-none',
+            class: 'text-[10px] font-semibold leading-none',
             style: props.activeDrawer === 'tools' ? 'color: #64748b' : 'color: hsl(var(--muted-foreground))',
           }, 'Tools'),
         ]),
       ]),
 
-      // ── Bottom utilities ──
-      h('div', { class: 'flex flex-col items-center gap-1 pt-2 border-t border-border w-full flex-shrink-0 pb-1' }, [
+      // Bottom utilities
+      h('div', { class: 'flex flex-col items-center gap-0.5 pt-2 border-t border-border/60 w-full flex-shrink-0 pb-1' }, [
 
-        // Upcoming widget
-        h('div', {
-          class: 'flex flex-col items-center gap-1 w-full px-1 relative',
-          'data-upcoming': '',
-        }, [
+        // Upcoming
+        h('div', { class: 'flex flex-col items-center gap-1 w-full px-1 relative', 'data-upcoming': '' }, [
           h('button', {
-            class: [
-              'w-14 h-8 rounded-2xl flex items-center justify-center transition-all duration-200 relative group',
-              upcomingOpen.value ? 'shadow-sm' : 'hover:bg-muted/60 group-hover:scale-105',
-            ].join(' '),
-            style: upcomingOpen.value ? 'background: #06b6d422' : '',
-            title: 'Upcoming',
+            class: 'w-14 h-9 rounded-[18px] flex items-center justify-center transition-all duration-300 relative',
+            style: upcomingOpen.value ? 'background: #06b6d428; transform: scale(1.05)' : '',
             onClick: () => { upcomingOpen.value = !upcomingOpen.value },
           }, [
-            h(CalendarDays, {
-              class: 'w-4 h-4 transition-colors',
-              style: upcomingOpen.value ? 'color: #06b6d4' : 'color: hsl(var(--muted-foreground))',
-            }),
-            // Badge showing count if any
+            h(CalendarDays, { class: 'w-4 h-4 transition-colors', style: upcomingOpen.value ? 'color: #06b6d4' : 'color: hsl(var(--muted-foreground))' }),
             props.upcomingItems.length > 0
               ? h('span', {
-                  class: 'absolute -top-0.5 -right-1 min-w-[14px] h-[14px] rounded-full bg-cyan-500 text-white text-[9px] font-bold flex items-center justify-center px-0.5 border-2 border-card',
+                  class: 'absolute -top-0.5 -right-1 min-w-[15px] h-[15px] rounded-full text-white text-[9px] font-bold flex items-center justify-center px-0.5 border-2 border-card',
+                  style: 'background: #06b6d4',
                 }, String(props.upcomingItems.length))
               : null,
           ]),
-          h('span', {
-            class: 'text-[10px] font-medium leading-none',
-            style: upcomingOpen.value ? 'color: #06b6d4' : 'color: hsl(var(--muted-foreground))',
-          }, 'Upcoming'),
+          h('span', { class: 'text-[10px] font-semibold leading-none', style: upcomingOpen.value ? 'color: #06b6d4' : 'color: hsl(var(--muted-foreground))' }, 'Soon'),
 
-          // ── Popout panel ──
-          upcomingOpen.value
-            ? h('div', {
-                class: 'absolute bottom-0 left-[calc(100%+8px)] w-64 bg-popover border border-border rounded-2xl shadow-2xl overflow-hidden z-50',
-                style: 'animation: popIn 0.18s cubic-bezier(0.34,1.56,0.64,1)',
-              }, [
-                // Header
-                h('div', { class: 'flex items-center justify-between px-3.5 py-3 border-b border-border' }, [
-                  h('div', { class: 'flex items-center gap-2' }, [
-                    h('div', { class: 'w-6 h-6 rounded-lg flex items-center justify-center', style: 'background: #06b6d418' }, [
-                      h(CalendarDays, { class: 'w-3.5 h-3.5', style: 'color: #06b6d4' }),
-                    ]),
-                    h('span', { class: 'text-sm font-semibold' }, 'Upcoming'),
-                  ]),
-                  h('button', {
-                    class: 'w-6 h-6 rounded-lg flex items-center justify-center hover:bg-muted/60 text-muted-foreground transition-colors',
-                    onClick: () => { upcomingOpen.value = false },
-                  }, [h(X, { class: 'w-3.5 h-3.5' })]),
+          upcomingOpen.value ? h('div', {
+            class: 'absolute bottom-0 left-[calc(100%+8px)] w-68 bg-popover border border-border/60 rounded-3xl shadow-2xl overflow-hidden z-50',
+            style: 'animation: m3BounceIn 0.35s cubic-bezier(0.34,1.56,0.64,1); width: 272px',
+          }, [
+            h('div', { class: 'flex items-center justify-between px-4 py-3.5 border-b border-border/60' }, [
+              h('div', { class: 'flex items-center gap-2.5' }, [
+                h('div', { class: 'w-7 h-7 rounded-2xl flex items-center justify-center', style: 'background: #06b6d420' }, [
+                  h(CalendarDays, { class: 'w-3.5 h-3.5', style: 'color: #06b6d4' }),
                 ]),
-                // Items
-                props.upcomingItems.length === 0
-                  ? h('div', { class: 'px-4 py-8 text-center' }, [
-                      h('p', { class: 'text-xs text-muted-foreground' }, 'Nothing coming up'),
+                h('span', { class: 'text-sm font-bold' }, 'Upcoming'),
+              ]),
+              h('button', {
+                class: 'w-7 h-7 rounded-xl flex items-center justify-center hover:bg-muted/60 text-muted-foreground transition-all hover:scale-110 active:scale-90',
+                onClick: () => { upcomingOpen.value = false },
+              }, [h(X, { class: 'w-3.5 h-3.5' })]),
+            ]),
+            props.upcomingItems.length === 0
+              ? h('div', { class: 'px-4 py-8 text-center' }, [h('p', { class: 'text-xs text-muted-foreground' }, 'Nothing coming up')])
+              : h('div', { class: 'py-2 max-h-72 overflow-y-auto' },
+                  props.upcomingItems.map(item =>
+                    h('div', { key: item.id, class: 'flex items-center gap-3 px-4 py-2.5 hover:bg-muted/40 transition-colors' }, [
+                      h('div', { class: 'w-8 h-8 rounded-2xl flex items-center justify-center flex-shrink-0', style: `background: ${item.color}18` }, [
+                        h(item.icon, { class: 'w-4 h-4', style: `color: ${item.color}` }),
+                      ]),
+                      h('div', { class: 'flex-1 min-w-0' }, [
+                        h('p', { class: 'text-xs font-semibold text-foreground truncate' }, item.label),
+                        h('p', { class: 'text-[10px] text-muted-foreground truncate' }, item.sub),
+                      ]),
                     ])
-                  : h('div', { class: 'py-1.5 max-h-72 overflow-y-auto' },
-                      props.upcomingItems.map(item =>
-                        h('div', {
-                          key: item.id,
-                          class: 'flex items-center gap-3 px-3.5 py-2 hover:bg-muted/40 transition-colors',
-                        }, [
-                          h('div', {
-                            class: 'w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0',
-                            style: `background: ${item.color}18`,
-                          }, [
-                            h(item.icon, { class: 'w-3.5 h-3.5', style: `color: ${item.color}` }),
-                          ]),
-                          h('div', { class: 'flex-1 min-w-0' }, [
-                            h('p', { class: 'text-xs font-medium text-foreground truncate' }, item.label),
-                            h('p', { class: 'text-[10px] text-muted-foreground truncate' }, item.sub),
-                          ]),
-                        ])
-                      )
-                    ),
-                // Footer link
-                h('div', { class: 'border-t border-border' }, [
-                  h('button', {
-                    class: 'w-full text-xs text-cyan-500 font-medium py-2.5 hover:bg-muted/40 transition-colors text-center',
-                    onClick: () => { navigateTo('/calendar'); upcomingOpen.value = false },
-                  }, 'Open Calendar →'),
-                ]),
-              ])
-            : null,
+                  )
+                ),
+            h('div', { class: 'border-t border-border/60' }, [
+              h('button', {
+                class: 'w-full text-xs font-semibold py-3 hover:bg-muted/40 transition-colors text-center',
+                style: 'color: #06b6d4',
+                onClick: () => { navigateTo('/calendar'); upcomingOpen.value = false },
+              }, 'Open Calendar →'),
+            ]),
+          ]) : null,
         ]),
 
-        // Theme
+        // Theme toggle
         h('button', {
           class: 'flex flex-col items-center gap-1 w-full px-1 group',
           onClick: () => {
             const next = props.currentTheme === 'system' ? 'dark' : props.currentTheme === 'dark' ? 'light' : 'system'
             emit('set-theme', next)
           },
-          title: 'Toggle theme',
         }, [
-          h('div', {
-            class: 'w-14 h-8 rounded-2xl flex items-center justify-center hover:bg-muted/60 transition-colors group-hover:scale-105',
-          }, [
-            h(props.currentTheme === 'dark' ? Moon : props.currentTheme === 'light' ? Sun : Monitor, {
-              class: 'w-4 h-4 text-muted-foreground',
-            }),
+          h('div', { class: 'w-14 h-9 rounded-[18px] flex items-center justify-center hover:bg-muted/60 transition-all duration-200 hover:scale-105 active:scale-90' }, [
+            h(props.currentTheme === 'dark' ? Moon : props.currentTheme === 'light' ? Sun : Monitor, { class: 'w-4 h-4 text-muted-foreground' }),
           ]),
-          h('span', { class: 'text-[10px] text-muted-foreground font-medium leading-none' },
+          h('span', { class: 'text-[10px] text-muted-foreground font-semibold leading-none' },
             props.currentTheme === 'dark' ? 'Dark' : props.currentTheme === 'light' ? 'Light' : 'Auto'),
         ]),
 
@@ -551,7 +490,8 @@ const RailContent = defineComponent({
           title: 'Account & Settings',
         }, [
           h('div', {
-            class: 'w-8 h-8 rounded-full bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center text-white shadow-sm shadow-primary/20 group-hover:scale-110 transition-transform',
+            class: 'w-9 h-9 rounded-full flex items-center justify-center text-white shadow-md transition-all duration-300 group-hover:scale-110 group-active:scale-90',
+            style: 'background: linear-gradient(135deg, #6366f1, #8b5cf6)',
           }, [
             h('span', { class: 'text-xs font-bold' }, props.userInitials),
           ]),
@@ -561,9 +501,7 @@ const RailContent = defineComponent({
   },
 })
 
-// ──────────────────────────────────────────────────────────────────
-// Drawer Component — slides in from rail, shows contextual content
-// ──────────────────────────────────────────────────────────────────
+// ── Drawer Component ──────────────────────────────────────────────
 const DrawerContent = defineComponent({
   name: 'DrawerContent',
   props: {
@@ -579,69 +517,76 @@ const DrawerContent = defineComponent({
 
     const toolsNav = computed(() => props.navigation.filter(n => n.group === 'tools'))
 
-    const navLinkClass = 'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-    const activeClass  = '!bg-primary/8 !text-primary'
+    const navLinkClass = 'flex items-center gap-3 rounded-[20px] px-3 py-2.5 text-sm font-semibold transition-all duration-200 text-muted-foreground hover:bg-muted/60 hover:text-foreground hover:scale-[1.01] active:scale-[0.98]'
+    const activeClass  = '!bg-primary/10 !text-primary'
 
     const quickItems = [
-      { type: 'ticket',    label: 'New Ticket',     icon: TicketPlus,  color: '#f59e0b', path: '/tickets',   kbd: '⌘T' },
-      { type: 'housecall', label: 'House Call',      icon: MapPin,      color: '#10b981', path: '/housecalls',kbd: '⌘H' },
-      { type: 'customer',  label: 'New Customer',    icon: UserPlus,    color: '#3b82f6', path: '/customers', kbd: '⌘U' },
-      { type: 'register',  label: 'Open Register',   icon: ShoppingCart,color: '#ec4899', path: '/pos',       kbd: '⌘R' },
-      { type: 'invoice',   label: 'New Invoice',     icon: Tag,         color: '#10b981', path: '/forms',     kbd: '⌘I' },
-      { type: 'scan',      label: 'Scan Barcode',    icon: Barcode,     color: '#06b6d4', path: '/barcodes',  kbd: '⌘B' },
+      { type: 'ticket',    label: 'New Ticket',     icon: TicketPlus,   color: '#f59e0b', path: '/tickets',   kbd: '⌘T' },
+      { type: 'housecall', label: 'House Call',      icon: MapPin,       color: '#10b981', path: '/housecalls',kbd: '⌘H' },
+      { type: 'customer',  label: 'New Customer',    icon: UserPlus,     color: '#3b82f6', path: '/customers', kbd: '⌘U' },
+      { type: 'register',  label: 'Open Register',   icon: ShoppingCart, color: '#ec4899', path: '/pos',       kbd: '⌘R' },
+      { type: 'invoice',   label: 'New Invoice',     icon: Tag,          color: '#10b981', path: '/forms',     kbd: '⌘I' },
+      { type: 'scan',      label: 'Scan Barcode',    icon: Barcode,      color: '#06b6d4', path: '/barcodes',  kbd: '⌘B' },
     ]
 
     return () => {
 
-      // ── Quick Add drawer ──
       if (props.drawer === 'quickadd') {
         return h('div', { class: 'flex flex-col h-full' }, [
-          // Header
-          h('div', { class: 'flex items-center justify-between px-4 py-4 border-b border-border flex-shrink-0' }, [
-            h('h2', { class: 'text-sm font-semibold text-foreground' }, 'Quick Add'),
+          h('div', { class: 'flex items-center justify-between px-4 py-4 border-b border-border/60 flex-shrink-0' }, [
+            h('div', { class: 'flex items-center gap-2.5' }, [
+              h('div', { class: 'w-8 h-8 rounded-[18px] flex items-center justify-center', style: 'background: linear-gradient(135deg, #a855f7, #7c3aed)' }, [
+                h(Plus, { class: 'w-4 h-4 text-white' }),
+              ]),
+              h('h2', { class: 'text-sm font-bold' }, 'Quick Add'),
+            ]),
             h('button', {
-              class: 'w-7 h-7 rounded-lg flex items-center justify-center hover:bg-muted/60 transition-colors text-muted-foreground',
+              class: 'w-8 h-8 rounded-[16px] flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90 text-muted-foreground',
               onClick: () => emit('close'),
             }, [h(X, { class: 'w-4 h-4' })]),
           ]),
-          // Items
-          h('div', { class: 'flex-1 p-3 space-y-1 overflow-y-auto' }, [
-            ...quickItems.map(item =>
+          h('div', { class: 'flex-1 p-3 space-y-1 overflow-y-auto' },
+            quickItems.map(item =>
               h('button', {
                 key: item.type,
-                class: 'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/60 transition-all text-left group',
+                class: 'w-full flex items-center gap-3 px-3 py-3 rounded-[20px] hover:bg-muted/60 transition-all text-left group hover:scale-[1.01] active:scale-[0.97]',
                 onClick: () => { navigateTo(item.path); emit('navigate') },
               }, [
                 h('div', {
-                  class: 'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110',
-                  style: `background: ${item.color}18`,
+                  class: 'w-10 h-10 rounded-[20px] flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 group-active:scale-90',
+                  style: `background: ${item.color}22`,
                 }, [
-                  h(item.icon, { class: 'w-4 h-4', style: `color: ${item.color}` }),
+                  h(item.icon, { class: 'w-5 h-5', style: `color: ${item.color}` }),
                 ]),
                 h('div', { class: 'flex-1 min-w-0' }, [
-                  h('p', { class: 'text-sm font-medium text-foreground' }, item.label),
+                  h('p', { class: 'text-sm font-semibold text-foreground' }, item.label),
                 ]),
                 h('kbd', {
-                  class: 'text-[10px] text-muted-foreground/50 font-mono bg-muted/60 px-1.5 py-0.5 rounded flex-shrink-0',
+                  class: 'text-[10px] text-muted-foreground/60 font-mono rounded-lg flex-shrink-0 px-2 py-1',
+                  style: 'background: hsl(var(--muted)/0.6)',
                 }, item.kbd),
               ])
-            ),
-          ]),
+            )
+          ),
         ])
       }
 
-      // ── Tools drawer ──
       if (props.drawer === 'tools') {
         return h('div', { class: 'flex flex-col h-full' }, [
-          h('div', { class: 'flex items-center justify-between px-4 py-4 border-b border-border flex-shrink-0' }, [
-            h('h2', { class: 'text-sm font-semibold text-foreground' }, 'Tools'),
+          h('div', { class: 'flex items-center justify-between px-4 py-4 border-b border-border/60 flex-shrink-0' }, [
+            h('div', { class: 'flex items-center gap-2.5' }, [
+              h('div', { class: 'w-8 h-8 rounded-[18px] flex items-center justify-center', style: 'background: #64748b22' }, [
+                h(ChevronRight, { class: 'w-4 h-4', style: 'color: #64748b' }),
+              ]),
+              h('h2', { class: 'text-sm font-bold' }, 'Tools'),
+            ]),
             h('button', {
-              class: 'w-7 h-7 rounded-lg flex items-center justify-center hover:bg-muted/60 transition-colors text-muted-foreground',
+              class: 'w-8 h-8 rounded-[16px] flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90 text-muted-foreground',
               onClick: () => emit('close'),
             }, [h(X, { class: 'w-4 h-4' })]),
           ]),
-          h('nav', { class: 'flex-1 p-3 space-y-0.5 overflow-y-auto' }, [
-            ...toolsNav.value.map(item =>
+          h('nav', { class: 'flex-1 p-3 space-y-0.5 overflow-y-auto' },
+            toolsNav.value.map(item =>
               h(NuxtLink, {
                 key: item.path,
                 to: item.path,
@@ -650,39 +595,42 @@ const DrawerContent = defineComponent({
                 onClick: () => emit('navigate'),
               }, () => [
                 h('div', {
-                  class: 'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0',
-                  style: `background: ${item.color}18`,
+                  class: 'w-9 h-9 rounded-[18px] flex items-center justify-center flex-shrink-0',
+                  style: `background: ${item.color}20`,
                 }, [
                   h(item.icon, { class: 'w-4 h-4', style: `color: ${item.color}` }),
                 ]),
                 h('span', { class: 'flex-1 truncate' }, item.name),
                 item.badge ? h('span', {
-                  class: 'text-[9px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 border',
-                  style: `background: ${item.badge.color}15; color: ${item.badge.color}; border-color: ${item.badge.color}30`,
+                  class: 'text-[9px] font-bold px-2 py-1 rounded-full flex-shrink-0 border',
+                  style: `background: ${item.badge.color}18; color: ${item.badge.color}; border-color: ${item.badge.color}35`,
                 }, item.badge.label) : null,
               ])
-            ),
-          ]),
-          // Settings link at bottom of tools
-          h('div', { class: 'p-3 border-t border-border flex-shrink-0' }, [
+            )
+          ),
+          h('div', { class: 'p-3 border-t border-border/60 flex-shrink-0 space-y-1' }, [
             h(NuxtLink, {
               to: '/settings',
               class: navLinkClass,
               activeClass,
               onClick: () => emit('navigate'),
             }, () => [
-              h('div', {
-                class: 'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0',
-                style: 'background: #64748b18',
-              }, [h(SettingsIcon, { class: 'w-4 h-4', style: 'color: #64748b' })]),
+              h('div', { class: 'w-9 h-9 rounded-[18px] flex items-center justify-center flex-shrink-0', style: 'background: #64748b18' }, [
+                h(SettingsIcon, { class: 'w-4 h-4', style: 'color: #64748b' }),
+              ]),
               h('span', { class: 'flex-1 truncate' }, 'Settings'),
             ]),
-            h('div', { class: 'mt-2 px-3 py-2 rounded-xl bg-muted/30 flex items-center gap-2.5 cursor-pointer hover:bg-muted/50 transition-colors', onClick: () => navigateTo('/settings') }, [
+            h('div', {
+              class: 'mt-1 px-3 py-2.5 rounded-[20px] flex items-center gap-3 cursor-pointer hover:bg-muted/50 transition-all hover:scale-[1.01] active:scale-[0.97]',
+              style: 'background: hsl(var(--muted)/0.3)',
+              onClick: () => navigateTo('/settings'),
+            }, [
               h('div', {
-                class: 'w-7 h-7 rounded-full bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center text-white shadow-sm flex-shrink-0',
-              }, [h('span', { class: 'text-[11px] font-bold' }, props.userEmail.substring(0,2).toUpperCase())]),
+                class: 'w-8 h-8 rounded-full flex items-center justify-center text-white shadow-md flex-shrink-0',
+                style: 'background: linear-gradient(135deg, #6366f1, #8b5cf6)',
+              }, [h('span', { class: 'text-xs font-bold' }, props.userEmail.substring(0,2).toUpperCase())]),
               h('div', { class: 'flex-1 min-w-0' }, [
-                h('p', { class: 'text-xs font-semibold truncate' }, props.userEmail),
+                h('p', { class: 'text-xs font-bold truncate' }, props.userEmail),
                 h('p', { class: 'text-[10px] text-muted-foreground truncate' }, props.settings.businessName || 'NovaOps'),
               ]),
             ]),
@@ -697,47 +645,42 @@ const DrawerContent = defineComponent({
 </script>
 
 <style scoped>
-/* ── Mobile sidebar — slides in from left ─────────────────────── */
-.sidebar-enter-active,
-.sidebar-leave-active {
-  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.sidebar-enter-from,
-.sidebar-leave-to {
-  transform: translateX(-100%);
-}
+/* ── Spring sidebar ───────────────────────────────────────────── */
+.sidebar-enter-active { transition: transform 0.35s cubic-bezier(0.34,1.3,0.64,1); }
+.sidebar-leave-active { transition: transform 0.18s ease-in; }
+.sidebar-enter-from, .sidebar-leave-to { transform: translateX(-100%); }
 
-/* ── Desktop drawer — slides in from behind the rail ─────────── */
-.drawer-enter-active {
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
-}
-.drawer-leave-active {
-  transition: transform 0.2s cubic-bezier(0.4, 0, 1, 1), opacity 0.18s ease;
-}
-.drawer-enter-from {
-  transform: translateX(-100%);
-  opacity: 0;
-}
-.drawer-leave-to {
-  transform: translateX(-100%);
-  opacity: 0;
-}
+/* ── Drawer spring ────────────────────────────────────────────── */
+.drawer-enter-active { transition: transform 0.3s cubic-bezier(0.34,1.3,0.64,1), opacity 0.2s ease; }
+.drawer-leave-active { transition: transform 0.15s ease-in, opacity 0.15s ease; }
+.drawer-enter-from   { transform: translateX(-100%); opacity: 0; }
+.drawer-leave-to     { transform: translateX(-100%); opacity: 0; }
 
-/* ── Overlay fade ─────────────────────────────────────────────── */
-.overlay-enter-active,
-.overlay-leave-active {
-  transition: opacity 0.22s ease;
-}
-.overlay-enter-from,
-.overlay-leave-to {
-  opacity: 0;
-}
+/* ── Overlay ──────────────────────────────────────────────────── */
+.overlay-enter-active, .overlay-leave-active { transition: opacity 0.2s ease; }
+.overlay-enter-from, .overlay-leave-to       { opacity: 0; }
 
+/* ── Elastic progress bar ─────────────────────────────────────── */
+@keyframes elasticBar {
+  0%   { left: -35%; width: 35%; }
+  40%  { left: 15%; width: 70%; }
+  70%  { left: 65%; width: 40%; }
+  100% { left: 110%; width: 35%; }
+}
+.m3-elastic-bar { animation: elasticBar 1.8s cubic-bezier(0.4,0,0.2,1) infinite; }
 
-/* ── Upcoming popout spring animation ─────────────────────────── */
-@keyframes popIn {
-  from { opacity: 0; transform: scale(0.92) translateY(6px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
+/* ── Page enter spring ────────────────────────────────────────── */
+@keyframes pageEnter {
+  0%  { transform: translateY(16px); opacity: 0; }
+  65% { transform: translateY(-3px); opacity: 1; }
+  100%{ transform: translateY(0); }
+}
+.m3-page-enter { animation: pageEnter 0.42s cubic-bezier(0.34,1.3,0.64,1) both; }
+
+/* ── Popout spring ────────────────────────────────────────────── */
+@keyframes m3BounceIn {
+  0%   { transform: scale(0.88) translateY(6px); opacity: 0; }
+  65%  { transform: scale(1.04) translateY(-1px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); }
 }
 </style>
-
