@@ -471,9 +471,13 @@ const props = defineProps<{
 const emit = defineEmits(['update:modelValue', 'save', 'delete'])
 
 const appStore = useAppStore()
-const { customers, inventory, settings } = appStore
 const { from } = useSupabase()
 const { addNotification } = useNotifications()
+
+// Use computed with fallback so we never get undefined arrays
+const customers = computed(() => appStore.customers ?? [])
+const inventory = computed(() => appStore.inventory ?? [])
+const settings  = computed(() => appStore.settings)
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -565,7 +569,7 @@ const timeRate = (minutes: number, hourly = HOURLY_RATE.value) =>
   Math.round(((minutes || 0) / 60) * hourly * 100) / 100
 
 const getCustomerName = (id: number) =>
-  customers.value?.find((c: any) => c.id === id)?.name || 'Unknown'
+  customers.value.find((c: any) => c.id === id)?.name || 'Unknown'
 
 const priorityClass = (p?: string) => {
   const map: Record<string, string> = {
@@ -586,7 +590,7 @@ const filteredCatalog = computed(() => {
 
 const filteredInventory = computed(() => {
   const q = partSearch.value.toLowerCase()
-  return (inventory.value || []).filter((i: any) =>
+  return inventory.value.filter((i: any) =>
     i.name.toLowerCase().includes(q) || (i.sku || '').toLowerCase().includes(q)
   )
 })
@@ -729,3 +733,4 @@ const saveAll = async () => {
   }
 }
 </script>
+
