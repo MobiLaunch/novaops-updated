@@ -193,7 +193,10 @@ definePageMeta({
 })
 
 const appStore = useAppStore()
-const { tickets, customers, settings, trackDevice } = appStore
+const { trackDevice } = appStore
+const tickets  = computed(() => appStore.tickets ?? [])
+const customers = computed(() => appStore.customers ?? [])
+const settings  = computed(() => appStore.settings ?? { currency: '$', statuses: 'Open,In Progress,Completed' })
 const { addNotification } = useNotifications()
 
 const searchQuery = ref('')
@@ -202,7 +205,7 @@ const newTicketOpen = ref(false)
 const selectedTicket = ref<Ticket | null>(null)
 
 const statusList = computed(() => {
-  return settings.value.statuses.split(',').map(s => s.trim())
+  return (settings.value?.statuses || 'Open,In Progress,Completed').split(',').map((s: string) => s.trim())
 })
 
 const filteredTickets = computed(() => {
@@ -225,7 +228,7 @@ const getStatusCount = (status: string) => {
 }
 
 const formatCurrency = (amount: number) => {
-  return `${settings.value.currency}${amount.toFixed(2)}`
+  return `${settings.value?.currency || '$'}${amount.toFixed(2)}`
 }
 
 const formatDate = (date?: string) => {
@@ -302,3 +305,4 @@ const handleCreateTicket = async (ticketData: any) => {
 }
 
 </script>
+
