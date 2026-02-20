@@ -17,6 +17,14 @@ export default defineNuxtPlugin(() => {
     return { provide: { supabase: null } }
   }
 
+  // Clear any stale sessions stored under the old default Supabase key.
+  // This prevents leftover example/demo accounts from being auto-restored.
+  if (typeof window !== 'undefined') {
+    Object.keys(localStorage)
+      .filter(k => k.startsWith('sb-') && k.endsWith('-auth-token'))
+      .forEach(k => localStorage.removeItem(k))
+  }
+
   if (!_supabase) {
     _supabase = createClient(url, key, {
       auth: {
@@ -34,3 +42,4 @@ export default defineNuxtPlugin(() => {
     }
   }
 })
+
