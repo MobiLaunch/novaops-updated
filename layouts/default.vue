@@ -136,7 +136,7 @@ import { storeToRefs } from 'pinia'
 import { useAppStore } from '~/stores/app'
 import {
   LayoutDashboard, TicketCheck, Users, Package, CalendarDays, ShoppingCart,
-  FileText, Settings as SettingsIcon, Menu, X, MapPin, ScanLine, Upload,
+  FileText, Settings as SettingsIcon, Menu, X, MapPin, Wrench, ScanLine, Upload,
   Globe, Plus, Monitor, Moon, Sun, Download, ChevronRight,
   TicketPlus, UserPlus, Tag, Barcode, Clock, AlertCircle,
 } from 'lucide-vue-next'
@@ -228,6 +228,7 @@ const navigation = [
   { name: 'House Calls', path: '/housecalls',        icon: MapPin,          color: '#10b981', badge: null,                         group: 'core' },
   { name: 'Customers',   path: '/customers',         icon: Users,           color: '#3b82f6', badge: null,                         group: 'core' },
   { name: 'Inventory',   path: '/inventory',         icon: Package,         color: '#8b5cf6', badge: null,                         group: 'core' },
+  { name: 'Services',    path: '/services',          icon: Wrench,          color: '#10b981', badge: null,
   { name: 'Calendar',    path: '/calendar',          icon: CalendarDays,    color: '#06b6d4', badge: null,                         group: 'core' },
   { name: 'POS',         path: '/pos',               icon: ShoppingCart,    color: '#ec4899', badge: { label: 'Live',   color: '#10b981' }, group: 'core' },
   { name: 'Reports',     path: '/reports',           icon: FileText,        color: '#f97316', badge: null,                         group: 'tools' },
