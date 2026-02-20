@@ -117,24 +117,25 @@ export const useAppStore = defineStore('app', () => {
       return
     }
 
-    // If called directly (e.g. from onMounted), make sure we have a user
+    // Ensure we have a user — either set by setupAuthListener or fetch it now
     if (!user.value) {
       const authUser = await checkAuth()
       if (!authUser) return
     }
 
+    const uid = user.value!.id
     if (isLoaded.value) return
 
     isLoading.value = true
 
     try {
       const [t, c, i, h, a, p] = await Promise.all([
-        ($supabase as any).from('tickets').select('*').eq('profile_id', authUser.id).order('created_at', { ascending: false }),
-        ($supabase as any).from('customers').select('*').eq('profile_id', authUser.id).order('created_at', { ascending: false }),
-        ($supabase as any).from('inventory').select('*').eq('profile_id', authUser.id).order('name', { ascending: true }),
-        ($supabase as any).from('house_calls').select('*').eq('profile_id', authUser.id).order('date', { ascending: true }),
-        ($supabase as any).from('appointments').select('*').eq('profile_id', authUser.id).order('date', { ascending: true }),
-        ($supabase as any).from('profiles').select('*').eq('id', authUser.id).single()
+        ($supabase as any).from('tickets').select('*').eq('profile_id', uid).order('created_at', { ascending: false }),
+        ($supabase as any).from('customers').select('*').eq('profile_id', uid).order('created_at', { ascending: false }),
+        ($supabase as any).from('inventory').select('*').eq('profile_id', uid).order('name', { ascending: true }),
+        ($supabase as any).from('house_calls').select('*').eq('profile_id', uid).order('date', { ascending: true }),
+        ($supabase as any).from('appointments').select('*').eq('profile_id', uid).order('date', { ascending: true }),
+        ($supabase as any).from('profiles').select('*').eq('id', uid).single()
       ])
 
       tickets.value = (t.data || []).map(normalizeTicket)
@@ -475,4 +476,5 @@ export const useAppStore = defineStore('app', () => {
     logout
   }
 })
+
 
