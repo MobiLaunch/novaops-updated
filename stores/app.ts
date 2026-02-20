@@ -32,6 +32,9 @@ export const useAppStore = defineStore('app', () => {
   // --- Auth ---
   const checkAuth = async () => {
     if (!$supabase) return null
+    // getSession() restores from localStorage first, getUser() then validates with server
+    const { data: { session } } = await ($supabase as any).auth.getSession()
+    if (!session) return null
     const { data: { user: authUser } } = await ($supabase as any).auth.getUser()
     user.value = authUser
     return authUser
@@ -449,4 +452,5 @@ export const useAppStore = defineStore('app', () => {
     logout
   }
 })
+
 
