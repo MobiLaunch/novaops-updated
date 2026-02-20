@@ -1,219 +1,220 @@
 <template>
-  <div class="space-y-4">
+  <div class="space-y-5">
 
-    <!-- Page Header -->
+    <!-- ── Page Header ── -->
     <div class="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
-      <div class="flex items-center gap-2">
-        <Button variant="outline" size="icon" @click="previousMonth">
-          <ChevronLeft class="w-4 h-4" />
-        </Button>
-        <h2 class="text-xl font-bold min-w-[200px] text-center">
-          {{ currentMonthYear }}
-        </h2>
-        <Button variant="outline" size="icon" @click="nextMonth">
-          <ChevronRight class="w-4 h-4" />
-        </Button>
-        <Button variant="outline" size="sm" @click="goToToday">Today</Button>
+      <div class="flex items-center gap-3">
+        <!-- Month nav -->
+        <div class="flex items-center gap-1 rounded-2xl border border-border bg-card p-1">
+          <button @click="previousMonth" class="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground">
+            <ChevronLeft class="w-4 h-4" />
+          </button>
+          <h2 class="text-sm font-bold min-w-[148px] text-center px-1">{{ currentMonthYear }}</h2>
+          <button @click="nextMonth" class="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground">
+            <ChevronRight class="w-4 h-4" />
+          </button>
+        </div>
+        <button @click="goToToday" class="h-8 px-3 rounded-2xl text-xs font-semibold border border-border bg-card hover:bg-muted transition-colors">
+          Today
+        </button>
       </div>
 
       <div class="flex items-center gap-2">
         <!-- Legend -->
-        <div class="hidden sm:flex items-center gap-3 mr-2 text-xs text-muted-foreground">
-          <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-indigo-500 inline-block" /> Appointment</span>
-          <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> House Call</span>
+        <div class="hidden sm:flex items-center gap-3 mr-1 text-xs text-muted-foreground">
+          <span class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full inline-block" style="background:#6366f1" />
+            Appointment
+          </span>
+          <span class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full inline-block" style="background:#10b981" />
+            House Call
+          </span>
         </div>
-        <Button size="sm" @click="openNewAppointment">
-          <Plus class="w-4 h-4 mr-1.5" /> Appointment
-        </Button>
-        <Button size="sm" variant="outline" @click="openNewHouseCall">
-          <MapPin class="w-4 h-4 mr-1.5" /> House Call
-        </Button>
+        <!-- New Appointment button -->
+        <button @click="openNewAppointment" class="flex items-center gap-1.5 h-9 px-4 rounded-2xl text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-95" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
+          <Plus class="w-4 h-4" />
+          Appointment
+        </button>
+        <!-- New House Call button -->
+        <button @click="openNewHouseCall" class="flex items-center gap-1.5 h-9 px-4 rounded-2xl text-sm font-semibold border border-border bg-card hover:bg-muted transition-colors" style="outline:1px solid #10b98130; color:#10b981">
+          <MapPin class="w-4 h-4" />
+          House Call
+        </button>
       </div>
     </div>
 
-    <!-- Stats Row -->
+    <!-- ── Stats Row ── -->
     <div class="grid grid-cols-3 gap-3">
-      <Card>
-        <CardContent class="p-3 flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-            <CalendarDays class="w-4 h-4 text-blue-500" />
-          </div>
-          <div>
-            <p class="text-xs text-muted-foreground">This Month</p>
-            <p class="text-xl font-bold">{{ thisMonthCount }}</p>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent class="p-3 flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-            <Clock class="w-4 h-4 text-amber-500" />
-          </div>
-          <div>
-            <p class="text-xs text-muted-foreground">Today</p>
-            <p class="text-xl font-bold">{{ todayCount }}</p>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent class="p-3 flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-            <CheckCircle class="w-4 h-4 text-emerald-500" />
-          </div>
-          <div>
-            <p class="text-xs text-muted-foreground">Upcoming</p>
-            <p class="text-xl font-bold">{{ upcomingCount }}</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div class="rounded-3xl bg-card border border-border p-4 flex items-center gap-3" style="outline:1px solid #3b82f625">
+        <div class="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:#3b82f618">
+          <CalendarDays class="w-4 h-4" style="color:#3b82f6" />
+        </div>
+        <div>
+          <p class="text-[11px] text-muted-foreground font-medium">This Month</p>
+          <p class="text-2xl font-bold leading-none mt-0.5">{{ thisMonthCount }}</p>
+        </div>
+      </div>
+      <div class="rounded-3xl bg-card border border-border p-4 flex items-center gap-3" style="outline:1px solid #f59e0b25">
+        <div class="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:#f59e0b18">
+          <Clock class="w-4 h-4" style="color:#f59e0b" />
+        </div>
+        <div>
+          <p class="text-[11px] text-muted-foreground font-medium">Today</p>
+          <p class="text-2xl font-bold leading-none mt-0.5">{{ todayCount }}</p>
+        </div>
+      </div>
+      <div class="rounded-3xl bg-card border border-border p-4 flex items-center gap-3" style="outline:1px solid #10b98125">
+        <div class="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:#10b98118">
+          <CheckCircle class="w-4 h-4" style="color:#10b981" />
+        </div>
+        <div>
+          <p class="text-[11px] text-muted-foreground font-medium">Upcoming</p>
+          <p class="text-2xl font-bold leading-none mt-0.5">{{ upcomingCount }}</p>
+        </div>
+      </div>
     </div>
 
-    <!-- Calendar + Sidebar layout -->
+    <!-- ── Calendar + Sidebar layout ── -->
     <div class="flex gap-4 items-start">
 
       <!-- Calendar Grid -->
-      <Card class="flex-1 min-w-0">
-        <CardContent class="p-0">
-          <!-- Day headers -->
-          <div class="grid grid-cols-7 border-b">
-            <div
-              v-for="day in dayHeaders"
-              :key="day"
-              class="py-2.5 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-            >
-              {{ day }}
+      <div class="flex-1 min-w-0 rounded-3xl bg-card border border-border overflow-hidden">
+        <!-- Day headers -->
+        <div class="grid grid-cols-7 border-b border-border" style="background:hsl(var(--muted)/0.3)">
+          <div
+            v-for="day in dayHeaders"
+            :key="day"
+            class="py-3 text-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider"
+          >{{ day }}</div>
+        </div>
+
+        <!-- Calendar cells -->
+        <div class="grid grid-cols-7">
+          <div
+            v-for="(cell, i) in calendarCells"
+            :key="i"
+            class="min-h-[100px] border-b border-r border-border/60 p-1.5 relative cursor-pointer transition-colors"
+            :class="[
+              !cell.currentMonth && 'bg-muted/10',
+              i % 7 === 6 && 'border-r-0',
+              Math.floor(i / 7) === Math.floor((calendarCells.length - 1) / 7) && 'border-b-0',
+              cell.currentMonth && !cell.isToday && 'hover:bg-muted/30'
+            ]"
+            :style="cell.isToday ? 'background:#6366f108; box-shadow:inset 0 0 0 1.5px #6366f130' : ''"
+            @click="handleDayClick(cell)"
+          >
+            <!-- Date number -->
+            <div class="flex items-center justify-between mb-1">
+              <span
+                class="text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full"
+                :class="[
+                  !cell.currentMonth && 'text-muted-foreground/30',
+                  !cell.isToday && cell.currentMonth && 'text-foreground'
+                ]"
+                :style="cell.isToday ? 'background:#6366f1; color:white' : ''"
+              >{{ cell.date.getDate() }}</span>
+              <span v-if="cell.events.length > 0 && cell.currentMonth" class="text-[9px] text-muted-foreground font-medium">
+                {{ cell.events.length }}
+              </span>
+            </div>
+
+            <!-- Events -->
+            <div class="space-y-0.5">
+              <div
+                v-for="event in cell.events.slice(0, 3)"
+                :key="event.id"
+                class="text-[10px] leading-tight px-1.5 py-0.5 rounded-lg font-medium truncate cursor-pointer hover:opacity-80 transition-opacity"
+                :style="event.type === 'appointment'
+                  ? 'background:#6366f115; color:#6366f1'
+                  : 'background:#10b98115; color:#10b981'"
+                :title="`${event.time} — ${event.title}`"
+                @click.stop="openEvent(event)"
+              >{{ event.time }} {{ event.title }}</div>
+              <div
+                v-if="cell.events.length > 3"
+                class="text-[10px] text-muted-foreground px-1.5 cursor-pointer hover:text-foreground font-medium"
+                @click.stop="showDayEvents(cell)"
+              >+{{ cell.events.length - 3 }} more</div>
             </div>
           </div>
-
-          <!-- Calendar cells -->
-          <div class="grid grid-cols-7">
-            <div
-              v-for="(cell, i) in calendarCells"
-              :key="i"
-              class="min-h-[100px] border-b border-r p-1.5 relative cursor-pointer transition-colors"
-              :class="[
-                !cell.currentMonth && 'bg-muted/20',
-                cell.isToday && 'bg-primary/5 ring-1 ring-inset ring-primary/20',
-                i % 7 === 6 && 'border-r-0',
-                Math.floor(i / 7) === Math.floor((calendarCells.length - 1) / 7) && 'border-b-0',
-                cell.currentMonth && !cell.isToday && 'hover:bg-muted/30'
-              ]"
-              @click="handleDayClick(cell)"
-            >
-              <!-- Date number -->
-              <div class="flex items-center justify-between mb-1">
-                <span
-                  class="text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full"
-                  :class="[
-                    !cell.currentMonth && 'text-muted-foreground/30',
-                    cell.isToday && 'bg-primary text-primary-foreground',
-                    !cell.isToday && cell.currentMonth && 'text-foreground'
-                  ]"
-                >
-                  {{ cell.date.getDate() }}
-                </span>
-                <span v-if="cell.events.length > 0 && cell.currentMonth" class="text-[9px] text-muted-foreground">
-                  {{ cell.events.length }}
-                </span>
-              </div>
-
-              <!-- Events -->
-              <div class="space-y-0.5">
-                <div
-                  v-for="event in cell.events.slice(0, 3)"
-                  :key="event.id"
-                  class="text-[10px] leading-tight px-1.5 py-0.5 rounded font-medium truncate cursor-pointer hover:opacity-80 transition-opacity"
-                  :class="event.type === 'appointment'
-                    ? 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300'
-                    : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'"
-                  :title="`${event.time} — ${event.title}`"
-                  @click.stop="openEvent(event)"
-                >
-                  {{ event.time }} {{ event.title }}
-                </div>
-                <div
-                  v-if="cell.events.length > 3"
-                  class="text-[10px] text-muted-foreground px-1.5 cursor-pointer hover:text-foreground"
-                  @click.stop="showDayEvents(cell)"
-                >
-                  +{{ cell.events.length - 3 }} more
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <!-- Today's Events Sidebar (desktop) -->
-      <Card class="hidden lg:flex flex-col w-[240px] flex-shrink-0">
-        <div class="p-4 border-b">
-          <h3 class="text-sm font-semibold">
-            {{ new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) }}
-          </h3>
-          <p class="text-xs text-muted-foreground mt-0.5">
-            {{ todayCount === 0 ? 'Nothing scheduled today' : `${todayCount} event${todayCount !== 1 ? 's' : ''} today` }}
+      <div class="hidden lg:flex flex-col w-[240px] flex-shrink-0 rounded-3xl bg-card border border-border overflow-hidden">
+        <div class="p-4 border-b border-border" style="background:#06b6d408">
+          <div class="flex items-center gap-2 mb-0.5">
+            <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background:#06b6d418">
+              <CalendarDays class="w-3.5 h-3.5" style="color:#06b6d4" />
+            </div>
+            <h3 class="text-sm font-semibold">
+              {{ new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) }}
+            </h3>
+          </div>
+          <p class="text-xs text-muted-foreground">
+            {{ todayCount === 0 ? 'Nothing scheduled' : `${todayCount} event${todayCount !== 1 ? 's' : ''}` }}
           </p>
         </div>
         <div class="flex-1 overflow-y-auto">
-          <div v-if="todayEvents.length === 0" class="flex flex-col items-center justify-center py-8 px-4 text-center">
-            <CalendarDays class="w-8 h-8 text-muted-foreground opacity-30 mb-2" />
+          <div v-if="todayEvents.length === 0" class="flex flex-col items-center justify-center py-10 px-4 text-center">
+            <CalendarDays class="w-8 h-8 text-muted-foreground/20 mb-2" />
             <p class="text-xs text-muted-foreground">No events today</p>
           </div>
           <div
             v-for="event in todayEvents"
             :key="event.id"
-            class="flex items-start gap-3 p-3 hover:bg-muted/40 cursor-pointer transition-colors border-b last:border-b-0"
+            class="flex items-start gap-3 p-3 hover:bg-muted/40 cursor-pointer transition-colors border-b border-border/60 last:border-b-0"
             @click="openEvent(event)"
           >
-            <div
-              class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-              :class="event.type === 'appointment' ? 'bg-indigo-500/10' : 'bg-emerald-500/10'"
-            >
-              <CalendarDays v-if="event.type === 'appointment'" class="w-3.5 h-3.5 text-indigo-500" />
-              <MapPin v-else class="w-3.5 h-3.5 text-emerald-500" />
+            <div class="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+              :style="event.type === 'appointment' ? 'background:#6366f118' : 'background:#10b98118'">
+              <CalendarDays v-if="event.type === 'appointment'" class="w-3.5 h-3.5" style="color:#6366f1" />
+              <MapPin v-else class="w-3.5 h-3.5" style="color:#10b981" />
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-xs font-semibold truncate">{{ event.title }}</p>
               <p class="text-xs text-muted-foreground truncate">{{ event.subtitle }}</p>
               <div class="flex items-center gap-1.5 mt-1">
                 <span class="text-[10px] text-muted-foreground">{{ event.time }}</span>
-                <Badge class="text-[9px] h-4 px-1.5" :class="getStatusClass(event.status)">{{ event.status }}</Badge>
+                <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full" :class="getStatusClass(event.status)">{{ event.status }}</span>
               </div>
             </div>
           </div>
         </div>
-        <div class="p-3 border-t">
-          <Button size="sm" class="w-full" variant="outline" @click="openNewAppointment">
-            <Plus class="w-3.5 h-3.5 mr-1.5" />Add Event
-          </Button>
+        <div class="p-3 border-t border-border">
+          <button @click="openNewAppointment" class="w-full flex items-center justify-center gap-1.5 h-8 rounded-2xl text-xs font-medium border border-border bg-muted/50 hover:bg-muted transition-colors">
+            <Plus class="w-3.5 h-3.5" />Add Event
+          </button>
         </div>
-      </Card>
+      </div>
     </div>
 
-    <!-- Day detail panel (shown when a day with events is clicked) -->
-    <Card v-if="selectedDayEvents.length > 0">
-      <CardHeader class="pb-2">
-        <CardTitle class="text-sm flex items-center justify-between">
-          <span>{{ selectedDayLabel }}</span>
-          <Button variant="ghost" size="icon" class="h-7 w-7" @click="selectedDay = null">
-            <X class="w-4 h-4" />
-          </Button>
-        </CardTitle>
-      </CardHeader>
-      <CardContent class="space-y-2">
+    <!-- ── Selected Day Panel ── -->
+    <div v-if="selectedDayEvents.length > 0" class="rounded-3xl bg-card border border-border overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-border" style="background:#6366f108">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-xl flex items-center justify-center" style="background:#6366f118">
+            <CalendarDays class="w-3.5 h-3.5" style="color:#6366f1" />
+          </div>
+          <span class="text-sm font-semibold">{{ selectedDayLabel }}</span>
+        </div>
+        <button @click="selectedDay = null" class="w-7 h-7 rounded-xl flex items-center justify-center hover:bg-muted/60 transition-colors text-muted-foreground">
+          <X class="w-4 h-4" />
+        </button>
+      </div>
+      <div class="p-4 space-y-2">
         <div
           v-for="event in selectedDayEvents"
           :key="event.id"
-          class="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors border"
-          :class="event.type === 'appointment' ? 'border-indigo-500/20' : 'border-emerald-500/20'"
+          class="flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-colors border"
+          :class="event.type === 'appointment' ? 'border-indigo-500/20 hover:bg-indigo-500/5' : 'border-emerald-500/20 hover:bg-emerald-500/5'"
           @click="openEvent(event)"
         >
-          <div
-            class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            :class="event.type === 'appointment' ? 'bg-indigo-500/10' : 'bg-emerald-500/10'"
-          >
-            <CalendarDays v-if="event.type === 'appointment'" class="w-4 h-4 text-indigo-500" />
-            <MapPin v-else class="w-4 h-4 text-emerald-500" />
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+            :style="event.type === 'appointment' ? 'background:#6366f118' : 'background:#10b98118'">
+            <CalendarDays v-if="event.type === 'appointment'" class="w-4 h-4" style="color:#6366f1" />
+            <MapPin v-else class="w-4 h-4" style="color:#10b981" />
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium truncate">{{ event.title }}</p>
@@ -221,114 +222,131 @@
           </div>
           <div class="text-right flex-shrink-0">
             <p class="text-xs font-medium">{{ event.time }}</p>
-            <Badge class="text-[10px] mt-0.5" :class="getStatusClass(event.status)">{{ event.status }}</Badge>
+            <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full mt-0.5 inline-block" :class="getStatusClass(event.status)">{{ event.status }}</span>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
 
-    <!-- Appointment Dialog (unchanged) -->
+    <!-- ── Appointment Dialog ── -->
     <Dialog v-model:open="appointmentDialogOpen">
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{{ editingAppointment ? 'Edit Appointment' : 'New Appointment' }}</DialogTitle>
-        </DialogHeader>
-        <div class="space-y-4 py-4">
-          <div class="space-y-2">
-            <Label>Customer *</Label>
-            <Select v-model="appointmentForm.customerId">
-              <SelectTrigger><SelectValue placeholder="Select customer" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="c in customers" :key="c.id" :value="c.id">{{ c.name }}</SelectItem>
-              </SelectContent>
-            </Select>
+      <DialogContent class="p-0 rounded-3xl gap-0 overflow-hidden">
+        <!-- Tonal header -->
+        <div class="flex items-center gap-3 px-5 py-4 border-b border-border" style="background:#6366f108">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#6366f118">
+            <CalendarDays class="w-4 h-4" style="color:#6366f1" />
           </div>
-          <div class="space-y-2">
-            <Label>Description *</Label>
-            <Textarea v-model="appointmentForm.description" placeholder="e.g. Screen repair pickup" :rows="2" />
+          <div>
+            <p class="text-sm font-semibold">{{ editingAppointment ? 'Edit Appointment' : 'New Appointment' }}</p>
+            <p class="text-xs text-muted-foreground">Schedule a customer visit</p>
           </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <Label>Date *</Label>
-              <Input v-model="appointmentForm.date" type="date" />
+        </div>
+        <div class="p-5 space-y-4">
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Customer *</label>
+            <select v-model="appointmentForm.customerId" class="w-full h-9 px-3 rounded-2xl bg-muted/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all">
+              <option :value="null" disabled>Select customer</option>
+              <option v-for="c in customers" :key="c.id" :value="c.id">{{ c.name }}</option>
+            </select>
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Description *</label>
+            <textarea v-model="appointmentForm.description" placeholder="e.g. Screen repair pickup" :rows="2" class="w-full px-3 py-2 rounded-2xl bg-muted/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Date *</label>
+              <input v-model="appointmentForm.date" type="date" class="w-full h-9 px-3 rounded-2xl bg-muted/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all" />
             </div>
-            <div class="space-y-2">
-              <Label>Time *</Label>
-              <Input v-model="appointmentForm.time" type="time" />
+            <div class="space-y-1.5">
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Time *</label>
+              <input v-model="appointmentForm.time" type="time" class="w-full h-9 px-3 rounded-2xl bg-muted/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all" />
             </div>
           </div>
-          <div class="space-y-2">
-            <Label>Status</Label>
-            <Select v-model="appointmentForm.status">
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="scheduled">Scheduled</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
+          <!-- Inline status chips -->
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</label>
+            <div class="flex flex-wrap gap-2">
+              <button v-for="s in ['scheduled','confirmed','completed','cancelled']" :key="s"
+                @click="appointmentForm.status = s"
+                class="h-8 px-3 rounded-2xl text-xs font-semibold border transition-all capitalize"
+                :style="appointmentForm.status === s
+                  ? 'background:#6366f118; color:#6366f1; border-color:#6366f140; outline:1.5px solid #6366f140'
+                  : 'background:hsl(var(--muted)/0.5); border-color:hsl(var(--border)); color:hsl(var(--muted-foreground))'">
+                {{ s }}
+              </button>
+            </div>
           </div>
-          <div class="flex gap-3 pt-2">
-            <Button v-if="editingAppointment" variant="destructive" class="flex-1" @click="deleteAppointment">Delete</Button>
-            <Button variant="outline" class="flex-1" @click="appointmentDialogOpen = false">Cancel</Button>
-            <Button class="flex-1" @click="saveAppointment">{{ editingAppointment ? 'Update' : 'Create' }}</Button>
+          <div class="flex gap-2 pt-1">
+            <button v-if="editingAppointment" @click="deleteAppointment" class="flex-1 h-9 rounded-2xl text-sm font-semibold text-red-600 transition-colors" style="background:#ef444412; outline:1px solid #ef444425">Delete</button>
+            <button @click="appointmentDialogOpen = false" class="flex-1 h-9 rounded-2xl text-sm font-medium border border-border bg-muted/50 hover:bg-muted transition-colors">Cancel</button>
+            <button @click="saveAppointment" class="flex-1 h-9 rounded-2xl text-sm font-semibold text-white transition-all hover:opacity-90" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
+              {{ editingAppointment ? 'Update' : 'Create' }}
+            </button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
 
-    <!-- House Call Dialog (unchanged) -->
+    <!-- ── House Call Dialog ── -->
     <Dialog v-model:open="houseCallDialogOpen">
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{{ editingHouseCall ? 'Edit House Call' : 'New House Call' }}</DialogTitle>
-        </DialogHeader>
-        <div class="space-y-4 py-4">
-          <div class="space-y-2">
-            <Label>Customer *</Label>
-            <Select v-model="houseCallForm.customerId">
-              <SelectTrigger><SelectValue placeholder="Select customer" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="c in customers" :key="c.id" :value="c.id">{{ c.name }}</SelectItem>
-              </SelectContent>
-            </Select>
+      <DialogContent class="p-0 rounded-3xl gap-0 overflow-hidden">
+        <!-- Tonal header -->
+        <div class="flex items-center gap-3 px-5 py-4 border-b border-border" style="background:#10b98108">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#10b98118">
+            <MapPin class="w-4 h-4" style="color:#10b981" />
           </div>
-          <div class="space-y-2">
-            <Label>Description *</Label>
-            <Textarea v-model="houseCallForm.description" placeholder="e.g. On-site repair" :rows="2" />
+          <div>
+            <p class="text-sm font-semibold">{{ editingHouseCall ? 'Edit House Call' : 'New House Call' }}</p>
+            <p class="text-xs text-muted-foreground">Schedule an on-site visit</p>
           </div>
-          <div class="space-y-2">
-            <Label>Address *</Label>
-            <Input v-model="houseCallForm.address" placeholder="123 Main St" />
+        </div>
+        <div class="p-5 space-y-4">
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Customer *</label>
+            <select v-model="houseCallForm.customerId" class="w-full h-9 px-3 rounded-2xl bg-muted/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all">
+              <option :value="null" disabled>Select customer</option>
+              <option v-for="c in customers" :key="c.id" :value="c.id">{{ c.name }}</option>
+            </select>
           </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <Label>Date *</Label>
-              <Input v-model="houseCallForm.date" type="date" />
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Description *</label>
+            <textarea v-model="houseCallForm.description" placeholder="e.g. On-site repair" :rows="2" class="w-full px-3 py-2 rounded-2xl bg-muted/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all resize-none" />
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Address *</label>
+            <input v-model="houseCallForm.address" placeholder="123 Main St" class="w-full h-9 px-3 rounded-2xl bg-muted/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Date *</label>
+              <input v-model="houseCallForm.date" type="date" class="w-full h-9 px-3 rounded-2xl bg-muted/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all" />
             </div>
-            <div class="space-y-2">
-              <Label>Time *</Label>
-              <Input v-model="houseCallForm.time" type="time" />
+            <div class="space-y-1.5">
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Time *</label>
+              <input v-model="houseCallForm.time" type="time" class="w-full h-9 px-3 rounded-2xl bg-muted/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all" />
             </div>
           </div>
-          <div class="space-y-2">
-            <Label>Status</Label>
-            <Select v-model="houseCallForm.status">
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="scheduled">Scheduled</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
+          <!-- Inline status chips -->
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</label>
+            <div class="flex flex-wrap gap-2">
+              <button v-for="s in ['scheduled','confirmed','in-progress','completed','cancelled']" :key="s"
+                @click="houseCallForm.status = s"
+                class="h-8 px-3 rounded-2xl text-xs font-semibold border transition-all capitalize"
+                :style="houseCallForm.status === s
+                  ? 'background:#10b98118; color:#10b981; border-color:#10b98140; outline:1.5px solid #10b98140'
+                  : 'background:hsl(var(--muted)/0.5); border-color:hsl(var(--border)); color:hsl(var(--muted-foreground))'">
+                {{ s }}
+              </button>
+            </div>
           </div>
-          <div class="flex gap-3 pt-2">
-            <Button v-if="editingHouseCall" variant="destructive" class="flex-1" @click="deleteHouseCall">Delete</Button>
-            <Button variant="outline" class="flex-1" @click="houseCallDialogOpen = false">Cancel</Button>
-            <Button class="flex-1" @click="saveHouseCall">{{ editingHouseCall ? 'Update' : 'Schedule' }}</Button>
+          <div class="flex gap-2 pt-1">
+            <button v-if="editingHouseCall" @click="deleteHouseCall" class="flex-1 h-9 rounded-2xl text-sm font-semibold text-red-600 transition-colors" style="background:#ef444412; outline:1px solid #ef444425">Delete</button>
+            <button @click="houseCallDialogOpen = false" class="flex-1 h-9 rounded-2xl text-sm font-medium border border-border bg-muted/50 hover:bg-muted transition-colors">Cancel</button>
+            <button @click="saveHouseCall" class="flex-1 h-9 rounded-2xl text-sm font-semibold text-white transition-all hover:opacity-90" style="background:linear-gradient(135deg,#10b981,#06b6d4)">
+              {{ editingHouseCall ? 'Update' : 'Schedule' }}
+            </button>
           </div>
         </div>
       </DialogContent>
@@ -341,14 +359,7 @@ import { ref, computed } from 'vue'
 import { useAppStore } from '~/stores/app'
 import { storeToRefs } from 'pinia'
 import { CalendarDays, CheckCircle, Clock, ChevronLeft, ChevronRight, Plus, MapPin, X } from 'lucide-vue-next'
-import { Card, CardHeader, CardTitle, CardContent } from '~/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
-import { Textarea } from '~/components/ui/textarea'
-import { Badge } from '~/components/ui/badge'
 
 definePageMeta({ middleware: ['auth'] })
 
@@ -566,7 +577,6 @@ const getStatusClass = (status: string) => {
   }
   return map[status] || 'bg-gray-500/10 text-gray-500'
 }
-
 // ── Appointment CRUD ──────────────────────────────────────────────────────────
 const appointmentForm = ref({ customerId: null as any, description: '', date: '', time: '', status: 'scheduled' })
 

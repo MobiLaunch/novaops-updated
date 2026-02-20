@@ -15,7 +15,7 @@
     <!-- ── Mobile Full Sidebar (slides in) ───────────────────────── -->
     <Transition name="sidebar">
       <aside
-        v-show="mobileMenuOpen"
+        v-if="mobileMenuOpen"
         class="fixed left-0 top-0 z-50 h-screen flex lg:hidden shadow-2xl"
       >
         <!-- Rail -->
@@ -94,7 +94,7 @@
 
     <!-- ── Main ───────────────────────────────────────────────────── -->
     <div
-      class="flex flex-col min-h-screen w-full transition-all duration-300"
+      class="flex flex-col min-h-screen w-full transition-[padding-left] duration-250 ease-[cubic-bezier(0.4,0,0.2,1)]"
       :class="activeDrawer && !mobileMenuOpen ? 'lg:pl-[336px]' : 'lg:pl-[72px]'"
     >
       <!-- Mobile top bar -->
@@ -122,8 +122,8 @@
             <p class="text-xs text-muted-foreground">Loading your data...</p>
           </div>
         </div>
-        <Transition v-else name="page" mode="out-in" appear>
-          <div :key="route.path" style="will-change: opacity">
+        <Transition v-else name="page">
+          <div :key="route.path" class="page-wrapper">
             <slot />
           </div>
         </Transition>
@@ -698,46 +698,68 @@ const DrawerContent = defineComponent({
 </script>
 
 <style scoped>
+/* ── Mobile sidebar — slides in from left ─────────────────────── */
 .sidebar-enter-active,
 .sidebar-leave-active {
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .sidebar-enter-from,
 .sidebar-leave-to {
   transform: translateX(-100%);
 }
 
-.drawer-enter-active,
-.drawer-leave-active {
-  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s ease;
+/* ── Desktop drawer — slides in from behind the rail ─────────── */
+.drawer-enter-active {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
 }
-.drawer-enter-from,
+.drawer-leave-active {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 1, 1), opacity 0.18s ease;
+}
+.drawer-enter-from {
+  transform: translateX(-100%);
+  opacity: 0;
+}
 .drawer-leave-to {
-  transform: translateX(-12px);
+  transform: translateX(-100%);
   opacity: 0;
 }
 
+/* ── Overlay fade ─────────────────────────────────────────────── */
 .overlay-enter-active,
 .overlay-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity 0.22s ease;
 }
 .overlay-enter-from,
 .overlay-leave-to {
   opacity: 0;
 }
 
-/* Page transition — pure crossfade, no position shift to prevent flash */
-.page-enter-active,
-.page-leave-active {
-  transition: opacity 0.18s ease;
+/* ── Page crossfade — both pages visible simultaneously,
+      no dead gap, no layout shift                               ── */
+.page-wrapper {
+  position: relative;
 }
-.page-enter-from,
+.page-enter-active {
+  transition: opacity 0.2s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+.page-leave-active {
+  transition: opacity 0.15s ease;
+}
+.page-enter-from {
+  opacity: 0;
+}
 .page-leave-to {
   opacity: 0;
 }
 
+/* ── Upcoming popout spring animation ─────────────────────────── */
 @keyframes popIn {
   from { opacity: 0; transform: scale(0.92) translateY(6px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 </style>
+
