@@ -122,11 +122,9 @@
             <p class="text-xs text-muted-foreground">Loading your data...</p>
           </div>
         </div>
-        <Transition v-else name="page">
-          <div :key="route.path" class="page-wrapper">
-            <slot />
-          </div>
-        </Transition>
+        <div v-else>
+          <slot />
+        </div>
       </main>
     </div>
   </div>
@@ -734,27 +732,6 @@ const DrawerContent = defineComponent({
   opacity: 0;
 }
 
-/* ── Page crossfade — both pages visible simultaneously,
-      no dead gap, no layout shift                               ── */
-.page-wrapper {
-  position: relative;
-}
-.page-enter-active {
-  transition: opacity 0.2s ease;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-}
-.page-leave-active {
-  transition: opacity 0.15s ease;
-}
-.page-enter-from {
-  opacity: 0;
-}
-.page-leave-to {
-  opacity: 0;
-}
 
 /* ── Upcoming popout spring animation ─────────────────────────── */
 @keyframes popIn {
@@ -762,3 +739,5 @@ const DrawerContent = defineComponent({
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 </style>
+
+
