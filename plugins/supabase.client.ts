@@ -1,4 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+
+// Module-level singleton — survives hot reload, guarantees one instance
+let _supabase: SupabaseClient | null = null
 
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
@@ -11,22 +15,23 @@ export default defineNuxtPlugin(() => {
       '[NovaOps] Supabase env vars missing.\n' +
       'Set NUXT_PUBLIC_SUPABASE_URL and NUXT_PUBLIC_SUPABASE_ANON_KEY in your .env file or Vercel dashboard.'
     )
-    // Provide null so app doesn't crash — pages will handle gracefully
     return { provide: { supabase: null } }
   }
 
-  const supabase = createClient(url, key, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true
-    }
-  })
+  if (!_supabase) {
+    _supabase = createClient(url, key, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storageKey: 'novaops-auth', // unique key prevents conflicts with any other Supabase clients
+      }
+    })
+  }
 
   return {
     provide: {
-      supabase
+      supabase: _supabase
     }
   }
 })
-
