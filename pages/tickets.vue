@@ -372,8 +372,19 @@ const handleDeleteTicket = async () => {
 
 const handleCreateTicket = async (ticketData: any) => {
   try {
+    // If a new customer was submitted inline, create them first
+    let customerId = ticketData.customerId
+    if (ticketData.newCustomer?.name) {
+      const created = await appStore.createCustomer({
+        name: ticketData.newCustomer.name,
+        phone: ticketData.newCustomer.phone || '',
+        email: ticketData.newCustomer.email || '',
+        address: ticketData.newCustomer.address || '',
+      })
+      customerId = created?.id ?? null
+    }
     await createTicket({
-      customerId: ticketData.customerId,
+      customerId,
       device: ticketData.device,
       deviceModel: ticketData.deviceModel,
       deviceDescription: ticketData.deviceDescription,
@@ -400,3 +411,4 @@ const handleCreateTicket = async (ticketData: any) => {
   }
 }
 </script>
+
