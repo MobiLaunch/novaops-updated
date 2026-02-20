@@ -45,7 +45,8 @@ export default defineNuxtConfig({
       ],
     },
     workbox: {
-      navigateFallback: '/',
+      navigateFallback: '/index.html',
+      navigateFallbackDenylist: [/^\/api\//],
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
       runtimeCaching: [
         {
@@ -77,3 +78,4 @@ export default defineNuxtConfig({
     preset: process.env.VERCEL ? 'vercel' : 'node-server',
   }
 })
+
