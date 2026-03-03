@@ -150,6 +150,13 @@ const { tickets, appointments } = storeToRefs(appStore)
 const settings = computed(() => appStore.settings ?? { businessName: '', email: '' })
 const route = useRoute()
 
+function formatApptTime(date: string, time: string) {
+  try {
+    const d = new Date(`${date}T${time || '00:00'}`)
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' · ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  } catch { return date }
+}
+  
 const upcomingItems = computed(() => {
   const now = new Date()
   const todayStr = now.toISOString().split('T')[0]
@@ -180,13 +187,6 @@ const upcomingItems = computed(() => {
 
   return [...appts, ...openTickets]
 })
-
-function formatApptTime(date: string, time: string) {
-  try {
-    const d = new Date(`${date}T${time || '00:00'}`)
-    return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' · ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  } catch { return date }
-}
 
 const mobileMenuOpen = ref(false)
 const activeDrawer = ref<string | null>(null)
