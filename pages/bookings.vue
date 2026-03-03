@@ -357,23 +357,25 @@
 
     <!-- House Call Dialog -->
     <Dialog v-model:open="housecallFormOpen">
-      <DialogContent class="w-full max-w-[96vw] sm:max-w-2xl">
-        <div class="flex flex-col gap-5 p-4 sm:p-7">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #10b981, #059669)">
-              <MapPin class="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h2 class="text-base font-black">{{ editingHousecall ? 'Edit House Call' : 'Schedule House Call' }}</h2>
-              <p class="text-xs text-muted-foreground font-medium">On-site repair appointment</p>
-            </div>
+      <DialogContent class="w-full max-w-[96vw] sm:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <!-- Fixed header -->
+        <div class="flex items-center gap-3 px-4 sm:px-7 pt-4 sm:pt-7 pb-4 flex-shrink-0 border-b border-border/40">
+          <div class="w-10 h-10 rounded-[20px] flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #10b981, #059669)">
+            <MapPin class="w-5 h-5 text-white" />
           </div>
+          <div>
+            <h2 class="text-base font-black">{{ editingHousecall ? 'Edit House Call' : 'Schedule House Call' }}</h2>
+            <p class="text-xs text-muted-foreground font-medium">On-site repair appointment</p>
+          </div>
+        </div>
 
+        <!-- Scrollable body -->
+        <div class="flex-1 overflow-y-auto px-4 sm:px-7 py-5">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <!-- LEFT: Form -->
             <div class="flex flex-col gap-4">
               <div class="space-y-2"><label class="m3-label">Customer</label><CustomerSelect v-model="housecallForm.customerId" /></div>
-              <div class="space-y-2 relative">
+              <div class="space-y-2">
                 <label class="m3-label">Address</label>
                 <div class="relative">
                   <input ref="addressInputRef" v-model="housecallForm.address" placeholder="123 Main St, City, State" class="m3-input pr-12" @input="onAddressInput" @focus="showSuggestions = addressSuggestions.length > 0" />
@@ -381,11 +383,11 @@
                     style="background: #3b82f620" title="Open in Maps" @click="openMaps">
                     <Navigation class="w-4 h-4" style="color: #3b82f6" />
                   </button>
-                </div>
-                <!-- Autocomplete Dropdown -->
-                <div v-if="showSuggestions && addressSuggestions.length > 0" class="absolute z-50 left-0 right-0 top-full mt-2 bg-card border-2 border-border/60 rounded-[16px] shadow-xl overflow-hidden max-h-60 overflow-y-auto" style="outline: 2px solid hsl(var(--border)/0.4)">
-                  <div v-for="sug in addressSuggestions" :key="sug.place_id" class="px-4 py-3 hover:bg-muted/50 cursor-pointer border-b border-border/20 last:border-0 text-xs font-medium transition-colors" @click="selectSuggestion(sug)">
-                    {{ sug.display_name }}
+                  <!-- Autocomplete Dropdown — inside relative wrapper so it doesn't shift layout -->
+                  <div v-if="showSuggestions && addressSuggestions.length > 0" class="absolute z-50 left-0 right-0 top-full mt-1 bg-card border-2 border-border/60 rounded-[16px] shadow-xl overflow-hidden max-h-48 overflow-y-auto" style="outline: 2px solid hsl(var(--border)/0.4)">
+                    <div v-for="sug in addressSuggestions" :key="sug.place_id" class="px-4 py-3 hover:bg-muted/50 cursor-pointer border-b border-border/20 last:border-0 text-xs font-medium transition-colors" @click="selectSuggestion(sug)">
+                      {{ sug.display_name }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -462,13 +464,14 @@
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="flex gap-3">
-            <button class="flex-1 h-12 rounded-full font-bold text-sm transition-all hover:scale-[1.02] active:scale-95" style="outline: 2px solid hsl(var(--border)); outline-offset: 0" @click="housecallFormOpen = false">Cancel</button>
-            <button class="flex-1 h-12 rounded-full font-black text-sm text-white transition-all hover:scale-[1.02] active:scale-95" style="background: linear-gradient(135deg, #10b981, #059669)" @click="saveHousecall">
-              {{ editingHousecall ? 'Save Changes' : 'Schedule' }}
-            </button>
-          </div>
+        <!-- Fixed footer buttons -->
+        <div class="flex gap-3 px-4 sm:px-7 py-4 flex-shrink-0 border-t border-border/40">
+          <button class="flex-1 h-12 rounded-full font-bold text-sm transition-all hover:scale-[1.02] active:scale-95" style="outline: 2px solid hsl(var(--border)); outline-offset: 0" @click="housecallFormOpen = false">Cancel</button>
+          <button class="flex-1 h-12 rounded-full font-black text-sm text-white transition-all hover:scale-[1.02] active:scale-95" style="background: linear-gradient(135deg, #10b981, #059669)" @click="saveHousecall">
+            {{ editingHousecall ? 'Save Changes' : 'Schedule' }}
+          </button>
         </div>
       </DialogContent>
     </Dialog>
