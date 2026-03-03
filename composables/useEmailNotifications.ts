@@ -1,7 +1,7 @@
 // composables/useEmailNotifications.ts
 // Sends customer notification emails via EmailJS when tickets, house calls,
-// or vendor repairs are created. Uses a SINGLE EmailJS template for all types.
-// Failures are logged but never block the primary CRUD action.
+// or vendor repairs are created. Uses a SINGLE unified EmailJS template.
+// Every send includes ALL 21 template variables to avoid "broken dynamic elements".
 
 import emailjs from '@emailjs/browser'
 
@@ -37,18 +37,50 @@ export const useEmailNotifications = () => {
         return (c as any)?.phone || ''
     }
 
-    const formatDate = (d: string | null): string => {
+    const fmtDate = (d: string | null | undefined): string => {
         if (!d) return 'TBD'
         return new Date(d).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
     }
 
+    // Build a full params object with ALL 21 template variables.
+    // This prevents the "one or more dynamic elements are broken" error.
+    const buildParams = (overrides: Partial<Record<string, string>> = {}): Record<string, string> => ({
+        // Recipient
+        to_email: '',
+        // Shared
+        customer_name: '',
+        customer_phone: '',
+        customer_address: '',
+        device_name: '',
+        issue_description: '',
+        technician_name: appStore.settings.businessName || 'Our Team',
+        ticket_number: '',
+        ticket_date: '',
+        year: String(new Date().getFullYear()),
+        // House call
+        appointment_date: '',
+        arrival_window: '',
+        service_description: '',
+        // Vendor repair
+        dispatch_date: '',
+        vendor_name: '',
+        estimated_return: '',
+        estimated_completion: '',
+        // Internal
+        event_type: '',
+        event_summary: '',
+        event_timestamp: new Date().toLocaleString(),
+        estimated_value: '',
+        internal_notes: '',
+        // Apply caller overrides
+        ...overrides,
+    })
+
     const send = async (params: Record<string, string>) => {
         if (!isConfigured()) return
         console.log('[EmailJS] ── Sending ──────────────────────────')
-        console.log('[EmailJS] Service ID:', serviceId)
-        console.log('[EmailJS] Template ID:', templateId)
-        console.log('[EmailJS] to_email:', JSON.stringify(params.to_email))
-        console.log('[EmailJS] All params:', JSON.stringify(params, null, 2))
+        console.log('[EmailJS] to_email:', params.to_email)
+        console.log('[EmailJS] event_type:', params.event_type)
         try {
             const result = await emailjs.send(serviceId, templateId, params, publicKey)
             console.log('[EmailJS] ✅ Success:', result.status, result.text)
@@ -61,81 +93,61 @@ export const useEmailNotifications = () => {
 
     // ── Public API ───────────────────────────────────────────────────────────
 
-    /**
-     * Send a "New Ticket" email to the customer.
-     */
     const sendTicketEmail = async (ticket: any) => {
         const email = getCustomerEmail(ticket.customerId)
         if (!email) { console.log('[EmailJS] No email for customer', ticket.customerId); return }
 
-        await send({
+        await send(buildParams({
             to_email: email,
             customer_name: getCustomerName(ticket.customerId),
+            customer_phone: getCustomerPhone(ticket.customerId),
             ticket_number: String(ticket.id ?? ''),
-            ticket_date: formatDate(ticket.createdAt ?? ticket.created_at ?? new Date().toISOString()),
+            ticket_date: fmtDate(ticket.createdAt ?? ticket.created_at ?? new Date().toISOString()),
             device_name: ticket.device || '',
             issue_description: ticket.issue || '',
-            technician_name: appStore.settings.businessName || 'Our Team',
             estimated_completion: 'We will contact you with an estimate',
-            year: String(new Date().getFullYear()),
-            // Additional fields for unified template
             event_type: 'New Ticket',
             event_summary: `Ticket #${ticket.id} created`,
-        })
+        }))
     }
 
-    /**
-     * Send a "House Call Confirmed" email to the customer.
-     */
     const sendHousecallEmail = async (houseCall: any) => {
         const email = getCustomerEmail(houseCall.customerId)
         if (!email) { console.log('[EmailJS] No email for customer', houseCall.customerId); return }
 
-        await send({
+        await send(buildParams({
             to_email: email,
             customer_name: getCustomerName(houseCall.customerId),
-            appointment_date: formatDate(houseCall.date),
+            customer_phone: getCustomerPhone(houseCall.customerId),
+            appointment_date: fmtDate(houseCall.date),
             arrival_window: houseCall.time || 'TBD',
             customer_address: houseCall.address || '',
-            device_name: '',
             service_description: houseCall.issue || houseCall.description || '',
-            technician_name: appStore.settings.businessName || 'Our Team',
-            year: String(new Date().getFullYear()),
-            // Additional fields for unified template
+            issue_description: houseCall.issue || '',
             event_type: 'House Call',
             event_summary: 'House call scheduled',
-            ticket_number: '',
-            issue_description: houseCall.issue || '',
-        })
+        }))
     }
 
-    /**
-     * Send a "Vendor Repair Update" email to the customer.
-     */
     const sendVendorRepairEmail = async (vendorRepair: any) => {
         const email = getCustomerEmail(vendorRepair.customerId)
         if (!email) { console.log('[EmailJS] No email for customer', vendorRepair.customerId); return }
 
-        await send({
+        await send(buildParams({
             to_email: email,
             customer_name: getCustomerName(vendorRepair.customerId),
+            customer_phone: getCustomerPhone(vendorRepair.customerId),
             ticket_number: vendorRepair.ticketRef || vendorRepair.ticket_ref || '',
-            dispatch_date: formatDate(vendorRepair.sentDate ?? vendorRepair.sent_date ?? new Date().toISOString()),
+            dispatch_date: fmtDate(vendorRepair.sentDate ?? vendorRepair.sent_date ?? new Date().toISOString()),
             device_name: vendorRepair.device || '',
             issue_description: vendorRepair.issue || '',
             vendor_name: vendorRepair.vendor || 'Specialist Partner',
-            estimated_return: formatDate(vendorRepair.estReturn ?? vendorRepair.est_return),
-            year: String(new Date().getFullYear()),
-            // Additional fields for unified template
+            estimated_return: fmtDate(vendorRepair.estReturn ?? vendorRepair.est_return),
             event_type: 'Vendor Repair',
             event_summary: 'Device sent to vendor for repair',
-            technician_name: appStore.settings.businessName || 'Our Team',
-        })
+        }))
     }
 
-    /**
-     * Send an internal alert email to the shop.
-     */
     const sendInternalAlert = async (params: {
         eventType: string
         eventSummary: string
@@ -151,11 +163,10 @@ export const useEmailNotifications = () => {
         const shopEmail = appStore.settings.email
         if (!shopEmail) { console.log('[EmailJS] No shop email configured in settings'); return }
 
-        await send({
+        await send(buildParams({
             to_email: shopEmail,
             event_type: params.eventType,
             event_summary: params.eventSummary,
-            event_timestamp: new Date().toLocaleString(),
             customer_name: params.customerName || '',
             customer_phone: params.customerPhone || '',
             device_name: params.deviceName || '',
@@ -164,8 +175,7 @@ export const useEmailNotifications = () => {
             technician_name: params.technicianName || appStore.settings.businessName || '',
             estimated_value: params.estimatedValue || '',
             internal_notes: params.internalNotes || '',
-            year: String(new Date().getFullYear()),
-        })
+        }))
     }
 
     return {
