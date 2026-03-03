@@ -576,15 +576,7 @@ async function initCardForm() {
     const container = document.getElementById('card-container')
     if (!container) return
 
-    cardInstance.value = await squarePayments.value.card({
-      style: {
-        '.input-container':         { borderRadius: '12px', borderColor: '#e2e8f0' },
-        '.input-container.is-focus':{ borderColor: '#6366f1' },
-        '.input-container.is-error':{ borderColor: '#ef4444' },
-        'input': { fontFamily: 'Google Sans, Nunito, system-ui, sans-serif' },
-        '.message-text': { color: '#ef4444' },
-      }
-    })
+    cardInstance.value = await squarePayments.value.card()
     await cardInstance.value.attach('#card-container')
     cardAttached.value = true
   } catch (e: any) {
