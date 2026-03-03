@@ -1,0 +1,114 @@
+{
+  "name": "novaops-shadcn",
+  "version": "3.1.0",
+  "description": "NovaOps — Modern Repair Shop Management System",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "electron:dev": "concurrently --kill-others --names NUXT,ELECTRON \"nuxt dev\" \"node electron/dev.cjs\"",
+    "electron:build": "cross-env ELECTRON_BUILD=1 nuxt generate && electron-builder --win",
+    "electron:build:mac": "cross-env ELECTRON_BUILD=1 nuxt generate && electron-builder --mac",
+    "electron:build:linux": "cross-env ELECTRON_BUILD=1 nuxt generate && electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.novaops.app",
+    "productName": "NovaOps",
+    "copyright": "Copyright © 2025 NovaOps",
+    "asarUnpack": [
+      "**/node_modules/koffi/**/*"
+    ],
+    "files": [
+      "electron/**/*",
+      ".output/public/**/*",
+      "public/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "drivers",
+        "to": "drivers",
+        "filter": [
+          "**/*",
+          "!**/.gitkeep"
+        ]
+      },
+      {
+        "from": "itunes-files",
+        "to": "itunes-tools",
+        "filter": [
+          "**/*",
+          "!Qt5WebEngineCore.dll",
+          "!QtWebEngineProcess.exe",
+          "!qtwebengine_*.pak",
+          "!opengl32sw.dll",
+          "!D3Dcompiler_47.dll"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.business"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Office"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "dependencies": {
+    "@pinia/nuxt": "^0.11.3",
+    "@supabase/supabase-js": "^2.96.0",
+    "@vueuse/core": "^11.0.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "koffi": "^2.15.1",
+    "lucide-vue-next": "^0.460.0",
+    "node-fetch": "^2.7.0",
+    "nuxt": "^3.13.2",
+    "pinia": "^3.0.4",
+    "radix-vue": "^1.9.17",
+    "tailwind-merge": "^2.6.1",
+    "tailwindcss-animate": "^1.0.7",
+    "vaul-vue": "^0.2.0",
+    "vue": "^3.4.38"
+  },
+  "devDependencies": {
+    "@nuxt/devtools": "^1.5.1",
+    "@nuxtjs/tailwindcss": "^6.12.0",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.0",
+    "cross-env": "^7.0.3",
+    "electron": "^34.0.0",
+    "electron-builder": "^25.1.8",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.5.4",
+    "wait-on": "^8.0.1"
+  },
+  "overrides": {
+    "@parcel/watcher": "2.4.1"
+  },
+  "optionalDependencies": {
+    "@parcel/watcher-win32-x64": "2.4.1",
+    "@parcel/watcher-win32-arm64": "2.4.1",
+    "@parcel/watcher-darwin-x64": "2.4.1",
+    "@parcel/watcher-darwin-arm64": "2.4.1",
+    "@parcel/watcher-linux-x64-glibc": "2.4.1"
+  }
+}

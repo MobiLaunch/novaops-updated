@@ -1,0 +1,1051 @@
+<template>
+  <div class="space-y-8 max-w-6xl">
+
+    <!-- ── Page Header ── -->
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg" style="background: linear-gradient(135deg, #64748b, #475569)">
+        <SettingsIcon class="w-6 h-6 text-white" />
+      </div>
+      <div>
+        <h1 class="text-3xl font-black tracking-tight">Settings</h1>
+        <p class="text-sm text-muted-foreground font-medium mt-0.5">Configure your business, integrations, and account</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- ── LEFT: Business + Integrations ── -->
+      <div class="lg:col-span-2 space-y-5">
+
+        <!-- Business Info -->
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #6366f108">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #6366f1, #8b5cf6)">
+              <Building class="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p class="text-sm font-black">Business Information</p>
+              <p class="text-xs text-muted-foreground font-medium">Your shop's public details and preferences</p>
+            </div>
+          </div>
+          <div class="p-6 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <label class="m3-label">Business Name</label>
+                <input v-model="form.businessName" placeholder="Your Repair Shop" class="m3-input" />
+              </div>
+              <div class="space-y-2">
+                <label class="m3-label">Phone</label>
+                <input v-model="form.phone" placeholder="(555) 123-4567" class="m3-input" />
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="m3-label">Email</label>
+              <input v-model="form.email" type="email" placeholder="contact@yourshop.com" class="m3-input" />
+            </div>
+            <div class="space-y-2">
+              <label class="m3-label">Address</label>
+              <textarea v-model="form.address" :rows="2" placeholder="123 Main St, City, State ZIP" class="m3-input resize-none" />
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <label class="m3-label">Currency Symbol</label>
+                <input v-model="form.currency" placeholder="$" class="m3-input" />
+              </div>
+              <div class="space-y-2">
+                <label class="m3-label">Tax Rate (%)</label>
+                <input v-model.number="form.taxRate" type="number" step="0.01" placeholder="0.00" class="m3-input" />
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="m3-label">Ticket Statuses</label>
+              <input v-model="form.statuses" placeholder="Open, In Progress, Waiting for Parts, Completed, Delivered" class="m3-input" />
+              <p class="text-xs text-muted-foreground font-medium">Separate each status with a comma</p>
+            </div>
+            <div class="space-y-2">
+              <label class="m3-label">Screen Lock PIN</label>
+              <input v-model="form.pin" type="password" maxlength="4" placeholder="4-digit PIN" class="m3-input w-[160px] font-mono tracking-widest" />
+              <p class="text-xs text-muted-foreground font-medium">Screen locks after 3 minutes of inactivity</p>
+            </div>
+            <div class="pt-4 border-t border-border/60 flex items-center gap-4">
+              <button @click="saveSettings" class="m3-btn-primary flex items-center gap-2.5 h-12 px-7 rounded-full text-sm font-black text-white">
+                <Save class="w-4 h-4" />
+                Save Business Settings
+              </button>
+              <Transition name="save-msg">
+                <div v-if="saveMsg" class="flex items-center gap-2 text-sm font-bold" :style="saveMsg.ok ? 'color:#10b981' : 'color:#ef4444'">
+                  <CheckCircle v-if="saveMsg.ok" class="w-4 h-4" />
+                  <AlertCircle v-else class="w-4 h-4" />
+                  {{ saveMsg.text }}
+                </div>
+              </Transition>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Supabase Connection ── -->
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #3ecf8e08">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #3ecf8e, #1a9e6a)">
+              <Database class="w-5 h-5 text-white" />
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-black">Supabase Database</p>
+              <p class="text-xs text-muted-foreground font-medium">Your live data backend — tickets, customers, inventory</p>
+            </div>
+            <!-- Status pill -->
+            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
+              :style="sbConn.status.connected
+                ? 'background:#3ecf8e18;color:#1a9e6a;outline:1.5px solid #3ecf8e28;outline-offset:0'
+                : sbConn.hasCredentials.value
+                  ? 'background:#f59e0b18;color:#d97706;outline:1.5px solid #f59e0b28;outline-offset:0'
+                  : 'background:#ef444418;color:#ef4444;outline:1.5px solid #ef444428;outline-offset:0'"
+            >
+              <div class="w-1.5 h-1.5 rounded-full"
+                :style="sbConn.status.connected ? 'background:#3ecf8e' : sbConn.hasCredentials.value ? 'background:#f59e0b;animation:ping 1s cubic-bezier(0,0,0.2,1) infinite' : 'background:#ef4444'" />
+              {{ sbConn.status.connected ? `Connected · ${sbConn.projectRef.value}` : sbConn.hasCredentials.value ? 'Credentials saved' : 'Not connected' }}
+            </div>
+          </div>
+
+          <div class="p-6 space-y-5">
+
+            <!-- Connected state -->
+            <div v-if="sbConn.status.connected" class="flex items-center gap-4 p-4 rounded-[20px]" style="background:#3ecf8e10;outline:1.5px solid #3ecf8e28;outline-offset:0">
+              <div class="w-10 h-10 rounded-[20px] flex items-center justify-center flex-shrink-0" style="background:#3ecf8e20">
+                <CheckCircle class="w-5 h-5" style="color:#3ecf8e" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-black" style="color:#1a9e6a">Connected to Supabase</p>
+                <p class="text-xs text-muted-foreground font-mono truncate">{{ sbUrl }}</p>
+              </div>
+              <button @click="showSbModal = true"
+                class="h-9 px-4 rounded-full text-xs font-bold transition-all hover:scale-[1.03] active:scale-95"
+                style="background:#3ecf8e14;color:#1a9e6a;outline:1.5px solid #3ecf8e28;outline-offset:0">
+                Change
+              </button>
+            </div>
+
+            <!-- Not connected / setup prompt -->
+            <div v-else>
+              <div class="rounded-[20px] p-5 flex flex-col gap-4" style="background:hsl(var(--muted)/0.4);outline:1.5px solid hsl(var(--border)/0.6);outline-offset:0">
+                <div class="flex items-start gap-3">
+                  <div class="w-8 h-8 rounded-[16px] flex items-center justify-center flex-shrink-0 mt-0.5" style="background:#3ecf8e20">
+                    <Database class="w-4 h-4" style="color:#3ecf8e" />
+                  </div>
+                  <div>
+                    <p class="text-sm font-black">Connect your Supabase project</p>
+                    <p class="text-xs text-muted-foreground font-medium mt-0.5 leading-relaxed">
+                      NovaOps stores all your repair shop data in your own private Supabase database.
+                      Create a free project at <span class="font-bold" style="color:#3ecf8e">supabase.com</span> then paste your credentials here.
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 flex-wrap">
+                  <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer"
+                    class="flex items-center gap-2 h-10 px-5 rounded-full text-sm font-bold text-white transition-all hover:scale-[1.03] active:scale-95"
+                    style="background:linear-gradient(135deg,#3ecf8e,#1a9e6a);box-shadow:0 4px 16px #3ecf8e30">
+                    <ExternalLink class="w-4 h-4" />
+                    Open Supabase
+                  </a>
+                  <button @click="showSbModal = true"
+                    class="flex items-center gap-2 h-10 px-5 rounded-full text-sm font-bold transition-all hover:scale-[1.03] active:scale-95"
+                    style="background:#3ecf8e14;color:#1a9e6a;outline:1.5px solid #3ecf8e28;outline-offset:0">
+                    <Link class="w-4 h-4" />
+                    Enter Credentials
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Disconnect link -->
+            <div v-if="sbConn.hasCredentials.value" class="flex items-center gap-2 pt-1">
+              <button @click="confirmSbDisconnect = true"
+                class="text-xs font-semibold text-muted-foreground hover:text-red-500 transition-colors flex items-center gap-1.5">
+                <X class="w-3 h-3" /> Disconnect Supabase
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Supabase Connect Modal ── -->
+        <Teleport to="body">
+          <!-- Disconnect confirm -->
+          <Transition name="overlay">
+            <div v-if="confirmSbDisconnect" class="fixed inset-0 z-[100] flex items-center justify-center p-4" style="background:rgba(0,0,0,0.5);backdrop-filter:blur(8px)">
+              <div class="w-full max-w-sm rounded-[28px] bg-card p-7 flex flex-col gap-5 shadow-2xl" style="outline:2px solid hsl(var(--border)/0.6);outline-offset:0;animation:sbModalEnter 0.3s cubic-bezier(0.34,1.3,0.64,1) both">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-[20px] flex items-center justify-center flex-shrink-0" style="background:#ef444420">
+                    <AlertCircle class="w-5 h-5" style="color:#ef4444" />
+                  </div>
+                  <div>
+                    <p class="text-sm font-black">Disconnect Supabase?</p>
+                    <p class="text-xs text-muted-foreground font-medium mt-0.5">Your data stays safe in Supabase. You'll need to reconnect to access it again.</p>
+                  </div>
+                </div>
+                <div class="flex gap-3">
+                  <button @click="confirmSbDisconnect = false" class="flex-1 h-11 rounded-full text-sm font-bold border-2" style="border-color:hsl(var(--border))">Cancel</button>
+                  <button @click="sbConn.disconnect(); confirmSbDisconnect = false"
+                    class="flex-1 h-11 rounded-full text-sm font-bold text-white" style="background:#ef4444">
+                    Disconnect
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Transition>
+
+          <!-- Connect modal -->
+          <Transition name="overlay">
+            <div v-if="showSbModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" style="background:rgba(0,0,0,0.55);backdrop-filter:blur(10px)" @click.self="showSbModal = false">
+              <div class="w-full max-w-lg rounded-[32px] bg-card flex flex-col shadow-2xl overflow-hidden" style="outline:2px solid hsl(var(--border)/0.6);outline-offset:0;animation:sbModalEnter 0.35s cubic-bezier(0.34,1.3,0.64,1) both">
+
+                <!-- Header -->
+                <div class="flex items-center gap-4 px-7 pt-7 pb-5 border-b border-border/50" style="background:#3ecf8e06">
+                  <div class="w-11 h-11 rounded-[22px] flex items-center justify-center flex-shrink-0 shadow-md" style="background:linear-gradient(135deg,#3ecf8e,#1a9e6a);box-shadow:0 4px 16px #3ecf8e30">
+                    <Database class="w-5 h-5 text-white" />
+                  </div>
+                  <div class="flex-1">
+                    <h2 class="text-base font-black">Connect to Supabase</h2>
+                    <p class="text-xs text-muted-foreground font-medium mt-0.5">Paste your project URL and anon key from the Supabase dashboard</p>
+                  </div>
+                  <button class="w-8 h-8 rounded-[16px] flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90 text-muted-foreground" @click="showSbModal = false">
+                    <X class="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div class="p-7 space-y-5">
+
+                  <!-- Step guide -->
+                  <div class="rounded-[20px] p-4 space-y-2.5" style="background:hsl(var(--muted)/0.4)">
+                    <p class="text-xs font-black text-muted-foreground uppercase tracking-widest">Where to find these</p>
+                    <div class="space-y-2">
+                      <div class="flex items-center gap-2.5 text-xs font-medium text-muted-foreground">
+                        <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0" style="background:#3ecf8e20;color:#1a9e6a">1</span>
+                        Go to <span class="font-bold text-foreground">supabase.com/dashboard</span> → your project
+                      </div>
+                      <div class="flex items-center gap-2.5 text-xs font-medium text-muted-foreground">
+                        <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0" style="background:#3ecf8e20;color:#1a9e6a">2</span>
+                        Click <span class="font-bold text-foreground">Project Settings → API</span>
+                      </div>
+                      <div class="flex items-center gap-2.5 text-xs font-medium text-muted-foreground">
+                        <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0" style="background:#3ecf8e20;color:#1a9e6a">3</span>
+                        Copy <span class="font-bold text-foreground">Project URL</span> and <span class="font-bold text-foreground">anon / public</span> key below
+                      </div>
+                    </div>
+                    <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer"
+                      class="inline-flex items-center gap-1.5 text-xs font-bold mt-1 transition-colors" style="color:#3ecf8e">
+                      <ExternalLink class="w-3 h-3" /> Open Supabase Dashboard
+                    </a>
+                  </div>
+
+                  <!-- URL field -->
+                  <div class="space-y-2">
+                    <label class="m3-label">Project URL</label>
+                    <input v-model="sbForm.url" type="url" placeholder="https://xxxxxxxxxxxx.supabase.co" class="m3-input font-mono text-xs"
+                      autocomplete="off" spellcheck="false" />
+                  </div>
+
+                  <!-- Key field -->
+                  <div class="space-y-2">
+                    <label class="m3-label">Anon / Public Key</label>
+                    <input v-model="sbForm.key" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…" class="m3-input font-mono text-xs"
+                      autocomplete="off" spellcheck="false" />
+                    <p class="text-[11px] text-muted-foreground font-medium">Use the <strong>anon</strong> key — not the service_role key.</p>
+                  </div>
+
+                  <!-- Error -->
+                  <div v-if="sbConn.status.error" class="flex items-center gap-2.5 p-3.5 rounded-[18px] text-sm font-semibold"
+                    style="background:#ef444412;color:#ef4444;outline:1.5px solid #ef444428;outline-offset:0">
+                    <AlertCircle class="w-4 h-4 flex-shrink-0" />
+                    {{ sbConn.status.error }}
+                  </div>
+
+                  <!-- Actions -->
+                  <div class="flex items-center gap-3 pt-1">
+                    <button @click="handleSbConnect" :disabled="sbConn.status.checking || !sbForm.url || !sbForm.key"
+                      class="flex-1 h-12 rounded-full text-sm font-black text-white flex items-center justify-center gap-2.5 disabled:opacity-50 transition-all hover:scale-[1.02] active:scale-98"
+                      style="background:linear-gradient(135deg,#3ecf8e,#1a9e6a);box-shadow:0 4px 16px #3ecf8e30">
+                      <div v-if="sbConn.status.checking" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <Database v-else class="w-4 h-4" />
+                      {{ sbConn.status.checking ? 'Testing connection…' : 'Connect & Save' }}
+                    </button>
+                    <button @click="showSbModal = false" class="h-12 px-5 rounded-full text-sm font-bold border-2 transition-all hover:scale-[1.02]" style="border-color:hsl(var(--border))">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Transition>
+        </Teleport>
+
+        <!-- ── Square Integration ── -->
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #10b98108">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #10b981, #059669)">
+              <CreditCard class="w-5 h-5 text-white" />
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-black">Square Terminal Integration</p>
+              <p class="text-xs text-muted-foreground font-medium">Connect your Square account and pair a physical terminal</p>
+            </div>
+            <!-- Live connection status pill -->
+            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
+              :style="squareStatus === 'connected'
+                ? 'background:#10b98118;color:#10b981;outline:1.5px solid #10b98128;outline-offset:0'
+                : squareStatus === 'checking'
+                ? 'background:#f59e0b18;color:#f59e0b;outline:1.5px solid #f59e0b28;outline-offset:0'
+                : 'background:#ef444418;color:#ef4444;outline:1.5px solid #ef444428;outline-offset:0'"
+            >
+              <div class="w-1.5 h-1.5 rounded-full animate-pulse"
+                :style="squareStatus === 'connected' ? 'background:#10b981'
+                  : squareStatus === 'checking' ? 'background:#f59e0b'
+                  : 'background:#ef4444'" />
+              {{ squareStatus === 'connected' ? 'Connected' : squareStatus === 'checking' ? 'Checking…' : 'Disconnected' }}
+            </div>
+          </div>
+
+          <div class="p-6 space-y-5">
+
+            <!-- Credentials (server-side only — user enters for persistence) -->
+            <div class="space-y-4">
+              <div class="space-y-2">
+                <label class="m3-label">Square Access Token</label>
+                <input v-model="form.squareAccessToken" type="password" placeholder="EAAAl…" class="m3-input font-mono text-xs"
+                  autocomplete="off" @blur="debouncedSquareCheck" />
+                <p class="text-xs text-muted-foreground font-medium">Stored securely — never sent to the browser after save</p>
+              </div>
+              <div class="space-y-2">
+                <label class="m3-label">Location ID</label>
+                <input v-model="form.squareLocationId" placeholder="L1234…" class="m3-input font-mono text-xs"
+                  @blur="debouncedSquareCheck" />
+              </div>
+              <div class="flex items-center justify-between p-4 rounded-[20px]" style="background: hsl(var(--muted)/0.3)">
+                <div>
+                  <p class="text-sm font-bold">Use Square Sandbox</p>
+                  <p class="text-xs text-muted-foreground font-medium">Test mode — use sandbox credentials</p>
+                </div>
+                <button class="m3-toggle" :class="{ 'active': form.squareSandbox }" @click="form.squareSandbox = !form.squareSandbox; debouncedSquareCheck()">
+                  <span class="m3-toggle-thumb">
+                    <component :is="form.squareSandbox ? Check : X" class="w-3 h-3" />
+                  </span>
+                </button>
+              </div>
+
+              <!-- Connection test result -->
+              <div v-if="squareTestMsg" class="flex items-center gap-2.5 p-3.5 rounded-[18px] text-sm font-semibold"
+                :style="squareStatus === 'connected'
+                  ? 'background:#10b98112;color:#10b981;outline:1.5px solid #10b98128;outline-offset:0'
+                  : 'background:#ef444412;color:#ef4444;outline:1.5px solid #ef444428;outline-offset:0'">
+                <CheckCircle v-if="squareStatus === 'connected'" class="w-4 h-4 flex-shrink-0" />
+                <AlertCircle v-else class="w-4 h-4 flex-shrink-0" />
+                {{ squareTestMsg }}
+              </div>
+
+              <div class="flex items-center gap-3">
+                <button @click="saveSquareSettings" :disabled="savingSquare"
+                  class="m3-btn-tonal flex items-center gap-2 h-11 px-6 rounded-full text-sm font-bold">
+                  <div v-if="savingSquare" class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  <Save v-else class="w-4 h-4" />
+                  {{ savingSquare ? 'Saving…' : 'Save Credentials' }}
+                </button>
+                <button @click="testSquareConnection" :disabled="squareStatus === 'checking'"
+                  class="flex items-center gap-2 h-11 px-5 rounded-full text-sm font-bold transition-all hover:scale-[1.02] active:scale-95"
+                  style="background: #10b98114; color: #10b981; outline: 1.5px solid #10b98128; outline-offset:0">
+                  <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': squareStatus === 'checking' }" />
+                  Test Connection
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Printer Setup (Electron only) -->
+        <div v-if="isElectron" class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #f59e0b08">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #f59e0b, #d97706)">
+              <Printer class="w-5 h-5 text-white" />
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-black">Printer Setup</p>
+              <p class="text-xs text-muted-foreground font-medium">Receipt and barcode label printers</p>
+            </div>
+            <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-105"
+              style="background: #f59e0b18; color: #f59e0b"
+              :disabled="loadingPrinters" @click="refreshPrinters">
+              <RefreshCw class="w-3 h-3" :class="{ 'animate-spin': loadingPrinters }" />
+              {{ loadingPrinters ? 'Scanning…' : 'Refresh' }}
+            </button>
+          </div>
+          <div class="p-6 space-y-5">
+            <div v-if="!loadingPrinters && printers.length === 0" class="flex items-center gap-3 rounded-[20px] px-4 py-3" style="background: hsl(var(--muted)/0.4)">
+              <XCircle class="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              <p class="text-sm text-muted-foreground font-medium">No printers detected. Make sure your printers are connected and powered on.</p>
+            </div>
+            <div v-if="printers.length > 0" class="space-y-1.5 max-h-40 overflow-y-auto">
+              <div v-for="p in printers" :key="p.name"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-[16px]"
+                :style="(printerSettings.receiptPrinter === p.name || printerSettings.barcodePrinter === p.name)
+                  ? 'background: #f59e0b10; outline: 1.5px solid #f59e0b28; outline-offset:0'
+                  : 'background: hsl(var(--muted)/0.3)'">
+                <div class="w-7 h-7 rounded-[14px] flex items-center justify-center flex-shrink-0"
+                  :style="p.status === 0 ? 'background: #10b98118' : 'background: #ef444414'">
+                  <Printer class="w-3.5 h-3.5" :style="p.status === 0 ? 'color:#10b981' : 'color:#ef4444'" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-bold truncate">{{ p.displayName }}</p>
+                  <p class="text-[10px] text-muted-foreground font-medium">
+                    {{ p.status === 0 ? '● Ready' : '○ Offline' }}{{ p.isDefault ? ' · Default' : '' }}
+                  </p>
+                </div>
+                <div class="flex items-center gap-1 flex-shrink-0">
+                  <span v-if="printerSettings.receiptPrinter === p.name" class="text-[10px] font-black px-2 py-0.5 rounded-full" style="background: #10b98118; color: #10b981">Receipt</span>
+                  <span v-if="printerSettings.barcodePrinter === p.name" class="text-[10px] font-black px-2 py-0.5 rounded-full" style="background: #06b6d418; color: #06b6d4">Barcode</span>
+                </div>
+              </div>
+            </div>
+            <!-- Receipt Printer -->
+            <div class="space-y-3">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-[14px] flex items-center justify-center" style="background: #10b98118">
+                  <Receipt class="w-3.5 h-3.5" style="color: #10b981" />
+                </div>
+                <label class="m3-label">Receipt Printer</label>
+              </div>
+              <select v-model="printerSettings.receiptPrinter" class="m3-input">
+                <option value="">— None selected —</option>
+                <option v-for="p in printers" :key="p.name" :value="p.name">{{ p.displayName }}{{ p.isDefault ? ' (Default)' : '' }}</option>
+              </select>
+              <div class="flex items-center gap-3">
+                <div class="space-y-1 flex-1">
+                  <label class="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Paper Size</label>
+                  <select v-model="printerSettings.receiptPaperSize" class="m3-input" style="height: 40px; font-size: 13px">
+                    <option value="A4">A4</option><option value="Letter">Letter</option>
+                    <option value="80mm">80mm Thermal Roll</option><option value="58mm">58mm Thermal Roll</option>
+                  </select>
+                </div>
+                <div class="space-y-1">
+                  <label class="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Copies</label>
+                  <input v-model.number="printerSettings.receiptCopies" type="number" min="1" max="5" class="m3-input" style="width:80px;height:40px;font-size:13px" />
+                </div>
+                <button class="self-end h-10 px-4 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 disabled:opacity-40"
+                  style="background: #10b98118; color: #10b981"
+                  :disabled="!printerSettings.receiptPrinter || testingReceipt" @click="testReceiptPrint">
+                  <div v-if="testingReceipt" class="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  <Printer v-else class="w-3.5 h-3.5" />
+                  Test Print
+                </button>
+              </div>
+            </div>
+            <!-- Barcode Printer -->
+            <div class="space-y-3 pt-4 border-t border-border/40">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-[14px] flex items-center justify-center" style="background: #06b6d418">
+                  <ScanLine class="w-3.5 h-3.5" style="color: #06b6d4" />
+                </div>
+                <label class="m3-label">Barcode / Label Printer</label>
+              </div>
+              <select v-model="printerSettings.barcodePrinter" class="m3-input">
+                <option value="">— None selected —</option>
+                <option v-for="p in printers" :key="p.name" :value="p.name">{{ p.displayName }}{{ p.isDefault ? ' (Default)' : '' }}</option>
+              </select>
+              <div class="flex items-center gap-3">
+                <div class="space-y-1 flex-1">
+                  <label class="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Label Size</label>
+                  <select v-model="printerSettings.labelSize" class="m3-input" style="height:40px;font-size:13px">
+                    <option value="4x2">4" × 2" (Standard)</option><option value="4x3">4" × 3"</option>
+                    <option value="4x6">4" × 6" (Shipping)</option><option value="2x1">2" × 1" (Small)</option>
+                    <option value="letter">Letter (Sheet of labels)</option>
+                  </select>
+                </div>
+                <button class="self-end h-10 px-4 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 disabled:opacity-40"
+                  style="background: #06b6d418; color: #06b6d4"
+                  :disabled="!printerSettings.barcodePrinter || testingBarcode" @click="testBarcodePrint">
+                  <div v-if="testingBarcode" class="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  <ScanLine v-else class="w-3.5 h-3.5" />
+                  Test Label
+                </button>
+              </div>
+            </div>
+            <div v-if="printerMsg" class="flex items-center gap-2 rounded-[16px] px-4 py-2.5 text-xs font-bold"
+              :style="printerMsg.type === 'success' ? 'background:#10b98114;color:#10b981' : 'background:#ef444414;color:#ef4444'">
+              <CheckCircle v-if="printerMsg.type === 'success'" class="w-3.5 h-3.5" />
+              <AlertCircle v-else class="w-3.5 h-3.5" />
+              {{ printerMsg.text }}
+            </div>
+            <div class="pt-2 border-t border-border/40">
+              <button @click="savePrinterSettings" class="m3-btn-tonal flex items-center gap-2 h-11 px-6 rounded-full text-sm font-bold">
+                <Save class="w-4 h-4" /> Save Printer Settings
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notification Settings -->
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #f59e0b08">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #f59e0b, #d97706)">
+              <Bell class="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p class="text-sm font-black">Notifications</p>
+              <p class="text-xs text-muted-foreground font-medium">Alert preferences for your shop</p>
+            </div>
+          </div>
+          <div class="p-3">
+            <div v-for="(notif, key) in notificationSettings" :key="key" class="flex items-center justify-between px-3 py-3.5 rounded-[20px] hover:bg-muted/20 transition-colors">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-[16px] flex items-center justify-center flex-shrink-0" :style="`background: ${notif.color}18`">
+                  <component :is="notif.icon" class="w-4 h-4" :style="`color: ${notif.color}`" />
+                </div>
+                <div>
+                  <p class="text-sm font-bold">{{ notif.label }}</p>
+                  <p class="text-xs text-muted-foreground font-medium">{{ notif.desc }}</p>
+                </div>
+              </div>
+              <button class="m3-toggle" :class="{ 'active': notif.enabled }" @click="toggleNotif(key)">
+                <span class="m3-toggle-thumb">
+                  <component :is="notif.enabled ? Check : X" class="w-3 h-3" />
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── RIGHT: Account & danger zone ── -->
+      <div class="space-y-5">
+
+        <!-- Account info -->
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #8b5cf608">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed)">
+              <User class="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p class="text-sm font-black">Account</p>
+              <p class="text-xs text-muted-foreground font-medium">Your profile and auth</p>
+            </div>
+          </div>
+          <div class="p-6 space-y-4">
+            <div class="flex items-center gap-3 p-4 rounded-[20px]" style="background: hsl(var(--muted)/0.3)">
+              <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-sm shadow-md" style="background: linear-gradient(135deg, #6366f1, #8b5cf6)">
+                {{ userInitials }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold truncate">{{ userEmail }}</p>
+                <p class="text-xs text-muted-foreground font-medium truncate">{{ form.businessName || 'NovaOps' }}</p>
+              </div>
+            </div>
+            <button @click="handleSignOut" class="w-full flex items-center justify-center gap-2 h-11 rounded-full text-sm font-bold transition-all hover:scale-[1.02] active:scale-95" style="background: #ef444414; color: #ef4444; outline: 2px solid #ef444428; outline-offset: 0">
+              <LogOut class="w-4 h-4" /> Sign Out
+            </button>
+          </div>
+        </div>
+
+        <!-- Data Management -->
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #06b6d408">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #06b6d4, #0891b2)">
+              <Database class="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p class="text-sm font-black">Data Management</p>
+              <p class="text-xs text-muted-foreground font-medium">Backup and restore your data</p>
+            </div>
+          </div>
+          <div class="p-6 space-y-3">
+            <button @click="handleExport" class="w-full flex items-center justify-center gap-2 h-11 rounded-full text-sm font-bold transition-all hover:scale-[1.02] active:scale-95" style="background: #06b6d414; color: #06b6d4; outline: 2px solid #06b6d428; outline-offset: 0">
+              <Download class="w-4 h-4" /> Export All Data
+            </button>
+            <button @click="router.push('/import')" class="w-full flex items-center justify-center gap-2 h-11 rounded-full text-sm font-bold transition-all hover:scale-[1.02] active:scale-95" style="background: hsl(var(--muted)/0.5); outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+              <Upload class="w-4 h-4" /> Import Data
+            </button>
+          </div>
+        </div>
+
+        <!-- System Diagnostics -->
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #3ecf8e08">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #3ecf8e, #1a9e6a)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v8"/><path d="M16 2v0"/><path d="m16 2 4 4"/><path d="m20 2-4 4"/><path d="M18 10a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"/></svg>
+            </div>
+            <div>
+              <p class="text-sm font-black">System Diagnostics</p>
+              <p class="text-xs text-muted-foreground font-medium">Integration health check</p>
+            </div>
+          </div>
+          <div class="p-6 space-y-4">
+            <button @click="runDiagnostics" :disabled="isRunningDiag" class="w-full flex items-center justify-center gap-2 h-11 rounded-full text-sm font-bold transition-all hover:scale-[1.02] active:scale-95 text-white disabled:opacity-50" style="background: linear-gradient(135deg, #3ecf8e, #1a9e6a); box-shadow: 0 4px 16px #3ecf8e40">
+              <svg v-if="isRunningDiag" class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              {{ isRunningDiag ? 'Running Tests...' : 'Run Diagnostics' }}
+            </button>
+            <div v-if="diagResults.length > 0" class="space-y-2 mt-4 max-h-[300px] overflow-y-auto pr-2">
+              <div v-for="(res, idx) in diagResults" :key="idx" class="p-3 rounded-[16px] text-xs" :style="res.status === 'success' ? 'background:#10b98110; border: 1px solid #10b98120' : res.status === 'error' ? 'background:#ef444410; border: 1px solid #ef444420' : 'background:hsl(var(--muted)/0.5)'">
+                <div class="flex items-start gap-2">
+                  <span class="mt-0.5">
+                    <svg v-if="res.status === 'pending'" class="animate-spin w-3 h-3 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <CheckCircle v-else-if="res.status === 'success'" class="w-3 h-3 text-green-500" />
+                    <AlertCircle v-else class="w-3 h-3 text-red-500" />
+                  </span>
+                  <div class="flex-1">
+                    <p class="font-bold mb-0.5" :class="{'text-green-500': res.status==='success', 'text-red-500': res.status==='error', 'text-blue-400': res.status==='pending'}">{{ res.step }}</p>
+                    <p v-if="res.message" class="text-muted-foreground leading-snug">{{ res.message }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="m3-bento-card" style="outline-color: #ef444430 !important">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #ef444408">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #ef4444, #dc2626)">
+              <AlertTriangle class="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p class="text-sm font-black" style="color: #ef4444">Danger Zone</p>
+              <p class="text-xs text-muted-foreground font-medium">Irreversible actions</p>
+            </div>
+          </div>
+          <div class="p-6">
+            <button @click="confirmReset" class="w-full flex items-center justify-center gap-2 h-11 rounded-full text-sm font-bold transition-all hover:scale-[1.02] active:scale-95 text-white" style="background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 16px #ef444440">
+              <Trash2 class="w-4 h-4" /> Reset All Data
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Confirm Dialog ── -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="confirmDialog.open" class="fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(6px)" @click.self="confirmDialog.open = false">
+          <div class="rounded-[32px] p-8 max-w-sm w-full mx-4 shadow-2xl" style="background: hsl(var(--card)); outline: 2px solid #ef444430; outline-offset: 0">
+            <div class="w-14 h-14 rounded-[28px] flex items-center justify-center mx-auto mb-5" style="background: linear-gradient(135deg, #ef4444, #dc2626)">
+              <AlertTriangle class="w-7 h-7 text-white" />
+            </div>
+            <h3 class="text-lg font-black text-center mb-2">{{ confirmDialog.title }}</h3>
+            <p class="text-sm text-muted-foreground text-center font-medium mb-7">{{ confirmDialog.message }}</p>
+            <div class="flex gap-3">
+              <button class="flex-1 h-11 rounded-full text-sm font-bold transition-all hover:scale-[1.02] active:scale-95" style="background: hsl(var(--muted)/0.6); outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0" @click="confirmDialog.open = false">Cancel</button>
+              <button class="flex-1 h-11 rounded-full text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-95" style="background: linear-gradient(135deg, #ef4444, #dc2626)" @click="confirmDialog.onConfirm(); confirmDialog.open = false">{{ confirmDialog.confirmLabel }}</button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+  </div>
+</template>
+
+<script setup lang="ts">
+import {
+  Settings as SettingsIcon, Building, CreditCard, Bell, User, Database,
+  AlertTriangle, Trash2, Save, Download, Upload, LogOut, Check, X,
+  TicketCheck, ShoppingCart, UserPlus, Calendar, Link, ExternalLink,
+  Printer, XCircle, RefreshCw, ScanLine, Receipt, CheckCircle, AlertCircle,
+  MonitorSmartphone, Tablet, MessageCircle,
+} from 'lucide-vue-next'
+import { storeToRefs } from 'pinia'
+
+// ── Supabase Connect ──────────────────────────────────────────────────
+const sbConn = useSupabaseConnect()
+const showSbModal       = ref(false)
+const confirmSbDisconnect = ref(false)
+const sbForm = ref({ url: '', key: '' })
+const sbUrl  = computed(() => sbConn.url.value)
+
+watch(showSbModal, (open) => {
+  if (open) {
+    sbForm.value = { url: sbConn.url.value, key: '' }
+    sbConn.status.error = null
+  }
+})
+
+const handleSbConnect = async () => {
+  await sbConn.saveAndConnect(sbForm.value.url, sbForm.value.key)
+  // saveAndConnect does a window.location.reload on success — no need to close modal
+}
+
+definePageMeta({ middleware: ['auth'] })
+
+const appStore  = useAppStore()
+const router    = useRouter()
+const { $supabase } = useNuxtApp()
+const { settings, notificationPrefs } = storeToRefs(appStore)
+
+// ── User info ────────────────────────────────────────────────────────
+const userEmail = computed(() => settings.value?.email || 'user@novaops.com')
+const userInitials = computed(() => {
+  const e = userEmail.value
+  const parts = e.split('@')[0].split('.')
+  return parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : e.substring(0, 2).toUpperCase()
+})
+
+// ── Form ─────────────────────────────────────────────────────────────
+const form = ref({
+  businessName: '', phone: '', email: '', address: '',
+  currency: '$', taxRate: 0, statuses: 'Open, In Progress, Waiting for Parts, Completed, Delivered',
+  pin: '', squareAccessToken: '', squareLocationId: '', squareSandbox: false,
+})
+
+watch(settings, (s) => { if (s) form.value = { ...form.value, ...s } }, { immediate: true, deep: false })
+
+// ── Business save ─────────────────────────────────────────────────────
+const saveMsg = ref<{ ok: boolean; text: string } | null>(null)
+let saveMsgTimer: ReturnType<typeof setTimeout> | null = null
+
+const saveSettings = async () => {
+  try {
+    await appStore.saveSettings({ ...form.value })
+    saveMsg.value = { ok: true, text: 'Saved!' }
+  } catch {
+    saveMsg.value = { ok: false, text: 'Save failed' }
+  }
+  if (saveMsgTimer) clearTimeout(saveMsgTimer)
+  saveMsgTimer = setTimeout(() => { saveMsg.value = null }, 3000)
+}
+
+// ── Square connection test ────────────────────────────────────────────
+type SquareStatus = 'idle' | 'checking' | 'connected' | 'disconnected'
+const squareStatus   = ref<SquareStatus>('idle')
+const squareTestMsg  = ref('')
+const savingSquare   = ref(false)
+
+const testSquareConnection = async () => {
+  if (!form.value.squareAccessToken || !form.value.squareLocationId) {
+    squareStatus.value  = 'disconnected'
+    squareTestMsg.value = 'Enter your Access Token and Location ID first.'
+    return
+  }
+  squareStatus.value  = 'checking'
+  squareTestMsg.value = ''
+  try {
+    const data = await squareFetch(`/locations/${form.value.squareLocationId}`, {
+      accessToken: form.value.squareAccessToken
+    })
+    
+    squareStatus.value  = 'connected'
+    squareTestMsg.value = `Connected to location: ${data.location?.name}`
+  } catch (err: any) {
+    squareStatus.value  = 'disconnected'
+    squareTestMsg.value = err.message || 'Connection failed'
+  }
+}
+
+// Save Square credentials to the store/Supabase, then re-test
+const saveSquareSettings = async () => {
+  savingSquare.value = true
+  try {
+    await appStore.saveSettings({
+      squareAccessToken: form.value.squareAccessToken,
+      squareLocationId:  form.value.squareLocationId,
+      squareSandbox:     form.value.squareSandbox,
+    })
+    await testSquareConnection()
+  } finally {
+    savingSquare.value = false
+  }
+}
+
+// Debounced auto-check when the user finishes typing credentials
+let squareCheckTimer: ReturnType<typeof setTimeout> | null = null
+const debouncedSquareCheck = () => {
+  if (squareCheckTimer) clearTimeout(squareCheckTimer)
+  squareCheckTimer = setTimeout(testSquareConnection, 800)
+}
+
+// Terminal pairing logic removed
+
+// ── Notifications ─────────────────────────────────────────────────────
+// notificationSettings is a computed display object that reads enabled state
+// from the globally persisted notificationPrefs in the app store.
+const notificationSettings = computed(() => ({
+  newTicket:   { label: 'New Ticket',    desc: 'Alert when a ticket is created',  color: '#f59e0b', icon: TicketCheck,  enabled: notificationPrefs.value.newTicket },
+  newSale:     { label: 'New Sale',      desc: 'Alert when POS sale completes',   color: '#10b981', icon: ShoppingCart, enabled: notificationPrefs.value.newSale },
+  newCustomer: { label: 'New Customer',  desc: 'Alert when customer is added',    color: '#3b82f6', icon: UserPlus,     enabled: notificationPrefs.value.newCustomer },
+  appointment: { label: 'Appointments', desc: 'Alert for upcoming appointments', color: '#8b5cf6', icon: Calendar,     enabled: notificationPrefs.value.appointment },
+  newMessage:  { label: 'New Message',   desc: 'Alert when a customer emails you', color: '#ec4899', icon: MessageCircle, enabled: notificationPrefs.value.newMessage },
+}))
+
+function toggleNotif(key: string) {
+  const k = key as keyof typeof notificationPrefs.value
+  notificationPrefs.value[k] = !notificationPrefs.value[k]
+  // Persist to localStorage immediately
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('novaops_notif_prefs', JSON.stringify(notificationPrefs.value))
+  }
+}
+
+// ── Confirm dialog ───────────────────────────────────────────────────
+const confirmDialog = ref({ open: false, title: '', message: '', confirmLabel: 'Confirm', onConfirm: () => {} })
+function showConfirm(title: string, message: string, confirmLabel: string, onConfirm: () => void) {
+  confirmDialog.value = { open: true, title, message, confirmLabel, onConfirm }
+}
+
+// ── Electron / Printer ────────────────────────────────────────────────
+const isElectron = computed(() => typeof window !== 'undefined' && !!(window as any).posShell)
+const printers = ref<any[]>([])
+const loadingPrinters = ref(false)
+const testingReceipt  = ref(false)
+const testingBarcode  = ref(false)
+const printerMsg      = ref<{ type: 'success' | 'error'; text: string } | null>(null)
+const PRINTER_KEY     = 'novaops_printer_settings'
+const printerSettings = ref({ receiptPrinter: '', receiptPaperSize: 'A4', receiptCopies: 1, barcodePrinter: '', labelSize: '4x2' })
+
+const LABEL_SIZES:  Record<string, any> = { '4x2': { width: 101600, height: 50800 }, '4x3': { width: 101600, height: 76200 }, '4x6': { width: 101600, height: 152400 }, '2x1': { width: 50800, height: 25400 }, letter: 'Letter' }
+const PAPER_SIZES:  Record<string, any> = { A4: 'A4', Letter: 'Letter', '80mm': { width: 80000, height: 297000 }, '58mm': { width: 58000, height: 297000 } }
+
+async function refreshPrinters() {
+  loadingPrinters.value = true
+  try { printers.value = await (window as any).posShell.getPrinters() } catch {}
+  loadingPrinters.value = false
+}
+
+function savePrinterSettings() {
+  localStorage.setItem(PRINTER_KEY, JSON.stringify(printerSettings.value))
+  showPrinterMsg('success', 'Printer settings saved')
+}
+
+function showPrinterMsg(type: 'success' | 'error', text: string) {
+  printerMsg.value = { type, text }
+  setTimeout(() => { printerMsg.value = null }, 3500)
+}
+
+async function testReceiptPrint() {
+  if (!printerSettings.value.receiptPrinter) return
+  testingReceipt.value = true
+  try {
+    const html = `<!DOCTYPE html><html><body style="font-family:monospace;padding:16px;font-size:12px">
+      <h2 style="text-align:center">${form.value.businessName || 'NovaOps'}</h2>
+      <p style="text-align:center;color:#666">TEST RECEIPT</p>
+      <hr/><div style="display:flex;justify-content:space-between"><span>Test Item</span><span>$10.00</span></div>
+      <hr/><div style="display:flex;justify-content:space-between;font-weight:900"><span>TOTAL</span><span>$10.00</span></div>
+      <p style="text-align:center;font-size:10px;margin-top:12px">${new Date().toLocaleString()}</p>
+    </body></html>`
+    const result = await (window as any).posShell.printReceipt(html, printerSettings.value.receiptPrinter, {
+      copies: printerSettings.value.receiptCopies,
+      pageSize: PAPER_SIZES[printerSettings.value.receiptPaperSize] || 'A4',
+      silent: true,
+    })
+    result.success ? showPrinterMsg('success', 'Test receipt sent') : showPrinterMsg('error', `Print failed: ${result.failureReason || 'unknown'}`)
+  } catch (e: any) { showPrinterMsg('error', e.message || 'Print error') }
+  testingReceipt.value = false
+}
+
+async function testBarcodePrint() {
+  if (!printerSettings.value.barcodePrinter) return
+  testingBarcode.value = true
+  try {
+    const html = `<!DOCTYPE html><html><body style="display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
+      <div style="text-align:center;padding:8px;border:1px solid #ddd;border-radius:6px">
+        <p style="font-family:monospace;font-size:11px;margin:4px 0">TEST-LABEL-001</p>
+        <p style="font-size:9px;color:#666">NovaOps Label Test</p>
+      </div></body></html>`
+    const result = await (window as any).posShell.printBarcodeLabel(html, printerSettings.value.barcodePrinter, {
+      pageSize: LABEL_SIZES[printerSettings.value.labelSize] || { width: 101600, height: 50800 },
+      silent: true,
+    })
+    result.success ? showPrinterMsg('success', 'Test label sent') : showPrinterMsg('error', `Print failed: ${result.failureReason || 'unknown'}`)
+  } catch (e: any) { showPrinterMsg('error', e.message || 'Print error') }
+  testingBarcode.value = false
+}
+
+// ── Actions ───────────────────────────────────────────────────────────
+const handleSignOut = () => {
+  showConfirm('Sign Out', 'Are you sure you want to sign out?', 'Sign Out', async () => {
+    try { await ($supabase as any).auth.signOut() } catch {}
+    router.push('/login')
+  })
+}
+
+const handleExport = () => {
+  const data = { settings: appStore.settings, tickets: appStore.tickets, customers: appStore.customers, inventory: appStore.inventory }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = `novaops-backup-${new Date().toISOString().split('T')[0]}.json`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+const confirmReset = () => {
+  showConfirm('Reset All Data', 'This will permanently delete all tickets, customers, and settings. This cannot be undone.', 'Delete Everything', () => {
+    localStorage.clear()
+    window.location.reload()
+  })
+}
+
+// ── System Diagnostics ──────────────────────────────────────────────────
+const diagResults = ref<any[]>([])
+const isRunningDiag = ref(false)
+
+const logDiag = (step: string, status: 'pending' | 'success' | 'error', message?: string) => {
+  diagResults.value.push({ step, status, message, timestamp: new Date().toISOString() })
+}
+
+const updateDiagLog = (step: string, status: 'success' | 'error', message: string) => {
+  const item = diagResults.value.find(r => r.step === step && r.status === 'pending')
+  if (item) {
+    item.status = status
+    item.message = message
+  } else {
+    logDiag(step, status, message)
+  }
+}
+
+const runDiagnostics = async () => {
+  diagResults.value = []
+  isRunningDiag.value = true
+  
+  // 1. Supabase Client Check
+  logDiag('Supabase Client Instance', 'pending')
+  if (!$supabase) {
+    updateDiagLog('Supabase Client Instance', 'error', 'Supabase client is null.')
+    isRunningDiag.value = false
+    return
+  }
+  updateDiagLog('Supabase Client Instance', 'success', 'Supabase client is initialized.')
+
+  // 2. Supabase Auth Check
+  logDiag('Supabase Session', 'pending')
+  try {
+    const { data: { session }, error } = await ($supabase as any).auth.getSession()
+    if (error) throw error
+    if (!session) {
+      updateDiagLog('Supabase Session', 'error', 'No active session found. User is not logged in.')
+    } else {
+      updateDiagLog('Supabase Session', 'success', `User logged in: ${session.user.email}`)
+    }
+  } catch (e: any) {
+    updateDiagLog('Supabase Session', 'error', e.message)
+  }
+
+  // 3. Supabase Database Ping
+  logDiag('Supabase Database Access', 'pending')
+  try {
+    const { data, error } = await ($supabase as any).from('tickets').select('id').limit(1)
+    if (error) throw error
+    updateDiagLog('Supabase Database Access', 'success', `Queried tickets table. (Found ${data.length} records)`)
+  } catch (e: any) {
+    updateDiagLog('Supabase Database Access', 'error', `Query failed. RLS or connectivity issue: ${e.message}`)
+  }
+
+  // 4. Square Backend API
+  logDiag('Square Backend API', 'pending')
+  try {
+    // Send square credentials in headers to ensure it works even if not yet saved in DB
+    const headers = {
+      'x-square-access-token': form.value.squareAccessToken,
+      'x-square-location-id': form.value.squareLocationId
+    }
+    const res = await $fetch('/api/square/connection-test', { headers })
+    updateDiagLog('Square Backend API', 'success', `Square responded: ${JSON.stringify(res)}`)
+  } catch (e: any) {
+    updateDiagLog('Square Backend API', 'error', `API error: ${e.message}`)
+  }
+
+  // 5. Square Routing Health
+  logDiag('Square Routing Health', 'pending')
+  try {
+    const headers = {
+      'x-square-access-token': form.value.squareAccessToken,
+      'x-square-location-id': form.value.squareLocationId
+    }
+    const res = await $fetch('/api/square/terminal-status?checkoutId=test_diag', { headers })
+    updateDiagLog('Square Routing Health', 'success', `Terminal status reachable: ${JSON.stringify(res)}`)
+  } catch (e: any) {
+    if (e.statusCode === 400 || e.statusCode === 404 || e.message.includes('Resource not found') || e.message.includes('Missing checkoutId')) {
+      updateDiagLog('Square Routing Health', 'success', `Endpoint responded as expected for fake checkout (${e.statusCode}): ${e.message}`)
+    } else {
+      updateDiagLog('Square Routing Health', 'error', `Unexpected response: ${e.message}`)
+    }
+  }
+  
+  isRunningDiag.value = false
+}
+
+// Lifecycle hooks
+onMounted(() => {
+  // Load printer settings
+  try {
+    const saved = localStorage.getItem(PRINTER_KEY)
+    if (saved) printerSettings.value = { ...printerSettings.value, ...JSON.parse(saved) }
+  } catch {}
+  if (isElectron.value) refreshPrinters()
+  // Check Square status on load if credentials exist
+  if (form.value.squareAccessToken && form.value.squareLocationId) {
+    testSquareConnection()
+  }
+  // Auto-probe Supabase connection status if credentials are already saved
+  if (sbConn.hasCredentials.value) {
+    sbConn.testConnection()
+  }
+})
+
+onUnmounted(() => { })
+</script>
+
+<style scoped>
+.m3-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
+.m3-bento-card {
+  border-radius: 32px;
+  overflow: hidden;
+  background: hsl(var(--card));
+  outline: 2px solid hsl(var(--border)/0.6);
+  outline-offset: 0;
+}
+.m3-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
+.m3-input:focus { border-color: hsl(var(--primary)/0.5); box-shadow: 0 0 0 3px hsl(var(--primary)/0.12); }
+.m3-input.resize-none { height: auto; padding-top: 12px; padding-bottom: 12px; }
+.m3-btn-primary {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  box-shadow: 0 4px 20px #6366f140;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+.m3-btn-primary:hover  { transform: scale(1.05) translateY(-2px); box-shadow: 0 8px 28px #6366f160; }
+.m3-btn-primary:active { transform: scale(0.92); }
+.m3-btn-tonal {
+  background: hsl(var(--muted)/0.7);
+  outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.m3-btn-tonal:hover  { transform: scale(1.04); }
+.m3-btn-tonal:active { transform: scale(0.94); }
+.m3-toggle {
+  position: relative; width: 56px; height: 32px; border-radius: 999px;
+  background: hsl(var(--muted)); border: 2px solid hsl(var(--border)/0.8);
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0; cursor: pointer;
+}
+.m3-toggle.active { background: #6366f1; border-color: #6366f1; box-shadow: 0 2px 12px #6366f140; }
+.m3-toggle-thumb {
+  position: absolute; top: 3px; left: 3px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: white; display: flex; align-items: center; justify-content: center;
+  color: hsl(var(--muted-foreground));
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.m3-toggle.active .m3-toggle-thumb { left: calc(100% - 25px); color: #6366f1; }
+.modal-enter-active { animation: modal-in 0.3s cubic-bezier(0.34, 1.3, 0.64, 1); }
+.modal-leave-active { animation: modal-out 0.18s ease forwards; }
+@keyframes modal-in  { from { opacity: 0; transform: scale(0.92) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes modal-out { to   { opacity: 0; transform: scale(0.96) translateY(6px); } }
+.save-msg-enter-active { transition: all 0.25s ease; }
+.save-msg-leave-active { transition: all 0.2s ease; }
+.save-msg-enter-from  { opacity: 0; transform: translateY(4px); }
+.save-msg-leave-to    { opacity: 0; transform: translateY(-4px); }
+@keyframes sbModalEnter {
+  0%   { opacity: 0; transform: scale(0.9) translateY(16px); }
+  65%  { opacity: 1; transform: scale(1.02) translateY(-3px); }
+  100% { transform: scale(1) translateY(0); }
+}
+.overlay-enter-active { transition: opacity 0.2s ease; }
+.overlay-leave-active { transition: opacity 0.18s ease; }
+.overlay-enter-from, .overlay-leave-to { opacity: 0; }
+</style>
