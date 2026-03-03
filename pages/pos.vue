@@ -111,7 +111,12 @@
 </template>
 
 <script setup lang="ts">
-import { Search, Package, ShoppingCart, Trash2, Plus, Minus, CheckCircle } from 'lucide-vue-next'
+import {
+  Search, Package, ShoppingCart, ShoppingBag, Trash2, Plus, Minus, X,
+  CheckCircle, CreditCard, TicketCheck, ShieldCheck, Wrench,
+  Banknote, Wallet, Users, Lock, AlertCircle,
+} from 'lucide-vue-next'
+  
 definePageMeta({ middleware: ['auth'] })
 const appStore = useAppStore()
 const inventory = computed(() => appStore.inventory ?? [])
