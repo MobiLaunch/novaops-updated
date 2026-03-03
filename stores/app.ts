@@ -467,7 +467,8 @@ export const useAppStore = defineStore('app', () => {
   const saveSettings = async (newSettings: any) => {
     if (!$supabase || !user.value) return
     Object.assign(settings.value, newSettings)
-    await ($supabase as any).from('profiles').update({
+    const { error } = await ($supabase as any).from('profiles').upsert({
+      id: user.value.id,
       business_name: settings.value.businessName,
       email: settings.value.email,
       phone: settings.value.phone,
@@ -481,14 +482,19 @@ export const useAppStore = defineStore('app', () => {
       square_sandbox: settings.value.squareSandbox,
       services: services.value,
       expenses: expenses.value,
-    }).eq('id', user.value.id)
+    })
+    if (error) {
+      console.error('[saveSettings Error]', error)
+      throw error
+    }
   }
 
   const saveAll = async () => {
     // saveAll persists services alongside settings for pages that mutate
     // local state directly before calling saveAll (calendar, pos, import)
     if (!$supabase || !user.value) return
-    await ($supabase as any).from('profiles').update({
+    const { error } = await ($supabase as any).from('profiles').upsert({
+      id: user.value.id,
       business_name: settings.value.businessName,
       email: settings.value.email,
       phone: settings.value.phone,
@@ -502,7 +508,11 @@ export const useAppStore = defineStore('app', () => {
       square_sandbox: settings.value.squareSandbox,
       services: services.value,
       expenses: expenses.value,
-    }).eq('id', user.value.id)
+    })
+    if (error) {
+      console.error('[saveAll Error]', error)
+      throw error
+    }
   }
   const trackedDevices = ref<string[]>([])
   const trackDevice = (device: string) => {

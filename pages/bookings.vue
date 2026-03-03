@@ -207,7 +207,10 @@
             <p class="text-xs text-muted-foreground font-medium mt-1 flex items-center gap-1.5"><MapPin class="w-3 h-3 flex-shrink-0" />{{ call.address }}</p>
             <p class="text-xs font-semibold mt-2" style="color: #10b981">{{ formatDate(call.date) }} at {{ call.time }}</p>
           </div>
-          <p class="text-xs text-muted-foreground font-medium line-clamp-2 border-t border-border/60 pt-2">{{ call.issue }}</p>
+          <div v-if="call.address && call.address.length > 5" class="w-full h-24 rounded-xl overflow-hidden bg-muted mt-1 pointer-events-none" style="outline: 1px solid hsl(var(--border)/0.5); outline-offset: 0;">
+            <img :src="`https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(call.address)}&zoom=14&size=400x150&markers=color:0x10b981%7C${encodeURIComponent(call.address)}&key=AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY`" class="w-full h-full object-cover" loading="lazy" />
+          </div>
+          <p class="text-xs text-muted-foreground font-medium line-clamp-2 border-t border-border/60 pt-2 mt-2">{{ call.issue }}</p>
           <div class="flex items-center gap-2 pt-1">
             <button v-if="call.status !== 'Completed'"
               class="flex-1 h-8 rounded-full text-xs font-bold transition-all hover:scale-[1.02] active:scale-95"
@@ -373,7 +376,7 @@
               <div class="space-y-2">
                 <label class="m3-label">Address</label>
                 <div class="relative">
-                  <input v-model="housecallForm.address" placeholder="123 Main St, City, State" class="m3-input pr-12" @input="onAddressInput" />
+                  <input ref="addressInputRef" v-model="housecallForm.address" placeholder="123 Main St, City, State" class="m3-input pr-12" @input="onAddressInput" />
                   <button class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center hover:scale-110 active:scale-90 transition-all"
                     style="background: #3b82f620" title="Open in Google Maps" @click="openGoogleMaps">
                     <Navigation class="w-4 h-4" style="color: #3b82f6" />
@@ -645,8 +648,49 @@ const handleCreateTicket = async (ticketData: any) => {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// HOUSE CALLS
+// HOUSE CALLS & MAPS AUTOCOMPLETE
 // ────────────────────────────────────────────────────────────────────────────
+
+const addressInputRef = ref<HTMLInputElement | null>(null)
+let autocomplete: any = null
+
+useHead({
+  script: [
+    {
+      src: `https://maps.googleapis.com/maps/api/js?key=AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY&libraries=places`,
+      async: true,
+      defer: true,
+      onload: () => {
+        if (typeof (window as any).google !== 'undefined' && housecallFormOpen.value && addressInputRef.value) {
+          initAutocomplete()
+        }
+      }
+    }
+  ]
+})
+
+function initAutocomplete() {
+  if (!addressInputRef.value || typeof (window as any).google === 'undefined' || autocomplete) return
+  
+  autocomplete = new (window as any).google.maps.places.Autocomplete(addressInputRef.value, {
+    fields: ['formatted_address', 'geometry', 'name'],
+    types: ['address']
+  })
+
+  autocomplete.addListener('place_changed', () => {
+    const place = autocomplete.getPlace()
+    if (place.formatted_address) {
+      housecallForm.value.address = place.formatted_address
+      onAddressInput() // Trigger iframe preview reload
+    }
+  })
+  
+  // Prevent form submission on enter in autocomplete
+  addressInputRef.value.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') e.preventDefault()
+  })
+}
+
 const housecallFilter = ref('All')
 const housecallFilterOptions = ['All', 'Scheduled', 'In Progress', 'Completed', 'Cancelled']
 const housecallFormOpen = ref(false)
@@ -688,7 +732,12 @@ const applyCalcEstimate = () => { housecallEstimate.value = calcTotal.value }
 
 // Reset calculator when dialog opens
 watch(housecallFormOpen, (open) => {
-  if (open) { calc.value = { labor: 0, parts: 0, travel: 0, taxRate: 0 }; housecallEstimate.value = 0 }
+  if (open) { 
+    calc.value = { labor: 0, parts: 0, travel: 0, taxRate: 0 }; housecallEstimate.value = 0 
+    nextTick(() => {
+      if (!autocomplete) initAutocomplete()
+    })
+  }
 })
 
 // Google Maps embed URL (debounced)
