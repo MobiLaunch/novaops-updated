@@ -454,6 +454,7 @@
 
 <script setup lang="ts">
 import { X, Plus, Search, Clock, DollarSign, Save, Trash2, Loader2 } from 'lucide-vue-next'
+import { storeToRefs } from 'pinia'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { Card, CardContent } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
@@ -471,7 +472,7 @@ const props = defineProps<{
 const emit = defineEmits(['update:modelValue', 'save', 'delete'])
 
 const appStore = useAppStore()
-const { customers, inventory, settings } = appStore
+const { customers, inventory, settings } = storeToRefs(appStore)
 const { from } = useSupabase()
 const { addNotification } = useNotifications()
 

@@ -3,7 +3,7 @@
     <DialogContent class="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>Create New Ticket</DialogTitle>
-        <p class="text-sm text-muted-foreground">Step {{ currentStep }} of 4</p>
+        <p class="text-sm text-muted-foreground">Step {{ currentStep }} of 5</p>
       </DialogHeader>
 
       <div class="py-6">
@@ -434,6 +434,7 @@ const createTicket = () => {
     signature: ticketData.value.signature
   })
   resetForm()
+  isOpen.value = false
 }
 
 const resetForm = () => {

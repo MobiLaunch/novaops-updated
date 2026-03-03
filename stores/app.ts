@@ -146,9 +146,15 @@ export const useAppStore = defineStore('app', () => {
 
       if (p.data) {
         settings.value = {
-          businessName: p.data.business_name || '',
-          email: p.data.email || '',
-          phone: p.data.phone || ''
+          ...settings.value,
+          businessName: p.data.business_name || settings.value.businessName || '',
+          email: p.data.email || settings.value.email || '',
+          phone: p.data.phone || settings.value.phone || '',
+          address: p.data.address || settings.value.address || '',
+          currency: p.data.currency || settings.value.currency || '$',
+          taxRate: p.data.tax_rate ?? settings.value.taxRate ?? 0,
+          statuses: p.data.statuses || settings.value.statuses || 'Open, In Progress, Completed',
+          pin: p.data.pin || settings.value.pin || '1234',
         }
       }
 
@@ -202,8 +208,14 @@ export const useAppStore = defineStore('app', () => {
         break
       }
       case 'UPDATE': {
+        const norm = table === 'tickets' ? normalizeTicket(newRecord)
+          : table === 'customers' ? normalizeCustomer(newRecord)
+          : table === 'inventory' ? normalizeInventory(newRecord)
+          : table === 'house_calls' ? normalizeHouseCall(newRecord)
+          : table === 'appointments' ? normalizeAppointment(newRecord)
+          : newRecord
         const index = targetArray.value.findIndex((item: any) => item.id === newRecord.id)
-        if (index !== -1) targetArray.value[index] = newRecord
+        if (index !== -1) targetArray.value[index] = norm
         break
       }
       case 'DELETE':
@@ -411,13 +423,25 @@ export const useAppStore = defineStore('app', () => {
   }
 
   // ── Settings ──────────────────────────────────────────────────────────────
-  const saveAll = async () => {
+  const saveSettings = async (newSettings: any) => {
     if (!$supabase || !user.value) return
+    // Merge into local state
+    settings.value = { ...settings.value, ...newSettings }
+    // Persist all fields to the profiles table
     await ($supabase as any).from('profiles').update({
-      business_name: settings.value.businessName,
-      email: settings.value.email,
-      phone: settings.value.phone,
+      business_name: settings.value.businessName || '',
+      email: settings.value.email || '',
+      phone: settings.value.phone || '',
+      address: settings.value.address || '',
+      currency: settings.value.currency || '$',
+      tax_rate: settings.value.taxRate ?? 0,
+      statuses: settings.value.statuses || 'Open, In Progress, Completed',
+      pin: settings.value.pin || '',
     }).eq('id', user.value.id)
+  }
+
+  const saveAll = async () => {
+    await saveSettings(settings.value)
   }
 
   // trackDevice: lightweight device tracking stub (was in old store)
@@ -472,6 +496,7 @@ export const useAppStore = defineStore('app', () => {
     updateCustomer,
     deleteCustomer,
     saveAll,
+    saveSettings,
     trackDevice,
     logout
   }
