@@ -50,7 +50,6 @@ export interface Ticket {
   createdAt: string
   updatedAt: string
   posOrder?: boolean
-  diagnostics?: any
 }
 
 export interface InventoryItem {

@@ -32,11 +32,11 @@ export const useAppStore = defineStore('app', () => {
   // Notification preferences — persisted to localStorage so settings toggles
   // actually gate addNotification calls across the app.
   const notificationPrefs = ref({
-    newTicket:   true,
-    newSale:     true,
+    newTicket: true,
+    newSale: true,
     newCustomer: false,
     appointment: true,
-    newMessage:  true,
+    newMessage: true,
   })
 
   const user = ref<any>(null)
@@ -76,7 +76,6 @@ export const useAppStore = defineStore('app', () => {
     price: t.price ?? 0,
     tracking: t.tracking ?? null,
     signature: t.signature ?? null,
-    diagnostics: t.diagnostics ?? null,
   })
 
   const normalizeCustomer = (c: any) => ({
@@ -115,7 +114,7 @@ export const useAppStore = defineStore('app', () => {
       try {
         const stored = localStorage.getItem('novaops_notif_prefs')
         if (stored) Object.assign(notificationPrefs.value, JSON.parse(stored))
-      } catch {}
+      } catch { }
     }
 
     if (!$supabase) return
@@ -285,7 +284,6 @@ export const useAppStore = defineStore('app', () => {
       time_log: ticketData.timeLog || [],
       priority: ticketData.priority || 'normal',
       tracking: ticketData.tracking || null,
-      diagnostics: ticketData.diagnostics || null,
     }).select().single()
     if (error) {
       console.error('[Ticket Creation Error]:', error)
