@@ -325,6 +325,9 @@ const todaySummary = computed(() => [
 ])
 
 const { addNotification } = useNotifications()
+const { sendTicketEmail, sendInternalAlert } = useEmailNotifications()
+
+const getCustomerPhone = (customerId: number) => (customers.value || []).find((c: any) => c.id === customerId)?.phone || ''
 
 const handleCreateTicket = async (ticketData: any) => {
   try {
@@ -347,6 +350,9 @@ const handleCreateTicket = async (ticketData: any) => {
     trackDevice(ticket.device)
     addNotification('Ticket Created', `Ticket #${ticket.id} created successfully`, 'success')
     newTicketOpen.value = false
+    // Fire email notifications (non-blocking)
+    sendTicketEmail({ ...ticket, customerId }).catch(() => {})
+    sendInternalAlert({ eventType: 'New Ticket', eventSummary: `Ticket #${ticket.id} created`, customerName: getCustomerName(customerId), customerPhone: getCustomerPhone(customerId), deviceName: ticketData.device || '', issueDescription: ticketData.issue || '', ticketNumber: String(ticket.id) }).catch(() => {})
   } catch (err: any) {
     addNotification('Error', err.message || 'Failed to create ticket', 'error')
   }

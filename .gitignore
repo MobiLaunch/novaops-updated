@@ -1,2 +1,18 @@
+# Deps
+node_modules/
+
+# Build
+.output/
+.nuxt/
+dist/
+
+# Vercel
 .vercel
+
+# Env
+.env
 .env*.local
+
+# OS
+.DS_Store
+Thumbs.db

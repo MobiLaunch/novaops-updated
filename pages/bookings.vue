@@ -568,6 +568,7 @@ definePageMeta({ middleware: ['auth'] })
 const appStore = useAppStore()
 const { tickets, customers, settings, houseCalls: housecalls, vendorRepairs } = storeToRefs(appStore)
 const { addNotification } = useNotifications()
+const { sendTicketEmail, sendHousecallEmail, sendVendorRepairEmail, sendInternalAlert } = useEmailNotifications()
 
 // ── Active Tab ────────────────────────────────────────────────────────────────
 const activeTab = ref<'tickets' | 'housecalls' | 'thirdparty'>('tickets')
@@ -617,6 +618,7 @@ const ticketStats = computed(() => [
 const formatCurrency = (amount: number) => `${settings.value?.currency || '$'}${(amount || 0).toFixed(2)}`
 const formatDate = (date?: string) => date ? new Date(date.includes('T') ? date : date + 'T00:00:00').toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '—'
 const getCustomerName = (customerId: number) => (customers.value ?? []).find((c: any) => c.id === customerId)?.name || 'Unknown'
+const getCustomerPhone = (customerId: number) => (customers.value ?? []).find((c: any) => c.id === customerId)?.phone || ''
 const ticketStatusColor = (status: string) => ({ 'Open': '#3b82f6', 'In Progress': '#f59e0b', 'Waiting for Parts': '#f97316', 'Completed': '#10b981', 'Delivered': '#64748b' }[status] || '#64748b')
 const priorityColor = (p: string) => ({ low: '#64748b', normal: '#3b82f6', high: '#ef4444' }[p] || '#64748b')
 
@@ -646,6 +648,9 @@ const handleCreateTicket = async (ticketData: any) => {
     const ticket = await appStore.createTicket({ ...ticketData, customerId, status: 'Open', price: 0, services: [], parts: [], payments: [], notes: [], timeLog: [] })
     addNotification('Ticket Created', `Ticket #${ticket.id} created successfully`, 'success')
     newTicketOpen.value = false
+    // Fire email notifications (non-blocking)
+    sendTicketEmail({ ...ticket, customerId }).catch(() => {})
+    sendInternalAlert({ eventType: 'New Ticket', eventSummary: `Ticket #${ticket.id} created`, customerName: getCustomerName(customerId), customerPhone: getCustomerPhone(customerId), deviceName: ticketData.device || '', issueDescription: ticketData.issue || '', ticketNumber: String(ticket.id) }).catch(() => {})
   } catch (err: any) {
     addNotification('Error', err.message || 'Failed to create ticket', 'error')
   }
@@ -694,13 +699,19 @@ const openNewHousecall = () => { editingHousecall.value = null; housecallForm.va
 const viewHousecall = (call: any) => { editingHousecall.value = call; housecallForm.value = { ...call }; housecallFormOpen.value = true }
 const saveHousecall = async () => {
   try {
+    const isNew = !editingHousecall.value
     if (editingHousecall.value) {
       await appStore.updateHouseCall(editingHousecall.value.id, { ...housecallForm.value })
     } else {
       await appStore.createHouseCall({ ...housecallForm.value, status: 'Scheduled' })
     }
     housecallFormOpen.value = false; editingHousecall.value = null
-    addNotification('Saved', editingHousecall.value ? 'House call updated' : 'House call scheduled', 'success')
+    addNotification('Saved', isNew ? 'House call scheduled' : 'House call updated', 'success')
+    // Fire email notifications for new house calls (non-blocking)
+    if (isNew) {
+      sendHousecallEmail(housecallForm.value).catch(() => {})
+      sendInternalAlert({ eventType: 'House Call', eventSummary: 'New house call scheduled', customerName: getCustomerName(housecallForm.value.customerId), deviceName: '', issueDescription: housecallForm.value.issue || '' }).catch(() => {})
+    }
   } catch(e: any) { addNotification('Error', e.message || 'Failed to save house call', 'error') }
 }
 const advanceHousecallStatus = async (call: any) => {
@@ -853,13 +864,19 @@ const openNewVendorRepair = () => { editingVendorRepair.value = null; vendorForm
 const openVendorRepair = (repair: any) => { editingVendorRepair.value = repair; vendorForm.value = { ...repair }; vendorFormOpen.value = true }
 const saveVendorRepair = async () => {
   try {
+    const isNew = !editingVendorRepair.value
     if (editingVendorRepair.value) {
       await appStore.updateVendorRepair(editingVendorRepair.value.id, { ...vendorForm.value })
     } else {
       await appStore.createVendorRepair({ ...vendorForm.value })
     }
     vendorFormOpen.value = false; editingVendorRepair.value = null
-    addNotification('Saved', editingVendorRepair.value ? 'Vendor repair updated' : 'Vendor repair created', 'success')
+    addNotification('Saved', isNew ? 'Vendor repair created' : 'Vendor repair updated', 'success')
+    // Fire email notifications for new vendor repairs (non-blocking)
+    if (isNew) {
+      sendVendorRepairEmail(vendorForm.value).catch(() => {})
+      sendInternalAlert({ eventType: 'Vendor Repair', eventSummary: 'New vendor repair dispatched', customerName: getCustomerName(vendorForm.value.customerId), deviceName: vendorForm.value.device || '', issueDescription: vendorForm.value.issue || '', ticketNumber: vendorForm.value.ticketRef || '' }).catch(() => {})
+    }
   } catch(e: any) { addNotification('Error', e.message || 'Failed to save vendor repair', 'error') }
 }
 </script>

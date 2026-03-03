@@ -94,6 +94,14 @@ export default defineNuxtConfig({
       igAppId: process.env.NUXT_PUBLIC_IG_APP_ID || '',
       googleClientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID || '',
       yelpClientId: process.env.NUXT_PUBLIC_YELP_CLIENT_ID || '',
+
+      // EmailJS
+      emailjsServiceId: process.env.NUXT_PUBLIC_EMAILJS_SERVICE_ID || '',
+      emailjsPublicKey: process.env.NUXT_PUBLIC_EMAILJS_PUBLIC_KEY || '',
+      emailjsTicketTemplateId: process.env.NUXT_PUBLIC_EMAILJS_TICKET_TEMPLATE_ID || '',
+      emailjsHousecallTemplateId: process.env.NUXT_PUBLIC_EMAILJS_HOUSECALL_TEMPLATE_ID || '',
+      emailjsVendorRepairTemplateId: process.env.NUXT_PUBLIC_EMAILJS_VENDOR_REPAIR_TEMPLATE_ID || '',
+      emailjsInternalTemplateId: process.env.NUXT_PUBLIC_EMAILJS_INTERNAL_TEMPLATE_ID || '',
     }
   },
 
