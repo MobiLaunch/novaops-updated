@@ -44,14 +44,18 @@ export const useEmailNotifications = () => {
 
     const send = async (params: Record<string, string>) => {
         if (!isConfigured()) return
-        console.log('[EmailJS] Sending with params:', { serviceId, templateId, to_email: params.to_email })
+        console.log('[EmailJS] ── Sending ──────────────────────────')
+        console.log('[EmailJS] Service ID:', serviceId)
+        console.log('[EmailJS] Template ID:', templateId)
+        console.log('[EmailJS] to_email:', JSON.stringify(params.to_email))
+        console.log('[EmailJS] All params:', JSON.stringify(params, null, 2))
         try {
             const result = await emailjs.send(serviceId, templateId, params, publicKey)
             console.log('[EmailJS] ✅ Success:', result.status, result.text)
             addNotification('Email Sent', `Notification sent to ${params.to_email}`, 'success')
         } catch (err: any) {
-            console.error('[EmailJS] ❌ Send failed:', err)
-            addNotification('Email Notice', `Email to ${params.to_email} could not be sent`, 'warning')
+            console.error('[EmailJS] ❌ Send failed:', err?.text || err?.message || err)
+            addNotification('Email Notice', `Email could not be sent: ${err?.text || err?.message || 'Unknown error'}`, 'warning')
         }
     }
 
