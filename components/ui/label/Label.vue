@@ -8,7 +8,12 @@ const props = defineProps<LabelProps & { class?: HTMLAttributes['class'] }>()
 
 <template>
   <Label
-    :class="cn('text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70', props.class)"
+    :class="cn(
+      // M3 label — uppercase micro-text matching the app's label pattern
+      'block text-[10px] font-black text-muted-foreground uppercase tracking-[0.12em]',
+      'peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
+      props.class,
+    )"
   >
     <slot />
   </Label>

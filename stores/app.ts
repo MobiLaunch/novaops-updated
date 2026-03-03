@@ -13,6 +13,8 @@ export const useAppStore = defineStore('app', () => {
   const houseCalls = ref<any[]>([])
   const appointments = ref<any[]>([])
   const quickSales = ref<any[]>([])
+  const services = ref<any[]>([])
+  const expenses = ref<Array<{ id: number; description: string; amount: number; category: string; date: string }>>([])
   const settings = ref({
     businessName: '',
     email: '',
@@ -20,8 +22,21 @@ export const useAppStore = defineStore('app', () => {
     address: '',
     currency: '$',
     taxRate: 0,
-    statuses: 'Open, In Progress, Completed',
-    pin: '1234'
+    statuses: 'Open, In Progress, Waiting for Parts, Completed, Delivered',
+    pin: '1234',
+    squareAccessToken: '',
+    squareLocationId: '',
+    squareSandbox: false,
+  })
+
+  // Notification preferences — persisted to localStorage so settings toggles
+  // actually gate addNotification calls across the app.
+  const notificationPrefs = ref({
+    newTicket:   true,
+    newSale:     true,
+    newCustomer: false,
+    appointment: true,
+    newMessage:  true,
   })
 
   const user = ref<any>(null)
@@ -61,6 +76,7 @@ export const useAppStore = defineStore('app', () => {
     price: t.price ?? 0,
     tracking: t.tracking ?? null,
     signature: t.signature ?? null,
+    diagnostics: t.diagnostics ?? null,
   })
 
   const normalizeCustomer = (c: any) => ({
@@ -78,6 +94,8 @@ export const useAppStore = defineStore('app', () => {
     price: i.price ?? 0,
     stock: i.stock ?? 0,
     category: i.category ?? 'Parts',
+    itemType: i.item_type ?? i.itemType ?? 'product',
+    description: i.description ?? '',
   })
 
   const normalizeHouseCall = (h: any) => ({
@@ -92,23 +110,31 @@ export const useAppStore = defineStore('app', () => {
   // Called once from the root layout. Subscribes to auth state so data loads
   // as soon as Supabase restores the session — no race condition with onMounted.
   const setupAuthListener = () => {
+    // Restore notification prefs from localStorage on startup
+    if (typeof localStorage !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('novaops_notif_prefs')
+        if (stored) Object.assign(notificationPrefs.value, JSON.parse(stored))
+      } catch {}
+    }
+
     if (!$supabase) return
-    ;($supabase as any).auth.onAuthStateChange((event: string, session: any) => {
-      if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && session?.user) {
-        user.value = session.user
-        if (!isLoaded.value) initializeData()
-      }
-      if (event === 'SIGNED_OUT') {
-        user.value = null
-        tickets.value = []
-        customers.value = []
-        inventory.value = []
-        houseCalls.value = []
-        appointments.value = []
-        isLoaded.value = false
-        navigateTo('/login')
-      }
-    })
+      ; ($supabase as any).auth.onAuthStateChange((event: string, session: any) => {
+        if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && session?.user) {
+          user.value = session.user
+          if (!isLoaded.value) initializeData()
+        }
+        if (event === 'SIGNED_OUT') {
+          user.value = null
+          tickets.value = []
+          customers.value = []
+          inventory.value = []
+          houseCalls.value = []
+          appointments.value = []
+          isLoaded.value = false
+          navigateTo('/login')
+        }
+      })
   }
 
   const initializeData = async () => {
@@ -146,16 +172,20 @@ export const useAppStore = defineStore('app', () => {
 
       if (p.data) {
         settings.value = {
-          ...settings.value,
-          businessName: p.data.business_name || settings.value.businessName || '',
-          email: p.data.email || settings.value.email || '',
-          phone: p.data.phone || settings.value.phone || '',
-          address: p.data.address || settings.value.address || '',
-          currency: p.data.currency || settings.value.currency || '$',
-          taxRate: p.data.tax_rate ?? settings.value.taxRate ?? 0,
-          statuses: p.data.statuses || settings.value.statuses || 'Open, In Progress, Completed',
-          pin: p.data.pin || settings.value.pin || '1234',
+          businessName: p.data.business_name || '',
+          email: p.data.email || '',
+          phone: p.data.phone || '',
+          address: p.data.address || '',
+          currency: p.data.currency || '$',
+          taxRate: p.data.tax_rate || 0,
+          statuses: p.data.statuses || 'Open, In Progress, Completed',
+          pin: p.data.pin || '1234',
+          squareAccessToken: p.data.square_access_token || '',
+          squareLocationId: p.data.square_location_id || '',
+          squareSandbox: p.data.square_sandbox || false,
         }
+        services.value = p.data.services || []
+        expenses.value = p.data.expenses || []
       }
 
       isLoaded.value = true
@@ -170,19 +200,21 @@ export const useAppStore = defineStore('app', () => {
   // --- Realtime ---
   const enableRealtime = () => {
     if (!$supabase) return
-    ;($supabase as any)
-      .channel('business-live')
-      .on('postgres_changes', { event: '*', schema: 'public' }, (payload: any) => {
-        handleRealtimeEvent(payload)
-      })
-      .subscribe()
+      ; ($supabase as any)
+        .channel('business-live')
+        .on('postgres_changes', { event: '*', schema: 'public' }, (payload: any) => {
+          handleRealtimeEvent(payload)
+        })
+        .subscribe()
   }
 
   const handleRealtimeEvent = (payload: any) => {
     const { eventType, new: newRecord, old: oldRecord, table } = payload
 
     if (newRecord?.profile_id !== user.value?.id && oldRecord?.profile_id !== user.value?.id) {
-      return
+      // For DELETE events, Supabase sometimes only sends the primary key.
+      // Allow the event through if we can't determine ownership (delete will no-op if id not found).
+      if (eventType !== 'DELETE') return
     }
 
     const tableMap: Record<string, Ref<any[]>> = {
@@ -200,22 +232,25 @@ export const useAppStore = defineStore('app', () => {
       case 'INSERT': {
         const norm = table === 'tickets' ? normalizeTicket(newRecord)
           : table === 'customers' ? normalizeCustomer(newRecord)
-          : table === 'inventory' ? normalizeInventory(newRecord)
-          : table === 'house_calls' ? normalizeHouseCall(newRecord)
-          : table === 'appointments' ? normalizeAppointment(newRecord)
-          : newRecord
+            : table === 'inventory' ? normalizeInventory(newRecord)
+              : table === 'house_calls' ? normalizeHouseCall(newRecord)
+                : table === 'appointments' ? normalizeAppointment(newRecord)
+                  : newRecord
         targetArray.value.unshift(norm)
         break
       }
       case 'UPDATE': {
-        const norm = table === 'tickets' ? normalizeTicket(newRecord)
-          : table === 'customers' ? normalizeCustomer(newRecord)
-          : table === 'inventory' ? normalizeInventory(newRecord)
-          : table === 'house_calls' ? normalizeHouseCall(newRecord)
-          : table === 'appointments' ? normalizeAppointment(newRecord)
-          : newRecord
         const index = targetArray.value.findIndex((item: any) => item.id === newRecord.id)
-        if (index !== -1) targetArray.value[index] = norm
+        if (index !== -1) {
+          // Apply the same normalizer used at load time so camelCase fields are correct
+          const norm = table === 'tickets' ? normalizeTicket(newRecord)
+            : table === 'customers' ? normalizeCustomer(newRecord)
+              : table === 'inventory' ? normalizeInventory(newRecord)
+                : table === 'house_calls' ? normalizeHouseCall(newRecord)
+                  : table === 'appointments' ? normalizeAppointment(newRecord)
+                    : newRecord
+          targetArray.value[index] = norm
+        }
         break
       }
       case 'DELETE':
@@ -250,8 +285,12 @@ export const useAppStore = defineStore('app', () => {
       time_log: ticketData.timeLog || [],
       priority: ticketData.priority || 'normal',
       tracking: ticketData.tracking || null,
+      diagnostics: ticketData.diagnostics || null,
     }).select().single()
-    if (error) throw error
+    if (error) {
+      console.error('[Ticket Creation Error]:', error)
+      throw error
+    }
     tickets.value.unshift(normalizeTicket(data))
     return data
   }
@@ -285,15 +324,18 @@ export const useAppStore = defineStore('app', () => {
       name: item.name,
       sku: item.sku || '',
       category: item.category || 'Parts',
-      stock: item.stock || 0,
-      low: item.low || 5,
+      stock: item.itemType === 'service' ? 9999 : (item.stock || 0),
+      low: item.itemType === 'service' ? 0 : (item.low || 5),
       cost: item.cost || 0,
       price: item.price || 0,
       model: item.model || '',
+      item_type: item.itemType || 'product',
+      description: item.description || '',
     }).select().single()
     if (error) throw error
-    inventory.value.push(normalizeInventory(data))
-    return data
+    const normalized = normalizeInventory(data)
+    inventory.value.push(normalized)
+    return normalized
   }
 
   const updateInventoryItem = async (id: number, updates: any) => {
@@ -356,6 +398,7 @@ export const useAppStore = defineStore('app', () => {
     const { data, error } = await ($supabase as any).from('appointments').insert({
       profile_id: user.value.id,
       customer_id: appt.customerId,
+      title: appt.title || '',
       description: appt.description || '',
       date: appt.date || null,
       time: appt.time || '',
@@ -425,26 +468,44 @@ export const useAppStore = defineStore('app', () => {
   // ── Settings ──────────────────────────────────────────────────────────────
   const saveSettings = async (newSettings: any) => {
     if (!$supabase || !user.value) return
-    // Merge into local state
-    settings.value = { ...settings.value, ...newSettings }
-    // Persist all fields to the profiles table
+    Object.assign(settings.value, newSettings)
     await ($supabase as any).from('profiles').update({
-      business_name: settings.value.businessName || '',
-      email: settings.value.email || '',
-      phone: settings.value.phone || '',
-      address: settings.value.address || '',
-      currency: settings.value.currency || '$',
-      tax_rate: settings.value.taxRate ?? 0,
-      statuses: settings.value.statuses || 'Open, In Progress, Completed',
-      pin: settings.value.pin || '',
+      business_name: settings.value.businessName,
+      email: settings.value.email,
+      phone: settings.value.phone,
+      address: settings.value.address,
+      currency: settings.value.currency,
+      tax_rate: settings.value.taxRate,
+      statuses: settings.value.statuses,
+      pin: settings.value.pin,
+      square_access_token: settings.value.squareAccessToken,
+      square_location_id: settings.value.squareLocationId,
+      square_sandbox: settings.value.squareSandbox,
+      services: services.value,
+      expenses: expenses.value,
     }).eq('id', user.value.id)
   }
 
   const saveAll = async () => {
-    await saveSettings(settings.value)
+    // saveAll persists services alongside settings for pages that mutate
+    // local state directly before calling saveAll (calendar, pos, import)
+    if (!$supabase || !user.value) return
+    await ($supabase as any).from('profiles').update({
+      business_name: settings.value.businessName,
+      email: settings.value.email,
+      phone: settings.value.phone,
+      address: settings.value.address,
+      currency: settings.value.currency,
+      tax_rate: settings.value.taxRate,
+      statuses: settings.value.statuses,
+      pin: settings.value.pin,
+      square_access_token: settings.value.squareAccessToken,
+      square_location_id: settings.value.squareLocationId,
+      square_sandbox: settings.value.squareSandbox,
+      services: services.value,
+      expenses: expenses.value,
+    }).eq('id', user.value.id)
   }
-
-  // trackDevice: lightweight device tracking stub (was in old store)
   const trackedDevices = ref<string[]>([])
   const trackDevice = (device: string) => {
     if (device && !trackedDevices.value.includes(device)) {
@@ -472,6 +533,8 @@ export const useAppStore = defineStore('app', () => {
     appointments,
     quickSales,
     settings,
+    notificationPrefs,
+    expenses,
     user,
     isLoaded,
     isLoading,
@@ -495,8 +558,8 @@ export const useAppStore = defineStore('app', () => {
     createCustomer,
     updateCustomer,
     deleteCustomer,
+    services, saveSettings,
     saveAll,
-    saveSettings,
     trackDevice,
     logout
   }

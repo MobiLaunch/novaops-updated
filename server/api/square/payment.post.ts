@@ -1,5 +1,7 @@
-import { defineEventHandler, readBody, createError } from 'h3'
-import { getSquareCredentials, squareFetch } from '~/server/utils/squareClient'
+/**
+ * POST /api/square/payment
+ * FIX: Removed top-level imports for h3 and squareClient (dynamic import inside handler).
+ */
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -10,8 +12,8 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const { accessToken, locationId } = getSquareCredentials()
-    const data = await squareFetch('/payments', accessToken, {
+    const { accessToken, locationId } = getServerSquareCredentials(event)
+    const data = await serverSquareFetch('/payments', accessToken, {
       method: 'POST',
       body: {
         source_id: sourceId,

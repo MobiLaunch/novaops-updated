@@ -2,18 +2,27 @@ import { type VariantProps, cva } from 'class-variance-authority'
 
 export { default as Badge } from './Badge.vue'
 
+// M3 Badge — pill shaped, consistent with the app's status/priority chips
 export const badgeVariants = cva(
-  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  'inline-flex items-center rounded-full text-xs font-black transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 whitespace-nowrap',
   {
     variants: {
       variant: {
         default:
-          'border-transparent bg-primary text-primary-foreground hover:bg-primary/80',
+          'bg-primary/20 text-primary border-transparent px-3 py-1',
         secondary:
-          'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
+          'bg-secondary text-secondary-foreground border-transparent px-3 py-1',
         destructive:
-          'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
-        outline: 'text-foreground',
+          'bg-destructive/20 text-destructive border-transparent px-3 py-1',
+        outline:
+          'text-foreground border border-border px-3 py-1',
+        // Priority variants for tickets
+        low:
+          'bg-slate-500/15 text-slate-500 px-3 py-1',
+        normal:
+          'bg-blue-500/15 text-blue-500 px-3 py-1',
+        high:
+          'bg-red-500/15 text-red-500 px-3 py-1',
       },
     },
     defaultVariants: {

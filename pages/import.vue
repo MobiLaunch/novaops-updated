@@ -5,10 +5,10 @@
     <div class="flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-4">
         <div
-          class="w-14 h-14 rounded-[28px] flex items-center justify-center shadow-xl"
+          class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg"
           style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); box-shadow: 0 6px 28px #8b5cf650"
         >
-          <Upload class="w-7 h-7 text-white" />
+          <Upload class="w-6 h-6 text-white" />
         </div>
         <div>
           <h1 class="text-3xl font-black tracking-tight">Import & Export</h1>
@@ -239,11 +239,6 @@ const exportData = (key: string, format: 'csv' | 'json') => {
 </script>
 
 <style scoped>
-.m3-input {
-  width: 100%; height: 48px; padding: 0 16px; border-radius: 20px;
-  font-size: 14px; font-weight: 500;
-  background: hsl(var(--muted)/0.5); border: 2px solid hsl(var(--border)/0.7);
-  outline: none; transition: all 0.2s ease;
-}
+.m3-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
 .m3-input:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px #8b5cf618; }
 </style>

@@ -86,7 +86,7 @@ import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { useNotifications } from '~/composables/useNotifications'
 
-const { notifications, removeNotification, clearAll, unreadCount } = useNotifications()
+const { notifications, removeNotification, clearAll, markAllAsRead, unreadCount } = useNotifications()
 const open = ref(false)
 
 const getIcon = (type: string) => {

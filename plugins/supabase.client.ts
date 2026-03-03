@@ -1,45 +1,47 @@
 import { createClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
+// Singleton — prevents multiple GoTrue instances which causes auth warnings
 let _supabase: SupabaseClient | null = null
 
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
 
-  const url = config.public.supabaseUrl
-  const key = config.public.supabaseKey
+  // Priority 1: environment variables (production / server deployments)
+  let url = config.public.supabaseUrl as string
+  let key = config.public.supabaseKey as string
+
+  // Priority 2: user-supplied credentials stored in localStorage
+  // (Electron / self-hosted where env vars aren't baked in)
+  if (process.client && (!url || !key)) {
+    url = localStorage.getItem('novaops_sb_url') || ''
+    key = localStorage.getItem('novaops_sb_key') || ''
+  }
 
   if (!url || !key) {
     console.warn(
-      '[NovaOps] Supabase env vars missing.\n' +
-      'Set NUXT_PUBLIC_SUPABASE_URL and NUXT_PUBLIC_SUPABASE_ANON_KEY in your .env file or Vercel dashboard.'
+      '[NovaOps] Supabase credentials not found.\n' +
+      'Either set NUXT_PUBLIC_SUPABASE_URL + NUXT_PUBLIC_SUPABASE_ANON_KEY in .env,\n' +
+      'or connect via Settings → Database Connection.'
     )
     return { provide: { supabase: null } }
   }
 
-  // Clear any stale sessions stored under the old default Supabase key.
-  // This prevents leftover example/demo accounts from being auto-restored.
-  if (typeof window !== 'undefined') {
-    Object.keys(localStorage)
-      .filter(k => k.startsWith('sb-') && k.endsWith('-auth-token'))
-      .forEach(k => localStorage.removeItem(k))
-  }
-
   if (!_supabase) {
+    // In Electron, detectSessionInUrl causes errors because the page URL is
+    // file:// (no hash fragments from OAuth). The Electron OAuth loopback
+    // flow sets the session explicitly via exchangeCodeForSession().
+    const isElectron = process.client && !!(window as any).electronAPI?.isElectron
+
     _supabase = createClient(url, key, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true,
+        detectSessionInUrl: !isElectron,
         storageKey: 'novaops-auth',
       }
     })
   }
 
-  return {
-    provide: {
-      supabase: _supabase
-    }
-  }
+  return { provide: { supabase: _supabase } }
 })
-

@@ -58,7 +58,7 @@ module.exports = {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        sans: ['Outfit', 'sans-serif'],
+        sans: ['Google Sans', 'Nunito', 'sans-serif'],
       },
       keyframes: {
         'accordion-down': {

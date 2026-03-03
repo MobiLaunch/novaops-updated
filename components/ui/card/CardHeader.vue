@@ -1,17 +1,8 @@
 <script setup lang="ts">
 import { cn } from '~/lib/utils'
 
-interface CardHeaderProps {
-  class?: string
-}
-
-defineOptions({
-  name: 'CardHeader',
-})
-
-const props = withDefaults(defineProps<CardHeaderProps>(), {
-  class: '',
-})
+defineOptions({ name: 'CardHeader' })
+const props = withDefaults(defineProps<{ class?: string }>(), { class: '' })
 </script>
 
 <template>

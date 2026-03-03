@@ -49,6 +49,8 @@ export interface Ticket {
   priority: 'low' | 'normal' | 'high'
   createdAt: string
   updatedAt: string
+  posOrder?: boolean
+  diagnostics?: any
 }
 
 export interface InventoryItem {
@@ -73,6 +75,14 @@ export interface Appointment {
   time: string
   status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled'
   notes: string
+}
+
+export interface Expense {
+  id: number
+  description: string
+  amount: number
+  category: string
+  date: string
 }
 
 export interface QuickSale {

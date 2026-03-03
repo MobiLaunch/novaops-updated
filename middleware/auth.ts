@@ -2,25 +2,21 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   const { $supabase } = useNuxtApp()
 
-  // If Supabase isn't configured, allow navigation to login/register only
-  if (!$supabase) {
-    if (to.path !== '/login' && to.path !== '/register') {
-      return navigateTo('/login')
+  // Pages that never require auth
+  const publicPaths = ['/login', '/register', '/auth/callback', '/intro']
+  if (publicPaths.includes(to.path)) {
+    // If already authenticated, skip login/register (but not callback)
+    if ($supabase && to.path !== '/auth/callback') {
+      const { data: { user } } = await ($supabase as any).auth.getUser()
+      if (user) return navigateTo('/dashboard')
     }
     return
   }
 
-  // Get current session
+  // If Supabase isn't configured, only allow public pages
+  if (!$supabase) return navigateTo('/login')
+
+  // Validate session server-side (getUser hits the Supabase JWT endpoint)
   const { data: { user } } = await ($supabase as any).auth.getUser()
-
-  // Not authenticated → redirect to login (except for auth pages)
-  if (!user && to.path !== '/login' && to.path !== '/register') {
-    return navigateTo('/login')
-  }
-
-  // Already authenticated → skip login/register pages
-  if (user && (to.path === '/login' || to.path === '/register')) {
-    return navigateTo('/dashboard')
-  }
+  if (!user) return navigateTo('/login')
 })
-

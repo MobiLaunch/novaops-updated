@@ -14,8 +14,8 @@
           <kbd>⌘,</kbd>
         </button>
         <button class="menu-item" @click="go('/website-settings')">
-          <Globe class="w-3.5 h-3.5" style="color:#f59e0b" />
-          Customer Portal
+          <Sparkles class="w-3.5 h-3.5" style="color:#8b5cf6" />
+          Brand Manager
         </button>
         <div class="menu-divider" />
         <div class="menu-section-label">Data</div>
@@ -41,7 +41,7 @@
           <LayoutDashboard class="w-3.5 h-3.5" style="color:#6366f1" />
           Dashboard
         </button>
-        <button class="menu-item" @click="go('/tickets')">
+        <button class="menu-item" @click="go('/bookings')">
           <TicketCheck class="w-3.5 h-3.5" style="color:#f59e0b" />
           Tickets
         </button>
@@ -54,26 +54,34 @@
           Inventory
         </button>
         <button class="menu-item" @click="go('/calendar')">
-          <CalendarDays class="w-3.5 h-3.5" style="color:#06b6d4" />
-          Calendar
+          <Calendar class="w-3.5 h-3.5" style="color:#06b6d4" />
+          Calendar &amp; House Calls
         </button>
         <button class="menu-item" @click="go('/pos')">
           <ShoppingCart class="w-3.5 h-3.5" style="color:#ec4899" />
           POS / Register
         </button>
+        <button class="menu-item" @click="go('/services')">
+          <Cpu class="w-3.5 h-3.5" style="color:#22d3ee" />
+          Repair Services
+        </button>
+        <button class="menu-item" @click="go('/messages')">
+          <MessageCircle class="w-3.5 h-3.5" style="color:#ec4899" />
+          Messages &amp; Email
+        </button>
         <div class="menu-divider" />
-        <div class="menu-section-label">New</div>
+        <div class="menu-section-label">Tools & Finance</div>
+        <button class="menu-item" @click="go('/analytics')">
+          <BarChart3 class="w-3.5 h-3.5" style="color:#10b981" />
+          Analytics &amp; Accounting
+        </button>
         <button class="menu-item" @click="go('/barcodes')">
           <ScanLine class="w-3.5 h-3.5" style="color:#06b6d4" />
           Barcode Scanner
         </button>
         <button class="menu-item" @click="go('/forms')">
-          <FileText class="w-3.5 h-3.5" style="color:#10b981" />
+          <FileText class="w-3.5 h-3.5" style="color:#8b5cf6" />
           Invoices & Forms
-        </button>
-        <button class="menu-item" @click="go('/reports')">
-          <BarChart3 class="w-3.5 h-3.5" style="color:#f97316" />
-          Reports
         </button>
       </div>
     </div>
@@ -165,9 +173,9 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import {
   Settings, Globe, Download, Upload,
-  LayoutDashboard, TicketCheck, Users, Package, CalendarDays,
+  LayoutDashboard, TicketCheck, Users, Package, Calendar,
   ShoppingCart, ScanLine, FileText, BarChart3,
-  Plus, Monitor, Moon, Sun, RefreshCw,
+  Plus, Monitor, Moon, Sun, RefreshCw, Wrench, MessageCircle, Sparkles, Cpu,
 } from 'lucide-vue-next'
 import { useAppStore } from '~/stores/app'
 
@@ -188,7 +196,7 @@ function go(path: string) { closeAll(); navigateTo(path) }
 function quickAction(type: string) {
   closeAll()
   const routes: Record<string, string> = {
-    ticket: '/tickets', housecall: '/housecalls', customer: '/customers',
+    ticket: '/bookings', housecall: '/calendar', customer: '/customers',
     register: '/pos', invoice: '/forms', scan: '/barcodes', import: '/import',
   }
   if (routes[type]) navigateTo(routes[type])

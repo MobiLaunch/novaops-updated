@@ -33,19 +33,19 @@
         </div>
 
         <div class="space-y-2">
-          <label class="text-xs font-black text-muted-foreground uppercase tracking-widest">Business Name</label>
+          <label class="m3-label">Business Name</label>
           <input v-model="businessName" type="text" placeholder="Acme Repair Shop" class="m3-input" :disabled="loading" @keyup.enter="handleRegister" />
         </div>
         <div class="space-y-2">
-          <label class="text-xs font-black text-muted-foreground uppercase tracking-widest">Email</label>
+          <label class="m3-label">Email</label>
           <input v-model="email" type="email" placeholder="you@example.com" class="m3-input" :disabled="loading" @keyup.enter="handleRegister" />
         </div>
         <div class="space-y-2">
-          <label class="text-xs font-black text-muted-foreground uppercase tracking-widest">Password</label>
+          <label class="m3-label">Password</label>
           <input v-model="password" type="password" placeholder="At least 6 characters" class="m3-input" :disabled="loading" @keyup.enter="handleRegister" />
         </div>
         <div class="space-y-2">
-          <label class="text-xs font-black text-muted-foreground uppercase tracking-widest">Confirm Password</label>
+          <label class="m3-label">Confirm Password</label>
           <input v-model="confirmPassword" type="password" placeholder="••••••••" class="m3-input" :disabled="loading" @keyup.enter="handleRegister" />
         </div>
 
@@ -118,6 +118,7 @@ const handleRegister = async () => {
 </script>
 
 <style scoped>
+.m3-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
 @keyframes registerEnter {
   0%   { transform: scale(0.94) translateY(20px); opacity: 0; }
   65%  { transform: scale(1.02) translateY(-4px); opacity: 1; }

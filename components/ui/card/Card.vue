@@ -5,17 +5,14 @@ interface CardProps {
   class?: string
 }
 
-defineOptions({
-  name: 'Card',
-})
+defineOptions({ name: 'Card' })
 
-const props = withDefaults(defineProps<CardProps>(), {
-  class: '',
-})
+const props = withDefaults(defineProps<CardProps>(), { class: '' })
 </script>
 
 <template>
-  <div :class="cn('rounded-lg border bg-card text-card-foreground shadow-sm', props.class)">
+  <!-- M3 Card — rounded-[28px] to match the app's card language -->
+  <div :class="cn('rounded-[28px] border border-border/60 bg-card text-card-foreground', props.class)">
     <slot />
   </div>
 </template>

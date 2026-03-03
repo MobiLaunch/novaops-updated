@@ -1,48 +1,59 @@
 <template>
   <Dialog v-model:open="isOpen">
-    <DialogContent class="sm:max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+    <DialogContent class="w-full max-w-[96vw] sm:max-w-3xl max-h-[90dvh] overflow-hidden flex flex-col">
 
-      <!-- Header -->
-      <DialogHeader class="flex-shrink-0">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <DialogTitle class="text-xl">Ticket #{{ ticket?.id }}</DialogTitle>
-            <p class="text-sm text-muted-foreground mt-0.5">
-              {{ ticket?.device }} {{ ticket?.deviceModel }} · {{ getCustomerName(ticket?.customerId) }}
-            </p>
+      <!-- M3 Header -->
+      <div class="flex-shrink-0 px-4 sm:px-7 pt-5 sm:pt-7 pb-4 border-b border-border/50">
+        <div class="flex items-start justify-between gap-4 pr-10">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-[22px] flex items-center justify-center flex-shrink-0 shadow-md"
+              :style="`background: linear-gradient(135deg, ${ticketStatusColor(ticket?.status)}, ${ticketStatusColor(ticket?.status)}dd); box-shadow: 0 4px 14px ${ticketStatusColor(ticket?.status)}40`">
+              <TicketCheck class="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 class="text-lg font-black">Ticket #{{ ticket?.id }}</h2>
+              <p class="text-xs text-muted-foreground font-medium mt-0.5">
+                {{ ticket?.device }} {{ ticket?.deviceModel }} · {{ getCustomerName(ticket?.customerId) }}
+              </p>
+            </div>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
             <Select v-model="localStatus" @update:modelValue="saveStatus">
-              <SelectTrigger class="w-[150px] h-8 text-xs">
+              <SelectTrigger class="w-[165px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem v-for="s in statusList" :key="s" :value="s">{{ s }}</SelectItem>
               </SelectContent>
             </Select>
-            <Badge :class="priorityClass(ticket?.priority)">{{ ticket?.priority }}</Badge>
+            <span class="text-[10px] font-black px-3 py-1.5 rounded-full capitalize"
+              :style="`background: ${priorityColorRaw(ticket?.priority)}20; color: ${priorityColorRaw(ticket?.priority)}`">
+              {{ ticket?.priority }}
+            </span>
           </div>
         </div>
-      </DialogHeader>
+      </div>
 
-      <!-- Tabs -->
-      <div class="flex border-b border-border flex-shrink-0 gap-1 mt-2">
-        <button
-          v-for="tab in tabs"
-          :key="tab.id"
-          @click="activeTab = tab.id"
-          class="px-4 py-2 text-sm font-medium transition-colors relative"
-          :class="activeTab === tab.id
-            ? 'text-foreground'
-            : 'text-muted-foreground hover:text-foreground'"
-        >
-          {{ tab.label }}
-          <span
-            v-if="tab.count !== undefined && tab.count > 0"
-            class="ml-1.5 text-xs bg-primary/15 text-primary rounded-full px-1.5 py-0.5"
-          >{{ tab.count }}</span>
-          <div v-if="activeTab === tab.id" class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
-        </button>
+      <!-- M3 Pill Tabs -->
+      <div class="flex-shrink-0 px-6 py-3 border-b border-border/50">
+        <div class="flex gap-1 rounded-full p-1 w-fit" style="background: hsl(var(--muted)/0.5)">
+          <button
+            v-for="tab in tabs"
+            :key="tab.id"
+            @click="activeTab = tab.id"
+            class="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black transition-all duration-300"
+            :style="activeTab === tab.id
+              ? 'background: white; color: hsl(var(--foreground)); box-shadow: 0 2px 8px rgba(0,0,0,0.1)'
+              : 'color: hsl(var(--muted-foreground))'"
+          >
+            {{ tab.label }}
+            <span
+              v-if="tab.count !== undefined && tab.count > 0"
+              class="text-[9px] font-black px-1.5 py-0.5 rounded-full"
+              :style="activeTab === tab.id ? 'background: #6366f120; color: #6366f1' : 'background: hsl(var(--border)); color: hsl(var(--muted-foreground))'"
+            >{{ tab.count }}</span>
+          </button>
+        </div>
       </div>
 
       <!-- Tab Content -->
@@ -50,7 +61,7 @@
 
         <!-- ── Info Tab ──────────────────────────────────────────── -->
         <div v-if="activeTab === 'info'" class="space-y-4">
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card>
               <CardContent class="p-4 space-y-3">
                 <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Device</p>
@@ -321,7 +332,7 @@
         <div v-if="activeTab === 'payments'" class="space-y-4">
 
           <!-- Balance summary -->
-          <div class="grid grid-cols-3 gap-3">
+          <div class="grid grid-cols-3 gap-2 sm:gap-3">
             <Card>
               <CardContent class="p-3 text-center">
                 <p class="text-xs text-muted-foreground">Invoice</p>
@@ -435,17 +446,32 @@
 
       </div>
 
-      <!-- Footer -->
-      <div class="flex gap-3 pt-4 border-t flex-shrink-0">
-        <Button variant="destructive" size="sm" class="mr-auto" @click="$emit('delete', ticket)">
-          <Trash2 class="w-3.5 h-3.5 mr-1.5" /> Delete
-        </Button>
-        <Button variant="outline" @click="isOpen = false">Close</Button>
-        <Button @click="saveAll" :disabled="saving">
-          <Loader2 v-if="saving" class="w-3.5 h-3.5 mr-1.5 animate-spin" />
-          <Save v-else class="w-3.5 h-3.5 mr-1.5" />
-          Save
-        </Button>
+      <!-- M3 Footer -->
+      <div class="flex gap-2 sm:gap-2.5 px-4 sm:px-7 pb-5 sm:pb-7 pt-4 border-t border-border/50 flex-shrink-0 flex-wrap">
+        <button class="flex items-center gap-1.5 h-11 px-4 rounded-full text-sm font-bold text-white mr-auto transition-all hover:scale-[1.03] active:scale-95"
+          style="background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 14px #ef444430"
+          @click="$emit('delete', ticket)">
+          <Trash2 class="w-3.5 h-3.5" /> Delete
+        </button>
+        <button class="flex items-center gap-1.5 h-11 px-4 rounded-full text-sm font-bold transition-all hover:scale-[1.03] hover:bg-muted/60 active:scale-95"
+          style="outline: 2px solid hsl(var(--border)); outline-offset: 0"
+          :disabled="!ticketCustomer?.email"
+          :title="!ticketCustomer?.email ? 'Customer has no email' : 'Email customer'"
+          :style="!ticketCustomer?.email ? 'opacity:0.4;cursor:not-allowed;outline:2px solid hsl(var(--border));outline-offset:0' : 'outline:2px solid hsl(var(--border));outline-offset:0'"
+          @click="emailCustomer">
+          <Mail class="w-3.5 h-3.5" /> Email
+        </button>
+        <button class="h-11 px-5 rounded-full text-sm font-bold transition-all hover:scale-[1.03] hover:bg-muted/60 active:scale-95"
+          style="outline: 2px solid hsl(var(--border)); outline-offset: 0"
+          @click="isOpen = false">Close</button>
+        <button class="flex items-center gap-1.5 h-11 px-6 rounded-full text-sm font-black text-white transition-all hover:scale-[1.04] hover:-translate-y-0.5 active:scale-95"
+          style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 4px 16px #6366f140"
+          :disabled="saving"
+          @click="saveAll">
+          <Loader2 v-if="saving" class="w-3.5 h-3.5 animate-spin" />
+          <Save v-else class="w-3.5 h-3.5" />
+          {{ saving ? 'Saving…' : 'Save' }}
+        </button>
       </div>
 
     </DialogContent>
@@ -453,9 +479,9 @@
 </template>
 
 <script setup lang="ts">
-import { X, Plus, Search, Clock, DollarSign, Save, Trash2, Loader2 } from 'lucide-vue-next'
+import { X, Plus, Search, Clock, DollarSign, Save, Trash2, Loader2, Mail, TicketCheck } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
+import { Dialog, DialogContent } from '~/components/ui/dialog'
 import { Card, CardContent } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
@@ -473,7 +499,8 @@ const emit = defineEmits(['update:modelValue', 'save', 'delete'])
 
 const appStore = useAppStore()
 const { customers, inventory, settings } = storeToRefs(appStore)
-const { from } = useSupabase()
+const { $supabase } = useNuxtApp()
+const from = (table: string) => ($supabase as any).from(table)
 const { addNotification } = useNotifications()
 
 const isOpen = computed({
@@ -576,6 +603,13 @@ const priorityClass = (p?: string) => {
   }
   return map[p || 'normal']
 }
+
+const ticketStatusColor = (status?: string) => ({
+  'Open': '#3b82f6', 'In Progress': '#f59e0b', 'Waiting for Parts': '#f97316',
+  'Completed': '#10b981', 'Delivered': '#64748b', 'Closed': '#6366f1'
+}[status || ''] || '#64748b')
+
+const priorityColorRaw = (p?: string) => ({ low: '#64748b', normal: '#3b82f6', high: '#ef4444' }[p || ''] || '#64748b')
 
 // ── Filtered lists ────────────────────────────────────────────────
 const filteredCatalog = computed(() => {
@@ -710,18 +744,37 @@ const saveField = async (field: string, value: any) => {
   await appStore.updateTicket(props.ticket.id, { [key]: value, price: total })
 }
 
+const router = useRouter()
+
+const ticketCustomer = computed(() =>
+  customers.value?.find((c: any) => c.id === props.ticket?.customerId)
+)
+
+function emailCustomer() {
+  if (!ticketCustomer.value?.email) return
+  isOpen.value = false
+  router.push({
+    path: '/messages',
+    query: {
+      compose: '1',
+      ticketId: String(props.ticket.id),
+      customerId: String(props.ticket.customerId),
+    }
+  })
+}
+
 const saveAll = async () => {
   saving.value = true
   try {
     await appStore.updateTicket(props.ticket.id, {
-      status: localStatus.value,
+      status:        localStatus.value,
       warranty_days: localWarrantyDays.value,
-      tracking: localTracking.value,
-      services: localServices.value,
-      parts: localParts.value,
-      payments: localPayments.value,
-      notes: localNotes.value,
-      price: laborTotal.value + partsTotal.value,
+      tracking:      localTracking.value,
+      services:      localServices.value,
+      parts:         localParts.value,
+      payments:      localPayments.value,
+      notes:         localNotes.value,
+      price:         laborTotal.value + partsTotal.value,
     })
     emit('save')
     addNotification('Ticket Saved', `Ticket #${props.ticket.id} updated`, 'success')

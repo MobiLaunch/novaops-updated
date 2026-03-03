@@ -7,20 +7,11 @@ interface Notification {
   read: boolean
 }
 
+// Single global state — avoids localStorage cross-session contamination.
+// Notifications are in-memory only and reset on page reload (intentional).
+// For persistence across sessions, save to Supabase or a cookie.
 export const useNotifications = () => {
-  const notifications = useState<Notification[]>('notifications', () => {
-    if (process.client) {
-      const saved = localStorage.getItem('nova_notifications')
-      if (saved) {
-        try {
-          return JSON.parse(saved)
-        } catch (e) {
-          console.error('Failed to load notifications')
-        }
-      }
-    }
-    return []
-  })
+  const notifications = useState<Notification[]>('notifications', () => [])
 
   const addNotification = (title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
     const notification: Notification = {
@@ -29,54 +20,42 @@ export const useNotifications = () => {
       message,
       type,
       timestamp: new Date().toISOString(),
-      read: false
+      read: false,
     }
-    
     notifications.value.unshift(notification)
-    
-    // Save to localStorage
-    if (process.client) {
-      localStorage.setItem('nova_notifications', JSON.stringify(notifications.value))
+    // Cap at 50 notifications in memory
+    if (notifications.value.length > 50) {
+      notifications.value = notifications.value.slice(0, 50)
     }
   }
 
   const removeNotification = (id: string) => {
     const index = notifications.value.findIndex(n => n.id === id)
-    if (index > -1) {
-      notifications.value.splice(index, 1)
-      if (process.client) {
-        localStorage.setItem('nova_notifications', JSON.stringify(notifications.value))
-      }
-    }
+    if (index > -1) notifications.value.splice(index, 1)
   }
 
   const markAsRead = (id: string) => {
     const notification = notifications.value.find(n => n.id === id)
-    if (notification) {
-      notification.read = true
-      if (process.client) {
-        localStorage.setItem('nova_notifications', JSON.stringify(notifications.value))
-      }
-    }
+    if (notification) notification.read = true
+  }
+
+  const markAllAsRead = () => {
+    notifications.value.forEach(n => { n.read = true })
   }
 
   const clearAll = () => {
     notifications.value = []
-    if (process.client) {
-      localStorage.removeItem('nova_notifications')
-    }
   }
 
-  const unreadCount = computed(() => {
-    return notifications.value.filter(n => !n.read).length
-  })
+  const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
 
   return {
     notifications,
     addNotification,
     removeNotification,
     markAsRead,
+    markAllAsRead,
     clearAll,
-    unreadCount
+    unreadCount,
   }
 }

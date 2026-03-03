@@ -7,7 +7,8 @@ const props = defineProps<DialogTitleProps & { class?: HTMLAttributes['class'] }
 </script>
 
 <template>
-  <DialogTitle :class="cn('text-lg font-semibold leading-none tracking-tight', props.class)">
+  <!-- M3 dialog title — black weight, tight tracking -->
+  <DialogTitle :class="cn('text-base font-black tracking-tight', props.class)">
     <slot />
   </DialogTitle>
 </template>

@@ -1,285 +1,373 @@
 <template>
   <div class="pos-root">
 
-    <!-- ═══════════════════════════════════════════════════════════
-         MOBILE TAB BAR  (hidden on lg+)
-    ════════════════════════════════════════════════════════════════ -->
-    <div class="pos-tabs lg:hidden">
-      <button
-        v-for="tab in mobileTabs" :key="tab.id"
-        class="pos-tab"
-        :class="{ active: activeTab === tab.id }"
-        @click="activeTab = tab.id"
-      >
-        <component :is="tab.icon" class="w-4 h-4" />
-        <span>{{ tab.label }}</span>
-        <span v-if="tab.id === 'cart' && cart.length" class="tab-badge">{{ cart.length }}</span>
+    <!-- ── Ticket Mode Banner ─────────────────────────────────────── -->
+    <Transition name="slide-down">
+      <div v-if="ticketMode" class="ticket-banner">
+        <div class="ticket-banner-pip" />
+        <div class="ticket-banner-icon"><TicketCheck class="w-4 h-4" /></div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-black" style="color:#10b981">Ticket #{{ ticketMode.ticketId }} — Collecting Payment</p>
+          <p class="text-xs text-muted-foreground font-medium">Completing this sale will mark the ticket as Completed.</p>
+        </div>
+        <button class="banner-dismiss" @click="ticketMode = null; cart = []">✕ Dismiss</button>
+      </div>
+    </Transition>
+
+    <!-- ── Page Header ────────────────────────────────────────────── -->
+    <div class="pos-header">
+      <div class="flex items-center gap-3">
+        <div class="pos-header-icon">
+          <ShoppingCart class="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <h1 class="text-xl font-black tracking-tight leading-none">Point of Sale</h1>
+          <p class="text-[11px] text-muted-foreground font-medium mt-0.5">{{ (inventory as any[]).length }} items in catalog</p>
+        </div>
+      </div>
+      <Transition name="fade-scale">
+        <div v-if="cart.length" class="header-total-pill">
+          <ShoppingBag class="w-3.5 h-3.5" />
+          <span>{{ cart.length }} item{{ cart.length !== 1 ? 's' : '' }}</span>
+          <span class="header-total-amt">{{ formatCurrency(total) }}</span>
+        </div>
+      </Transition>
+    </div>
+
+    <!-- ── Mobile Tab Bar ────────────────────────────────────────── -->
+    <div class="mob-tabs">
+      <button class="mob-tab" :class="{ active: mobileTab === 'products' }" @click="mobileTab = 'products'">
+        <Package class="w-4 h-4" /> Products
+      </button>
+      <button class="mob-tab" :class="{ active: mobileTab === 'cart' }" @click="mobileTab = 'cart'">
+        <ShoppingBag class="w-4 h-4" />
+        Cart
+        <span v-if="cart.length" class="mob-tab-badge">{{ cart.length }}</span>
+      </button>
+      <button class="mob-tab" :class="{ active: mobileTab === 'checkout' }" @click="mobileTab = 'checkout'">
+        <CreditCard class="w-4 h-4" /> Checkout
       </button>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         BODY — 2-col on desktop, single tab on mobile
-    ════════════════════════════════════════════════════════════════ -->
+    <!-- ── 3-Column Body ──────────────────────────────────────────── -->
     <div class="pos-body">
 
-      <!-- ── COL 1: Products ─────────────────────────────────── -->
-      <div class="pos-col products-col" :class="{ 'mob-hidden': activeTab !== 'products' }">
+      <!-- ══ COL 1: Products ══════════════════════════════════════ -->
+      <div class="col-products" :class="{ 'mob-hidden': mobileTab !== 'products' }">
 
-        <!-- Search + categories -->
-        <div class="products-header">
-          <div class="search-wrap">
-            <Search class="search-icon" />
-            <input
-              v-model="searchQuery"
-              placeholder="Search products…"
-              class="search-input"
-              @keydown.escape="searchQuery = ''"
-            />
-            <button v-if="searchQuery" class="search-clear" @click="searchQuery = ''">
-              <X class="w-3.5 h-3.5" />
-            </button>
-          </div>
-          <div class="cat-row">
-            <button
-              v-for="cat in categories" :key="cat ?? 'all'"
-              class="cat-pill"
-              :class="{ active: selectedCategory === cat }"
-              @click="selectedCategory = cat"
-            >{{ cat ?? 'All' }}</button>
-          </div>
+        <!-- Search -->
+        <div class="search-wrap">
+          <Search class="search-icon" />
+          <input
+            v-model="searchQuery"
+            placeholder="Search products & services…"
+            class="search-input"
+            @keydown.escape="searchQuery = ''"
+          />
+          <button v-if="searchQuery" class="search-clear" @click="searchQuery = ''">
+            <X class="w-3.5 h-3.5" />
+          </button>
         </div>
 
-        <!-- Product grid -->
-        <div class="product-grid">
+        <!-- Category tabs -->
+        <div class="cat-strip">
           <button
-            v-for="item in filteredProducts" :key="item.id"
+            v-for="cat in categoryTabs"
+            :key="cat ?? 'all'"
+            class="cat-tab"
+            :class="{ active: selectedCategory === cat }"
+            @click="selectedCategory = cat"
+          >{{ cat ?? 'All' }}</button>
+        </div>
+
+        <!-- Product grid — scrollable -->
+        <div class="product-grid">
+
+          <!-- AKKO pinned card -->
+          <button class="product-card akko-card" @click="addAkkoInsurance">
+            <div class="product-card-top">
+              <div class="product-icon-wrap" style="background:linear-gradient(135deg,#8b5cf620,#3b82f620)">
+                <ShieldCheck class="w-5 h-5" style="color:#8b5cf6" />
+              </div>
+              <span class="product-badge akko-badge">PLAN</span>
+            </div>
+            <p class="product-name">AKKO Insurance</p>
+            <p class="product-sku">Device protection</p>
+            <p class="product-price" style="color:#8b5cf6">$15.00</p>
+          </button>
+
+          <!-- Inventory items -->
+          <button
+            v-for="item in filteredProducts"
+            :key="item.id"
             class="product-card"
-            :class="{ 'low-stock': item.stock <= (item.low ?? 5) }"
+            :class="{ 'svc-card': (item.itemType||'product') === 'service' }"
             @click="addToCart(item)"
           >
-            <div class="product-icon">
-              <Package class="w-6 h-6" />
-            </div>
-            <div class="product-info">
-              <p class="product-name">{{ item.name }}</p>
-              <p class="product-sku">{{ item.sku || item.category }}</p>
-            </div>
-            <div class="product-bottom">
-              <span class="product-price">{{ fmt(item.price) }}</span>
-              <span class="product-stock" :class="{ low: item.stock <= (item.low ?? 5) }">
-                {{ item.stock }} left
+            <div class="product-card-top">
+              <div class="product-icon-wrap"
+                :style="(item.itemType||'product') === 'service'
+                  ? 'background:linear-gradient(135deg,#10b98118,#05966918)'
+                  : 'background:linear-gradient(135deg,#ec489914,#db277714)'">
+                <component :is="(item.itemType||'product') === 'service' ? Wrench : Package" class="w-5 h-5"
+                  :style="(item.itemType||'product') === 'service' ? 'color:#10b981' : 'color:#ec4899'" />
+              </div>
+              <span class="product-badge"
+                :style="(item.itemType||'product') === 'service'
+                  ? 'background:#10b98114;color:#10b981'
+                  : Number(item.stock) <= Number(item.low||5)
+                    ? 'background:#f59e0b14;color:#f59e0b'
+                    : 'background:#ec489910;color:#ec4899'">
+                {{ (item.itemType||'product') === 'service' ? '∞' : item.stock }}
               </span>
             </div>
+            <p class="product-name">{{ item.name }}</p>
+            <p class="product-sku">{{ item.sku || item.category }}</p>
+            <p class="product-price"
+              :style="(item.itemType||'product') === 'service' ? 'color:#10b981' : 'color:#ec4899'">
+              {{ formatCurrency(item.price) }}
+            </p>
           </button>
 
           <div v-if="filteredProducts.length === 0" class="product-empty">
-            <Package class="w-10 h-10 opacity-20" />
-            <p>{{ searchQuery ? `No results for "${searchQuery}"` : 'No items in catalog' }}</p>
+            <Package class="w-8 h-8 opacity-10" />
+            <p class="text-sm font-bold text-muted-foreground">
+              {{ searchQuery ? `No results for "${searchQuery}"` : 'No items in catalog' }}
+            </p>
           </div>
         </div>
       </div>
 
-      <!-- ── COL 2: Cart ─────────────────────────────────────── -->
-      <div class="pos-col cart-col" :class="{ 'mob-hidden': activeTab !== 'cart' }">
+      <!-- ══ COL 2: Cart ══════════════════════════════════════════ -->
+      <div class="col-cart" :class="{ 'mob-hidden': mobileTab !== 'cart' }">
 
-        <div class="cart-header">
-          <div class="flex items-center gap-2.5">
-            <div class="cart-header-icon"><ShoppingCart class="w-4 h-4 text-white" /></div>
+        <!-- Cart header -->
+        <div class="cart-head">
+          <div class="flex items-center gap-2">
+            <div class="cart-head-icon"><ShoppingBag class="w-3.5 h-3.5 text-white" /></div>
             <span class="font-black text-sm">Current Sale</span>
-            <span v-if="cart.length" class="cart-count">{{ cart.length }}</span>
+            <span v-if="cart.length" class="cart-count-badge">{{ cart.length }}</span>
           </div>
-          <button class="cart-clear" :disabled="!cart.length" @click="clearCart" title="Clear cart">
+          <button class="cart-clear-btn" :disabled="!cart.length" @click="clearCart" title="Clear cart">
             <Trash2 class="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <!-- Cart items -->
-        <div class="cart-items">
+        <!-- Cart items (scrollable) -->
+        <div class="cart-body">
           <div v-if="!cart.length" class="cart-empty">
-            <ShoppingCart class="w-8 h-8 opacity-15" />
+            <div class="cart-empty-ring">
+              <ShoppingBag class="w-6 h-6 opacity-20" />
+            </div>
             <p class="text-sm font-bold text-muted-foreground">Cart is empty</p>
             <p class="text-xs text-muted-foreground">Tap a product to add it</p>
           </div>
-          <TransitionGroup v-else name="cart-item" tag="div" class="divide-y divide-border/30">
-            <div v-for="(item, idx) in cart" :key="item.id" class="cart-row">
-              <div class="cart-row-icon">
-                <Package class="w-3.5 h-3.5" />
+
+          <TransitionGroup v-else name="cart-row" tag="div" class="divide-y divide-border/25">
+            <div v-for="(item, idx) in cart" :key="`${item.id ?? 'c'}-${idx}`" class="cart-row">
+              <div class="cart-row-icon"
+                :style="item.isService ? 'background:#10b98112;color:#10b981'
+                  : item.isTicket ? 'background:#f59e0b12;color:#f59e0b'
+                  : 'background:#ec489912;color:#ec4899'">
+                <component :is="item.isService ? Wrench : item.isTicket ? TicketCheck : Package" class="w-3 h-3" />
               </div>
               <div class="cart-row-info">
-                <p class="cart-row-name">{{ item.name }}</p>
-                <p class="cart-row-sub">{{ fmt(item.price) }} ea.</p>
+                <p class="cart-item-name">{{ item.name }}</p>
+                <p class="cart-item-sub">{{ formatCurrency(item.price) }}{{ item.isService ? ' · service' : item.isTicket ? ' · ticket' : ' ea.' }}</p>
               </div>
-              <div class="cart-qty">
-                <button class="qty-btn" @click="decrement(idx)"><Minus class="w-3 h-3" /></button>
-                <span class="qty-num">{{ item.quantity }}</span>
-                <button class="qty-btn" @click="increment(idx)"><Plus class="w-3 h-3" /></button>
+              <div class="cart-row-qty">
+                <template v-if="!item.isService && !item.isTicket">
+                  <button class="qty-btn" @click="decrementItem(idx)"><Minus class="w-2.5 h-2.5" /></button>
+                  <span class="qty-num">{{ item.quantity }}</span>
+                  <button class="qty-btn" @click="incrementItem(idx)"><Plus class="w-2.5 h-2.5" /></button>
+                </template>
+                <button v-else class="qty-remove-btn" @click="decrementItem(idx)" title="Remove">
+                  <X class="w-2.5 h-2.5" />
+                </button>
               </div>
-              <span class="cart-row-total">{{ fmt(item.price * item.quantity) }}</span>
+              <span class="cart-row-total">{{ formatCurrency(item.price * item.quantity) }}</span>
             </div>
           </TransitionGroup>
         </div>
 
-        <!-- Totals -->
-        <div class="cart-footer">
-          <div class="totals">
-            <div class="total-row"><span>Subtotal</span><span>{{ fmt(subtotal) }}</span></div>
-            <div v-if="taxRate" class="total-row"><span>Tax ({{ taxRate }}%)</span><span>{{ fmt(taxAmount) }}</span></div>
-            <div class="total-row grand"><span>Total</span><span class="grand-amt">{{ fmt(total) }}</span></div>
+        <!-- Custom amount keypad (compact) -->
+        <div class="custom-bar">
+          <div class="custom-bar-header">
+            <Plus class="w-3 h-3" />
+            <span>Custom amount</span>
+            <span class="custom-display" :class="{ dim: keypadAmount === '0' }">
+              {{ settings.currency || '$' }}{{ (parseFloat(keypadAmount)/100).toFixed(2) }}
+            </span>
           </div>
-          <!-- Mobile: go to checkout -->
-          <button v-if="cart.length" class="mob-checkout-btn lg:hidden" @click="activeTab = 'checkout'">
-            <CreditCard class="w-4 h-4" />
-            Checkout · {{ fmt(total) }}
+          <div class="keypad-mini">
+            <button v-for="k in [1,2,3,4,5,6,7,8,9,'C',0,'⌫']" :key="k"
+              class="key-mini" :class="{ 'key-clr': k==='C', 'key-bk': k==='⌫' }"
+              @click="handleKey(k)">{{ k }}</button>
+          </div>
+          <button class="add-custom-btn" :disabled="keypadAmount==='0'" @click="addCustomToCart">
+            <Plus class="w-3 h-3" /> Add {{ keypadAmount !== '0' ? formatCurrency(parseFloat(keypadAmount)/100) : '' }}
           </button>
         </div>
+
+        <!-- Totals -->
+        <div class="cart-totals">
+          <div class="total-line"><span>Subtotal</span><span>{{ formatCurrency(subtotal) }}</span></div>
+          <div v-if="taxRate" class="total-line"><span>Tax ({{ taxRate }}%)</span><span>{{ formatCurrency(taxAmount) }}</span></div>
+          <div class="total-line total-grand">
+            <span>Total</span>
+            <span class="grand-amt">{{ formatCurrency(total) }}</span>
+          </div>
+        </div>
+
+        <!-- Mobile: proceed to checkout button -->
+        <button v-if="cart.length" class="mob-checkout-cta"
+          @click="mobileTab = 'checkout'">
+          <CheckCircle class="w-4 h-4" />
+          Proceed to Checkout · {{ formatCurrency(total) }}
+        </button>
       </div>
 
-      <!-- ── COL 3: Checkout ─────────────────────────────────── -->
-      <div class="pos-col checkout-col" :class="{ 'mob-hidden': activeTab !== 'checkout' }">
+      <!-- ══ COL 3: Checkout ══════════════════════════════════════ -->
+      <div class="col-checkout" :class="{ 'mob-hidden': mobileTab !== 'checkout' }">
 
         <!-- Customer -->
         <div class="checkout-card">
-          <p class="checkout-label"><Users class="w-3.5 h-3.5" /> Customer <span class="text-muted-foreground font-medium">(optional)</span></p>
-          <select v-model="selectedCustomerId" class="checkout-select">
-            <option :value="null">Walk-in customer</option>
-            <option v-for="c in customers" :key="c.id" :value="c.id">{{ c.name }}</option>
-          </select>
+          <p class="card-label"><Users class="w-3 h-3" /> Customer <span class="optional">(optional)</span></p>
+          <CustomerSelect v-model="selectedCustomerId" />
         </div>
 
-        <!-- Payment method -->
+        <!-- Payment method selector -->
         <div class="checkout-card">
-          <p class="checkout-label"><CreditCard class="w-3.5 h-3.5" /> Payment Method</p>
+          <p class="card-label"><CreditCard class="w-3 h-3" /> Payment Method</p>
           <div class="pm-grid">
-            <button
-              v-for="m in paymentMethods" :key="m.id"
-              class="pm-btn"
+            <button v-for="m in paymentMethods" :key="m.id"
+              class="pm-tile"
               :class="{ active: paymentMethod === m.id }"
-              :style="paymentMethod === m.id ? `--pm-color: ${m.color}` : ''"
-              @click="paymentMethod = m.id"
-            >
+              :style="paymentMethod === m.id ? `--accent:${m.color}` : ''"
+              @click="paymentMethod = m.id">
               <component :is="m.icon" class="w-4 h-4" />
               {{ m.label }}
             </button>
           </div>
         </div>
 
-        <!-- Square card form — always in DOM so SDK can measure it -->
-        <div class="checkout-card card-form-wrap" :class="{ visible: paymentMethod === 'card' }">
-          <p class="checkout-label"><Lock class="w-3.5 h-3.5" /> Card Details</p>
-          <div class="card-host-outer" :style="processing ? 'opacity:0.5;pointer-events:none' : ''">
-            <div id="sq-card-container" class="card-host" />
+        <!-- Square Card Form — always in DOM, hidden via CSS height trick -->
+        <!-- Square SDK measures the container at attach time; never remove from DOM -->
+        <div class="card-form-card" :class="{ visible: paymentMethod === 'Card' }">
+          <p class="card-label">
+            <Lock class="w-3 h-3" /> Card Details
+            <span class="sq-badge">
+              <svg width="9" height="9" viewBox="0 0 14 14" fill="none">
+                <rect width="14" height="14" rx="3" fill="currentColor"/>
+                <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" fill="white"/>
+              </svg>
+              Square
+            </span>
+          </p>
+          <div class="card-host-wrap" :style="processing ? 'opacity:0.5;pointer-events:none' : ''">
+            <div id="card-container" class="card-host"></div>
             <Transition name="fade">
               <div v-if="cardLoading" class="card-loading">
-                <div class="card-spinner" />
-                <span class="text-xs text-muted-foreground font-medium">Initializing secure form…</span>
+                <div class="spin-ring" />
+                <span class="text-xs font-medium text-muted-foreground">Initializing secure form…</span>
               </div>
             </Transition>
           </div>
-          <p v-if="!squareConfigured" class="sq-warn">
-            <AlertCircle class="w-3.5 h-3.5 flex-shrink-0" />
-            Square Application ID or Location ID missing in environment variables.
+        </div>
+
+        <!-- Afterpay -->
+        <div v-if="paymentMethod === 'Afterpay'" class="checkout-card afterpay-card">
+          <p class="card-label">
+            <span class="afterpay-dot" />
+            Afterpay / Clearpay
           </p>
+          <div id="afterpay-button" class="afterpay-host"></div>
+          <p class="afterpay-note">4 interest-free payments. Min. order $35.</p>
         </div>
 
         <!-- Cash / Other hint -->
-        <div v-if="paymentMethod === 'cash' || paymentMethod === 'other'" class="checkout-card cash-hint">
-          <component :is="paymentMethod === 'cash' ? Banknote : Wallet" class="w-5 h-5 cash-icon" />
+        <div v-if="paymentMethod === 'Cash' || paymentMethod === 'Other'" class="checkout-card cash-card">
+          <component :is="paymentMethod === 'Cash' ? Banknote : Wallet" class="w-5 h-5 cash-icon" />
           <div>
-            <p class="text-sm font-black">{{ paymentMethod === 'cash' ? 'Cash' : 'Other' }} Payment</p>
-            <p class="text-xs text-muted-foreground mt-0.5">
-              {{ paymentMethod === 'cash'
-                ? 'Collect cash and tap Complete Sale to record the transaction.'
+            <p class="text-sm font-black">{{ paymentMethod }} Payment</p>
+            <p class="text-xs text-muted-foreground font-medium mt-0.5">
+              {{ paymentMethod === 'Cash'
+                ? 'Collect cash, then tap Complete Sale to record the transaction.'
                 : 'Record any payment — check, store credit, or other method.' }}
             </p>
           </div>
         </div>
 
-        <div class="checkout-spacer" />
-
         <!-- Processing status -->
         <Transition name="fade-up">
-          <div v-if="processingStatus" class="processing-bar">
-            <div class="processing-spinner" />
-            {{ processingStatus }}
+          <div v-if="terminalStatus" class="status-bar">
+            <div class="status-spinner" />
+            {{ terminalStatus }}
           </div>
         </Transition>
 
-        <!-- Charge + CTA -->
-        <div class="charge-row">
-          <div>
-            <p class="text-xs text-muted-foreground font-semibold">Charge</p>
-            <p class="charge-amt" :class="{ lit: cart.length }">{{ fmt(total) }}</p>
-          </div>
-          <button
-            class="cta-btn"
-            :class="{ processing }"
-            :disabled="!cart.length || processing"
-            @click="handleCheckout"
-          >
-            <Transition name="btn-swap" mode="out-in">
-              <span v-if="processing" key="proc" class="btn-inner">
-                <div class="btn-spin" /> {{ processingStatus || 'Processing…' }}
-              </span>
-              <span v-else-if="!cart.length" key="empty" class="btn-inner">
-                <ShoppingCart class="w-4 h-4" /> Add items
-              </span>
-              <span v-else key="go" class="btn-inner">
-                <CheckCircle class="w-4 h-4" /> Complete Sale
-              </span>
-            </Transition>
-          </button>
+        <div class="checkout-spacer" />
+
+        <!-- Charge amount -->
+        <div class="charge-block">
+          <span class="charge-label">Charge</span>
+          <span class="charge-amt" :class="{ lit: cart.length }">{{ formatCurrency(total) }}</span>
         </div>
 
-      </div>
-    </div>
+        <!-- Primary checkout button -->
+        <button
+          class="checkout-btn"
+          :disabled="!cart.length || processing"
+          :class="{ processing }"
+          @click="handleCheckout"
+        >
+          <Transition name="btn-swap" mode="out-in">
+            <span v-if="processing" key="proc" class="btn-inner">
+              <div class="btn-spin" />{{ terminalStatus || 'Processing…' }}
+            </span>
+            <span v-else-if="!cart.length" key="empty" class="btn-inner">
+              <ShoppingCart class="w-4 h-4" /> Add items to checkout
+            </span>
+            <span v-else key="go" class="btn-inner">
+              <CheckCircle class="w-4 h-4" /> {{ ctaLabel }}
+            </span>
+          </Transition>
+        </button>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         RECEIPT MODAL
-    ════════════════════════════════════════════════════════════════ -->
+        <!-- Square config warning -->
+        <div v-if="paymentMethod === 'Card' && !squareConfigured" class="sq-warning">
+          <AlertCircle class="w-3.5 h-3.5 flex-shrink-0" />
+          Square credentials missing —
+          <button class="sq-warning-link" @click="useRouter().push('/settings')">configure in Settings</button>
+        </div>
+
+      </div><!-- /col-checkout -->
+    </div><!-- /pos-body -->
+
+    <!-- ── Sale Success Modal ──────────────────────────────────────── -->
     <Transition name="modal">
-      <div v-if="receipt" class="modal-backdrop" @click.self="receipt = null">
-        <div class="modal-card">
-          <div class="receipt-header">
-            <div class="receipt-check"><CheckCircle class="w-8 h-8 text-white" /></div>
-            <h2 class="text-xl font-black mt-3">Sale Complete</h2>
-            <p class="text-sm text-muted-foreground font-medium mt-1">
-              {{ receipt.businessName || 'NovaOps POS' }}
-            </p>
+      <div v-if="saleResult" class="modal-backdrop" @click="saleResult = null">
+        <div class="modal-card" @click.stop>
+          <div class="modal-success-ring">
+            <CheckCircle class="w-9 h-9 text-white" />
           </div>
-
-          <div class="receipt-body">
-            <div class="receipt-meta">
-              <div class="receipt-meta-row">
-                <span>Receipt #</span><strong>{{ receipt.ticketId }}</strong>
-              </div>
-              <div class="receipt-meta-row">
-                <span>Date</span><strong>{{ receipt.date }}</strong>
-              </div>
-              <div v-if="receipt.customer" class="receipt-meta-row">
-                <span>Customer</span><strong>{{ receipt.customer }}</strong>
-              </div>
-              <div class="receipt-meta-row">
-                <span>Payment</span><strong>{{ receipt.method }}</strong>
-              </div>
+          <h2 class="modal-title">Sale Complete!</h2>
+          <p class="modal-receipt">Receipt #{{ saleResult.receiptId }}</p>
+          <div class="modal-details">
+            <div class="modal-detail-row">
+              <span>Amount</span>
+              <strong>{{ formatCurrency(saleResult.amount) }}</strong>
             </div>
-
-            <div class="receipt-items">
-              <div v-for="item in receipt.items" :key="item.name" class="receipt-item-row">
-                <span class="flex-1 truncate">{{ item.quantity }}× {{ item.name }}</span>
-                <span class="font-semibold">{{ fmt(item.price * item.quantity) }}</span>
-              </div>
+            <div class="modal-detail-row">
+              <span>Method</span>
+              <strong>{{ saleResult.method }}</strong>
             </div>
-
-            <div class="receipt-totals">
-              <div class="receipt-total-row"><span>Subtotal</span><span>{{ fmt(receipt.subtotal) }}</span></div>
-              <div v-if="receipt.tax" class="receipt-total-row"><span>Tax</span><span>{{ fmt(receipt.tax) }}</span></div>
-              <div class="receipt-total-row grand">
-                <span>Total</span><span>{{ fmt(receipt.total) }}</span>
-              </div>
+            <div v-if="saleResult.customer" class="modal-detail-row">
+              <span>Customer</span>
+              <strong>{{ saleResult.customer }}</strong>
             </div>
           </div>
-
-          <button class="receipt-done" @click="receipt = null">Done</button>
+          <button class="modal-done-btn" @click="saleResult = null">Done</button>
         </div>
       </div>
     </Transition>
@@ -289,334 +377,433 @@
 
 <script setup lang="ts">
 import {
-  Search, Package, ShoppingCart, Trash2, Plus, Minus, X,
-  CheckCircle, CreditCard, Users, Lock, AlertCircle,
-  Banknote, Wallet,
+  Search, Package, ShoppingCart, ShoppingBag, Trash2, Plus, Minus, X,
+  CheckCircle, CreditCard, TicketCheck, ShieldCheck, Wrench,
+  Banknote, Wallet, Users, Lock, AlertCircle,
 } from 'lucide-vue-next'
+import CustomerSelect from '~/components/CustomerSelect.vue'
 
 definePageMeta({ middleware: ['auth'] })
 
-// ── Store & config ────────────────────────────────────────────────
-const appStore  = useAppStore()
-const config    = useRuntimeConfig()
+const config = useRuntimeConfig()
 
-const inventory = computed(() => appStore.inventory ?? [])
-const customers = computed(() => appStore.customers ?? [])
-const settings  = computed(() => appStore.settings)
+// Load Square SDK — sandbox vs production.
+// Prefer the squareSandbox toggle from user settings (saved in Supabase profile).
+// Fall back to detecting "sandbox-" prefix on the application ID.
+// isSandbox checks three sources in priority order:
+//  1. SQUARE_SANDBOX=true env var (via runtimeConfig.public.squareSandbox)
+//  2. squareSandbox toggle saved in the user's Supabase profile
+//  3. Application ID starting with "sandbox-" (Square's own convention)
+const isSandbox = computed(() =>
+  (config.public as any).squareSandbox ||
+  appStore.settings?.squareSandbox ||
+  config.public.squareApplicationId?.startsWith('sandbox-')
+)
 
-// ── Square config ─────────────────────────────────────────────────
-const squareAppId   = computed(() => config.public.squareApplicationId as string || '')
-const squareLocId   = computed(() => config.public.squareLocationId as string || '')
-const squareConfigured = computed(() => !!squareAppId.value && !!squareLocId.value)
-const isSandbox     = computed(() => squareAppId.value.startsWith('sandbox-'))
-
-// Load Square Web Payments SDK
 useHead({
   script: [{
     src: isSandbox.value
       ? 'https://sandbox.web.squarecdn.com/v1/square.js'
       : 'https://web.squarecdn.com/v1/square.js',
     async: true,
-  }],
+  }]
 })
 
-// ── Currency / tax ────────────────────────────────────────────────
-const currency  = computed(() => settings.value?.currency || '$')
-const taxRate   = computed(() => Number(settings.value?.taxRate) || 0)
-const fmt       = (n: number) => `${currency.value}${(n || 0).toFixed(2)}`
+const appStore = useAppStore()
+const { addNotification } = useNotifications()
 
-// ── Mobile tabs ───────────────────────────────────────────────────
-const activeTab = ref<'products' | 'cart' | 'checkout'>('products')
-const mobileTabs = [
-  { id: 'products',  label: 'Products',  icon: Package },
-  { id: 'cart',      label: 'Cart',      icon: ShoppingCart },
-  { id: 'checkout',  label: 'Checkout',  icon: CreditCard },
-] as const
+const inventory = computed(() => appStore.inventory ?? [])
+const settings  = computed(() => appStore.settings ?? { currency: '$', taxRate: 0 })
+const customers = computed(() => appStore.customers ?? [])
 
-// ── Product filtering ─────────────────────────────────────────────
-const searchQuery      = ref('')
-const selectedCategory = ref<string | null>(null)
+const squareConfigured = computed(() =>
+  !!(settings.value.squareAccessToken && settings.value.squareLocationId)
+)
 
-const categories = computed(() => {
-  const cats = [...new Set((inventory.value as any[]).map(i => i.category).filter(Boolean))]
-  return [null, ...cats.sort()]
+// ── State ──────────────────────────────────────────────────────────
+const searchQuery        = ref('')
+const selectedCategory   = ref<string | null>(null)
+const cart               = ref<any[]>([])
+const selectedCustomerId = ref<number | null>(null)
+const paymentMethod      = ref('Cash')
+const processing         = ref(false)
+const terminalStatus     = ref('')
+const keypadAmount       = ref('0')
+const cardLoading        = ref(false)
+const saleResult         = ref<null | { receiptId: number; amount: number; method: string; customer?: string }>(null)
+
+// ── Mobile tab navigation ──────────────────────────────────────────
+const mobileTab = ref<'products' | 'cart' | 'checkout'>('products')
+const ticketMode         = ref<{ ticketId: number; amount: number } | null>(null)
+
+// ── Payment method config ──────────────────────────────────────────
+const paymentMethods = [
+  { id: 'Cash',     label: 'Cash',     icon: Banknote,   color: '#10b981' },
+  { id: 'Card',     label: 'Card',     icon: CreditCard, color: '#6366f1' },
+  { id: 'Afterpay', label: 'Afterpay', icon: Wallet,     color: '#06b6d4' },
+  { id: 'Other',    label: 'Other',    icon: Wallet,     color: '#64748b' },
+]
+
+// ── Category tabs ──────────────────────────────────────────────────
+const categoryTabs = computed(() => {
+  const cats = [...new Set((inventory.value as any[]).map((i: any) => i.category).filter(Boolean))]
+  return [null, ...cats]
 })
 
+// ── Filtered products ──────────────────────────────────────────────
 const filteredProducts = computed(() =>
-  (inventory.value as any[]).filter(item => {
-    if (item.stock <= 0) return false
-    if (selectedCategory.value && item.category !== selectedCategory.value) return false
-    if (searchQuery.value) {
-      const q = searchQuery.value.toLowerCase()
-      return item.name?.toLowerCase().includes(q) || item.sku?.toLowerCase().includes(q)
-    }
-    return true
+  (inventory.value as any[]).filter((item: any) => {
+    const q = searchQuery.value.toLowerCase()
+    const matches = !q || (item.name||'').toLowerCase().includes(q)
+      || (item.sku||'').toLowerCase().includes(q)
+      || (item.description||'').toLowerCase().includes(q)
+    const inCat = !selectedCategory.value || item.category === selectedCategory.value
+    const isService = (item.itemType || 'product') === 'service'
+    return matches && inCat && (isService || item.stock > 0)
   })
 )
 
-// ── Cart ──────────────────────────────────────────────────────────
-const cart               = ref<any[]>([])
-const selectedCustomerId = ref<number | null>(null)
+// ── Totals ─────────────────────────────────────────────────────────
+const taxRate    = computed(() => parseFloat(settings.value?.taxRate as any) || 0)
+const subtotal   = computed(() => cart.value.reduce((a: number, i: any) => a + i.price * i.quantity, 0))
+const taxAmount  = computed(() => subtotal.value * (taxRate.value / 100))
+const total      = computed(() => subtotal.value + taxAmount.value)
+const formatCurrency = (n: number) => `${settings.value?.currency || '$'}${(n||0).toFixed(2)}`
 
-const subtotal  = computed(() => cart.value.reduce((s, i) => s + i.price * i.quantity, 0))
-const taxAmount = computed(() => subtotal.value * (taxRate.value / 100))
-const total     = computed(() => subtotal.value + taxAmount.value)
+const ctaLabel = computed(() => ({
+  Cash:     `Collect ${formatCurrency(total.value)} Cash`,
+  Card:     `Charge ${formatCurrency(total.value)} to Card`,
+  Afterpay: `Pay via Afterpay`,
+  Other:    `Complete Sale — ${formatCurrency(total.value)}`,
+}[paymentMethod.value] ?? `Complete Sale — ${formatCurrency(total.value)}`))
 
+// ── Cart ───────────────────────────────────────────────────────────
 function addToCart(item: any) {
-  const existing = cart.value.find(i => i.id === item.id)
-  if (existing) {
-    existing.quantity++
-  } else {
-    cart.value.push({ id: item.id, name: item.name, price: item.price, quantity: 1 })
+  const isService = (item.itemType || 'product') === 'service'
+  const existing  = cart.value.find(i => i.id === item.id)
+  if (existing && !isService) { existing.quantity++; }
+  else if (existing && isService) { /* already in cart */ }
+  else cart.value.push({ ...item, quantity: 1, isService })
+  // On mobile, briefly flash the cart tab to show item was added
+  if (window.innerWidth < 1024) {
+    mobileTab.value = 'cart'
   }
-  // Auto-switch to cart tab on mobile
-  if (window.innerWidth < 1024) activeTab.value = 'cart'
+}
+function addAkkoInsurance() {
+  const existing = cart.value.find(i => i.id === 'akko')
+  if (existing) { existing.quantity++ }
+  else cart.value.push({ id: 'akko', name: 'AKKO Device Insurance', price: 15.00, quantity: 1, isService: true })
+  if (window.innerWidth < 1024) mobileTab.value = 'cart'
+}
+const incrementItem = (i: number) => { cart.value[i].quantity++ }
+const decrementItem = (i: number) => {
+  if (cart.value[i].quantity > 1) cart.value[i].quantity--
+  else cart.value.splice(i, 1)
+}
+const clearCart = () => { cart.value = []; selectedCustomerId.value = null }
+
+// ── Keypad ─────────────────────────────────────────────────────────
+function handleKey(k: number | string) {
+  if (k === 'C')  { keypadAmount.value = '0'; return }
+  if (k === '⌫')  { keypadAmount.value = keypadAmount.value.length > 1 ? keypadAmount.value.slice(0,-1) : '0'; return }
+  if (keypadAmount.value.length >= 8) return
+  keypadAmount.value = keypadAmount.value === '0' ? String(k) : keypadAmount.value + k
+}
+function addCustomToCart() {
+  const amt = parseFloat(keypadAmount.value) / 100
+  if (amt <= 0) return
+  cart.value.push({ id: `custom-${Date.now()}`, name: 'Custom Amount', price: amt, quantity: 1, isService: false })
+  keypadAmount.value = '0'
 }
 
-function increment(idx: number) { cart.value[idx].quantity++ }
-function decrement(idx: number) {
-  if (cart.value[idx].quantity > 1) cart.value[idx].quantity--
-  else cart.value.splice(idx, 1)
-}
-function clearCart() { cart.value = []; selectedCustomerId.value = null }
+// ── Ticket / Afterpay redirect handling ───────────────────────────
+const route = useRoute()
+onMounted(() => {
+  const { ticketId, amount, customerId, afterpay_success } = route.query
+  if (ticketId && amount) {
+    ticketMode.value = { ticketId: Number(ticketId), amount: Number(amount) }
+    if (customerId) selectedCustomerId.value = Number(customerId)
+    const t = appStore.tickets?.find((t: any) => t.id === Number(ticketId))
+    cart.value = [{
+      id: null, quantity: 1, isTicket: true, ticketId: Number(ticketId),
+      name: t ? `Ticket #${ticketId} · ${t.device}` : `Ticket #${ticketId}`,
+      price: Number(amount),
+    }]
+  }
+  if (afterpay_success === 'true') {
+    paymentMethod.value = 'Afterpay'
+    const saved = localStorage.getItem('novaops_pending_pos_cart')
+    if (saved) { cart.value = JSON.parse(saved); localStorage.removeItem('novaops_pending_pos_cart') }
+    setTimeout(() => executeTicketCreation('Afterpay'), 800)
+    const q = { ...route.query }; delete q.afterpay_success
+    useRouter().replace({ query: q })
+  }
+})
 
-// ── Payment methods ───────────────────────────────────────────────
-const paymentMethod = ref('cash')
-const paymentMethods = [
-  { id: 'cash',  label: 'Cash',  icon: Banknote,    color: '#10b981' },
-  { id: 'card',  label: 'Card',  icon: CreditCard,  color: '#6366f1' },
-  { id: 'other', label: 'Other', icon: Wallet,      color: '#f59e0b' },
-]
+// ── Square SDK ──────────────────────────────────────────────────────
+const squarePayments   = ref<any>(null)
+const cardInstance     = ref<any>(null)
+const cardAttached     = ref(false)
+const afterpayInstance = ref<any>(null)
 
-// ── Square SDK ────────────────────────────────────────────────────
-const squarePayments = ref<any>(null)
-const cardInstance   = ref<any>(null)
-const cardAttached   = ref(false)
-const cardLoading    = ref(false)
-const processing     = ref(false)
-const processingStatus = ref('')
-
-async function loadSquareSDK(): Promise<boolean> {
+async function loadSquarePayments(): Promise<boolean> {
   if (squarePayments.value) return true
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 8; i++) {
     if ((window as any).Square) break
     await new Promise(r => setTimeout(r, 400))
   }
   if (!(window as any).Square) return false
   try {
     squarePayments.value = await (window as any).Square.payments(
-      squareAppId.value,
-      squareLocId.value
+      config.public.squareApplicationId,
+      config.public.squareLocationId
     )
     return true
-  } catch (e) {
-    console.error('[POS] Square init:', e)
-    return false
-  }
+  } catch (e) { console.error('Square init:', e); return false }
 }
 
 async function initCardForm() {
-  if (!squareConfigured.value) return
   cardLoading.value = true
   try {
-    const ok = await loadSquareSDK()
-    if (!ok) return
-
+    const ok = await loadSquarePayments()
+    if (!ok) { addNotification('Square Error', 'SDK failed to load.', 'error'); return }
     if (cardInstance.value) {
       try { await cardInstance.value.destroy() } catch {}
-      cardInstance.value = null
-      cardAttached.value = false
+      cardInstance.value = null; cardAttached.value = false
     }
-
-    // Wait for CSS transition so container has real dimensions
-    await new Promise(r => setTimeout(r, 380))
+    // Wait for CSS transition so container has real pixel dimensions
+    await new Promise(r => setTimeout(r, 420))
     await nextTick()
+    const container = document.getElementById('card-container')
+    if (!container) return
 
     cardInstance.value = await squarePayments.value.card({
       style: {
-        '.input-container':          { borderRadius: '14px', borderColor: 'hsl(var(--border))' },
-        '.input-container.is-focus': { borderColor: '#6366f1', boxShadow: '0 0 0 3px #6366f118' },
-        '.input-container.is-error': { borderColor: '#ef4444' },
-        'input': { fontFamily: 'system-ui, sans-serif', fontSize: '14px', fontWeight: '500' },
+        '.input-container':         { borderRadius: '12px', borderColor: 'hsl(var(--border))' },
+        '.input-container.is-focus':{ borderColor: '#6366f1', boxShadow: '0 0 0 3px #6366f118' },
+        '.input-container.is-error':{ borderColor: '#ef4444' },
+        'input': { fontFamily: "'Google Sans','Nunito',system-ui,sans-serif", fontSize: '14px', fontWeight: '500' },
         '.message-text': { color: '#ef4444', fontSize: '12px' },
-      },
+      }
     })
-    await cardInstance.value.attach('#sq-card-container')
+    await cardInstance.value.attach('#card-container')
     cardAttached.value = true
   } catch (e: any) {
-    console.error('[POS] Card form init:', e)
+    console.error('Card form init:', e)
+    addNotification('Card Form Error', e.message || 'Failed to initialize card form', 'error')
   } finally {
     cardLoading.value = false
   }
 }
 
-// Init / destroy card form when payment method changes
+async function initAfterpayButton(amount: number) {
+  if (!squareConfigured.value) return
+  try {
+    const ok = await loadSquarePayments()
+    if (!ok) return
+    if (afterpayInstance.value) {
+      try { await afterpayInstance.value.destroy() } catch {}
+      afterpayInstance.value = null
+    }
+    const req = squarePayments.value.paymentRequest({
+      countryCode: 'US', currencyCode: 'USD',
+      total: { amount: amount.toFixed(2), label: 'Total' }
+    })
+    afterpayInstance.value = await squarePayments.value.afterpayClearpay(req)
+    await afterpayInstance.value.attach('#afterpay-button')
+    document.getElementById('afterpay-button')?.addEventListener('click', async (e) => {
+      e.stopPropagation()
+      processing.value = true
+      terminalStatus.value = 'Waiting for Afterpay approval…'
+      try {
+        const result = await afterpayInstance.value.tokenize()
+        if (result.status === 'OK') {
+          terminalStatus.value = 'Charging Afterpay account…'
+          await handleRemoteSuccess(result.token, 'Afterpay')
+        } else { throw new Error(result.errors?.[0]?.message || 'Afterpay tokenization failed') }
+      } catch (err: any) {
+        terminalStatus.value = ''
+        addNotification('Afterpay Failed', err.message, 'error')
+      } finally { processing.value = false }
+    })
+  } catch (e: any) { console.error('Afterpay init:', e) }
+}
+
+// Watch payment method → init SDK forms
 watch(paymentMethod, async (method, prev) => {
-  if (prev === 'card' && cardInstance.value) {
+  if (prev === 'Card' && cardInstance.value) {
     try { await cardInstance.value.destroy() } catch {}
-    cardInstance.value = null
-    cardAttached.value = false
+    cardInstance.value = null; cardAttached.value = false
   }
-  if (method === 'card') {
-    await nextTick()
-    await initCardForm()
+  if (prev === 'Afterpay' && afterpayInstance.value) {
+    try { await afterpayInstance.value.destroy() } catch {}
+    afterpayInstance.value = null
+  }
+  if (method === 'Card') { await nextTick(); await initCardForm() }
+  if (method === 'Afterpay' && total.value > 0) { await nextTick(); await initAfterpayButton(total.value) }
+})
+
+// Re-init Afterpay when total changes
+watch(total, async (v) => {
+  if (paymentMethod.value === 'Afterpay' && v > 0) {
+    await nextTick(); await initAfterpayButton(v)
   }
 })
 
-// ── Checkout flow ─────────────────────────────────────────────────
-const receipt = ref<any>(null)
-
+// ── Checkout dispatch ───────────────────────────────────────────────
 async function handleCheckout() {
   if (!cart.value.length || processing.value) return
-  if (paymentMethod.value === 'card') {
-    await handleCardPayment()
-  } else {
-    await handleOfflinePayment()
+  if (paymentMethod.value === 'Card') { await handleCardPayment(); return }
+  if (paymentMethod.value === 'Afterpay') {
+    if (afterpayInstance.value) {
+      processing.value = true; terminalStatus.value = 'Opening Afterpay…'
+      try {
+        const result = await afterpayInstance.value.tokenize()
+        if (result.status === 'OK') await handleRemoteSuccess(result.token, 'Afterpay')
+        else throw new Error(result.errors?.[0]?.message || 'Failed')
+      } catch (e: any) { terminalStatus.value = ''; addNotification('Afterpay Error', e.message, 'error') }
+      finally { processing.value = false }
+    }
+    return
   }
+  // Cash / Other
+  processing.value = true
+  try { await executeTicketCreation(paymentMethod.value) }
+  catch (e: any) { terminalStatus.value = ''; addNotification('Sale Failed', e.message, 'error') }
+  finally { processing.value = false }
 }
 
 async function handleCardPayment() {
   if (!cardInstance.value || !cardAttached.value) {
-    alert('Card form not ready. Please wait a moment.')
-    return
+    addNotification('Card Form', 'Card form not ready. Please wait.', 'warning'); return
   }
-  processing.value = true
-  processingStatus.value = 'Tokenizing card…'
+  processing.value = true; terminalStatus.value = 'Processing card…'
   try {
     const result = await cardInstance.value.tokenize()
-    if (result.status !== 'OK') {
-      throw new Error(result.errors?.[0]?.message || 'Card tokenization failed')
-    }
-    processingStatus.value = 'Charging card…'
+    if (result.status === 'OK') {
+      terminalStatus.value = 'Charging card…'
+      await handleRemoteSuccess(result.token, 'Card')
+    } else { throw new Error(result.errors?.[0]?.message || 'Card tokenization failed') }
+  } catch (err: any) {
+    terminalStatus.value = ''; addNotification('Card Failed', err.message, 'error')
+  } finally { processing.value = false }
+}
 
-    // POST to server-side API route (avoids CORS)
+async function handleRemoteSuccess(sourceId: string, method: 'Card' | 'Afterpay') {
+  try {
+    // Route through Nitro server API — Square blocks direct browser fetch (CORS).
+    // The server reads credentials from environment variables, never from the client.
     const res = await $fetch('/api/square/payment', {
       method: 'POST',
       body: {
-        sourceId:    result.token,
+        sourceId,
         amountCents: Math.round(total.value * 100),
-        referenceId: `novaops-pos-${Date.now()}`,
-        note:        cart.value.map(i => `${i.quantity}× ${i.name}`).join(', '),
-      },
-    }) as any
-
-    if (!res.success || res.status !== 'COMPLETED') {
-      throw new Error('Card charge failed — status: ' + res.status)
-    }
-
-    await finalizeSale('Card')
+        referenceId: `novaops-${method.toLowerCase()}-${Date.now()}`,
+        note: cart.value.map((i: any) => `${i.quantity}× ${i.name}`).join(', '),
+      }
+    })
+    if (!res.success || res.status !== 'COMPLETED')
+      throw new Error(`${method} capture failed — status: ${res.status}`)
+    await executeTicketCreation(method)
   } catch (e: any) {
-    processingStatus.value = ''
-    processing.value = false
-    const msg = (e as any).data?.message || (e as any).message || 'Card payment failed'
-    alert(`Payment error: ${msg}`)
+    terminalStatus.value = ''
+    // $fetch wraps server errors in e.data.message
+    const msg = (e as any).data?.message || (e as any).message || `${method} charge failed`
+    addNotification(`${method} Charge Error`, msg, 'error')
   }
 }
 
-async function handleOfflinePayment() {
-  processing.value = true
-  processingStatus.value = 'Saving sale…'
-  try {
-    await finalizeSale(paymentMethod.value === 'cash' ? 'Cash' : 'Other')
-  } catch (e: any) {
-    processingStatus.value = ''
-    processing.value = false
-    alert(`Sale error: ${e.message}`)
-  }
-}
-
-async function finalizeSale(method: string) {
+async function executeTicketCreation(finalMethod: string) {
   const customerName = selectedCustomerId.value
-    ? (customers.value as any[]).find(c => c.id === selectedCustomerId.value)?.name
+    ? (customers.value as any[]).find((c: any) => c.id === selectedCustomerId.value)?.name
     : undefined
 
-  // Create ticket record in Supabase
   const ticket = await appStore.createTicket({
-    customerId:    selectedCustomerId.value,
-    device:        'POS Sale',
-    issue:         cart.value.map(i => `${i.quantity}× ${i.name}`).join(', '),
-    status:        'Completed',
-    price:         total.value,
-    paymentMethod: method,
+    customerId: selectedCustomerId.value,
+    device: 'POS Sale',
+    issue: cart.value.map((i: any) => `${i.quantity}× ${i.name}`).join(', '),
+    status: 'Completed',
+    price: total.value,
+    posOrder: true,
+    paymentMethod: finalMethod,
   } as any)
 
-  // Decrement stock for each item
-  for (const cartItem of cart.value) {
-    const inv = (appStore.inventory as any[]).find(i => i.id === cartItem.id)
-    if (inv) {
-      await appStore.updateInventoryItem(inv.id, {
-        stock: Math.max(0, inv.stock - cartItem.quantity),
-      })
+  // Deduct physical stock
+  const deductions = cart.value
+    .filter((item: any) => item.id && !item.isService && !item.isTicket)
+    .map((item: any) => {
+      const inv = (appStore.inventory as any[]).find((i: any) => i.id === item.id)
+      if (!inv) return null
+      return appStore.updateInventoryItem(item.id, { stock: Math.max(0, inv.stock - item.quantity) })
+    }).filter(Boolean)
+  await Promise.all(deductions)
+
+  // Record payment on ticket if in ticket mode
+  if (ticketMode.value) {
+    const sourceTicket = appStore.tickets?.find((t: any) => t.id === ticketMode.value!.ticketId)
+    if (sourceTicket) {
+      const payments = [...(sourceTicket.payments || []), {
+        amount: total.value, method: finalMethod,
+        note: `Collected via POS · Sale #${ticket.id}`,
+        date: new Date().toISOString(),
+      }]
+      await appStore.updateTicket(ticketMode.value.ticketId, { payments, status: 'Completed' })
     }
+    ticketMode.value = null
   }
 
-  // Build receipt data
-  receipt.value = {
-    ticketId:     ticket?.id ?? '—',
-    date:         new Date().toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }),
-    customer:     customerName,
-    method,
-    items:        [...cart.value],
-    subtotal:     subtotal.value,
-    tax:          taxAmount.value,
-    total:        total.value,
-    businessName: settings.value?.businessName,
-  }
-
+  saleResult.value = { receiptId: ticket.id, amount: total.value, method: finalMethod, customer: customerName }
   clearCart()
-  processingStatus.value = ''
-  processing.value = false
-
-  // Switch mobile tab back to products for next sale
-  if (window.innerWidth < 1024) activeTab.value = 'products'
+  terminalStatus.value = ''
 }
+
+onUnmounted(() => {
+  cardInstance.value?.destroy().catch(() => {})
+  afterpayInstance.value?.destroy().catch(() => {})
+})
 </script>
 
 <style scoped>
-/* ── Root ───────────────────────────────────────────────────────── */
+/* ── Root ──────────────────────────────────────────────────────────── */
 .pos-root {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  height: calc(100dvh - 4rem);
-  min-height: 500px;
-}
-@media (min-width: 1024px) {
-  .pos-root { height: calc(100dvh - 5rem); gap: 0; }
+  gap: 14px;
+  height: calc(100dvh - 160px);
+  min-height: 560px;
 }
 
-/* ── Mobile Tab Bar ─────────────────────────────────────────────── */
-.pos-tabs {
-  display: flex;
-  gap: 4px;
-  padding: 6px;
-  border-radius: 20px;
-  background: hsl(var(--muted) / 0.6);
+/* ── Mobile Tab Bar ────────────────────────────────────────────────── */
+.mob-tabs {
+  display: none;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 16px;
+  background: hsl(var(--muted)/0.6);
   flex-shrink: 0;
-  margin-bottom: 10px;
 }
-.pos-tab {
+.mob-tab {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 9px 8px;
-  border-radius: 14px;
+  gap: 5px;
+  padding: 8px 10px;
+  border-radius: 12px;
   font-size: 12px;
   font-weight: 700;
   color: hsl(var(--muted-foreground));
   transition: all 0.2s ease;
   position: relative;
 }
-.pos-tab.active {
+.mob-tab.active {
   background: hsl(var(--card));
   color: hsl(var(--foreground));
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-.tab-badge {
+.mob-tab-badge {
   position: absolute;
-  top: 5px; right: 6px;
+  top: 4px; right: 4px;
   min-width: 16px; height: 16px;
   border-radius: 8px;
   background: #ec4899;
@@ -627,451 +814,539 @@ async function finalizeSale(method: string) {
   padding: 0 4px;
 }
 
-/* ── Body ───────────────────────────────────────────────────────── */
+@media (max-width: 1023px) {
+  .mob-tabs { display: flex; }
+  .mob-hidden { display: none !important; }
+  .pos-body {
+    grid-template-columns: 1fr !important;
+    overflow: visible !important;
+  }
+  .col-products,
+  .col-cart,
+  .col-checkout {
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto;
+  }
+  .pos-root {
+    height: auto;
+    min-height: calc(100dvh - 160px);
+  }
+}
+
+/* ── Ticket Banner ─────────────────────────────────────────────────── */
+.ticket-banner {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: #10b98108;
+  border: 1.5px solid #10b98128;
+  flex-shrink: 0;
+  position: relative; overflow: hidden;
+}
+.ticket-banner-pip {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: #10b981;
+  border-radius: 0 2px 2px 0;
+}
+.ticket-banner-icon {
+  width: 28px; height: 28px; border-radius: 9px;
+  background: #10b98120; color: #10b981;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.banner-dismiss {
+  font-size: 11px; font-weight: 700;
+  color: hsl(var(--muted-foreground));
+  padding: 4px 10px; border-radius: 8px;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.banner-dismiss:hover { background: hsl(var(--muted)/0.5); color: hsl(var(--foreground)); }
+
+/* ── Header ────────────────────────────────────────────────────────── */
+.pos-header {
+  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.pos-header-icon {
+  width: 38px; height: 38px; border-radius: 13px;
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  box-shadow: 0 4px 14px #ec489940;
+  display: flex; align-items: center; justify-content: center;
+}
+.header-total-pill {
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 14px; border-radius: 99px;
+  background: #ec489912; border: 1.5px solid #ec489928;
+  font-size: 12px; font-weight: 700; color: #ec4899;
+}
+.header-total-amt { font-weight: 900; font-size: 14px; }
+
+/* ── 3-Column Grid ─────────────────────────────────────────────────── */
 .pos-body {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  gap: 12px;
-  overflow: hidden;
-}
-.pos-col {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-.mob-hidden { display: none !important; }
-@media (min-width: 1024px) {
-  .mob-hidden { display: flex !important; }
-  .pos-body { gap: 14px; }
+  display: grid;
+  grid-template-columns: 1fr 300px 272px;
+  gap: 14px;
+  flex: 1; min-height: 0; overflow: hidden;
 }
 
-/* ── Products col ───────────────────────────────────────────────── */
-.products-col {
-  flex: 1;
-  overflow: hidden;
-  gap: 10px;
+/* ══ Products Column ══════════════════════════════════════════════════ */
+.col-products {
+  display: flex; flex-direction: column; gap: 10px;
+  min-height: 0; overflow: hidden;
 }
 
-.products-header { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
-
-.search-wrap { position: relative; }
+/* Search */
+.search-wrap { position: relative; flex-shrink: 0; }
 .search-icon {
-  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-  width: 15px; height: 15px; color: hsl(var(--muted-foreground)); pointer-events: none;
+  position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px; color: hsl(var(--muted-foreground)); pointer-events: none;
 }
 .search-input {
-  width: 100%; height: 42px;
-  padding-left: 38px; padding-right: 34px;
-  border-radius: 14px;
-  font-size: 13px; font-weight: 500;
-  background: hsl(var(--muted) / 0.5);
-  border: 1.5px solid hsl(var(--border) / 0.6);
-  transition: border-color 0.15s, box-shadow 0.15s;
-  color: hsl(var(--foreground));
+  width: 100%; height: 40px;
+  padding-left: 36px; padding-right: 32px;
+  border-radius: 12px; font-size: 13px; font-weight: 500;
+  background: hsl(var(--muted)/0.5);
+  border: 1.5px solid hsl(var(--border)/0.6);
+  color: hsl(var(--foreground)); outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.search-input:focus {
-  outline: none;
-  border-color: #ec489960;
-  box-shadow: 0 0 0 3px #ec489914;
-}
+.search-input:focus { border-color: #ec489950; box-shadow: 0 0 0 3px #ec489910; }
 .search-clear {
-  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-  width: 22px; height: 22px; border-radius: 8px;
+  position: absolute; right: 9px; top: 50%; transform: translateY(-50%);
+  width: 22px; height: 22px; border-radius: 6px;
   display: flex; align-items: center; justify-content: center;
-  background: hsl(var(--muted)); color: hsl(var(--muted-foreground));
-  transition: all 0.15s;
+  color: hsl(var(--muted-foreground)); transition: all 0.12s;
 }
-.search-clear:hover { background: hsl(var(--muted-foreground) / 0.2); }
+.search-clear:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
 
-.cat-row {
-  display: flex; gap: 6px; overflow-x: auto; flex-shrink: 0;
-  scrollbar-width: none; padding-bottom: 2px;
+/* Category tabs */
+.cat-strip {
+  display: flex; gap: 5px; flex-wrap: nowrap; overflow-x: auto;
+  flex-shrink: 0; scrollbar-width: none; padding-bottom: 2px;
 }
-.cat-row::-webkit-scrollbar { display: none; }
-.cat-pill {
-  padding: 5px 14px; border-radius: 99px; white-space: nowrap;
-  font-size: 12px; font-weight: 700; flex-shrink: 0;
-  background: hsl(var(--muted) / 0.5); color: hsl(var(--muted-foreground));
-  border: 1.5px solid transparent;
-  transition: all 0.15s;
+.cat-strip::-webkit-scrollbar { display: none; }
+.cat-tab {
+  padding: 5px 13px; border-radius: 99px;
+  font-size: 11px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+  background: hsl(var(--muted)/0.5); color: hsl(var(--muted-foreground));
+  border: 1.5px solid transparent; cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34,1.4,0.64,1);
 }
-.cat-pill.active {
-  background: #ec489918; color: #ec4899;
-  border-color: #ec489940;
-}
+.cat-tab:hover { color: hsl(var(--foreground)); transform: scale(1.03); }
+.cat-tab.active { background: #ec489914; color: #ec4899; border-color: #ec489932; transform: scale(1.05); }
 
 /* Product grid */
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 10px;
-  overflow-y: auto;
-  flex: 1;
-  padding-right: 2px;
-  align-content: start;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px; overflow-y: auto; align-content: start; padding-right: 2px;
 }
-@media (min-width: 640px) {
-  .product-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-}
+.product-grid::-webkit-scrollbar { width: 3px; }
+.product-grid::-webkit-scrollbar-thumb { background: hsl(var(--border)/0.5); border-radius: 99px; }
 
 .product-card {
-  display: flex; flex-direction: column; gap: 8px;
-  padding: 14px 12px;
-  border-radius: 20px;
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 12px; border-radius: 16px;
   background: hsl(var(--card));
-  border: 1.5px solid hsl(var(--border) / 0.6);
-  text-align: left;
-  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s, border-color 0.15s;
+  border: 1.5px solid hsl(var(--border)/0.5);
+  cursor: pointer; text-align: left;
+  transition: transform 0.28s cubic-bezier(0.34,1.5,0.64,1), box-shadow 0.2s, border-color 0.18s;
 }
 .product-card:hover {
-  transform: scale(1.03) translateY(-2px);
-  box-shadow: 0 8px 24px rgba(236,72,153,0.15);
-  border-color: #ec489950;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(236,72,153,0.12);
+  border-color: #ec489938;
 }
-.product-card:active { transform: scale(0.95); }
-.product-card.low-stock { border-color: #f59e0b40; }
+.product-card:active { transform: scale(0.96); }
+.akko-card { border-color: #8b5cf628; background: color-mix(in srgb, #8b5cf6 3%, hsl(var(--card))); }
+.akko-card:hover { border-color: #8b5cf650; box-shadow: 0 6px 20px #8b5cf618; }
+.svc-card:hover  { border-color: #10b98138; box-shadow: 0 6px 20px #10b98112; }
 
-.product-icon {
-  width: 40px; height: 40px; border-radius: 14px;
+.product-card-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.product-icon-wrap {
+  width: 34px; height: 34px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, #ec489918, #db277718);
-  color: #ec4899;
-  flex-shrink: 0;
 }
-.product-info { flex: 1; min-width: 0; }
-.product-name { font-size: 12px; font-weight: 800; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.product-sku  { font-size: 10px; color: hsl(var(--muted-foreground)); font-weight: 500; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.product-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
-.product-price { font-size: 14px; font-weight: 900; color: #ec4899; }
-.product-stock { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: hsl(var(--muted)/0.5); color: hsl(var(--muted-foreground)); }
-.product-stock.low { background: #f59e0b18; color: #f59e0b; }
-
+.product-badge {
+  font-size: 9px; font-weight: 800;
+  padding: 2px 6px; border-radius: 99px;
+}
+.akko-badge { background: #8b5cf614; color: #8b5cf6; }
+.product-name { font-size: 12px; font-weight: 800; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.product-sku  { font-size: 10px; color: hsl(var(--muted-foreground)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.product-price { font-size: 15px; font-weight: 900; margin-top: 2px; }
 .product-empty {
-  grid-column: 1 / -1;
-  display: flex; flex-direction: column; align-items: center;
-  gap: 8px; padding: 48px 0;
-  color: hsl(var(--muted-foreground)); font-size: 13px; font-weight: 600;
+  grid-column: 1/-1; display: flex; flex-direction: column; align-items: center;
+  gap: 8px; padding: 40px 16px; text-align: center;
 }
 
-/* ── Cart col ───────────────────────────────────────────────────── */
-.cart-col {
-  width: 100%;
-  border-radius: 24px;
+/* ══ Cart Column ══════════════════════════════════════════════════════ */
+.col-cart {
+  display: flex; flex-direction: column;
+  border-radius: 20px;
   background: hsl(var(--card));
-  border: 1.5px solid hsl(var(--border) / 0.6);
-  overflow: hidden;
-}
-@media (min-width: 1024px) {
-  .cart-col { width: 290px; flex-shrink: 0; }
+  border: 1.5px solid hsl(var(--border)/0.6);
+  overflow: hidden; min-height: 0;
 }
 
-.cart-header {
+.cart-head {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 16px;
-  border-bottom: 1px solid hsl(var(--border) / 0.5);
-  background: #ec489906;
-  flex-shrink: 0;
+  padding: 12px 14px;
+  border-bottom: 1px solid hsl(var(--border)/0.4);
+  background: #ec489904; flex-shrink: 0;
 }
-.cart-header-icon {
-  width: 30px; height: 30px; border-radius: 12px;
+.cart-head-icon {
+  width: 24px; height: 24px; border-radius: 8px;
   background: linear-gradient(135deg, #ec4899, #db2777);
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 2px 8px #ec489940;
 }
-.cart-count {
-  font-size: 10px; font-weight: 900; min-width: 18px; height: 18px;
-  border-radius: 9px; background: #ec4899; color: white;
-  display: flex; align-items: center; justify-content: center; padding: 0 4px;
+.cart-count-badge {
+  font-size: 10px; font-weight: 800;
+  background: #ec489918; color: #ec4899;
+  padding: 1px 7px; border-radius: 99px;
 }
-.cart-clear {
-  width: 30px; height: 30px; border-radius: 11px;
+.cart-clear-btn {
+  width: 28px; height: 28px; border-radius: 9px;
   display: flex; align-items: center; justify-content: center;
-  background: #ef444414; color: #ef4444;
-  transition: all 0.15s;
+  background: #ef444410; color: #ef4444; transition: all 0.15s;
 }
-.cart-clear:hover:not(:disabled) { background: #ef444428; transform: scale(1.1); }
-.cart-clear:disabled { opacity: 0.3; cursor: not-allowed; }
+.cart-clear-btn:not(:disabled):hover { background: #ef444420; transform: scale(1.1); }
+.cart-clear-btn:disabled { opacity: 0.2; cursor: not-allowed; }
 
-.cart-items { flex: 1; overflow-y: auto; min-height: 0; }
+.cart-body { flex: 1; overflow-y: auto; min-height: 0; }
+.cart-body::-webkit-scrollbar { width: 3px; }
+.cart-body::-webkit-scrollbar-thumb { background: hsl(var(--border)/0.4); border-radius: 99px; }
+
 .cart-empty {
-  height: 100%; min-height: 120px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 6px; padding: 32px;
-  color: hsl(var(--muted-foreground));
+  height: 100%; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 6px; padding: 24px;
+}
+.cart-empty-ring {
+  width: 46px; height: 46px; border-radius: 50%;
+  border: 2px dashed hsl(var(--border)/0.5);
+  display: flex; align-items: center; justify-content: center; margin-bottom: 4px;
 }
 
 .cart-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 14px;
-  transition: background 0.15s;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
+  transition: background 0.12s;
 }
-.cart-row:hover { background: hsl(var(--muted)/0.3); }
+.cart-row:hover { background: hsl(var(--muted)/0.12); }
 .cart-row-icon {
-  width: 28px; height: 28px; border-radius: 10px; flex-shrink: 0;
-  background: #ec489914; color: #ec4899;
+  width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
 }
 .cart-row-info { flex: 1; min-width: 0; }
-.cart-row-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cart-row-sub  { font-size: 10px; color: hsl(var(--muted-foreground)); }
-.cart-qty {
+.cart-item-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cart-item-sub  { font-size: 10px; color: hsl(var(--muted-foreground)); }
+.cart-row-qty {
   display: flex; align-items: center; gap: 2px;
-  background: hsl(var(--muted)/0.6); border-radius: 10px; padding: 2px;
-  flex-shrink: 0;
+  background: hsl(var(--muted)/0.4); border-radius: 9px; padding: 2px; flex-shrink: 0;
 }
 .qty-btn {
-  width: 22px; height: 22px; border-radius: 8px;
+  width: 20px; height: 20px; border-radius: 6px;
   display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s;
+  color: hsl(var(--muted-foreground)); transition: all 0.1s;
 }
-.qty-btn:hover { background: hsl(var(--card)); transform: scale(1.1); }
+.qty-btn:hover { background: hsl(var(--background)); color: hsl(var(--foreground)); }
 .qty-num { width: 22px; text-align: center; font-size: 12px; font-weight: 800; }
-.cart-row-total {
-  font-size: 12px; font-weight: 800; color: #ec4899;
-  flex-shrink: 0; min-width: 52px; text-align: right;
+.qty-remove-btn {
+  width: 24px; height: 24px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  background: #ef444410; color: #ef4444; transition: all 0.12s;
 }
+.qty-remove-btn:hover { background: #ef444420; }
+.cart-row-total { font-size: 12px; font-weight: 800; color: #ec4899; min-width: 48px; text-align: right; flex-shrink: 0; }
 
-.cart-footer { padding: 14px; border-top: 1px solid hsl(var(--border)/0.5); flex-shrink: 0; }
-.totals { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
-.total-row {
-  display: flex; justify-content: space-between;
-  font-size: 12px; font-weight: 600; color: hsl(var(--muted-foreground));
+/* Custom amount bar */
+.custom-bar {
+  flex-shrink: 0; padding: 9px 14px;
+  border-top: 1px solid hsl(var(--border)/0.3);
+  background: hsl(var(--muted)/0.12);
+  display: flex; flex-direction: column; gap: 7px;
 }
-.total-row.grand {
-  font-size: 14px; font-weight: 900;
-  color: hsl(var(--foreground));
-  padding-top: 8px; margin-top: 4px;
-  border-top: 1px solid hsl(var(--border)/0.5);
+.custom-bar-header {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; font-weight: 700;
+  color: hsl(var(--muted-foreground));
 }
-.grand-amt { color: #ec4899; }
-.mob-checkout-btn {
-  width: 100%; height: 44px; border-radius: 14px;
-  background: linear-gradient(135deg, #ec4899, #db2777);
-  color: white; font-size: 13px; font-weight: 900;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  box-shadow: 0 4px 16px #ec489940;
-  transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+.custom-display {
+  margin-left: auto; font-size: 18px; font-weight: 900;
+  color: hsl(var(--foreground)); transition: color 0.2s;
 }
-.mob-checkout-btn:hover { transform: scale(1.02) translateY(-1px); }
-.mob-checkout-btn:active { transform: scale(0.97); }
+.custom-display.dim { color: hsl(var(--muted-foreground)/0.25); }
+.keypad-mini {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px;
+}
+.key-mini {
+  height: 26px; border-radius: 7px; font-size: 12px; font-weight: 800;
+  background: hsl(var(--muted)/0.5); color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border)/0.35);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.1s;
+}
+.key-mini:hover  { transform: scale(1.08); background: hsl(var(--muted)); }
+.key-mini:active { transform: scale(0.9); }
+.key-clr { background: #ef444410; color: #ef4444; border-color: #ef444420; font-size: 10px; }
+.key-bk  { font-size: 10px; color: hsl(var(--muted-foreground)); }
+.add-custom-btn {
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  height: 28px; border-radius: 8px; font-size: 11px; font-weight: 800;
+  color: white; background: linear-gradient(135deg, #ec4899, #db2777);
+  box-shadow: 0 3px 10px #ec489930;
+  transition: all 0.2s cubic-bezier(0.34,1.4,0.64,1);
+}
+.add-custom-btn:not(:disabled):hover { transform: scale(1.05); box-shadow: 0 4px 14px #ec489950; }
+.add-custom-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-/* Cart item transition */
-.cart-item-enter-active { transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1); }
-.cart-item-leave-active { transition: all 0.15s ease-in; }
-.cart-item-enter-from { opacity: 0; transform: translateX(-12px) scale(0.96); }
-.cart-item-leave-to   { opacity: 0; transform: translateX(12px) scale(0.96); }
-
-/* ── Checkout col ───────────────────────────────────────────────── */
-.checkout-col {
+/* Cart totals */
+.mob-checkout-cta {
+  display: none;
   width: 100%;
-  gap: 10px;
-  overflow-y: auto;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  color: white;
+  font-size: 13px;
+  font-weight: 900;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
 }
-@media (min-width: 1024px) {
-  .checkout-col { width: 260px; flex-shrink: 0; overflow-y: auto; }
+.mob-checkout-cta:hover { transform: scale(1.02); }
+.mob-checkout-cta:active { transform: scale(0.97); }
+@media (max-width: 1023px) {
+  .mob-checkout-cta { display: flex; }
 }
+
+.cart-totals {
+  flex-shrink: 0; padding: 10px 14px 12px;
+  border-top: 1px solid hsl(var(--border)/0.4);
+  display: flex; flex-direction: column; gap: 3px;
+}
+.total-line {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: hsl(var(--muted-foreground));
+}
+.total-grand {
+  font-size: 14px; font-weight: 900; color: hsl(var(--foreground));
+  padding-top: 7px; margin-top: 4px;
+  border-top: 1px solid hsl(var(--border)/0.4);
+}
+.grand-amt { color: #ec4899; font-size: 17px; }
+
+/* ══ Checkout Column ══════════════════════════════════════════════════ */
+.col-checkout {
+  display: flex; flex-direction: column; gap: 8px;
+  overflow-y: auto; padding-right: 2px;
+}
+.col-checkout::-webkit-scrollbar { width: 3px; }
+.col-checkout::-webkit-scrollbar-thumb { background: hsl(var(--border)/0.4); border-radius: 99px; }
 
 .checkout-card {
-  border-radius: 20px;
+  flex-shrink: 0; padding: 13px; border-radius: 16px;
   background: hsl(var(--card));
-  border: 1.5px solid hsl(var(--border)/0.6);
-  padding: 14px;
-  display: flex; flex-direction: column; gap: 10px;
-  flex-shrink: 0;
+  border: 1.5px solid hsl(var(--border)/0.5);
 }
-.checkout-label {
-  font-size: 11px; font-weight: 800;
-  text-transform: uppercase; letter-spacing: 0.08em;
-  color: hsl(var(--muted-foreground));
+.card-label {
   display: flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.1em; color: hsl(var(--muted-foreground));
+  margin-bottom: 9px;
 }
-.checkout-select {
-  width: 100%; height: 38px; padding: 0 12px;
-  border-radius: 12px; font-size: 13px; font-weight: 500;
-  background: hsl(var(--muted)/0.5);
-  border: 1.5px solid hsl(var(--border)/0.6);
-  color: hsl(var(--foreground));
-  transition: border-color 0.15s;
-}
-.checkout-select:focus { outline: none; border-color: #ec489960; }
+.optional { font-weight: 600; text-transform: none; letter-spacing: 0; font-size: 9px; }
 
-.pm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-.pm-btn {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 4px; padding: 8px 4px;
-  border-radius: 14px; font-size: 11px; font-weight: 700;
-  background: hsl(var(--muted)/0.5); color: hsl(var(--muted-foreground));
-  border: 1.5px solid transparent;
-  transition: all 0.18s;
+/* Payment method grid */
+.pm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.pm-tile {
+  display: flex; align-items: center; gap: 6px;
+  padding: 9px 10px; border-radius: 11px;
+  font-size: 12px; font-weight: 700;
+  background: hsl(var(--muted)/0.4); color: hsl(var(--muted-foreground));
+  border: 1.5px solid transparent; cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34,1.3,0.64,1);
 }
-.pm-btn.active {
-  background: color-mix(in srgb, var(--pm-color, #ec4899) 14%, transparent);
-  color: var(--pm-color, #ec4899);
-  border-color: color-mix(in srgb, var(--pm-color, #ec4899) 35%, transparent);
+.pm-tile:hover { color: hsl(var(--foreground)); transform: scale(1.02); }
+.pm-tile.active {
+  background: color-mix(in srgb, var(--accent, #6366f1) 12%, hsl(var(--card)));
+  color: var(--accent, #6366f1);
+  border-color: color-mix(in srgb, var(--accent, #6366f1) 35%, transparent);
+  transform: scale(1.03);
 }
-.pm-btn:hover:not(.active) { background: hsl(var(--muted)/0.8); }
 
-/* Square card form */
-.card-form-wrap { overflow: hidden; max-height: 0; padding: 0; border-color: transparent; transition: max-height 0.35s ease, padding 0.25s, border-color 0.25s; }
-.card-form-wrap.visible { max-height: 200px; padding: 14px; border-color: hsl(var(--border)/0.6); }
-.card-host-outer { position: relative; min-height: 80px; }
-.card-host { width: 100%; min-height: 80px; }
+/* Square card form — always in DOM, collapsed when not on Card */
+/* Square SDK needs real pixel dimensions at attach time.
+   We use height: 0 → auto trick so it stays in the DOM but invisible. */
+.card-form-card {
+  flex-shrink: 0; border-radius: 16px;
+  background: hsl(var(--card)); border: 1.5px solid hsl(var(--border)/0.5);
+  overflow: hidden;
+  max-height: 0; padding-top: 0; padding-bottom: 0;
+  opacity: 0; pointer-events: none;
+  transition: max-height 0.35s ease, opacity 0.3s ease, padding 0.3s ease;
+}
+.card-form-card.visible {
+  max-height: 200px;
+  padding: 13px; opacity: 1; pointer-events: auto;
+}
+
+.sq-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-left: auto; font-size: 9px; font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted)/0.4);
+  padding: 2px 7px; border-radius: 99px;
+  text-transform: none; letter-spacing: 0;
+}
+.card-host-wrap { position: relative; min-height: 56px; border-radius: 12px; overflow: hidden; }
+.card-host { width: 100%; min-height: 56px; }
 .card-loading {
   position: absolute; inset: 0;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-  background: hsl(var(--card)/0.9); border-radius: 14px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  background: hsl(var(--card)); border-radius: 12px;
 }
-.card-spinner {
-  width: 20px; height: 20px; border-radius: 50%;
-  border: 2.5px solid hsl(var(--border));
-  border-top-color: #6366f1;
-  animation: spin 0.7s linear infinite;
-}
-.sq-warn {
-  display: flex; align-items: flex-start; gap: 6px;
-  font-size: 11px; font-weight: 600; color: #f59e0b;
-  background: #f59e0b12; border-radius: 10px; padding: 8px 10px;
+.spin-ring {
+  width: 18px; height: 18px;
+  border: 2px solid hsl(var(--border)); border-top-color: #6366f1;
+  border-radius: 50%; animation: spin 0.65s linear infinite;
 }
 
-.cash-hint {
-  flex-direction: row !important;
-  align-items: flex-start;
-  gap: 12px !important;
+/* Afterpay section */
+.afterpay-card {}
+.afterpay-dot { width: 7px; height: 7px; border-radius: 50%; background: #06b6d4; }
+.afterpay-host {
+  width: 100%; min-height: 48px;
+  display: flex; justify-content: center; margin-bottom: 6px;
 }
+.afterpay-note { font-size: 10px; color: hsl(var(--muted-foreground)); text-align: center; font-weight: 500; }
+
+/* Cash/Other card */
+.cash-card { display: flex; align-items: flex-start; gap: 10px; }
 .cash-icon { color: #10b981; flex-shrink: 0; margin-top: 2px; }
 
-.checkout-spacer { flex: 1; }
-
-/* Processing bar */
-.processing-bar {
+/* Processing status */
+.status-bar {
   display: flex; align-items: center; gap: 8px;
-  padding: 10px 14px; border-radius: 14px;
-  background: #6366f114; border: 1.5px solid #6366f130;
-  font-size: 12px; font-weight: 700; color: #6366f1;
-  flex-shrink: 0;
+  padding: 9px 13px; border-radius: 11px; flex-shrink: 0;
+  background: #06b6d410; border: 1.5px solid #06b6d430;
+  font-size: 12px; font-weight: 700; color: #06b6d4;
 }
-.processing-spinner {
-  width: 14px; height: 14px; border-radius: 50%;
-  border: 2px solid #6366f130; border-top-color: #6366f1;
-  animation: spin 0.7s linear infinite; flex-shrink: 0;
+.status-spinner {
+  width: 13px; height: 13px;
+  border: 2px solid #06b6d430; border-top-color: #06b6d4;
+  border-radius: 50%; animation: spin 0.65s linear infinite; flex-shrink: 0;
 }
 
-/* Charge + CTA */
-.charge-row {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  flex-shrink: 0;
-}
+.checkout-spacer { flex: 1; min-height: 6px; }
+
+/* Charge amount */
+.charge-block { text-align: center; padding: 8px 0 4px; flex-shrink: 0; }
+.charge-label { display: block; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: hsl(var(--muted-foreground)); }
 .charge-amt {
-  font-size: 22px; font-weight: 900;
-  color: hsl(var(--muted-foreground));
-  transition: color 0.3s;
+  display: block; font-size: 34px; font-weight: 900; letter-spacing: -1.5px;
+  color: hsl(var(--foreground)); line-height: 1.1; transition: color 0.25s;
 }
 .charge-amt.lit { color: #ec4899; }
 
-.cta-btn {
-  height: 48px; border-radius: 16px; padding: 0 20px;
+/* Checkout button */
+.checkout-btn {
+  width: 100%; height: 50px; border-radius: 15px; flex-shrink: 0;
+  font-size: 13px; font-weight: 900; color: white;
   background: linear-gradient(135deg, #ec4899, #db2777);
-  color: white; font-size: 13px; font-weight: 900;
+  box-shadow: 0 4px 18px #ec489930;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 16px #ec489940;
-  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s, opacity 0.2s;
 }
-.cta-btn:hover:not(:disabled) { transform: scale(1.04) translateY(-1px); box-shadow: 0 6px 20px #ec489960; }
-.cta-btn:active:not(:disabled) { transform: scale(0.96); }
-.cta-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-.btn-inner { display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+.checkout-btn:not(:disabled):not(.processing):hover {
+  transform: scale(1.03) translateY(-2px); box-shadow: 0 8px 26px #ec489950;
+}
+.checkout-btn:not(:disabled):not(.processing):active { transform: scale(0.96); }
+.checkout-btn:disabled { opacity: 0.3; cursor: not-allowed; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); box-shadow: none; }
+.checkout-btn.processing { pointer-events: none; opacity: 0.8; }
+.btn-inner { display: flex; align-items: center; gap: 7px; }
 .btn-spin {
-  width: 14px; height: 14px; border-radius: 50%;
+  width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;
   border: 2px solid rgba(255,255,255,0.3); border-top-color: white;
-  animation: spin 0.7s linear infinite;
+  animation: spin 0.65s linear infinite;
 }
 
-/* ── Receipt Modal ──────────────────────────────────────────────── */
+/* Square warning */
+.sq-warning {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 12px; border-radius: 10px; flex-shrink: 0;
+  font-size: 11px; font-weight: 600; color: #f59e0b;
+  background: #f59e0b10; border: 1px solid #f59e0b25;
+}
+.sq-warning-link { font-weight: 800; text-decoration: underline; cursor: pointer; }
+
+/* ── Sale Success Modal ─────────────────────────────────────────────── */
 .modal-backdrop {
-  position: fixed; inset: 0; z-index: 100;
-  background: rgba(0,0,0,0.5); backdrop-filter: blur(6px);
-  display: flex; align-items: center; justify-content: center;
-  padding: 16px;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center; z-index: 100;
 }
 .modal-card {
-  width: 100%; max-width: 380px;
-  background: hsl(var(--card));
-  border-radius: 32px;
+  background: hsl(var(--card)); border-radius: 28px;
+  padding: 36px 30px; width: 308px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.35);
   border: 1.5px solid hsl(var(--border)/0.6);
-  box-shadow: 0 24px 64px rgba(0,0,0,0.25);
-  overflow: hidden;
 }
-.receipt-header {
-  padding: 28px 24px 20px;
-  text-align: center;
-  background: linear-gradient(160deg, #ec489908, transparent);
-  border-bottom: 1px solid hsl(var(--border)/0.4);
-}
-.receipt-check {
-  width: 56px; height: 56px; border-radius: 50%;
+.modal-success-ring {
+  width: 68px; height: 68px; border-radius: 50%;
   background: linear-gradient(135deg, #10b981, #059669);
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto;
-  box-shadow: 0 6px 20px #10b98140;
+  box-shadow: 0 8px 28px #10b98145;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 4px;
 }
-.receipt-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
-.receipt-meta { display: flex; flex-direction: column; gap: 4px; }
-.receipt-meta-row {
-  display: flex; justify-content: space-between; align-items: center;
-  font-size: 12px; padding: 3px 0;
-  color: hsl(var(--muted-foreground));
+.modal-title { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; }
+.modal-receipt { font-size: 12px; color: hsl(var(--muted-foreground)); font-weight: 600; margin-top: -2px; }
+.modal-details {
+  width: 100%; background: hsl(var(--muted)/0.25);
+  border-radius: 14px; padding: 13px 16px;
+  display: flex; flex-direction: column; gap: 7px; margin-top: 4px;
 }
-.receipt-meta-row strong { color: hsl(var(--foreground)); font-weight: 700; }
-.receipt-items {
-  background: hsl(var(--muted)/0.4);
-  border-radius: 14px; padding: 10px 12px;
-  display: flex; flex-direction: column; gap: 4px;
-}
-.receipt-item-row {
-  display: flex; justify-content: space-between;
-  font-size: 12px; font-weight: 600; gap: 8px;
-}
-.receipt-totals { display: flex; flex-direction: column; gap: 4px; }
-.receipt-total-row {
-  display: flex; justify-content: space-between;
-  font-size: 12px; color: hsl(var(--muted-foreground)); font-weight: 600;
-}
-.receipt-total-row.grand {
-  font-size: 15px; font-weight: 900;
-  color: hsl(var(--foreground));
-  padding-top: 8px; margin-top: 4px;
-  border-top: 1px solid hsl(var(--border)/0.5);
-}
-.receipt-done {
-  width: 100%; height: 52px;
-  background: linear-gradient(135deg, #ec4899, #db2777);
-  color: white; font-size: 14px; font-weight: 900;
+.modal-detail-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+.modal-detail-row span { color: hsl(var(--muted-foreground)); font-weight: 500; }
+.modal-detail-row strong { font-weight: 800; }
+.modal-done-btn {
+  width: 100%; height: 48px; border-radius: 14px; margin-top: 4px;
+  font-size: 14px; font-weight: 900; color: white;
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 16px #10b98130;
   transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
 }
-.receipt-done:hover { transform: scale(1.02); }
-.receipt-done:active { transform: scale(0.97); }
+.modal-done-btn:hover { transform: scale(1.03) translateY(-1px); box-shadow: 0 6px 22px #10b98150; }
+.modal-done-btn:active { transform: scale(0.97); }
 
-/* ── Transitions ────────────────────────────────────────────────── */
-.fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+/* ── Transitions ────────────────────────────────────────────────────── */
+.slide-down-enter-active, .slide-down-leave-active { transition: all 0.3s ease; }
+.slide-down-enter-from, .slide-down-leave-to { transform: translateY(-8px); opacity: 0; }
+
+.fade-scale-enter-active, .fade-scale-leave-active { transition: all 0.22s cubic-bezier(0.34,1.4,0.64,1); }
+.fade-scale-enter-from, .fade-scale-leave-to { transform: scale(0.85); opacity: 0; }
+
+.fade-up-enter-active, .fade-up-leave-active { transition: all 0.22s ease; }
+.fade-up-enter-from, .fade-up-leave-to { transform: translateY(-4px); opacity: 0; }
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
-.fade-up-enter-active { transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1); }
-.fade-up-leave-active { transition: all 0.15s ease; }
-.fade-up-enter-from, .fade-up-leave-to { opacity: 0; transform: translateY(6px); }
+.cart-row-enter-active { transition: all 0.28s cubic-bezier(0.34,1.4,0.64,1); }
+.cart-row-leave-active { transition: all 0.16s ease-in; position: absolute; width: 100%; }
+.cart-row-enter-from   { transform: translateX(-10px); opacity: 0; }
+.cart-row-leave-to     { transform: translateX(10px); opacity: 0; }
+.cart-row-move         { transition: transform 0.28s cubic-bezier(0.34,1.2,0.64,1); }
 
 .btn-swap-enter-active, .btn-swap-leave-active { transition: all 0.15s ease; }
-.btn-swap-enter-from { opacity: 0; transform: scale(0.85); }
-.btn-swap-leave-to   { opacity: 0; transform: scale(0.85); }
+.btn-swap-enter-from, .btn-swap-leave-to { opacity: 0; transform: translateY(3px); }
 
-.modal-enter-active { transition: all 0.3s cubic-bezier(0.34,1.3,0.64,1); }
-.modal-leave-active { transition: all 0.2s ease; }
-.modal-enter-from { opacity: 0; }
-.modal-leave-to   { opacity: 0; }
-.modal-enter-from .modal-card { transform: scale(0.9) translateY(20px); }
-.modal-leave-to   .modal-card { transform: scale(0.95) translateY(10px); }
+.modal-enter-active { transition: all 0.32s cubic-bezier(0.34,1.35,0.64,1); }
+.modal-leave-active { transition: all 0.18s ease; }
+.modal-enter-from, .modal-leave-to { opacity: 0; }
+.modal-enter-from .modal-card { transform: scale(0.88) translateY(16px); }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
-

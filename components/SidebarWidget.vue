@@ -8,7 +8,7 @@
             <CalendarClock class="w-4 h-4 text-violet-500" />
             Upcoming
           </CardTitle>
-          <Button variant="ghost" size="sm" @click="navigateTo('/housecalls')" class="h-7 text-xs">
+          <Button variant="ghost" size="sm" @click="navigateTo('/bookings')" class="h-7 text-xs">
             View All
           </Button>
         </div>
@@ -152,7 +152,7 @@ const upcomingItems = computed<UpcomingItem[]>(() => {
         subtitle: call.address,
         date: callDate,
         timeFromNow: getTimeFromNow(callDate),
-        route: '/housecalls'
+        route: '/bookings'
       })
     }
   })
