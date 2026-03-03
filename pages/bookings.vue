@@ -207,8 +207,8 @@
             <p class="text-xs text-muted-foreground font-medium mt-1 flex items-center gap-1.5"><MapPin class="w-3 h-3 flex-shrink-0" />{{ call.address }}</p>
             <p class="text-xs font-semibold mt-2" style="color: #10b981">{{ formatDate(call.date) }} at {{ call.time }}</p>
           </div>
-          <div v-if="call.address && call.address.length > 5" class="w-full h-24 rounded-xl overflow-hidden bg-muted mt-1 pointer-events-none" style="outline: 1px solid hsl(var(--border)/0.5); outline-offset: 0;">
-            <img :src="`https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(call.address)}&zoom=14&size=400x150&markers=color:0x10b981%7C${encodeURIComponent(call.address)}&key=AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY`" class="w-full h-full object-cover" loading="lazy" />
+          <div v-if="call.address && call.address.length > 5 && getOsmCardUrl(call.address)" class="w-full h-24 rounded-xl overflow-hidden bg-muted mt-1 pointer-events-none" style="outline: 1px solid hsl(var(--border)/0.5); outline-offset: 0; background: hsl(var(--muted)/0.3)">
+            <iframe :src="getOsmCardUrl(call.address)" class="w-full h-full" style="border:0" />
           </div>
           <p class="text-xs text-muted-foreground font-medium line-clamp-2 border-t border-border/60 pt-2 mt-2">{{ call.issue }}</p>
           <div class="flex items-center gap-2 pt-1">
@@ -373,14 +373,20 @@
             <!-- LEFT: Form -->
             <div class="flex flex-col gap-4">
               <div class="space-y-2"><label class="m3-label">Customer</label><CustomerSelect v-model="housecallForm.customerId" /></div>
-              <div class="space-y-2">
+              <div class="space-y-2 relative">
                 <label class="m3-label">Address</label>
                 <div class="relative">
-                  <input ref="addressInputRef" v-model="housecallForm.address" placeholder="123 Main St, City, State" class="m3-input pr-12" @input="onAddressInput" />
+                  <input ref="addressInputRef" v-model="housecallForm.address" placeholder="123 Main St, City, State" class="m3-input pr-12" @input="onAddressInput" @focus="showSuggestions = addressSuggestions.length > 0" />
                   <button class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center hover:scale-110 active:scale-90 transition-all"
-                    style="background: #3b82f620" title="Open in Google Maps" @click="openGoogleMaps">
+                    style="background: #3b82f620" title="Open in Maps" @click="openMaps">
                     <Navigation class="w-4 h-4" style="color: #3b82f6" />
                   </button>
+                </div>
+                <!-- Autocomplete Dropdown -->
+                <div v-if="showSuggestions && addressSuggestions.length > 0" class="absolute z-50 left-0 right-0 top-full mt-2 bg-card border-2 border-border/60 rounded-[16px] shadow-xl overflow-hidden max-h-60 overflow-y-auto" style="outline: 2px solid hsl(var(--border)/0.4)">
+                  <div v-for="sug in addressSuggestions" :key="sug.place_id" class="px-4 py-3 hover:bg-muted/50 cursor-pointer border-b border-border/20 last:border-0 text-xs font-medium transition-colors" @click="selectSuggestion(sug)">
+                    {{ sug.display_name }}
+                  </div>
                 </div>
               </div>
               <div class="grid grid-cols-2 gap-3">
@@ -652,43 +658,28 @@ const handleCreateTicket = async (ticketData: any) => {
 // ────────────────────────────────────────────────────────────────────────────
 
 const addressInputRef = ref<HTMLInputElement | null>(null)
-let autocomplete: any = null
+const addressSuggestions = ref<any[]>([])
+const showSuggestions = ref(false)
 
-useHead({
-  script: [
-    {
-      src: `https://maps.googleapis.com/maps/api/js?key=AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY&libraries=places`,
-      async: true,
-      defer: true,
-      onload: () => {
-        if (typeof (window as any).google !== 'undefined' && housecallFormOpen.value && addressInputRef.value) {
-          initAutocomplete()
-        }
-      }
+// Close suggestions when clicking outside
+onMounted(() => {
+  document.addEventListener('click', (e) => {
+    if (addressInputRef.value && !addressInputRef.value.contains(e.target as Node)) {
+      showSuggestions.value = false
     }
-  ]
+  })
 })
 
-function initAutocomplete() {
-  if (!addressInputRef.value || typeof (window as any).google === 'undefined' || autocomplete) return
+const selectSuggestion = (pt: any, fromCache = false) => {
+  if (!fromCache) housecallForm.value.address = pt.display_name
+  showSuggestions.value = false
   
-  autocomplete = new (window as any).google.maps.places.Autocomplete(addressInputRef.value, {
-    fields: ['formatted_address', 'geometry', 'name'],
-    types: ['address']
-  })
-
-  autocomplete.addListener('place_changed', () => {
-    const place = autocomplete.getPlace()
-    if (place.formatted_address) {
-      housecallForm.value.address = place.formatted_address
-      onAddressInput() // Trigger iframe preview reload
-    }
-  })
-  
-  // Prevent form submission on enter in autocomplete
-  addressInputRef.value.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') e.preventDefault()
-  })
+  if (pt.boundingbox) {
+     const [lat1, lat2, lon1, lon2] = pt.boundingbox
+     mapsUrl.value = `https://www.openstreetmap.org/export/embed.html?bbox=${lon1}%2C${lat1}%2C${lon2}%2C${lat2}&layer=mapnik&marker=${pt.lat}%2C${pt.lon}`
+     latLonCache.value[housecallForm.value.address] = { lat: pt.lat, lon: pt.lon, boundingbox: pt.boundingbox }
+     try { localStorage.setItem('osm_cache', JSON.stringify(latLonCache.value)) } catch (e) {}
+  }
 }
 
 const housecallFilter = ref('All')
@@ -734,32 +725,74 @@ const applyCalcEstimate = () => { housecallEstimate.value = calcTotal.value }
 watch(housecallFormOpen, (open) => {
   if (open) { 
     calc.value = { labor: 0, parts: 0, travel: 0, taxRate: 0 }; housecallEstimate.value = 0 
-    nextTick(() => {
-      if (!autocomplete) initAutocomplete()
-    })
+    if (!housecallForm.value.address) { mapsUrl.value = ''; addressSuggestions.value = [] }
+    else { onAddressInput() }
   }
 })
 
-// Google Maps embed URL (debounced)
+// OSM Autocomplete & Maps embed URL
 const mapsUrl = ref('')
 let mapsTimer: ReturnType<typeof setTimeout> | null = null
 
 const onAddressInput = () => {
   if (mapsTimer) clearTimeout(mapsTimer)
-  mapsTimer = setTimeout(() => {
-    const addr = housecallForm.value.address?.trim()
-    if (addr && addr.length > 5) {
-      const encoded = encodeURIComponent(addr)
-      mapsUrl.value = `https://www.google.com/maps/embed/v1/place?key=AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY&q=${encoded}`
-    } else {
-      mapsUrl.value = ''
+  mapsTimer = setTimeout(async () => {
+    const q = housecallForm.value.address?.trim()
+    if (!q || q.length < 4) {
+      addressSuggestions.value = []; showSuggestions.value = false; mapsUrl.value = ''; return
     }
-  }, 800)
+    const cached = latLonCache.value[q]
+    if (cached && !cached.notfound) {
+       selectSuggestion(cached, true); return
+    }
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=5&countrycodes=us,ca`)
+      const data = await res.json()
+      addressSuggestions.value = data
+      showSuggestions.value = data.length > 0
+    } catch(e) {}
+  }, 600)
 }
 
-const openGoogleMaps = () => {
+const openMaps = () => {
   const addr = housecallForm.value.address?.trim()
-  if (addr) window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`, '_blank')
+  if (addr) window.open(`https://www.openstreetmap.org/search?query=${encodeURIComponent(addr)}`, '_blank')
+}
+
+// Map Card Cache & Queue System
+const latLonCache = ref<Record<string, any>>({})
+onMounted(() => { try { latLonCache.value = JSON.parse(localStorage.getItem('osm_cache') || '{}') } catch(e) { latLonCache.value = {} } })
+
+const osmQueue = ref<string[]>([])
+let processingOsm = false
+const processOsmQueue = async () => {
+  if(processingOsm || osmQueue.value.length === 0) return
+  processingOsm = true
+  while(osmQueue.value.length > 0) {
+    const addr = osmQueue.value.shift()
+    if (addr && !latLonCache.value[addr]) {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addr)}&format=json&limit=1`)
+        const data = await res.json()
+        latLonCache.value[addr] = (data && data[0]) ? data[0] : { notfound: true }
+        localStorage.setItem('osm_cache', JSON.stringify(latLonCache.value))
+      } catch (e) {}
+      await new Promise(r => setTimeout(r, 1200)) // nominatim rate limit
+    }
+  }
+  processingOsm = false
+}
+
+const getOsmCardUrl = (address: string) => {
+  if (!address || address.length < 5) return ''
+  const cached = latLonCache.value[address]
+  if (cached) {
+    if (cached.notfound) return ''
+    const [lat1, lat2, lon1, lon2] = cached.boundingbox || [parseFloat(cached.lat) - 0.005, parseFloat(cached.lat) + 0.005, parseFloat(cached.lon) - 0.005, parseFloat(cached.lon) + 0.005]
+    return `https://www.openstreetmap.org/export/embed.html?bbox=${lon1}%2C${lat1}%2C${lon2}%2C${lat2}&layer=mapnik&marker=${cached.lat}%2C${cached.lon}`
+  }
+  if (!osmQueue.value.includes(address)) { osmQueue.value.push(address); processOsmQueue() }
+  return ''
 }
 
 // ────────────────────────────────────────────────────────────────────────────
