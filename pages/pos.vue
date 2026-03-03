@@ -116,57 +116,179 @@ import {
   CheckCircle, CreditCard, TicketCheck, ShieldCheck, Wrench,
   Banknote, Wallet, Users, Lock, AlertCircle,
 } from 'lucide-vue-next'
-  
+
+import { computed, ref, watchEffect, nextTick } from 'vue'
+import { useAppStore } from '@/stores/app' // ✅ REQUIRED
+
 definePageMeta({ middleware: ['auth'] })
+
+/* --------------------------------------------------
+   STORE SAFETY
+-------------------------------------------------- */
+
 const appStore = useAppStore()
-const inventory = computed(() => appStore.inventory ?? [])
-const customers = computed(() => appStore.customers ?? [])
-const settings  = computed(() => appStore.settings ?? { currency: '$', taxRate: 0 })
 
-const searchQuery = ref(''); const selectedCategory = ref<string | null>(null)
-const cart = ref<any[]>([]); const selectedCustomerId = ref<number | null>(null); const paymentMethod = ref('Cash')
+// Prevent undefined crashes during hydration
+const inventory = computed(() => Array.isArray(appStore?.inventory) ? appStore.inventory : [])
+const customers = computed(() => Array.isArray(appStore?.customers) ? appStore.customers : [])
+const settings  = computed(() => appStore?.settings ?? { currency: '$', taxRate: 0 })
 
-const taxRate = computed(() => parseFloat(settings.value?.taxRate as any) || 0)
-const formatCurrency = (n: number) => `${settings.value?.currency || '$'}${(n || 0).toFixed(2)}`
+/* --------------------------------------------------
+   STATE
+-------------------------------------------------- */
 
-const filteredProducts = computed(() => inventory.value.filter((item: any) => {
-  const matchSearch = !searchQuery.value || item.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-  const matchCat = !selectedCategory.value || item.category === selectedCategory.value
-  return matchSearch && matchCat && item.stock > 0
-}))
+const searchQuery = ref('')
+const selectedCategory = ref<string | null>(null)
+const cart = ref<any[]>([])
+const selectedCustomerId = ref<number | null>(null)
+const paymentMethod = ref<'Cash' | 'Card' | 'Other'>('Cash')
 
-const subtotal  = computed(() => cart.value.reduce((a, i) => a + i.price * i.quantity, 0))
-const taxAmount = computed(() => subtotal.value * (taxRate.value / 100))
-const total     = computed(() => subtotal.value + taxAmount.value)
+/* --------------------------------------------------
+   SAFE COMPUTED VALUES
+-------------------------------------------------- */
+
+const taxRate = computed(() => {
+  const raw = settings.value?.taxRate
+  const parsed = parseFloat(String(raw ?? 0))
+  return isNaN(parsed) ? 0 : parsed
+})
+
+const formatCurrency = (n: number) => {
+  const currency = settings.value?.currency || '$'
+  const value = typeof n === 'number' && !isNaN(n) ? n : 0
+  return `${currency}${value.toFixed(2)}`
+}
+
+/* --------------------------------------------------
+   FILTERED PRODUCTS
+-------------------------------------------------- */
+
+const filteredProducts = computed(() => {
+  return inventory.value.filter((item: any) => {
+    if (!item) return false
+
+    const name = (item.name ?? '').toLowerCase()
+    const matchSearch =
+      !searchQuery.value ||
+      name.includes(searchQuery.value.toLowerCase())
+
+    const matchCat =
+      !selectedCategory.value ||
+      item.category === selectedCategory.value
+
+    return matchSearch && matchCat && Number(item.stock) > 0
+  })
+})
+
+/* --------------------------------------------------
+   TOTALS
+-------------------------------------------------- */
+
+const subtotal = computed(() =>
+  cart.value.reduce((a, i) => {
+    const price = Number(i.price) || 0
+    const qty = Number(i.quantity) || 0
+    return a + price * qty
+  }, 0)
+)
+
+const taxAmount = computed(() =>
+  subtotal.value * (taxRate.value / 100)
+)
+
+const total = computed(() =>
+  subtotal.value + taxAmount.value
+)
+
+/* --------------------------------------------------
+   CART METHODS (SAFE)
+-------------------------------------------------- */
 
 const addToCart = (item: any) => {
+  if (!item || !item.id) return
+
   const existing = cart.value.find(i => i.id === item.id)
-  if (existing) existing.quantity++
-  else cart.value.push({ ...item, quantity: 1 })
+  if (existing) {
+    existing.quantity++
+  } else {
+    cart.value.push({
+      ...item,
+      quantity: 1
+    })
+  }
 }
-const incrementItem = (i: number) => cart.value[i].quantity++
-const decrementItem = (i: number) => { if (cart.value[i].quantity > 1) cart.value[i].quantity--; else cart.value.splice(i, 1) }
-const clearCart = () => { cart.value = []; selectedCustomerId.value = null }
+
+const incrementItem = (i: number) => {
+  if (!cart.value[i]) return
+  cart.value[i].quantity++
+}
+
+const decrementItem = (i: number) => {
+  if (!cart.value[i]) return
+  if (cart.value[i].quantity > 1) {
+    cart.value[i].quantity--
+  } else {
+    cart.value.splice(i, 1)
+  }
+}
+
+const clearCart = () => {
+  cart.value = []
+  selectedCustomerId.value = null
+}
+
+/* --------------------------------------------------
+   COMPLETE SALE (STABLE)
+-------------------------------------------------- */
 
 const completeSale = async () => {
   if (!cart.value.length) return
-  const ticket = await appStore.createTicket({
-    customerId: selectedCustomerId.value,
-    device: 'POS Sale',
-    issue: cart.value.map(i => `${i.quantity}x ${i.name}`).join(', '),
-    status: 'Completed',
-    price: total.value,
-    posOrder: true,
-    paymentMethod: paymentMethod.value,
-  } as any)
-  cart.value.forEach((item: any) => {
-    const inv = appStore.inventory.find((i: any) => i.id === item.id)
-    if (inv) inv.stock = Math.max(0, inv.stock - item.quantity)
-  })
-  await appStore.saveAll()
-  clearCart()
-  alert(`Sale completed! Total: ${formatCurrency(total.value)}`)
+
+  try {
+    await appStore.createTicket({
+      customerId: selectedCustomerId.value,
+      device: 'POS Sale',
+      issue: cart.value.map(i => `${i.quantity}x ${i.name}`).join(', '),
+      status: 'Completed',
+      price: total.value,
+      posOrder: true,
+      paymentMethod: paymentMethod.value,
+    } as any)
+
+    // Safe inventory update
+    cart.value.forEach((item: any) => {
+      const inv = inventory.value.find((i: any) => i.id === item.id)
+      if (inv) {
+        inv.stock = Math.max(0, Number(inv.stock) - Number(item.quantity))
+      }
+    })
+
+    if (typeof appStore.saveAll === 'function') {
+      await appStore.saveAll()
+    }
+
+    const finalTotal = total.value
+    clearCart()
+
+    await nextTick()
+    alert(`Sale completed! Total: ${formatCurrency(finalTotal)}`)
+
+  } catch (err) {
+    console.error('POS Sale Error:', err)
+    alert('Sale failed. Check console.')
+  }
 }
+
+/* --------------------------------------------------
+   DEV SAFETY (prevents white screen)
+-------------------------------------------------- */
+
+// Prevent full crash if store not ready
+watchEffect(() => {
+  if (!appStore) {
+    console.warn('App store not initialized.')
+  }
+})
 </script>
 
 <style scoped>
