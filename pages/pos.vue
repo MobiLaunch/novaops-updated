@@ -386,6 +386,8 @@ import CustomerSelect from '~/components/CustomerSelect.vue'
 definePageMeta({ middleware: ['auth'] })
 
 const config = useRuntimeConfig()
+const appStore = useAppStore()
+const { addNotification } = useNotifications()
 
 // Load Square SDK — sandbox vs production.
 // Prefer the squareSandbox toggle from user settings (saved in Supabase profile).
@@ -408,9 +410,6 @@ useHead({
     async: true,
   }]
 })
-
-const appStore = useAppStore()
-const { addNotification } = useNotifications()
 
 const inventory = computed(() => appStore.inventory ?? [])
 const settings  = computed(() => appStore.settings ?? { currency: '$', taxRate: 0 })
