@@ -18,13 +18,14 @@
         v-if="mobileMenuOpen"
         class="fixed left-0 top-0 z-50 h-screen flex lg:hidden shadow-2xl"
       >
-        <div class="w-[76px] h-full bg-card border-r border-border/60 flex flex-col items-center py-3 gap-1 flex-shrink-0">
+        <div class="w-[96px] h-full bg-card border-r border-border/60 flex flex-col items-center py-3 gap-1 flex-shrink-0 mob-rail">
           <RailContent
             :navigation="navigation"
             :user-initials="userInitials"
             :active-drawer="activeDrawer"
             :current-theme="currentTheme"
             :upcoming-items="upcomingItems"
+            :is-mobile="true"
             @set-drawer="setDrawer"
             @navigate="mobileMenuOpen = false"
             @set-theme="handleSetTheme"
@@ -34,7 +35,7 @@
         <Transition name="drawer">
           <div
             v-if="activeDrawer"
-            class="w-64 h-full bg-card border-r border-border/60 flex flex-col"
+            class="w-72 h-full bg-card border-r border-border/60 flex flex-col"
           >
             <DrawerContent
               :drawer="activeDrawer"
@@ -122,7 +123,7 @@
       </header>
 
       <!-- Page Content -->
-      <main class="flex-1 p-4 sm:p-6">
+      <main class="flex-1 p-4 sm:p-6 pb-8 sm:pb-6">
         <!-- Loading spinner: only shown on data-heavy pages, never on settings/config pages -->
         <div v-if="appStore.isLoading && !noLoadingGate" class="flex items-center justify-center py-32">
           <div class="flex flex-col items-center gap-4">
@@ -314,6 +315,7 @@ const RailContent = defineComponent({
     activeDrawer:   { type: String as () => string | null, default: null },
     currentTheme:   { type: String, required: true },
     upcomingItems:  { type: Array as () => typeof upcomingItems.value, default: () => [] },
+    isMobile:       { type: Boolean, default: false },
   },
   emits: ['set-drawer', 'navigate', 'set-theme', 'export'],
   setup(props, { emit }) {
@@ -333,16 +335,17 @@ const RailContent = defineComponent({
 
     function railItem(item: typeof navigation[0]) {
       const active = isActive(item.path)
+      const m = props.isMobile
       return h(NuxtLink, {
         key: item.path,
         to: item.path,
-        class: 'flex flex-col items-center gap-1 w-full px-1 group',
+        class: 'flex flex-col items-center gap-1.5 w-full px-1.5 group',
         style: 'text-decoration: none',
         onClick: () => emit('navigate'),
       }, () => [
         h('div', {
           class: [
-            'w-14 h-9 rounded-[18px] flex items-center justify-center transition-all duration-300 relative',
+            `${m ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-[18px] flex items-center justify-center transition-all duration-300 relative`,
             active ? 'shadow-md' : 'hover:bg-muted/60',
           ].join(' '),
           style: active
@@ -350,7 +353,7 @@ const RailContent = defineComponent({
             : '',
         }, [
           h(item.icon, {
-            class: 'w-5 h-5 transition-all duration-200',
+            class: `${m ? 'w-6 h-6' : 'w-5 h-5'} transition-all duration-200`,
             style: active ? `color: ${item.color}` : 'color: hsl(var(--muted-foreground))',
           }),
           item.badge ? h('span', {
@@ -359,7 +362,7 @@ const RailContent = defineComponent({
           }) : null,
         ]),
         h('span', {
-          class: 'text-[10px] font-semibold leading-none transition-all duration-200',
+          class: `${m ? 'text-[11px]' : 'text-[10px]'} font-semibold leading-none transition-all duration-200`,
           style: active ? `color: ${item.color}` : 'color: hsl(var(--muted-foreground))',
         }, item.name),
       ])
@@ -370,16 +373,16 @@ const RailContent = defineComponent({
       // ── Wordmark logo ──────────────────────────────────────────────
       h('div', { class: 'flex flex-col items-center w-full px-2 pt-1 pb-2 flex-shrink-0' }, [
         h('div', {
-          class: 'w-14 h-10 rounded-[16px] flex items-center justify-center select-none cursor-pointer',
+          class: props.isMobile ? 'w-[72px] h-12 rounded-[18px] flex items-center justify-center select-none cursor-pointer' : 'w-14 h-10 rounded-[16px] flex items-center justify-center select-none cursor-pointer',
           style: 'background: linear-gradient(145deg, #6366f1 0%, #818cf8 100%); box-shadow: 0 2px 8px #6366f130',
           onClick: () => navigateTo('/dashboard'),
         }, [
           h('div', { style: 'display: flex; flex-direction: column; align-items: center; line-height: 1' }, [
             h('span', {
-              style: 'color: rgba(255,255,255,0.75); font-size: 8px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase',
+              style: `color: rgba(255,255,255,0.75); font-size: ${props.isMobile ? '9' : '8'}px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase`,
             }, 'nova'),
             h('span', {
-              style: 'color: white; font-size: 13px; font-weight: 900; letter-spacing: -0.04em; margin-top: -1px',
+              style: `color: white; font-size: ${props.isMobile ? '15' : '13'}px; font-weight: 900; letter-spacing: -0.04em; margin-top: -1px`,
             }, 'ops'),
           ]),
         ]),
@@ -388,7 +391,7 @@ const RailContent = defineComponent({
       // More button — opens the upcoming + quick-add drawer
       h('div', { class: 'flex flex-col items-center w-full px-2 pb-3 flex-shrink-0' }, [
         h('button', {
-          class: 'w-14 h-9 rounded-[18px] flex items-center justify-center transition-all duration-200 active:scale-[0.92] hover:scale-[1.04]',
+          class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-[18px] flex items-center justify-center transition-all duration-200 active:scale-[0.92] hover:scale-[1.04]`,
           style: props.activeDrawer === 'more'
             ? 'background: #6366f118; border: 2px solid #6366f140'
             : 'background: #6366f1; box-shadow: 0 2px 8px #6366f145; border: 2px solid transparent',
@@ -396,14 +399,14 @@ const RailContent = defineComponent({
           onClick: () => emit('set-drawer', 'more'),
         }, [
           h(Plus, {
-            class: 'w-5 h-5 transition-all duration-200',
+            class: `${props.isMobile ? 'w-6 h-6' : 'w-5 h-5'} transition-all duration-200`,
             style: props.activeDrawer === 'more'
               ? 'color: #6366f1; transform: rotate(45deg)'
               : 'color: white',
           }),
         ]),
         h('span', {
-          class: 'text-[10px] font-semibold leading-none mt-1',
+          class: `${props.isMobile ? 'text-[11px]' : 'text-[10px]'} font-semibold leading-none mt-1`,
           style: props.activeDrawer === 'more' ? 'color: #6366f1' : 'color: hsl(var(--muted-foreground))',
         }, 'More'),
       ]),
@@ -413,11 +416,11 @@ const RailContent = defineComponent({
         ...coreNav.value.map(item => railItem(item)),
         h('div', { class: 'w-8 h-px my-2 flex-shrink-0', style: 'background: hsl(var(--border)/0.6)' }),
         h('button', {
-          class: 'flex flex-col items-center gap-1 w-full px-1 group',
+          class: 'flex flex-col items-center gap-1.5 w-full px-1.5 group',
           onClick: () => emit('set-drawer', 'tools'),
         }, [
           h('div', {
-            class: 'w-14 h-9 rounded-[18px] flex items-center justify-center transition-all duration-300',
+            class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-[18px] flex items-center justify-center transition-all duration-300`,
             style: props.activeDrawer === 'tools'
               ? 'background: #64748b28; transform: scale(1.05)'
               : '',
@@ -431,7 +434,7 @@ const RailContent = defineComponent({
             }),
           ]),
           h('span', {
-            class: 'text-[10px] font-semibold leading-none',
+            class: `${props.isMobile ? 'text-[11px]' : 'text-[10px]'} font-semibold leading-none`,
             style: props.activeDrawer === 'tools' ? 'color: #64748b' : 'color: hsl(var(--muted-foreground))',
           }, 'Tools'),
         ]),
@@ -443,11 +446,11 @@ const RailContent = defineComponent({
         // Upcoming
         h('div', { class: 'flex flex-col items-center gap-1 w-full px-1 relative', 'data-upcoming': '' }, [
           h('button', {
-            class: 'w-14 h-9 rounded-[18px] flex items-center justify-center transition-all duration-300 relative',
+            class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-[18px] flex items-center justify-center transition-all duration-300 relative`,
             style: upcomingOpen.value ? 'background: #06b6d428; transform: scale(1.05)' : '',
             onClick: () => { upcomingOpen.value = !upcomingOpen.value },
           }, [
-            h(CalendarDays, { class: 'w-4 h-4 transition-colors', style: upcomingOpen.value ? 'color: #06b6d4' : 'color: hsl(var(--muted-foreground))' }),
+            h(CalendarDays, { class: `${props.isMobile ? 'w-5 h-5' : 'w-4 h-4'} transition-colors`, style: upcomingOpen.value ? 'color: #06b6d4' : 'color: hsl(var(--muted-foreground))' }),
             props.upcomingItems.length > 0
               ? h('span', {
                   class: 'absolute -top-0.5 -right-1 min-w-[15px] h-[15px] rounded-full text-white text-[9px] font-bold flex items-center justify-center px-0.5 border-2 border-card',
@@ -455,7 +458,7 @@ const RailContent = defineComponent({
                 }, String(props.upcomingItems.length))
               : null,
           ]),
-          h('span', { class: 'text-[10px] font-semibold leading-none', style: upcomingOpen.value ? 'color: #06b6d4' : 'color: hsl(var(--muted-foreground))' }, 'Soon'),
+          h('span', { class: `${props.isMobile ? 'text-[11px]' : 'text-[10px]'} font-semibold leading-none`, style: upcomingOpen.value ? 'color: #06b6d4' : 'color: hsl(var(--muted-foreground))' }, 'Soon'),
 
           upcomingOpen.value ? h('div', {
             class: 'absolute bottom-0 left-[calc(100%+8px)] w-68 bg-popover border border-border/60 rounded-3xl shadow-2xl overflow-hidden z-50',
@@ -506,28 +509,28 @@ const RailContent = defineComponent({
             emit('set-theme', next)
           },
         }, [
-          h('div', { class: 'w-14 h-9 rounded-[18px] flex items-center justify-center hover:bg-muted/60 transition-all duration-200 hover:scale-105 active:scale-90' }, [
-            h(props.currentTheme === 'dark' ? Moon : props.currentTheme === 'light' ? Sun : Monitor, { class: 'w-4 h-4 text-muted-foreground' }),
+          h('div', { class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-[18px] flex items-center justify-center hover:bg-muted/60 transition-all duration-200 hover:scale-105 active:scale-90` }, [
+            h(props.currentTheme === 'dark' ? Moon : props.currentTheme === 'light' ? Sun : Monitor, { class: `${props.isMobile ? 'w-5 h-5' : 'w-4 h-4'} text-muted-foreground` }),
           ]),
-          h('span', { class: 'text-[10px] text-muted-foreground font-semibold leading-none' },
+          h('span', { class: `${props.isMobile ? 'text-[11px]' : 'text-[10px]'} text-muted-foreground font-semibold leading-none` },
             props.currentTheme === 'dark' ? 'Dark' : props.currentTheme === 'light' ? 'Light' : 'Auto'),
         ]),
 
         // Settings shortcut
         h('div', { class: 'flex flex-col items-center gap-1 w-full px-1' }, [
           h('button', {
-            class: 'w-14 h-9 rounded-[18px] flex items-center justify-center transition-all duration-300 hover:bg-muted/60 hover:scale-105 active:scale-90',
+            class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-[18px] flex items-center justify-center transition-all duration-300 hover:bg-muted/60 hover:scale-105 active:scale-90`,
             style: isActive('/settings') ? 'background: #64748b28; transform: scale(1.05)' : '',
             title: 'Settings',
             onClick: () => { navigateTo('/settings'); emit('navigate') },
           }, [
             h(SettingsIcon, {
-              class: 'w-4 h-4 transition-colors',
+              class: `${props.isMobile ? 'w-5 h-5' : 'w-4 h-4'} transition-colors`,
               style: isActive('/settings') ? 'color: #64748b' : 'color: hsl(var(--muted-foreground))',
             }),
           ]),
           h('span', {
-            class: 'text-[10px] font-semibold leading-none',
+            class: `${props.isMobile ? 'text-[11px]' : 'text-[10px]'} font-semibold leading-none`,
             style: isActive('/settings') ? 'color: #64748b' : 'color: hsl(var(--muted-foreground))',
           }, 'Settings'),
         ]),
@@ -539,10 +542,10 @@ const RailContent = defineComponent({
           title: 'Account & Settings',
         }, [
           h('div', {
-            class: 'w-9 h-9 rounded-full flex items-center justify-center text-white shadow-md transition-all duration-300 group-hover:scale-110 group-active:scale-90',
+            class: `${props.isMobile ? 'w-12 h-12' : 'w-9 h-9'} rounded-full flex items-center justify-center text-white shadow-md transition-all duration-300 group-hover:scale-110 group-active:scale-90`,
             style: 'background: linear-gradient(135deg, #6366f1, #8b5cf6)',
           }, [
-            h('span', { class: 'text-xs font-bold' }, props.userInitials),
+            h('span', { class: `${props.isMobile ? 'text-sm' : 'text-xs'} font-bold` }, props.userInitials),
           ]),
         ]),
       ]),

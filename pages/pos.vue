@@ -34,11 +34,26 @@
       </Transition>
     </div>
 
+    <!-- ── Mobile Tab Bar ────────────────────────────────────────── -->
+    <div class="mob-tabs">
+      <button class="mob-tab" :class="{ active: mobileTab === 'products' }" @click="mobileTab = 'products'">
+        <Package class="w-4 h-4" /> Products
+      </button>
+      <button class="mob-tab" :class="{ active: mobileTab === 'cart' }" @click="mobileTab = 'cart'">
+        <ShoppingBag class="w-4 h-4" />
+        Cart
+        <span v-if="cart.length" class="mob-tab-badge">{{ cart.length }}</span>
+      </button>
+      <button class="mob-tab" :class="{ active: mobileTab === 'checkout' }" @click="mobileTab = 'checkout'">
+        <CreditCard class="w-4 h-4" /> Checkout
+      </button>
+    </div>
+
     <!-- ── 3-Column Body ──────────────────────────────────────────── -->
     <div class="pos-body">
 
       <!-- ══ COL 1: Products ══════════════════════════════════════ -->
-      <div class="col-products">
+      <div class="col-products" :class="{ 'mob-hidden': mobileTab !== 'products' }">
 
         <!-- Search -->
         <div class="search-wrap">
@@ -124,7 +139,7 @@
       </div>
 
       <!-- ══ COL 2: Cart ══════════════════════════════════════════ -->
-      <div class="col-cart">
+      <div class="col-cart" :class="{ 'mob-hidden': mobileTab !== 'cart' }">
 
         <!-- Cart header -->
         <div class="cart-head">
@@ -203,10 +218,17 @@
             <span class="grand-amt">{{ formatCurrency(total) }}</span>
           </div>
         </div>
+
+        <!-- Mobile: proceed to checkout button -->
+        <button v-if="cart.length" class="mob-checkout-cta"
+          @click="mobileTab = 'checkout'">
+          <CheckCircle class="w-4 h-4" />
+          Proceed to Checkout · {{ formatCurrency(total) }}
+        </button>
       </div>
 
       <!-- ══ COL 3: Checkout ══════════════════════════════════════ -->
-      <div class="col-checkout">
+      <div class="col-checkout" :class="{ 'mob-hidden': mobileTab !== 'checkout' }">
 
         <!-- Customer -->
         <div class="checkout-card">
@@ -359,17 +381,28 @@ import {
   CheckCircle, CreditCard, TicketCheck, ShieldCheck, Wrench,
   Banknote, Wallet, Users, Lock, AlertCircle,
 } from 'lucide-vue-next'
-import { squareFetch } from '~/utils/squareClient'
 import CustomerSelect from '~/components/CustomerSelect.vue'
 
 definePageMeta({ middleware: ['auth'] })
 
 const config = useRuntimeConfig()
 
-// Load Square SDK (sandbox vs production)
+// Load Square SDK — sandbox vs production.
+// Prefer the squareSandbox toggle from user settings (saved in Supabase profile).
+// Fall back to detecting "sandbox-" prefix on the application ID.
+// isSandbox checks three sources in priority order:
+//  1. SQUARE_SANDBOX=true env var (via runtimeConfig.public.squareSandbox)
+//  2. squareSandbox toggle saved in the user's Supabase profile
+//  3. Application ID starting with "sandbox-" (Square's own convention)
+const isSandbox = computed(() =>
+  (config.public as any).squareSandbox ||
+  appStore.settings?.squareSandbox ||
+  config.public.squareApplicationId?.startsWith('sandbox-')
+)
+
 useHead({
   script: [{
-    src: config.public.squareApplicationId?.startsWith('sandbox')
+    src: isSandbox.value
       ? 'https://sandbox.web.squarecdn.com/v1/square.js'
       : 'https://web.squarecdn.com/v1/square.js',
     async: true,
@@ -398,6 +431,9 @@ const terminalStatus     = ref('')
 const keypadAmount       = ref('0')
 const cardLoading        = ref(false)
 const saleResult         = ref<null | { receiptId: number; amount: number; method: string; customer?: string }>(null)
+
+// ── Mobile tab navigation ──────────────────────────────────────────
+const mobileTab = ref<'products' | 'cart' | 'checkout'>('products')
 const ticketMode         = ref<{ ticketId: number; amount: number } | null>(null)
 
 // ── Payment method config ──────────────────────────────────────────
@@ -445,14 +481,19 @@ const ctaLabel = computed(() => ({
 function addToCart(item: any) {
   const isService = (item.itemType || 'product') === 'service'
   const existing  = cart.value.find(i => i.id === item.id)
-  if (existing && !isService) { existing.quantity++; return }
-  if (existing && isService)  return  // already in cart
-  cart.value.push({ ...item, quantity: 1, isService })
+  if (existing && !isService) { existing.quantity++; }
+  else if (existing && isService) { /* already in cart */ }
+  else cart.value.push({ ...item, quantity: 1, isService })
+  // On mobile, briefly flash the cart tab to show item was added
+  if (window.innerWidth < 1024) {
+    mobileTab.value = 'cart'
+  }
 }
 function addAkkoInsurance() {
   const existing = cart.value.find(i => i.id === 'akko')
-  if (existing) { existing.quantity++; return }
-  cart.value.push({ id: 'akko', name: 'AKKO Device Insurance', price: 15.00, quantity: 1, isService: true })
+  if (existing) { existing.quantity++ }
+  else cart.value.push({ id: 'akko', name: 'AKKO Device Insurance', price: 15.00, quantity: 1, isService: true })
+  if (window.innerWidth < 1024) mobileTab.value = 'cart'
 }
 const incrementItem = (i: number) => { cart.value[i].quantity++ }
 const decrementItem = (i: number) => {
@@ -650,20 +691,25 @@ async function handleCardPayment() {
 
 async function handleRemoteSuccess(sourceId: string, method: 'Card' | 'Afterpay') {
   try {
-    const res = await squareFetch('/payments', {
+    // Route through Nitro server API — Square blocks direct browser fetch (CORS).
+    // The server reads credentials from environment variables, never from the client.
+    const res = await $fetch('/api/square/payment', {
       method: 'POST',
       body: {
-        idempotency_key: `novaops-${method.toLowerCase()}-${Date.now()}`,
-        source_id: sourceId,
-        amount_money: { amount: Math.round(total.value * 100), currency: 'USD' }
+        sourceId,
+        amountCents: Math.round(total.value * 100),
+        referenceId: `novaops-${method.toLowerCase()}-${Date.now()}`,
+        note: cart.value.map((i: any) => `${i.quantity}× ${i.name}`).join(', '),
       }
     })
-    if (!res.payment || res.payment.status !== 'COMPLETED')
-      throw new Error(`${method} capture failed`)
+    if (!res.success || res.status !== 'COMPLETED')
+      throw new Error(`${method} capture failed — status: ${res.status}`)
     await executeTicketCreation(method)
   } catch (e: any) {
     terminalStatus.value = ''
-    addNotification(`${method} Charge Error`, e.message, 'error')
+    // $fetch wraps server errors in e.data.message
+    const msg = (e as any).data?.message || (e as any).message || `${method} charge failed`
+    addNotification(`${method} Charge Error`, msg, 'error')
   }
 }
 
@@ -725,6 +771,67 @@ onUnmounted(() => {
   gap: 14px;
   height: calc(100dvh - 160px);
   min-height: 560px;
+}
+
+/* ── Mobile Tab Bar ────────────────────────────────────────────────── */
+.mob-tabs {
+  display: none;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 16px;
+  background: hsl(var(--muted)/0.6);
+  flex-shrink: 0;
+}
+.mob-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: hsl(var(--muted-foreground));
+  transition: all 0.2s ease;
+  position: relative;
+}
+.mob-tab.active {
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.mob-tab-badge {
+  position: absolute;
+  top: 4px; right: 4px;
+  min-width: 16px; height: 16px;
+  border-radius: 8px;
+  background: #ec4899;
+  color: white;
+  font-size: 9px;
+  font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 4px;
+}
+
+@media (max-width: 1023px) {
+  .mob-tabs { display: flex; }
+  .mob-hidden { display: none !important; }
+  .pos-body {
+    grid-template-columns: 1fr !important;
+    overflow: visible !important;
+  }
+  .col-products,
+  .col-cart,
+  .col-checkout {
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto;
+  }
+  .pos-root {
+    height: auto;
+    min-height: calc(100dvh - 160px);
+  }
 }
 
 /* ── Ticket Banner ─────────────────────────────────────────────────── */
@@ -993,6 +1100,28 @@ onUnmounted(() => {
 .add-custom-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
 /* Cart totals */
+.mob-checkout-cta {
+  display: none;
+  width: 100%;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  color: white;
+  font-size: 13px;
+  font-weight: 900;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+}
+.mob-checkout-cta:hover { transform: scale(1.02); }
+.mob-checkout-cta:active { transform: scale(0.97); }
+@media (max-width: 1023px) {
+  .mob-checkout-cta { display: flex; }
+}
+
 .cart-totals {
   flex-shrink: 0; padding: 10px 14px 12px;
   border-top: 1px solid hsl(var(--border)/0.4);

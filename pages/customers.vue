@@ -142,7 +142,7 @@
               <p class="text-xs text-muted-foreground font-medium">Add a customer to your shop</p>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="col-span-2 space-y-2"><label class="m3-label">Full Name *</label><input v-model="form.name" placeholder="Jane Smith" class="m3-input" /></div>
             <div class="space-y-2"><label class="m3-label">Phone</label><input v-model="form.phone" placeholder="(555) 123-4567" class="m3-input" /></div>
             <div class="space-y-2"><label class="m3-label">Email</label><input v-model="form.email" type="email" placeholder="jane@email.com" class="m3-input" /></div>
@@ -161,7 +161,7 @@
 
     <!-- ── Customer Detail Dialog ─────────────────────────────── -->
     <Dialog v-model:open="detailOpen">
-      <DialogContent class="max-w-lg">
+      <DialogContent class="w-full max-w-[96vw] sm:max-w-lg">
         <div v-if="selected" class="flex flex-col gap-5 p-7">
           <div class="flex items-center gap-4">
             <div class="w-16 h-16 rounded-[28px] flex items-center justify-center font-black text-xl flex-shrink-0"
@@ -177,7 +177,7 @@
               <span class="text-[10px] text-muted-foreground font-semibold">Total Spent</span>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="p-3 rounded-[20px]" style="background:hsl(var(--muted)/0.4)">
               <p class="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Phone</p>
               <p class="text-sm font-bold">{{ selected.phone || '—' }}</p>

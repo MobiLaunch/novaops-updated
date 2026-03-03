@@ -1,9 +1,9 @@
 <template>
   <Dialog v-model:open="isOpen">
-    <DialogContent class="sm:max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+    <DialogContent class="w-full max-w-[96vw] sm:max-w-3xl max-h-[90dvh] overflow-hidden flex flex-col">
 
       <!-- M3 Header -->
-      <div class="flex-shrink-0 px-7 pt-7 pb-4 border-b border-border/50">
+      <div class="flex-shrink-0 px-4 sm:px-7 pt-5 sm:pt-7 pb-4 border-b border-border/50">
         <div class="flex items-start justify-between gap-4 pr-10">
           <div class="flex items-center gap-3">
             <div class="w-11 h-11 rounded-[22px] flex items-center justify-center flex-shrink-0 shadow-md"
@@ -61,7 +61,7 @@
 
         <!-- ── Info Tab ──────────────────────────────────────────── -->
         <div v-if="activeTab === 'info'" class="space-y-4">
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card>
               <CardContent class="p-4 space-y-3">
                 <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Device</p>
@@ -129,11 +129,11 @@
           <div class="grid grid-cols-2 gap-3">
             <div class="space-y-1.5">
               <Label class="text-xs">Warranty Days</Label>
-              <Input v-model.number="localWarrantyDays" type="number" min="0" placeholder="0" @change="saveField('warranty_days', localWarrantyDays.value)" />
+              <Input v-model.number="localWarrantyDays" type="number" min="0" placeholder="0" @change="saveField('warranty_days', localWarrantyDays)" />
             </div>
             <div class="space-y-1.5">
               <Label class="text-xs">Tracking Number</Label>
-              <Input v-model="localTracking" placeholder="Optional" @change="saveField('tracking', localTracking.value)" />
+              <Input v-model="localTracking" placeholder="Optional" @change="saveField('tracking', localTracking)" />
             </div>
           </div>
 
@@ -332,7 +332,7 @@
         <div v-if="activeTab === 'payments'" class="space-y-4">
 
           <!-- Balance summary -->
-          <div class="grid grid-cols-3 gap-3">
+          <div class="grid grid-cols-3 gap-2 sm:gap-3">
             <Card>
               <CardContent class="p-3 text-center">
                 <p class="text-xs text-muted-foreground">Invoice</p>
@@ -447,7 +447,7 @@
       </div>
 
       <!-- M3 Footer -->
-      <div class="flex gap-2.5 px-7 pb-7 pt-4 border-t border-border/50 flex-shrink-0 flex-wrap">
+      <div class="flex gap-2 sm:gap-2.5 px-4 sm:px-7 pb-5 sm:pb-7 pt-4 border-t border-border/50 flex-shrink-0 flex-wrap">
         <button class="flex items-center gap-1.5 h-11 px-4 rounded-full text-sm font-bold text-white mr-auto transition-all hover:scale-[1.03] active:scale-95"
           style="background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 14px #ef444430"
           @click="$emit('delete', ticket)">

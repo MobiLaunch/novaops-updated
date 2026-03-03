@@ -47,7 +47,7 @@
               <label class="m3-label">Address</label>
               <textarea v-model="form.address" :rows="2" placeholder="123 Main St, City, State ZIP" class="m3-input resize-none" />
             </div>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="space-y-2">
                 <label class="m3-label">Currency Symbol</label>
                 <input v-model="form.currency" placeholder="$" class="m3-input" />
@@ -949,21 +949,25 @@ const runDiagnostics = async () => {
     updateDiagLog('Square Backend API', 'error', `API error: ${e.message}`)
   }
 
-  // 5. Square Routing Health
-  logDiag('Square Routing Health', 'pending')
+  // 5. Square Payment Readiness (real end-to-end check — no fake errors)
+  logDiag('Square Payment Readiness', 'pending')
   try {
     const headers = {
       'x-square-access-token': form.value.squareAccessToken,
       'x-square-location-id': form.value.squareLocationId
     }
-    const res = await $fetch('/api/square/terminal-status?checkoutId=test_diag', { headers })
-    updateDiagLog('Square Routing Health', 'success', `Terminal status reachable: ${JSON.stringify(res)}`)
-  } catch (e: any) {
-    if (e.statusCode === 400 || e.statusCode === 404 || e.message.includes('Resource not found') || e.message.includes('Missing checkoutId')) {
-      updateDiagLog('Square Routing Health', 'success', `Endpoint responded as expected for fake checkout (${e.statusCode}): ${e.message}`)
+    const res: any = await $fetch('/api/square/payment-readiness', { headers })
+    if (res.ok) {
+      const mode = res.sandbox ? '🧪 Sandbox' : '🟢 Production'
+      const summary = res.checks.map((c: any) => `${c.ok ? '✓' : '✗'} ${c.name}: ${c.detail}`).join(' | ')
+      updateDiagLog('Square Payment Readiness', 'success', `${mode} — ${summary}`)
     } else {
-      updateDiagLog('Square Routing Health', 'error', `Unexpected response: ${e.message}`)
+      const failed = res.checks.filter((c: any) => !c.ok).map((c: any) => `${c.name}: ${c.detail}`).join('; ')
+      updateDiagLog('Square Payment Readiness', 'error', `Check failed — ${failed}`)
     }
+  } catch (e: any) {
+    const msg = (e as any).data?.message || (e as any).message || 'Unknown error'
+    updateDiagLog('Square Payment Readiness', 'error', `Readiness check failed: ${msg}`)
   }
   
   isRunningDiag.value = false

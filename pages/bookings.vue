@@ -87,7 +87,7 @@
 
       <!-- Filters -->
       <div class="flex items-center gap-3 flex-wrap">
-        <div class="relative flex-1 min-w-[200px] max-w-sm">
+        <div class="relative flex-1 min-w-[160px] max-w-sm">
           <Search class="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <input v-model="ticketSearch" placeholder="Search tickets…"
             class="w-full h-12 pl-11 pr-4 rounded-full text-sm bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-amber-400/50 focus:ring-2 focus:ring-amber-400/20 transition-all font-medium" />
@@ -249,7 +249,7 @@
 
       <!-- Search + Filter -->
       <div class="flex items-center gap-3 flex-wrap">
-        <div class="relative flex-1 min-w-[200px] max-w-sm">
+        <div class="relative flex-1 min-w-[160px] max-w-sm">
           <Search class="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <input v-model="vendorSearch" placeholder="Search vendor repairs…"
             class="w-full h-12 pl-11 pr-4 rounded-full text-sm bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-violet-400/50 focus:ring-2 focus:ring-violet-400/20 transition-all font-medium" />
@@ -354,8 +354,8 @@
 
     <!-- House Call Dialog -->
     <Dialog v-model:open="housecallFormOpen">
-      <DialogContent class="max-w-2xl">
-        <div class="flex flex-col gap-5 p-7">
+      <DialogContent class="w-full max-w-[96vw] sm:max-w-2xl">
+        <div class="flex flex-col gap-5 p-4 sm:p-7">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #10b981, #059669)">
               <MapPin class="w-5 h-5 text-white" />
@@ -466,8 +466,8 @@
 
     <!-- Vendor Repair Dialog -->
     <Dialog v-model:open="vendorFormOpen">
-      <DialogContent class="max-w-lg">
-        <div class="flex flex-col gap-5 p-7">
+      <DialogContent class="w-full max-w-[96vw] sm:max-w-lg">
+        <div class="flex flex-col gap-5 p-4 sm:p-7">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed)">
               <Building2 class="w-5 h-5 text-white" />
@@ -479,8 +479,8 @@
           </div>
 
           <!-- Customer + Device -->
-          <div class="grid grid-cols-2 gap-3">
-            <div class="space-y-2 col-span-2"><label class="m3-label">Customer</label><CustomerSelect v-model="vendorForm.customerId" /></div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="space-y-2 sm:col-span-2"><label class="m3-label">Customer</label><CustomerSelect v-model="vendorForm.customerId" /></div>
             <div class="space-y-2"><label class="m3-label">Device</label><input v-model="vendorForm.device" placeholder="e.g. iPhone 15 Pro" class="m3-input" /></div>
             <div class="space-y-2"><label class="m3-label">Issue</label><input v-model="vendorForm.issue" placeholder="e.g. Cracked screen" class="m3-input" /></div>
           </div>

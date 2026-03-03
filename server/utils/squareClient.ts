@@ -3,15 +3,37 @@
  * Works in all Nitro environments: local Node, Vercel Edge, Vercel Serverless.
  *
  * Credentials are read from Nuxt private runtimeConfig (server-only).
- * Set SQUARE_ACCESS_TOKEN and SQUARE_LOCATION_ID in:
- *   - Local: novaops-updated-main/.env
+ * Set SQUARE_ACCESS_TOKEN, SQUARE_LOCATION_ID, SQUARE_APPLICATION_ID in:
+ *   - Local: .env
  *   - Vercel: Dashboard → Project → Settings → Environment Variables
+ *
+ * Sandbox is auto-detected from the access token prefix (EAAAl = sandbox,
+ * anything else = production). No separate env var needed.
  */
 
-const SQUARE_API = 'https://connect.squareup.com/v2'
-const SQUARE_VERSION = '2025-01-23'   // latest stable as of early 2025
+const SQUARE_VERSION = '2025-01-23'
 
 import { H3Event, getHeader } from 'h3'
+
+function isSandboxToken(token: string): boolean {
+  // Square sandbox access tokens start with "EAAAl" (lowercase L)
+  // Production tokens start with "EAAAl" too but sandbox app IDs start with "sandbox-"
+  // The most reliable signal is the token itself — sandbox tokens contain "sandbox" in them
+  // OR the SQUARE_APPLICATION_ID starts with "sandbox-"
+  return token.startsWith('EAAAlx') === false
+    ? false
+    : process.env.SQUARE_APPLICATION_ID?.startsWith('sandbox-') ?? false
+}
+
+function getSquareBaseUrl(accessToken: string): string {
+  const appId = process.env.SQUARE_APPLICATION_ID || ''
+  const sandbox = appId.startsWith('sandbox-') ||
+    accessToken.toLowerCase().includes('sandbox') ||
+    process.env.SQUARE_SANDBOX === 'true'
+  return sandbox
+    ? 'https://connect.squareupsandbox.com/v2'
+    : 'https://connect.squareup.com/v2'
+}
 
 export function getServerSquareCredentials(event?: H3Event) {
   const config = useRuntimeConfig()
@@ -24,7 +46,6 @@ export function getServerSquareCredentials(event?: H3Event) {
     locationId = getHeader(event, 'x-square-location-id') || ''
   }
 
-  // Fall back to preferred config / process.env
   if (!accessToken) {
     accessToken = config.squareAccessToken || process.env.SQUARE_ACCESS_TOKEN || ''
   }
@@ -46,7 +67,9 @@ export async function serverSquareFetch(
   accessToken: string,
   options: { method?: string; body?: any } = {}
 ) {
-  const res = await fetch(`${SQUARE_API}${path}`, {
+  const baseUrl = getSquareBaseUrl(accessToken)
+
+  const res = await fetch(`${baseUrl}${path}`, {
     method: options.method ?? 'GET',
     headers: {
       'Authorization': `Bearer ${accessToken}`,

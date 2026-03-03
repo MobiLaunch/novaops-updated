@@ -1,6 +1,6 @@
 <template>
   <Dialog v-model:open="isOpen">
-    <DialogContent class="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+    <DialogContent class="w-full max-w-[96vw] sm:max-w-3xl max-h-[90dvh] overflow-y-auto">
       <!-- M3 Dialog Header -->
       <div class="flex items-center gap-4 px-7 pt-7 pb-5 border-b border-border/50">
         <div class="w-11 h-11 rounded-[22px] flex items-center justify-center flex-shrink-0 shadow-md"
@@ -180,7 +180,7 @@
             <textarea v-model="ticketData.deviceDescription" rows="2" placeholder="Color, visible damage, accessories included…" class="m3-dialog-textarea" />
           </div>
 
-          <SignaturePad v-model="ticketData.signature" label="Customer Signature *" :width="550" :height="150" />
+          <SignaturePad v-model="ticketData.signature" label="Customer Signature (optional)" :width="Math.min(550, typeof window !== 'undefined' ? window.innerWidth - 80 : 550)" :height="150" />
         </div>
 
       </div>
@@ -201,9 +201,9 @@
         <button v-else
           class="flex-1 h-12 rounded-full text-sm font-black text-white flex items-center justify-center gap-2 transition-all hover:scale-[1.04] hover:-translate-y-0.5 active:scale-95"
           :style="canCreate ? 'background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 4px 16px #6366f140' : 'background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); cursor: not-allowed'"
-          :disabled="!canCreate"
+          :disabled="!canCreate || creating"
           @click="createTicket">
-          Create Ticket
+          {{ creating ? 'Saving…' : 'Create Ticket' }}
         </button>
       </div>
     </DialogContent>
@@ -303,7 +303,7 @@ const canProceed = computed(() => {
   return false
 })
 
-const canCreate = computed(() => !!ticketData.value.customerId && !!ticketData.value.signature)
+const canCreate = computed(() => !!ticketData.value.customerId)
 
 const selectBrand = async (brand: string) => {
   selectedBrand.value = brand
@@ -339,8 +339,10 @@ const nextStep = () => {
 
 const handleCancel = () => { resetForm(); isOpen.value = false }
 
+const creating = ref(false)
 const createTicket = () => {
-  if (!canCreate.value) return
+  if (!canCreate.value || creating.value) return
+  creating.value = true
   emit('create', {
     device: selectedBrand.value,
     deviceModel: selectedModel.value || customModel.value,
@@ -352,7 +354,8 @@ const createTicket = () => {
     priority: ticketData.value.priority,
     signature: ticketData.value.signature
   })
-  resetForm()
+  // Parent controls closing via v-model; reset after a tick so data is preserved during the async save
+  setTimeout(() => { resetForm(); creating.value = false }, 300)
 }
 
 const resetForm = () => {

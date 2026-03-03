@@ -59,6 +59,7 @@ export default defineNuxtConfig({
     // ── Private (server-side only) ─────────────────────────────────────────
     squareAccessToken: process.env.SQUARE_ACCESS_TOKEN || '',
     squareLocationId: process.env.SQUARE_LOCATION_ID || '',
+    squareSandbox: process.env.SQUARE_SANDBOX === 'true',
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
     brandOauthRedirectBase: process.env.BRAND_OAUTH_REDIRECT_BASE || '',
 
@@ -80,6 +81,7 @@ export default defineNuxtConfig({
       // ── Public (safe in browser bundle) ─────────────────────────────────
       squareApplicationId: process.env.SQUARE_APPLICATION_ID || '',
       squareLocationId: process.env.SQUARE_LOCATION_ID || '',
+      squareSandbox: process.env.SQUARE_SANDBOX === 'true',
       supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL || '',
       supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY || '',
 

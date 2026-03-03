@@ -132,7 +132,7 @@
 
     <!-- ── Add/Edit Dialog ─────────────────────────────────────── -->
     <Dialog v-model:open="newOpen">
-      <DialogContent class="max-w-md">
+      <DialogContent class="w-full max-w-[96vw] sm:max-w-md">
         <div class="flex flex-col gap-5 p-7">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
@@ -156,7 +156,7 @@
             </button>
           </div>
 
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="col-span-2 space-y-2"><label class="m3-label">Name</label><input v-model="form.name" :placeholder="form.itemType === 'service' ? 'Screen Replacement Labor' : 'Screen Replacement'" class="m3-input" /></div>
             <template v-if="form.itemType === 'product'">
               <div class="space-y-2"><label class="m3-label">SKU</label><input v-model="form.sku" placeholder="SKU-001" class="m3-input" /></div>
