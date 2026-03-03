@@ -1,14 +1,9 @@
-// server/api/square/test.post.ts
-// Temporary debug endpoint — remove after fixing
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-
-  // Check 1: Can we read env vars?
   const hasAccessToken = !!process.env.SQUARE_ACCESS_TOKEN
   const hasLocationId  = !!process.env.SQUARE_LOCATION_ID
   const hasAppId       = !!process.env.SQUARE_APPLICATION_ID
 
-  // Check 2: Can we import squareClient?
   let credError = null
   let credentials = null
   try {
@@ -17,7 +12,6 @@ export default defineEventHandler(async (event) => {
     credError = e.message
   }
 
-  // Check 3: Can we reach Square's API at all?
   let pingError = null
   let pingStatus = null
   if (credentials) {
