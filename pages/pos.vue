@@ -190,22 +190,28 @@
           </TransitionGroup>
         </div>
 
-        <!-- Custom amount keypad (compact) -->
+        <!-- Custom amount keypad -->
         <div class="custom-bar">
           <div class="custom-bar-header">
-            <Plus class="w-3 h-3" />
-            <span>Custom amount</span>
+            <Plus class="w-4 h-4" />
+            <span>Custom Amount</span>
             <span class="custom-display" :class="{ dim: keypadAmount === '0' }">
               {{ settings.currency || '$' }}{{ (parseFloat(keypadAmount)/100).toFixed(2) }}
             </span>
           </div>
-          <div class="keypad-mini">
-            <button v-for="k in [1,2,3,4,5,6,7,8,9,'C',0,'⌫']" :key="k"
-              class="key-mini" :class="{ 'key-clr': k==='C', 'key-bk': k==='⌫' }"
-              @click="handleKey(k)">{{ k }}</button>
+          <div class="keypad-grid">
+            <button v-for="k in [1,2,3,4,5,6,7,8,9]" :key="k"
+              class="kp-btn" @click="handleKey(k)">{{ k }}</button>
+            <button class="kp-btn kp-clr" @click="handleKey('C')">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>
+            </button>
+            <button class="kp-btn" @click="handleKey(0)">0</button>
+            <button class="kp-btn kp-bk" @click="handleKey('⌫')">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+            </button>
           </div>
           <button class="add-custom-btn" :disabled="keypadAmount==='0'" @click="addCustomToCart">
-            <Plus class="w-3 h-3" /> Add {{ keypadAmount !== '0' ? formatCurrency(parseFloat(keypadAmount)/100) : '' }}
+            <Plus class="w-4 h-4" /> Add {{ keypadAmount !== '0' ? formatCurrency(parseFloat(keypadAmount)/100) : '' }}
           </button>
         </div>
 
@@ -1051,44 +1057,58 @@ onUnmounted(() => {
 
 /* Custom amount bar */
 .custom-bar {
-  flex-shrink: 0; padding: 9px 14px;
+  flex-shrink: 0; padding: 12px 14px;
   border-top: 1px solid hsl(var(--border)/0.3);
   background: hsl(var(--muted)/0.12);
-  display: flex; flex-direction: column; gap: 7px;
+  display: flex; flex-direction: column; gap: 10px;
 }
 .custom-bar-header {
   display: flex; align-items: center; gap: 6px;
-  font-size: 10px; font-weight: 700;
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: hsl(var(--muted-foreground));
 }
 .custom-display {
-  margin-left: auto; font-size: 18px; font-weight: 900;
+  margin-left: auto; font-size: 22px; font-weight: 900;
   color: hsl(var(--foreground)); transition: color 0.2s;
+  letter-spacing: -0.5px;
 }
 .custom-display.dim { color: hsl(var(--muted-foreground)/0.25); }
-.keypad-mini {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px;
+.keypad-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
 }
-.key-mini {
-  height: 26px; border-radius: 7px; font-size: 12px; font-weight: 800;
-  background: hsl(var(--muted)/0.5); color: hsl(var(--foreground));
-  border: 1px solid hsl(var(--border)/0.35);
+.kp-btn {
+  height: 56px; border-radius: 20px; font-size: 18px; font-weight: 800;
+  background: hsl(var(--card)); color: hsl(var(--foreground));
+  outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all 0.1s;
+  cursor: pointer;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.key-mini:hover  { transform: scale(1.08); background: hsl(var(--muted)); }
-.key-mini:active { transform: scale(0.9); }
-.key-clr { background: #ef444410; color: #ef4444; border-color: #ef444420; font-size: 10px; }
-.key-bk  { font-size: 10px; color: hsl(var(--muted-foreground)); }
+.kp-btn:hover  { transform: scale(1.05); }
+.kp-btn:active { transform: scale(0.88); }
+.kp-clr {
+  background: #ef444414; color: #ef4444;
+  outline-color: #ef444428;
+}
+.kp-bk {
+  background: hsl(var(--muted)/0.6); color: hsl(var(--muted-foreground));
+  outline-color: hsl(var(--border)/0.6);
+}
 .add-custom-btn {
-  display: flex; align-items: center; justify-content: center; gap: 4px;
-  height: 28px; border-radius: 8px; font-size: 11px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  height: 48px; border-radius: 16px; font-size: 14px; font-weight: 900;
   color: white; background: linear-gradient(135deg, #ec4899, #db2777);
-  box-shadow: 0 3px 10px #ec489930;
-  transition: all 0.2s cubic-bezier(0.34,1.4,0.64,1);
+  box-shadow: 0 4px 16px #ec489930;
+  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
 }
-.add-custom-btn:not(:disabled):hover { transform: scale(1.05); box-shadow: 0 4px 14px #ec489950; }
+.add-custom-btn:not(:disabled):hover { transform: scale(1.03) translateY(-2px); box-shadow: 0 6px 20px #ec489950; }
+.add-custom-btn:not(:disabled):active { transform: scale(0.96); }
 .add-custom-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+@media (max-width: 1023px) {
+  .kp-btn { height: 64px; border-radius: 24px; font-size: 20px; }
+  .add-custom-btn { height: 54px; border-radius: 18px; font-size: 15px; }
+}
 
 /* Cart totals */
 .mob-checkout-cta {
