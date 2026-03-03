@@ -1188,7 +1188,7 @@ onUnmounted(() => {
   transition: max-height 0.35s ease, opacity 0.3s ease, padding 0.3s ease;
 }
 .card-form-card.visible {
-  max-height: 200px;
+  max-height: 400px;
   padding: 13px; opacity: 1; pointer-events: auto;
 }
 
