@@ -99,10 +99,7 @@ export default defineNuxtConfig({
       emailjsServiceId: process.env.NUXT_PUBLIC_EMAILJS_SERVICE_ID || '',
       emailjsPublicKey: process.env.NUXT_PUBLIC_EMAILJS_PUBLIC_KEY || '',
       emailjsTicketTemplateId: process.env.NUXT_PUBLIC_EMAILJS_TICKET_TEMPLATE_ID || '',
-      emailjsHousecallTemplateId: process.env.NUXT_PUBLIC_EMAILJS_HOUSECALL_TEMPLATE_ID || '',
-      emailjsVendorRepairTemplateId: process.env.NUXT_PUBLIC_EMAILJS_VENDOR_REPAIR_TEMPLATE_ID || '',
-      emailjsInternalTemplateId: process.env.NUXT_PUBLIC_EMAILJS_INTERNAL_TEMPLATE_ID || '',
-    }
+      emailjsTemplateCustomer:     process.env.NUXT_PUBLIC_EMAILJS_TEMPLATE_CUSTOMER || '',    }
   },
 
   app: {
