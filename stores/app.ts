@@ -11,6 +11,7 @@ export const useAppStore = defineStore('app', () => {
   const customers = ref<any[]>([])
   const inventory = ref<any[]>([])
   const houseCalls = ref<any[]>([])
+  const vendorRepairs = ref<any[]>([])
   const appointments = ref<any[]>([])
   const quickSales = ref<any[]>([])
   const services = ref<any[]>([])
@@ -102,6 +103,15 @@ export const useAppStore = defineStore('app', () => {
     customerId: h.customer_id ?? h.customerId,
   })
 
+  const normalizeVendorRepair = (r: any) => ({
+    ...r,
+    customerId: r.customer_id ?? r.customerId,
+    ticketRef: r.ticket_ref ?? r.ticketRef ?? '',
+    trackingNumber: r.tracking_number ?? r.trackingNumber ?? '',
+    sentDate: r.sent_date ?? r.sentDate ?? null,
+    estReturn: r.est_return ?? r.estReturn ?? null,
+  })
+
   const normalizeAppointment = (a: any) => ({
     ...a,
     customerId: a.customer_id ?? a.customerId,
@@ -129,6 +139,7 @@ export const useAppStore = defineStore('app', () => {
           customers.value = []
           inventory.value = []
           houseCalls.value = []
+          vendorRepairs.value = []
           appointments.value = []
           isLoaded.value = false
           navigateTo('/login')
@@ -154,11 +165,12 @@ export const useAppStore = defineStore('app', () => {
     isLoading.value = true
 
     try {
-      const [t, c, i, h, a, p] = await Promise.all([
+      const [t, c, i, h, vr, a, p] = await Promise.all([
         ($supabase as any).from('tickets').select('*').eq('profile_id', uid).order('created_at', { ascending: false }),
         ($supabase as any).from('customers').select('*').eq('profile_id', uid).order('created_at', { ascending: false }),
         ($supabase as any).from('inventory').select('*').eq('profile_id', uid).order('name', { ascending: true }),
         ($supabase as any).from('house_calls').select('*').eq('profile_id', uid).order('date', { ascending: true }),
+        ($supabase as any).from('vendor_repairs').select('*').eq('profile_id', uid).order('created_at', { ascending: false }),
         ($supabase as any).from('appointments').select('*').eq('profile_id', uid).order('date', { ascending: true }),
         ($supabase as any).from('profiles').select('*').eq('id', uid).single()
       ])
@@ -167,6 +179,7 @@ export const useAppStore = defineStore('app', () => {
       customers.value = (c.data || []).map(normalizeCustomer)
       inventory.value = (i.data || []).map(normalizeInventory)
       houseCalls.value = (h.data || []).map(normalizeHouseCall)
+      vendorRepairs.value = (vr.data || []).map(normalizeVendorRepair)
       appointments.value = (a.data || []).map(normalizeAppointment)
 
       if (p.data) {
@@ -221,6 +234,7 @@ export const useAppStore = defineStore('app', () => {
       customers,
       inventory,
       house_calls: houseCalls,
+      vendor_repairs: vendorRepairs,
       appointments
     }
 
@@ -233,8 +247,9 @@ export const useAppStore = defineStore('app', () => {
           : table === 'customers' ? normalizeCustomer(newRecord)
             : table === 'inventory' ? normalizeInventory(newRecord)
               : table === 'house_calls' ? normalizeHouseCall(newRecord)
-                : table === 'appointments' ? normalizeAppointment(newRecord)
-                  : newRecord
+                : table === 'vendor_repairs' ? normalizeVendorRepair(newRecord)
+                  : table === 'appointments' ? normalizeAppointment(newRecord)
+                    : newRecord
         targetArray.value.unshift(norm)
         break
       }
@@ -246,8 +261,9 @@ export const useAppStore = defineStore('app', () => {
             : table === 'customers' ? normalizeCustomer(newRecord)
               : table === 'inventory' ? normalizeInventory(newRecord)
                 : table === 'house_calls' ? normalizeHouseCall(newRecord)
-                  : table === 'appointments' ? normalizeAppointment(newRecord)
-                    : newRecord
+                  : table === 'vendor_repairs' ? normalizeVendorRepair(newRecord)
+                    : table === 'appointments' ? normalizeAppointment(newRecord)
+                      : newRecord
           targetArray.value[index] = norm
         }
         break
@@ -387,6 +403,50 @@ export const useAppStore = defineStore('app', () => {
     const { error } = await ($supabase as any).from('house_calls').delete().eq('id', id)
     if (error) throw error
     houseCalls.value = houseCalls.value.filter(h => h.id !== id)
+  }
+
+  // ── Vendor Repairs ──────────────────────────────────────────────────────────
+  const createVendorRepair = async (repair: any) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    if (!user.value) throw new Error('Not authenticated')
+    const { data, error } = await ($supabase as any).from('vendor_repairs').insert({
+      profile_id: user.value.id,
+      customer_id: repair.customerId,
+      device: repair.device || '',
+      issue: repair.issue || '',
+      vendor: repair.vendor || '',
+      ticket_ref: repair.ticketRef || '',
+      tracking_number: repair.trackingNumber || '',
+      status: repair.status || 'Preparing to Ship',
+      sent_date: repair.sentDate || null,
+      est_return: repair.estReturn || null,
+      notes: repair.notes || '',
+    }).select().single()
+    if (error) throw error
+    vendorRepairs.value.unshift(normalizeVendorRepair(data))
+    return data
+  }
+
+  const updateVendorRepair = async (id: any, updates: any) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    const payload: any = { ...updates }
+    if (updates.customerId !== undefined) { payload.customer_id = updates.customerId; delete payload.customerId }
+    if (updates.ticketRef !== undefined) { payload.ticket_ref = updates.ticketRef; delete payload.ticketRef }
+    if (updates.trackingNumber !== undefined) { payload.tracking_number = updates.trackingNumber; delete payload.trackingNumber }
+    if (updates.sentDate !== undefined) { payload.sent_date = updates.sentDate; delete payload.sentDate }
+    if (updates.estReturn !== undefined) { payload.est_return = updates.estReturn; delete payload.estReturn }
+    const { data, error } = await ($supabase as any).from('vendor_repairs').update(payload).eq('id', id).select().single()
+    if (error) throw error
+    const index = vendorRepairs.value.findIndex(r => r.id === id)
+    if (index !== -1) vendorRepairs.value[index] = normalizeVendorRepair(data)
+    return data
+  }
+
+  const deleteVendorRepair = async (id: any) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    const { error } = await ($supabase as any).from('vendor_repairs').delete().eq('id', id)
+    if (error) throw error
+    vendorRepairs.value = vendorRepairs.value.filter(r => r.id !== id)
   }
 
   // ── Appointments ──────────────────────────────────────────────────────────
@@ -538,6 +598,7 @@ export const useAppStore = defineStore('app', () => {
     customers,
     inventory,
     houseCalls,
+    vendorRepairs,
     appointments,
     quickSales,
     settings,
@@ -566,6 +627,9 @@ export const useAppStore = defineStore('app', () => {
     createCustomer,
     updateCustomer,
     deleteCustomer,
+    createVendorRepair,
+    updateVendorRepair,
+    deleteVendorRepair,
     services, saveSettings,
     saveAll,
     trackDevice,

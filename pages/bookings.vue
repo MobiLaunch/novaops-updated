@@ -203,7 +203,7 @@
             <span class="text-[10px] font-black px-2.5 py-1 rounded-full" :style="callStatusStyle(call.status)">{{ call.status }}</span>
           </div>
           <div>
-            <h3 class="font-black text-sm">{{ call.customerName }}</h3>
+            <h3 class="font-black text-sm">{{ getCustomerName(call.customerId) }}</h3>
             <p class="text-xs text-muted-foreground font-medium mt-1 flex items-center gap-1.5"><MapPin class="w-3 h-3 flex-shrink-0" />{{ call.address }}</p>
             <p class="text-xs font-semibold mt-2" style="color: #10b981">{{ formatDate(call.date) }} at {{ call.time }}</p>
           </div>
@@ -286,7 +286,7 @@
                   <span v-if="repair.ticketRef" class="text-xs font-bold px-2 py-0.5 rounded-full" style="background: #f59e0b20; color: #f59e0b">Ticket #{{ repair.ticketRef }}</span>
                 </div>
                 <p class="text-sm font-semibold text-muted-foreground">{{ repair.device }} — {{ repair.issue }}</p>
-                <p class="text-xs font-medium text-muted-foreground">Customer: {{ repair.customerName }}</p>
+                <p class="text-xs font-medium text-muted-foreground">Customer: {{ getCustomerName(repair.customerId) }}</p>
               </div>
             </div>
             <!-- Status badge -->
@@ -566,15 +566,13 @@ import TicketDetailDialog from '~/components/TicketDetailDialog.vue'
 definePageMeta({ middleware: ['auth'] })
 
 const appStore = useAppStore()
-const { tickets, customers, settings } = storeToRefs(appStore)
+const { tickets, customers, settings, houseCalls: housecalls, vendorRepairs } = storeToRefs(appStore)
 const { addNotification } = useNotifications()
 
 // ── Active Tab ────────────────────────────────────────────────────────────────
 const activeTab = ref<'tickets' | 'housecalls' | 'thirdparty'>('tickets')
 
 // ── Tab Definitions ───────────────────────────────────────────────────────────
-const housecalls = ref<any[]>([])
-const vendorRepairs = ref<any[]>([])
 
 const tabs = computed(() => [
   { id: 'tickets',    label: 'Tickets',         icon: TicketCheck, color: '#f59e0b', count: (tickets.value ?? []).filter(t => t.status === 'Open' || t.status === 'In Progress').length },
@@ -694,22 +692,29 @@ const callStatusStyle = (s: string) => ({ 'Scheduled': 'background: #3b82f620; c
 
 const openNewHousecall = () => { editingHousecall.value = null; housecallForm.value = { customerId: null, address: '', date: '', time: '', issue: '', status: 'Scheduled' }; housecallFormOpen.value = true }
 const viewHousecall = (call: any) => { editingHousecall.value = call; housecallForm.value = { ...call }; housecallFormOpen.value = true }
-const saveHousecall = () => {
-  const customer = (customers.value ?? []).find((c: any) => c.id === housecallForm.value.customerId)
-  const customerName = (customer as any)?.name || 'Unknown Customer'
-  if (editingHousecall.value) {
-    const idx = housecalls.value.findIndex(c => c.id === editingHousecall.value.id)
-    if (idx > -1) housecalls.value[idx] = { ...editingHousecall.value, ...housecallForm.value, customerName }
-  } else {
-    housecalls.value.unshift({ ...housecallForm.value, id: Date.now(), status: 'Scheduled', customerName })
-  }
-  housecallFormOpen.value = false; editingHousecall.value = null
+const saveHousecall = async () => {
+  try {
+    if (editingHousecall.value) {
+      await appStore.updateHouseCall(editingHousecall.value.id, { ...housecallForm.value })
+    } else {
+      await appStore.createHouseCall({ ...housecallForm.value, status: 'Scheduled' })
+    }
+    housecallFormOpen.value = false; editingHousecall.value = null
+    addNotification('Saved', editingHousecall.value ? 'House call updated' : 'House call scheduled', 'success')
+  } catch(e: any) { addNotification('Error', e.message || 'Failed to save house call', 'error') }
 }
-const advanceHousecallStatus = (call: any) => {
-  const idx = housecalls.value.findIndex(c => c.id === call.id)
-  if (idx > -1) housecalls.value[idx].status = call.status === 'Scheduled' ? 'In Progress' : 'Completed'
+const advanceHousecallStatus = async (call: any) => {
+  try {
+    const nextStatus = call.status === 'Scheduled' ? 'In Progress' : 'Completed'
+    await appStore.updateHouseCall(call.id, { status: nextStatus })
+  } catch(e: any) { addNotification('Error', 'Failed to update status', 'error') }
 }
-const deleteHousecall = (call: any) => { if (confirm(`Delete house call for ${call.customerName}?`)) housecalls.value = housecalls.value.filter(c => c.id !== call.id) }
+const deleteHousecall = async (call: any) => { 
+  if (confirm(`Delete house call for ${getCustomerName(call.customerId)}?`)) {
+    try { await appStore.deleteHouseCall(call.id) }
+    catch(e: any) { addNotification('Error', 'Failed to delete house call', 'error') }
+  } 
+}
 
 // ── House Call: Maps + Calculator ────────────────────────────────────────────
 const calc = ref({ labor: 0, parts: 0, travel: 0, taxRate: 0 })
@@ -816,7 +821,7 @@ const vendorStatusList = ['Preparing to Ship', 'Shipped to Vendor', 'In Repair',
 const filteredVendorRepairs = computed(() =>
   vendorRepairs.value.filter(r => {
     const q = vendorSearch.value.toLowerCase()
-    const matchSearch = !q || r.vendor?.toLowerCase().includes(q) || r.device?.toLowerCase().includes(q) || r.issue?.toLowerCase().includes(q) || r.trackingNumber?.toLowerCase().includes(q) || r.customerName?.toLowerCase().includes(q)
+    const matchSearch = !q || r.vendor?.toLowerCase().includes(q) || r.device?.toLowerCase().includes(q) || r.issue?.toLowerCase().includes(q) || r.trackingNumber?.toLowerCase().includes(q) || getCustomerName(r.customerId).toLowerCase().includes(q)
     const matchStatus = !vendorFilter.value || r.status === vendorFilter.value
     return matchSearch && matchStatus
   }).sort((a: any, b: any) => (b.id || 0) - (a.id || 0))
@@ -846,17 +851,16 @@ const isOverdue = (repair: any) => {
 
 const openNewVendorRepair = () => { editingVendorRepair.value = null; vendorForm.value = defaultVendorForm(); vendorFormOpen.value = true }
 const openVendorRepair = (repair: any) => { editingVendorRepair.value = repair; vendorForm.value = { ...repair }; vendorFormOpen.value = true }
-const saveVendorRepair = () => {
-  const customer = (customers.value ?? []).find((c: any) => c.id === vendorForm.value.customerId)
-  const customerName = (customer as any)?.name || 'Unknown Customer'
-  if (editingVendorRepair.value) {
-    const idx = vendorRepairs.value.findIndex(r => r.id === editingVendorRepair.value.id)
-    if (idx > -1) vendorRepairs.value[idx] = { ...editingVendorRepair.value, ...vendorForm.value, customerName }
-  } else {
-    vendorRepairs.value.unshift({ ...vendorForm.value, id: Date.now(), customerName })
-  }
-  vendorFormOpen.value = false; editingVendorRepair.value = null
-  addNotification('Saved', editingVendorRepair.value ? 'Vendor repair updated' : 'Vendor repair created', 'success')
+const saveVendorRepair = async () => {
+  try {
+    if (editingVendorRepair.value) {
+      await appStore.updateVendorRepair(editingVendorRepair.value.id, { ...vendorForm.value })
+    } else {
+      await appStore.createVendorRepair({ ...vendorForm.value })
+    }
+    vendorFormOpen.value = false; editingVendorRepair.value = null
+    addNotification('Saved', editingVendorRepair.value ? 'Vendor repair updated' : 'Vendor repair created', 'success')
+  } catch(e: any) { addNotification('Error', e.message || 'Failed to save vendor repair', 'error') }
 }
 </script>
 
