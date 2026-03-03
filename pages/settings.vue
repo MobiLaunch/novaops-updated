@@ -724,15 +724,18 @@ const testSquareConnection = async () => {
   squareStatus.value  = 'checking'
   squareTestMsg.value = ''
   try {
-    const data = await squareFetch(`/locations/${form.value.squareLocationId}`, {
-      accessToken: form.value.squareAccessToken
+    const res: any = await $fetch('/api/square/connection-test', {
+      headers: {
+        'x-square-access-token': form.value.squareAccessToken,
+        'x-square-location-id': form.value.squareLocationId,
+      }
     })
     
     squareStatus.value  = 'connected'
-    squareTestMsg.value = `Connected to location: ${data.location?.name}`
+    squareTestMsg.value = `Connected to location: ${res.locationName}`
   } catch (err: any) {
     squareStatus.value  = 'disconnected'
-    squareTestMsg.value = err.message || 'Connection failed'
+    squareTestMsg.value = err.data?.statusMessage || err.message || 'Connection failed'
   }
 }
 
