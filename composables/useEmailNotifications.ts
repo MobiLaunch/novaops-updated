@@ -1,7 +1,7 @@
 // composables/useEmailNotifications.ts
 // Sends customer notification emails via EmailJS when tickets, house calls,
-// or vendor repairs are created. Failures are logged but never block the
-// primary CRUD action.
+// or vendor repairs are created. Uses a SINGLE EmailJS template for all types.
+// Failures are logged but never block the primary CRUD action.
 
 import emailjs from '@emailjs/browser'
 
@@ -12,15 +12,13 @@ export const useEmailNotifications = () => {
 
     const serviceId = config.public.emailjsServiceId as string
     const publicKey = config.public.emailjsPublicKey as string
+    const templateId = config.public.emailjsTemplateCustomer as string
 
-    const templateIds = {
-        ticket: config.public.emailjsTicketTemplateId as string,
-        housecall: config.public.emailjsHousecallTemplateId as string,
-        vendorRepair: config.public.emailjsVendorRepairTemplateId as string,
-        internal: config.public.emailjsInternalTemplateId as string,
+    const isConfigured = () => {
+        const ok = !!(serviceId && publicKey && templateId)
+        if (!ok) console.warn('[EmailJS] Missing config —', { serviceId: !!serviceId, publicKey: !!publicKey, templateId: !!templateId })
+        return ok
     }
-
-    const isConfigured = () => !!(serviceId && publicKey)
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -44,16 +42,16 @@ export const useEmailNotifications = () => {
         return new Date(d).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
     }
 
-    const send = async (templateId: string, params: Record<string, string>) => {
-        if (!isConfigured()) {
-            console.warn('[EmailJS] Not configured — skipping email send')
-            return
-        }
+    const send = async (params: Record<string, string>) => {
+        if (!isConfigured()) return
+        console.log('[EmailJS] Sending with params:', { serviceId, templateId, to_email: params.to_email })
         try {
-            await emailjs.send(serviceId, templateId, params, publicKey)
+            const result = await emailjs.send(serviceId, templateId, params, publicKey)
+            console.log('[EmailJS] ✅ Success:', result.status, result.text)
+            addNotification('Email Sent', `Notification sent to ${params.to_email}`, 'success')
         } catch (err: any) {
-            console.error('[EmailJS] Send failed:', err)
-            addNotification('Email Notice', 'Customer email notification could not be sent', 'warning')
+            console.error('[EmailJS] ❌ Send failed:', err)
+            addNotification('Email Notice', `Email to ${params.to_email} could not be sent`, 'warning')
         }
     }
 
@@ -64,9 +62,9 @@ export const useEmailNotifications = () => {
      */
     const sendTicketEmail = async (ticket: any) => {
         const email = getCustomerEmail(ticket.customerId)
-        if (!email) return
+        if (!email) { console.log('[EmailJS] No email for customer', ticket.customerId); return }
 
-        await send(templateIds.ticket, {
+        await send({
             to_email: email,
             customer_name: getCustomerName(ticket.customerId),
             ticket_number: String(ticket.id ?? ''),
@@ -76,6 +74,9 @@ export const useEmailNotifications = () => {
             technician_name: appStore.settings.businessName || 'Our Team',
             estimated_completion: 'We will contact you with an estimate',
             year: String(new Date().getFullYear()),
+            // Additional fields for unified template
+            event_type: 'New Ticket',
+            event_summary: `Ticket #${ticket.id} created`,
         })
     }
 
@@ -84,9 +85,9 @@ export const useEmailNotifications = () => {
      */
     const sendHousecallEmail = async (houseCall: any) => {
         const email = getCustomerEmail(houseCall.customerId)
-        if (!email) return
+        if (!email) { console.log('[EmailJS] No email for customer', houseCall.customerId); return }
 
-        await send(templateIds.housecall, {
+        await send({
             to_email: email,
             customer_name: getCustomerName(houseCall.customerId),
             appointment_date: formatDate(houseCall.date),
@@ -96,6 +97,11 @@ export const useEmailNotifications = () => {
             service_description: houseCall.issue || houseCall.description || '',
             technician_name: appStore.settings.businessName || 'Our Team',
             year: String(new Date().getFullYear()),
+            // Additional fields for unified template
+            event_type: 'House Call',
+            event_summary: 'House call scheduled',
+            ticket_number: '',
+            issue_description: houseCall.issue || '',
         })
     }
 
@@ -104,9 +110,9 @@ export const useEmailNotifications = () => {
      */
     const sendVendorRepairEmail = async (vendorRepair: any) => {
         const email = getCustomerEmail(vendorRepair.customerId)
-        if (!email) return
+        if (!email) { console.log('[EmailJS] No email for customer', vendorRepair.customerId); return }
 
-        await send(templateIds.vendorRepair, {
+        await send({
             to_email: email,
             customer_name: getCustomerName(vendorRepair.customerId),
             ticket_number: vendorRepair.ticketRef || vendorRepair.ticket_ref || '',
@@ -116,6 +122,10 @@ export const useEmailNotifications = () => {
             vendor_name: vendorRepair.vendor || 'Specialist Partner',
             estimated_return: formatDate(vendorRepair.estReturn ?? vendorRepair.est_return),
             year: String(new Date().getFullYear()),
+            // Additional fields for unified template
+            event_type: 'Vendor Repair',
+            event_summary: 'Device sent to vendor for repair',
+            technician_name: appStore.settings.businessName || 'Our Team',
         })
     }
 
@@ -135,9 +145,9 @@ export const useEmailNotifications = () => {
         internalNotes?: string
     }) => {
         const shopEmail = appStore.settings.email
-        if (!shopEmail) return
+        if (!shopEmail) { console.log('[EmailJS] No shop email configured in settings'); return }
 
-        await send(templateIds.internal, {
+        await send({
             to_email: shopEmail,
             event_type: params.eventType,
             event_summary: params.eventSummary,
@@ -150,6 +160,7 @@ export const useEmailNotifications = () => {
             technician_name: params.technicianName || appStore.settings.businessName || '',
             estimated_value: params.estimatedValue || '',
             internal_notes: params.internalNotes || '',
+            year: String(new Date().getFullYear()),
         })
     }
 

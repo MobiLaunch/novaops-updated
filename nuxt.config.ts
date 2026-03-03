@@ -98,8 +98,8 @@ export default defineNuxtConfig({
       // EmailJS
       emailjsServiceId: process.env.NUXT_PUBLIC_EMAILJS_SERVICE_ID || '',
       emailjsPublicKey: process.env.NUXT_PUBLIC_EMAILJS_PUBLIC_KEY || '',
-      emailjsTicketTemplateId: process.env.NUXT_PUBLIC_EMAILJS_TICKET_TEMPLATE_ID || '',
-      emailjsTemplateCustomer:     process.env.NUXT_PUBLIC_EMAILJS_TEMPLATE_CUSTOMER || '',    }
+      emailjsTemplateCustomer: process.env.NUXT_PUBLIC_EMAILJS_TEMPLATE_CUSTOMER || '',
+    }
   },
 
   app: {
