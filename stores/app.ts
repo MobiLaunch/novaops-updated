@@ -544,8 +544,6 @@ export const useAppStore = defineStore('app', () => {
       square_access_token: settings.value.squareAccessToken,
       square_location_id: settings.value.squareLocationId,
       square_sandbox: settings.value.squareSandbox,
-      services: services.value,
-      expenses: expenses.value,
     }
 
     console.log('[saveSettings] Payload:', JSON.stringify(payload, null, 2))
@@ -575,7 +573,6 @@ export const useAppStore = defineStore('app', () => {
       square_access_token: settings.value.squareAccessToken,
       square_location_id: settings.value.squareLocationId,
       square_sandbox: settings.value.squareSandbox,
-      services: services.value,
       expenses: expenses.value,
     })
     if (error) {
