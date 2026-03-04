@@ -128,23 +128,34 @@ export const useAppStore = defineStore('app', () => {
     }
 
     if (!$supabase) return
-      ; ($supabase as any).auth.onAuthStateChange((event: string, session: any) => {
-        if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && session?.user) {
-          user.value = session.user
-          if (!isLoaded.value) initializeData()
-        }
-        if (event === 'SIGNED_OUT') {
-          user.value = null
-          tickets.value = []
-          customers.value = []
-          inventory.value = []
-          houseCalls.value = []
-          vendorRepairs.value = []
-          appointments.value = []
-          isLoaded.value = false
-          navigateTo('/login')
-        }
-      })
+
+    // Eagerly check for an existing session — this handles the case where
+    // INITIAL_SESSION fires before onAuthStateChange is registered (e.g. on
+    // hard refresh or slow hydration), which was causing the forced re-login.
+    ;($supabase as any).auth.getSession().then(({ data: { session } }: any) => {
+      if (session?.user && !isLoaded.value) {
+        user.value = session.user
+        initializeData()
+      }
+    })
+
+    ;($supabase as any).auth.onAuthStateChange((event: string, session: any) => {
+      if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && session?.user) {
+        user.value = session.user
+        if (!isLoaded.value) initializeData()
+      }
+      if (event === 'SIGNED_OUT') {
+        user.value = null
+        tickets.value = []
+        customers.value = []
+        inventory.value = []
+        houseCalls.value = []
+        vendorRepairs.value = []
+        appointments.value = []
+        isLoaded.value = false
+        navigateTo('/login')
+      }
+    })
   }
 
   const initializeData = async () => {
@@ -172,7 +183,7 @@ export const useAppStore = defineStore('app', () => {
         ($supabase as any).from('house_calls').select('*').eq('profile_id', uid).order('date', { ascending: true }),
         ($supabase as any).from('vendor_repairs').select('*').eq('profile_id', uid).order('created_at', { ascending: false }),
         ($supabase as any).from('appointments').select('*').eq('profile_id', uid).order('date', { ascending: true }),
-        ($supabase as any).from('profiles').select('*').eq('id', uid).single()
+        ($supabase as any).from('profiles').select('id,business_name,email,phone,address,currency,tax_rate,statuses,pin,square_access_token,square_location_id,square_sandbox,services').eq('id', uid).single()
       ])
 
       tickets.value = (t.data || []).map(normalizeTicket)
@@ -541,7 +552,6 @@ export const useAppStore = defineStore('app', () => {
       square_location_id: settings.value.squareLocationId,
       square_sandbox: settings.value.squareSandbox,
       services: services.value,
-      expenses: expenses.value,
     })
     if (error) {
       console.error('[saveSettings Error]', error)
@@ -549,9 +559,10 @@ export const useAppStore = defineStore('app', () => {
     }
   }
 
+  // saveAll is kept for backward compatibility but no longer writes expenses
+  // to profiles (that column doesn't exist). Import pages should use
+  // createInventoryItem / createCustomer etc. directly instead.
   const saveAll = async () => {
-    // saveAll persists services alongside settings for pages that mutate
-    // local state directly before calling saveAll (calendar, pos, import)
     if (!$supabase || !user.value) return
     const { error } = await ($supabase as any).from('profiles').upsert({
       id: user.value.id,
@@ -567,7 +578,6 @@ export const useAppStore = defineStore('app', () => {
       square_location_id: settings.value.squareLocationId,
       square_sandbox: settings.value.squareSandbox,
       services: services.value,
-      expenses: expenses.value,
     })
     if (error) {
       console.error('[saveAll Error]', error)

@@ -179,28 +179,69 @@ const handleFileUpload = (e: Event, key: string) => { const file = (e.target as 
 const processFile = async (file: File, key: string) => {
   try {
     const text = await file.text()
-    let count = 0
+    let rows: any[] = []
+
     if (file.name.endsWith('.json')) {
       const data = JSON.parse(text)
-      const arr = Array.isArray(data) ? data : data[key] || []
-      ;(appStore as any)[key] = [...((appStore as any)[key] || []), ...arr.map((i: any, idx: number) => ({ ...i, id: i.id || Date.now() + idx }))]
-      count = arr.length
-      importResults.value[key] = `✅ Imported ${count} ${key} from JSON`
+      rows = Array.isArray(data) ? data : data[key] || []
     } else {
       const lines = text.trim().split('\n')
       const headers = lines[0].split(',').map((h: string) => h.trim().toLowerCase())
-      const rows = lines.slice(1).map((line: string) => {
-        const vals = line.split(','); const obj: any = { id: Date.now() + Math.random() }
-        headers.forEach((h: string, i: number) => { obj[h] = vals[i]?.trim() }); return obj
+      rows = lines.slice(1).map((line: string) => {
+        const vals = line.split(',')
+        const obj: any = {}
+        headers.forEach((h: string, i: number) => { obj[h] = vals[i]?.trim() })
+        return obj
       })
-      ;(appStore as any)[key] = [...((appStore as any)[key] || []), ...rows]
-      count = rows.length
-      importResults.value[key] = `✅ Imported ${count} ${key} from CSV`
     }
-    await appStore.saveAll()
+
+    if (!rows.length) {
+      importResults.value[key] = '❌ No rows found in file.'
+      return
+    }
+
+    // Route each data type to its proper store method
+    if (key === 'inventory') {
+      for (const row of rows) {
+        await appStore.createInventoryItem({
+          name: row.name || '',
+          sku: row.sku || '',
+          price: parseFloat(row.price) || 0,
+          cost: parseFloat(row.cost) || 0,
+          stock: parseInt(row.stock) || 0,
+          low: parseInt(row.low) || 5,
+          category: row.category || 'Parts',
+          model: row.model || '',
+          itemType: row.item_type || row.itemType || 'product',
+          description: row.description || '',
+        })
+      }
+    } else if (key === 'customers') {
+      for (const row of rows) {
+        await appStore.createCustomer({
+          name: row.name || '',
+          phone: row.phone || '',
+          email: row.email || '',
+          notes: row.notes || '',
+        })
+      }
+    } else if (key === 'tickets') {
+      for (const row of rows) {
+        await appStore.createTicket({
+          device: row.device || '',
+          issue: row.issue || '',
+          status: row.status || 'Open',
+          price: parseFloat(row.price) || 0,
+          customerId: row.customerid || row.customerId || null,
+        })
+      }
+    }
+
+    importResults.value[key] = `✅ Imported ${rows.length} ${key}`
     importLog.value.unshift({ id: Date.now(), message: importResults.value[key], time: new Date().toLocaleTimeString() })
-  } catch {
-    importResults.value[key] = '❌ Failed to parse file. Check format and try again.'
+  } catch (err: any) {
+    console.error('[Import Error]', err)
+    importResults.value[key] = `❌ Import failed: ${err?.message || 'Check format and try again.'}`
   }
 }
 
