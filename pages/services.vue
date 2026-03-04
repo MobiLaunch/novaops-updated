@@ -147,7 +147,8 @@ import { Dialog, DialogContent } from '~/components/ui/dialog'
 
 definePageMeta({ middleware: ['auth'] })
 
-const services = ref<any[]>([])
+const appStore = useAppStore()
+const services = computed(() => appStore.services ?? [])
 const search = ref('')
 const selectedCat = ref('All')
 const formOpen = ref(false)
