@@ -9,8 +9,8 @@
           <Package class="w-6 h-6 text-white" />
         </div>
         <div>
-          <h1 class="text-3xl font-black tracking-tight">Inventory</h1>
-          <p class="text-sm text-muted-foreground font-medium mt-0.5">Track parts, tools, accessories & services</p>
+          <h1 class="text-3xl font-black tracking-tight">Inventory & Services</h1>
+          <p class="text-sm text-muted-foreground font-medium mt-0.5">Track parts, tools, accessories & repair services</p>
         </div>
       </div>
       <div class="flex gap-3">
@@ -47,7 +47,7 @@
     <div class="flex items-center gap-3 flex-wrap">
       <div class="relative flex-1 min-w-[200px] max-w-sm">
         <Search class="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-        <input v-model="q" placeholder="Search by name or SKU…"
+        <input v-model="q" placeholder="Search by name, SKU, or category…"
           class="w-full h-12 pl-11 pr-4 rounded-full text-sm font-medium transition-all"
           style="background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.6);outline:none"
           @focus="($event.target as HTMLElement).style.cssText+=';border-color:#8b5cf6;box-shadow:0 0 0 3px #8b5cf618'"
@@ -73,7 +73,7 @@
       </div>
     </div>
 
-    <!-- ── Inventory Grid ───────────────────────────────────────── -->
+    <!-- ── Grid ─────────────────────────────────────────────────── -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       <div v-for="item in filtered" :key="item.id"
         class="m3-item-card rounded-[28px] p-5 flex flex-col gap-4 cursor-pointer bg-card"
@@ -81,13 +81,13 @@
         @click="openEdit(item)">
         <div class="flex items-start justify-between">
           <div class="w-12 h-12 rounded-[22px] flex items-center justify-center"
-            :style="item.itemType === 'service' ? 'background:linear-gradient(135deg,#10b98120,#059669 20)' : 'background:linear-gradient(135deg,#8b5cf620,#7c3aed20)'">
+            :style="item.itemType === 'service' ? 'background:linear-gradient(135deg,#22d3ee18,#0891b218)' : 'background:linear-gradient(135deg,#8b5cf620,#7c3aed20)'">
             <component :is="item.itemType === 'service' ? Wrench : Package" class="w-6 h-6"
-              :style="item.itemType === 'service' ? 'color:#10b981' : 'color:#8b5cf6'" />
+              :style="item.itemType === 'service' ? 'color:#22d3ee' : 'color:#8b5cf6'" />
           </div>
           <div class="flex flex-col items-end gap-1">
             <span class="text-[9px] font-black px-2 py-0.5 rounded-full"
-              :style="item.itemType === 'service' ? 'background:#10b98120;color:#10b981' : 'background:#8b5cf620;color:#8b5cf6'">
+              :style="item.itemType === 'service' ? 'background:#22d3ee20;color:#22d3ee' : 'background:#8b5cf620;color:#8b5cf6'">
               {{ item.itemType === 'service' ? 'SERVICE' : 'PRODUCT' }}
             </span>
             <span class="text-[10px] font-black px-2.5 py-1 rounded-full"
@@ -98,14 +98,20 @@
         </div>
         <div class="flex-1">
           <h3 class="font-black text-sm leading-tight mb-1">{{ item.name }}</h3>
-          <p class="text-xs text-muted-foreground font-medium">{{ item.itemType !== 'service' ? `SKU: ${item.sku || '—'}` : item.description || '' }}</p>
+          <p class="text-xs text-muted-foreground font-medium">
+            {{ item.itemType !== 'service' ? `SKU: ${item.sku || '—'}` : (item.description || '') }}
+          </p>
           <p class="text-xs text-muted-foreground font-medium mt-0.5">{{ item.category }}</p>
         </div>
         <div class="flex items-end justify-between pt-3 border-t border-border/50">
           <div>
-            <p class="text-xl font-black" :style="item.itemType === 'service' ? 'color:#10b981' : 'color:#8b5cf6'">{{ formatCurrency(item.price) }}</p>
+            <p class="text-xl font-black" :style="item.itemType === 'service' ? 'color:#22d3ee' : 'color:#8b5cf6'">
+              {{ formatCurrency(item.price) }}
+            </p>
             <p v-if="item.itemType !== 'service'" class="text-xs text-muted-foreground font-semibold">Cost: {{ formatCurrency(item.cost||0) }}</p>
-            <p v-else class="text-xs text-muted-foreground font-semibold">Labor rate</p>
+            <p v-else class="text-xs text-muted-foreground font-semibold">
+              {{ item.estimated_minutes || item.duration ? `~${item.estimated_minutes || item.duration} min` : 'Labor rate' }}
+            </p>
           </div>
           <div class="text-right" v-if="item.itemType !== 'service'">
             <p class="text-2xl font-black">{{ item.stock }}</p>
@@ -125,7 +131,7 @@
         </div>
         <div class="text-center">
           <h3 class="text-lg font-black mb-1">No items found</h3>
-          <p class="text-sm text-muted-foreground font-medium">{{ q ? 'Try a different search' : 'Add your first inventory item' }}</p>
+          <p class="text-sm text-muted-foreground font-medium">{{ q ? 'Try a different search' : 'Add your first item' }}</p>
         </div>
       </div>
     </div>
@@ -135,12 +141,13 @@
       <DialogContent class="w-full max-w-[96vw] sm:max-w-md">
         <div class="flex flex-col gap-5 p-7">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
-              <Package class="w-5 h-5 text-white" />
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center"
+              :style="form.itemType === 'service' ? 'background:linear-gradient(135deg,#22d3ee,#0891b2)' : 'background:linear-gradient(135deg,#8b5cf6,#7c3aed)'">
+              <component :is="form.itemType === 'service' ? Wrench : Package" class="w-5 h-5 text-white" />
             </div>
             <div>
               <h2 class="text-base font-black">{{ editingItem ? 'Edit Item' : 'Add Item' }}</h2>
-              <p class="text-xs text-muted-foreground font-medium">Inventory details</p>
+              <p class="text-xs text-muted-foreground font-medium">{{ form.itemType === 'service' ? 'Service or labor item' : 'Inventory details' }}</p>
             </div>
           </div>
 
@@ -157,7 +164,12 @@
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="col-span-2 space-y-2"><label class="m3-label">Name</label><input v-model="form.name" :placeholder="form.itemType === 'service' ? 'Screen Replacement Labor' : 'Screen Replacement'" class="m3-input" /></div>
+            <div class="col-span-2 space-y-2">
+              <label class="m3-label">Name</label>
+              <input v-model="form.name" :placeholder="form.itemType === 'service' ? 'Screen Replacement Labor' : 'Screen Replacement'" class="m3-input" />
+            </div>
+
+            <!-- Product fields -->
             <template v-if="form.itemType === 'product'">
               <div class="space-y-2"><label class="m3-label">SKU</label><input v-model="form.sku" placeholder="SKU-001" class="m3-input" /></div>
               <div class="space-y-2"><label class="m3-label">Category</label>
@@ -170,86 +182,103 @@
               <div class="space-y-2"><label class="m3-label">Stock Qty</label><input v-model.number="form.stock" type="number" placeholder="10" class="m3-input" /></div>
               <div class="space-y-2"><label class="m3-label">Low Stock Alert</label><input v-model.number="form.low" type="number" placeholder="5" class="m3-input" /></div>
             </template>
+
+            <!-- Service fields -->
             <template v-else>
-              <div class="space-y-2"><label class="m3-label">Rate / Price</label><input v-model.number="form.price" type="number" step="0.01" placeholder="75.00" class="m3-input" /></div>
-              <div class="space-y-2"><label class="m3-label">Category</label>
-                <select v-model="form.category" class="m3-input">
-                  <option value="Services">Services</option>
-                  <option value="Repairs">Repairs</option>
-                  <option value="Diagnostics">Diagnostics</option>
-                  <option value="Labor">Labor</option>
-                </select>
+              <div class="space-y-2"><label class="m3-label">Price ($)</label><input v-model.number="form.price" type="number" step="0.01" placeholder="75.00" class="m3-input" /></div>
+              <div class="space-y-2"><label class="m3-label">Duration (min)</label><input v-model.number="form.estimated_minutes" type="number" placeholder="60" class="m3-input" /></div>
+              <div class="col-span-2 space-y-2"><label class="m3-label">Category</label>
+                <input v-model="form.category" placeholder="e.g. Apple Repairs, Samsung Repairs" class="m3-input" />
               </div>
-              <div class="col-span-2 space-y-2"><label class="m3-label">Description</label><input v-model="form.description" placeholder="Short description of the service" class="m3-input" /></div>
+              <div class="col-span-2 space-y-2"><label class="m3-label">Description</label>
+                <textarea v-model="form.description" placeholder="Brief description of the service" rows="2"
+                  class="m3-input resize-none" style="height:auto;padding-top:12px" />
+              </div>
             </template>
           </div>
+
           <div class="flex gap-3 pt-1">
             <button class="flex-1 h-12 rounded-full text-sm font-bold transition-all hover:scale-105 active:scale-95"
-              style="outline:2px solid hsl(var(--border));outline-offset:0" @click="newOpen=false;editingItem=null">Cancel</button>
+              style="outline:2px solid hsl(var(--border));outline-offset:0"
+              @click="newOpen=false;editingItem=null">Cancel</button>
             <button class="flex-1 h-12 rounded-full text-sm font-black text-white transition-all hover:scale-105 active:scale-95"
-              style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);box-shadow:0 4px 16px #8b5cf640"
+              :style="form.itemType === 'service'
+                ? 'background:linear-gradient(135deg,#22d3ee,#0891b2);box-shadow:0 4px 16px #22d3ee40'
+                : 'background:linear-gradient(135deg,#8b5cf6,#7c3aed);box-shadow:0 4px 16px #8b5cf640'"
               @click="saveItem">{{ editingItem ? 'Save Changes' : 'Add Item' }}</button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
+
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Package, Search, Plus, AlertTriangle, DollarSign, TrendingDown, Wrench } from 'lucide-vue-next'
+import { Package, Search, Plus, AlertTriangle, Wrench } from 'lucide-vue-next'
+import { DollarSign, Tag } from 'lucide-vue-next'
 import { Dialog, DialogContent } from '~/components/ui/dialog'
 import { useAppStore } from '~/stores/app'
 
 definePageMeta({ middleware: ['auth'] })
 
 const appStore  = useAppStore()
-const inventory = computed(() => appStore.inventory ?? [])
 const settings  = computed(() => appStore.settings ?? { currency: '$' })
 
-const q = ref('')
+// Merge inventory products + services from their respective tables
+const allItems = computed(() => {
+  const products = (appStore.inventory ?? []).map((i: any) => ({ ...i, itemType: i.itemType || i.item_type || 'product' }))
+  const services = (appStore.services ?? []).map((s: any) => ({ ...s, itemType: 'service', stock: 9999, low: 0, sku: s.sku || '' }))
+  return [...products, ...services]
+})
+
+const q            = ref('')
 const selectedCat  = ref<string|null>(null)
 const typeFilter   = ref<string|null>(null)
 const newOpen      = ref(false)
 const editingItem  = ref<any>(null)
+const isSaving     = ref(false)
 
 const blankForm = () => ({
   name: '', sku: '', category: 'Parts', description: '',
   price: 0, cost: 0, stock: 0, low: 5,
+  estimated_minutes: 60,
   itemType: 'product' as 'product' | 'service',
 })
 const form = ref(blankForm())
 
 const PRODUCT_CATEGORIES = ['Parts', 'Tools', 'Accessories', 'Devices']
+const SERVICE_CATEGORIES = ['Services', 'Repairs', 'Diagnostics', 'Labor', 'Apple Repairs', 'Samsung Repairs', 'Google Repairs', 'House Calls', 'Data Services', 'SSD Upgrades', 'Trade-In Repairs', 'Board Repairs', 'Batteries']
+
 const dynamicCategories = computed(() => {
-  const cats = [...new Set((inventory.value || []).map((i: any) => i.category).filter(Boolean))]
-  return [...new Set([...PRODUCT_CATEGORIES, 'Services', 'Repairs', 'Diagnostics', 'Labor', ...cats])].sort()
+  const cats = [...new Set(allItems.value.map((i: any) => i.category).filter(Boolean))]
+  return [...new Set([...PRODUCT_CATEGORIES, ...SERVICE_CATEGORIES, ...cats])].sort()
 })
 const allCategories = dynamicCategories
 
-const filtered = computed(() => inventory.value.filter((i: any) => {
-  const ms = !q.value || i.name?.toLowerCase().includes(q.value.toLowerCase()) || i.sku?.toLowerCase().includes(q.value.toLowerCase())
+const filtered = computed(() => allItems.value.filter((i: any) => {
+  const ms = !q.value || i.name?.toLowerCase().includes(q.value.toLowerCase()) || i.sku?.toLowerCase().includes(q.value.toLowerCase()) || i.category?.toLowerCase().includes(q.value.toLowerCase())
   const mc = !selectedCat.value || i.category === selectedCat.value
-  const mt = !typeFilter.value || (i.itemType || 'product') === typeFilter.value
+  const mt = !typeFilter.value || i.itemType === typeFilter.value
   return ms && mc && mt
 }))
 
 const formatCurrency = (n: number) => `${settings.value?.currency || '$'}${(n || 0).toFixed(2)}`
 
 const stats = computed(() => {
-  const products = inventory.value.filter((i: any) => (i.itemType || 'product') === 'product')
-  const services = inventory.value.filter((i: any) => i.itemType === 'service')
+  const products = allItems.value.filter((i: any) => i.itemType === 'product')
+  const services = allItems.value.filter((i: any) => i.itemType === 'service')
   return [
-    { label: 'Total Items',  value: inventory.value.length, color: '#8b5cf6', badge: 'TOTAL',    icon: Package },
+    { label: 'Total Items',  value: allItems.value.length,  color: '#8b5cf6', badge: 'TOTAL',    icon: Package },
     { label: 'Products',     value: products.length,         color: '#6366f1', badge: 'PRODUCTS', icon: Package },
-    { label: 'Services',     value: services.length,         color: '#10b981', badge: 'SERVICES', icon: Wrench  },
+    { label: 'Services',     value: services.length,         color: '#22d3ee', badge: 'SERVICES', icon: Wrench  },
     { label: 'Low Stock',    value: products.filter((i: any) => i.stock <= (i.low||5)).length, color: '#f59e0b', badge: 'ALERT', icon: AlertTriangle },
   ]
 })
 
 const checkLowStock = () => {
-  const low = inventory.value.filter((i: any) => (i.itemType || 'product') !== 'service' && i.stock <= (i.low||5))
+  const low = allItems.value.filter((i: any) => i.itemType === 'product' && i.stock <= (i.low||5))
   if (!low.length) alert('All products are well stocked!')
   else alert(`${low.length} item(s) need restocking:\n${low.map((i: any) => `• ${i.name} (${i.stock} left)`).join('\n')}`)
 }
@@ -262,21 +291,45 @@ const openEdit = (item: any) => {
 }
 
 const saveItem = async () => {
-  if (!form.value.name.trim()) return alert('Please enter an item name')
-  const payload = { ...form.value }
-  if (payload.itemType === 'service') {
-    // Services have unlimited stock — set a sentinel value
-    payload.stock = 9999
-    payload.low   = 0
+  if (!form.value.name.trim()) return alert('Please enter a name')
+  if (isSaving.value) return
+  isSaving.value = true
+
+  try {
+    if (form.value.itemType === 'service') {
+      // Save to services table
+      const payload = {
+        name: form.value.name,
+        category: form.value.category,
+        description: form.value.description,
+        price: form.value.price,
+        estimated_minutes: form.value.estimated_minutes,
+        duration: form.value.estimated_minutes,
+        active: true,
+      }
+      if (editingItem.value && editingItem.value.itemType === 'service') {
+        await appStore.updateService(editingItem.value.id, payload)
+      } else {
+        await appStore.createService(payload)
+      }
+    } else {
+      // Save to inventory table
+      const payload = { ...form.value }
+      if (editingItem.value && editingItem.value.itemType !== 'service') {
+        await appStore.updateInventoryItem(editingItem.value.id, payload)
+      } else {
+        await appStore.createInventoryItem(payload)
+      }
+    }
+    newOpen.value = false
+    editingItem.value = null
+    form.value = blankForm()
+  } catch (e) {
+    console.error('Save failed', e)
+    alert('Failed to save. Please try again.')
+  } finally {
+    isSaving.value = false
   }
-  if (editingItem.value) {
-    await appStore.updateInventoryItem(editingItem.value.id, payload)
-  } else {
-    await appStore.createInventoryItem(payload)
-  }
-  newOpen.value = false
-  editingItem.value = null
-  form.value = blankForm()
 }
 </script>
 
