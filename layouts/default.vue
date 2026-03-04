@@ -227,14 +227,7 @@ onMounted(() => {
 onUnmounted(() => cleanup())
 
 const userEmail = computed(() => {
-  if (process.client) {
-    const profile = localStorage.getItem('business_profile')
-    if (profile) {
-      const data = JSON.parse(profile)
-      return data.email || settings.value.email || 'user@novaops.com'
-    }
-  }
-  return settings.value.email || 'user@novaops.com'
+  return appStore.user?.email || settings.value.email || ''
 })
 
 const userInitials = computed(() => {
