@@ -306,12 +306,11 @@ const greeting = computed(() => {
 const todayLabel = computed(() => new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }))
 
 // ── Quick Actions ──────────────────────────────────────────────────
-const quickActions = computed(() => [
-  { label: 'New Repair',  sub: 'Create ticket',        color: '#10b981', colorDark: '#059669', icon: Wrench,         onClick: () => { newTicketOpen.value = true } },
+const quickActions = computed(() =>  
   { label: 'New Sale',    sub: 'POS transaction',       color: '#ec4899', colorDark: '#db2777', icon: ShoppingCart,   onClick: () => navigateTo('/pos') },
-  { label: 'Schedule',    sub: `${upcomingAppointments.value} upcoming`, color: '#8b5cf6', colorDark: '#7c3aed', icon: CalendarDays, onClick: () => navigateTo('/calendar') },
+  { label: 'Schedule',    sub: '${upcomingAppointments.value} upcoming`, color: '#8b5cf6', colorDark: '#7c3aed', icon: CalendarDays, onClick: () => navigateTo('/calendar') },
   { label: 'Inventory',   sub: 'Manage stock',          color: '#f59e0b', colorDark: '#d97706', icon: Package,        onClick: () => navigateTo('/inventory') },
-  { label: 'Tickets',     sub: 'Manage repairs',        color: '#3b82f6', colorDark: '#2563eb', icon: ClipboardCheck, onClick: () => navigateTo('/bookings') },
+  { label: 'Bookings',    sub: 'Manage Repairs, Housecalls, and Vendor Shipments',        color: '#3b82f6', colorDark: '#2563eb', icon: ClipboardCheck, onClick: () => navigateTo('/bookings') },
   { label: 'Customers',   sub: 'Manage clients',        color: '#06b6d4', colorDark: '#0891b2', icon: UserPlus,       onClick: () => navigateTo('/customers') },
   { label: 'Messages',    sub: 'Email & chat',          color: '#ec4899', colorDark: '#db2777', icon: MessageCircle,  onClick: () => navigateTo('/messages') },
 ])
