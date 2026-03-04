@@ -172,7 +172,7 @@ export const useAppStore = defineStore('app', () => {
         ($supabase as any).from('house_calls').select('*').eq('profile_id', uid).order('date', { ascending: true }),
         ($supabase as any).from('vendor_repairs').select('*').eq('profile_id', uid).order('created_at', { ascending: false }),
         ($supabase as any).from('appointments').select('*').eq('profile_id', uid).order('date', { ascending: true }),
-        ($supabase as any).from('profiles').select('id,business_name,email,phone,address,currency,tax_rate,statuses,pin,square_access_token,square_location_id,square_sandbox').eq('id', uid).single(),
+        ($supabase as any).from('profiles').select('*').eq('id', uid).single(),
         ($supabase as any).from('services').select('*').eq('profile_id', uid).order('name', { ascending: true }),
       ])
 
@@ -526,7 +526,8 @@ export const useAppStore = defineStore('app', () => {
 
   // ── Settings ──────────────────────────────────────────────────────────────
   const saveSettings = async (newSettings: any) => {
-    if (!$supabase || !user.value) return
+    if (!$supabase) throw new Error('Supabase not configured')
+    if (!user.value) throw new Error('Not authenticated')
     Object.assign(settings.value, newSettings)
     const { error } = await ($supabase as any).from('profiles').upsert({
       id: user.value.id,
@@ -553,7 +554,8 @@ export const useAppStore = defineStore('app', () => {
   const saveAll = async () => {
     // saveAll persists services alongside settings for pages that mutate
     // local state directly before calling saveAll (calendar, pos, import)
-    if (!$supabase || !user.value) return
+    if (!$supabase) throw new Error('Supabase not configured')
+    if (!user.value) throw new Error('Not authenticated')
     const { error } = await ($supabase as any).from('profiles').upsert({
       id: user.value.id,
       business_name: settings.value.businessName,

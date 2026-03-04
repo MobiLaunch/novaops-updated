@@ -83,6 +83,206 @@
           </div>
         </div>
 
+        <!-- ── Services Management ── -->
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #10b98108">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #10b981, #059669)">
+              <Wrench class="w-5 h-5 text-white" />
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-black">Services</p>
+              <p class="text-xs text-muted-foreground font-medium">Manage your repair services and pricing</p>
+            </div>
+            <button @click="showServiceForm = !showServiceForm"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-105"
+              style="background: #10b98118; color: #10b981">
+              <Plus class="w-3 h-3" />
+              Add Service
+            </button>
+          </div>
+          <div class="p-6 space-y-4">
+            <!-- Add / Edit Form -->
+            <Transition name="save-msg">
+              <div v-if="showServiceForm" class="rounded-[20px] p-5 space-y-4" style="background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.6); outline-offset: 0">
+                <p class="text-xs font-black text-muted-foreground uppercase tracking-widest">{{ editingServiceId ? 'Edit Service' : 'New Service' }}</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="space-y-1.5">
+                    <label class="m3-label">Name</label>
+                    <input v-model="serviceForm.name" placeholder="Screen Replacement" class="m3-input" style="height:40px;font-size:13px" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="m3-label">Category</label>
+                    <input v-model="serviceForm.category" placeholder="Repairs" class="m3-input" style="height:40px;font-size:13px" />
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="space-y-1.5">
+                    <label class="m3-label">Price</label>
+                    <input v-model.number="serviceForm.price" type="number" step="0.01" placeholder="0.00" class="m3-input" style="height:40px;font-size:13px" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="m3-label">Est. Minutes</label>
+                    <input v-model.number="serviceForm.estimated_minutes" type="number" placeholder="30" class="m3-input" style="height:40px;font-size:13px" />
+                  </div>
+                </div>
+                <div class="space-y-1.5">
+                  <label class="m3-label">Description</label>
+                  <input v-model="serviceForm.description" placeholder="Brief description" class="m3-input" style="height:40px;font-size:13px" />
+                </div>
+                <div class="flex items-center gap-3">
+                  <button @click="handleSaveService" :disabled="!serviceForm.name || savingService"
+                    class="flex items-center gap-2 h-10 px-5 rounded-full text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+                    style="background: linear-gradient(135deg, #10b981, #059669)">
+                    <div v-if="savingService" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <Save v-else class="w-3.5 h-3.5" />
+                    {{ editingServiceId ? 'Update' : 'Add' }}
+                  </button>
+                  <button @click="cancelServiceEdit" class="h-10 px-4 rounded-full text-sm font-bold transition-all hover:scale-[1.02]" style="background: hsl(var(--muted)/0.6)">Cancel</button>
+                </div>
+              </div>
+            </Transition>
+
+            <!-- Services List -->
+            <div v-if="svcList.length === 0 && !showServiceForm" class="flex flex-col items-center gap-2 py-6 text-muted-foreground">
+              <Wrench class="w-6 h-6 opacity-40" />
+              <p class="text-sm font-bold">No services yet</p>
+              <p class="text-xs">Add your first service above</p>
+            </div>
+            <div v-else class="space-y-1.5 max-h-[320px] overflow-y-auto pr-1">
+              <div v-for="svc in svcList" :key="svc.id"
+                class="flex items-center gap-3 px-4 py-3 rounded-[18px] transition-colors hover:bg-muted/30"
+                style="background: hsl(var(--muted)/0.2)">
+                <div class="w-9 h-9 rounded-[16px] flex items-center justify-center flex-shrink-0" style="background: #10b98114">
+                  <Wrench class="w-4 h-4" style="color: #10b981" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-bold truncate">{{ svc.name }}</p>
+                  <p class="text-[11px] text-muted-foreground font-medium">
+                    {{ svc.category || 'Services' }}
+                    <span v-if="svc.estimated_minutes" class="ml-1">· {{ svc.estimated_minutes }} min</span>
+                  </p>
+                </div>
+                <span class="text-sm font-black flex-shrink-0" style="color: #10b981">{{ form.currency }}{{ Number(svc.price || 0).toFixed(2) }}</span>
+                <div class="flex items-center gap-1 flex-shrink-0">
+                  <button @click="editService(svc)" class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90">
+                    <Pencil class="w-3 h-3 text-muted-foreground" />
+                  </button>
+                  <button @click="handleDeleteService(svc.id)" class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-red-500/10 transition-all hover:scale-110 active:scale-90">
+                    <Trash2 class="w-3 h-3 text-red-500/70" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <Transition name="save-msg">
+              <div v-if="serviceMsg" class="flex items-center gap-2 text-sm font-bold" :style="serviceMsg.ok ? 'color:#10b981' : 'color:#ef4444'">
+                <CheckCircle v-if="serviceMsg.ok" class="w-4 h-4" />
+                <AlertCircle v-else class="w-4 h-4" />
+                {{ serviceMsg.text }}
+              </div>
+            </Transition>
+          </div>
+        </div>
+
+        <!-- ── Expenses Management ── -->
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #ef444408">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #ef4444, #dc2626)">
+              <DollarSign class="w-5 h-5 text-white" />
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-black">Expenses</p>
+              <p class="text-xs text-muted-foreground font-medium">Track business overhead and recurring costs</p>
+            </div>
+            <button @click="showExpenseForm = !showExpenseForm"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-105"
+              style="background: #ef444418; color: #ef4444">
+              <Plus class="w-3 h-3" />
+              Add Expense
+            </button>
+          </div>
+          <div class="p-6 space-y-4">
+            <!-- Add Form -->
+            <Transition name="save-msg">
+              <div v-if="showExpenseForm" class="rounded-[20px] p-5 space-y-4" style="background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.6); outline-offset: 0">
+                <p class="text-xs font-black text-muted-foreground uppercase tracking-widest">New Expense</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="space-y-1.5">
+                    <label class="m3-label">Description</label>
+                    <input v-model="expenseForm.description" placeholder="Rent, Insurance, etc." class="m3-input" style="height:40px;font-size:13px" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="m3-label">Amount</label>
+                    <input v-model.number="expenseForm.amount" type="number" step="0.01" placeholder="0.00" class="m3-input" style="height:40px;font-size:13px" />
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="space-y-1.5">
+                    <label class="m3-label">Category</label>
+                    <select v-model="expenseForm.category" class="m3-input" style="height:40px;font-size:13px">
+                      <option value="Overhead">Overhead</option>
+                      <option value="Utilities">Utilities</option>
+                      <option value="Software">Software</option>
+                      <option value="Labor">Labor</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="m3-label">Date</label>
+                    <input v-model="expenseForm.date" type="date" class="m3-input" style="height:40px;font-size:13px" />
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <button @click="handleAddExpense" :disabled="!expenseForm.description || !expenseForm.amount || savingExpense"
+                    class="flex items-center gap-2 h-10 px-5 rounded-full text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+                    style="background: linear-gradient(135deg, #ef4444, #dc2626)">
+                    <div v-if="savingExpense" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <Save v-else class="w-3.5 h-3.5" />
+                    Add Expense
+                  </button>
+                  <button @click="showExpenseForm = false; resetExpenseForm()" class="h-10 px-4 rounded-full text-sm font-bold transition-all hover:scale-[1.02]" style="background: hsl(var(--muted)/0.6)">Cancel</button>
+                </div>
+              </div>
+            </Transition>
+
+            <!-- Expenses List -->
+            <div v-if="expensesList.length === 0 && !showExpenseForm" class="flex flex-col items-center gap-2 py-6 text-muted-foreground">
+              <DollarSign class="w-6 h-6 opacity-40" />
+              <p class="text-sm font-bold">No expenses logged</p>
+              <p class="text-xs">Track your business costs here</p>
+            </div>
+            <div v-else class="space-y-1.5 max-h-[280px] overflow-y-auto pr-1">
+              <div v-for="exp in expensesList" :key="exp.id"
+                class="flex items-center gap-3 px-4 py-3 rounded-[18px] transition-colors hover:bg-muted/30"
+                style="background: hsl(var(--muted)/0.2)">
+                <div class="w-9 h-9 rounded-[16px] flex items-center justify-center flex-shrink-0" style="background: #ef444414">
+                  <DollarSign class="w-4 h-4" style="color: #ef4444" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-bold truncate">{{ exp.description }}</p>
+                  <p class="text-[11px] text-muted-foreground font-medium">
+                    {{ exp.category }}
+                    <span v-if="exp.date" class="ml-1">· {{ exp.date }}</span>
+                  </p>
+                </div>
+                <span class="text-sm font-black flex-shrink-0" style="color: #ef4444">{{ form.currency }}{{ Number(exp.amount || 0).toFixed(2) }}</span>
+                <button @click="handleDeleteExpense(exp.id)" class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-red-500/10 transition-all hover:scale-110 active:scale-90 flex-shrink-0">
+                  <Trash2 class="w-3 h-3 text-red-500/70" />
+                </button>
+              </div>
+            </div>
+
+            <Transition name="save-msg">
+              <div v-if="expenseMsg" class="flex items-center gap-2 text-sm font-bold" :style="expenseMsg.ok ? 'color:#10b981' : 'color:#ef4444'">
+                <CheckCircle v-if="expenseMsg.ok" class="w-4 h-4" />
+                <AlertCircle v-else class="w-4 h-4" />
+                {{ expenseMsg.text }}
+              </div>
+            </Transition>
+          </div>
+        </div>
+
+
         <!-- ── Supabase Connection ── -->
         <div class="m3-bento-card">
           <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #3ecf8e08">
@@ -648,6 +848,7 @@ import {
   TicketCheck, ShoppingCart, UserPlus, Calendar, Link, ExternalLink,
   Printer, XCircle, RefreshCw, ScanLine, Receipt, CheckCircle, AlertCircle,
   MonitorSmartphone, Tablet, MessageCircle,
+  Plus, Pencil, Wrench, DollarSign,
 } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 
@@ -675,7 +876,7 @@ definePageMeta({ middleware: ['auth'] })
 const appStore  = useAppStore()
 const router    = useRouter()
 const { $supabase } = useNuxtApp()
-const { settings, notificationPrefs } = storeToRefs(appStore)
+const { settings, notificationPrefs, services: svcList, expenses: expensesList } = storeToRefs(appStore)
 
 // ── User info ────────────────────────────────────────────────────────
 const userEmail = computed(() => settings.value?.email || 'user@novaops.com')
@@ -707,6 +908,116 @@ const saveSettings = async () => {
   }
   if (saveMsgTimer) clearTimeout(saveMsgTimer)
   saveMsgTimer = setTimeout(() => { saveMsg.value = null }, 3000)
+}
+
+// ── Services CRUD ─────────────────────────────────────────────────────
+const showServiceForm = ref(false)
+const savingService = ref(false)
+const editingServiceId = ref<number | null>(null)
+const serviceMsg = ref<{ ok: boolean; text: string } | null>(null)
+let serviceMsgTimer: ReturnType<typeof setTimeout> | null = null
+const serviceForm = ref({ name: '', category: 'Services', description: '', price: 0, estimated_minutes: 0 })
+
+function resetServiceForm() {
+  serviceForm.value = { name: '', category: 'Services', description: '', price: 0, estimated_minutes: 0 }
+  editingServiceId.value = null
+}
+
+function editService(svc: any) {
+  editingServiceId.value = svc.id
+  serviceForm.value = {
+    name: svc.name || '',
+    category: svc.category || 'Services',
+    description: svc.description || '',
+    price: svc.price || 0,
+    estimated_minutes: svc.estimated_minutes || svc.duration || 0,
+  }
+  showServiceForm.value = true
+}
+
+function cancelServiceEdit() {
+  showServiceForm.value = false
+  resetServiceForm()
+}
+
+function showServiceMsg(ok: boolean, text: string) {
+  serviceMsg.value = { ok, text }
+  if (serviceMsgTimer) clearTimeout(serviceMsgTimer)
+  serviceMsgTimer = setTimeout(() => { serviceMsg.value = null }, 3000)
+}
+
+async function handleSaveService() {
+  savingService.value = true
+  try {
+    if (editingServiceId.value) {
+      await appStore.updateService(editingServiceId.value, {
+        name: serviceForm.value.name,
+        category: serviceForm.value.category,
+        description: serviceForm.value.description,
+        price: serviceForm.value.price,
+        estimated_minutes: serviceForm.value.estimated_minutes,
+        duration: serviceForm.value.estimated_minutes,
+      })
+      showServiceMsg(true, 'Service updated')
+    } else {
+      await appStore.createService({ ...serviceForm.value })
+      showServiceMsg(true, 'Service added')
+    }
+    cancelServiceEdit()
+  } catch (e: any) {
+    showServiceMsg(false, e.message || 'Failed to save service')
+  }
+  savingService.value = false
+}
+
+async function handleDeleteService(id: number) {
+  try {
+    await appStore.deleteService(id)
+    showServiceMsg(true, 'Service deleted')
+  } catch (e: any) {
+    showServiceMsg(false, e.message || 'Failed to delete')
+  }
+}
+
+// ── Expenses CRUD ─────────────────────────────────────────────────────
+const showExpenseForm = ref(false)
+const savingExpense = ref(false)
+const expenseMsg = ref<{ ok: boolean; text: string } | null>(null)
+let expenseMsgTimer: ReturnType<typeof setTimeout> | null = null
+const expenseForm = ref({ description: '', amount: 0, category: 'Overhead', date: new Date().toISOString().split('T')[0] })
+
+function resetExpenseForm() {
+  expenseForm.value = { description: '', amount: 0, category: 'Overhead', date: new Date().toISOString().split('T')[0] }
+}
+
+function showExpenseMsg(ok: boolean, text: string) {
+  expenseMsg.value = { ok, text }
+  if (expenseMsgTimer) clearTimeout(expenseMsgTimer)
+  expenseMsgTimer = setTimeout(() => { expenseMsg.value = null }, 3000)
+}
+
+async function handleAddExpense() {
+  savingExpense.value = true
+  try {
+    appStore.expenses.push({ ...expenseForm.value, id: Date.now() })
+    await appStore.saveAll()
+    showExpenseMsg(true, 'Expense added')
+    resetExpenseForm()
+    showExpenseForm.value = false
+  } catch (e: any) {
+    showExpenseMsg(false, e.message || 'Failed to save expense')
+  }
+  savingExpense.value = false
+}
+
+async function handleDeleteExpense(id: number) {
+  try {
+    appStore.expenses = appStore.expenses.filter((e: any) => e.id !== id)
+    await appStore.saveAll()
+    showExpenseMsg(true, 'Expense deleted')
+  } catch (e: any) {
+    showExpenseMsg(false, e.message || 'Failed to delete')
+  }
 }
 
 // ── Square connection test ────────────────────────────────────────────
