@@ -8,14 +8,20 @@ export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
 
   // Priority 1: environment variables (production / server deployments)
-  let url = config.public.supabaseUrl as string
-  let key = config.public.supabaseKey as string
+  let url = (config.public.supabaseUrl as string || '').trim()
+  let key = (config.public.supabaseKey as string || '').trim()
 
   // Priority 2: user-supplied credentials stored in localStorage
   // (Electron / self-hosted where env vars aren't baked in)
   if (process.client && (!url || !key)) {
-    url = localStorage.getItem('novaops_sb_url') || ''
-    key = localStorage.getItem('novaops_sb_key') || ''
+    url = (localStorage.getItem('novaops_sb_url') || '').trim()
+    key = (localStorage.getItem('novaops_sb_key') || '').trim()
+  }
+
+  if (process.client) {
+    console.log('[Supabase Plugin] URL:', url ? `${url.substring(0, 30)}...` : '(empty)',
+      '| Key:', key ? `${key.substring(0, 10)}...` : '(empty)',
+      '| Source:', (config.public.supabaseUrl as string)?.trim() ? 'env' : 'localStorage')
   }
 
   if (!url || !key) {

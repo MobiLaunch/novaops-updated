@@ -903,8 +903,10 @@ const saveSettings = async () => {
   try {
     await appStore.saveSettings({ ...form.value })
     saveMsg.value = { ok: true, text: 'Saved!' }
-  } catch {
-    saveMsg.value = { ok: false, text: 'Save failed' }
+  } catch (err: any) {
+    const msg = err?.message || err?.data?.message || JSON.stringify(err) || 'Save failed'
+    console.error('[Settings] Save failed:', err)
+    saveMsg.value = { ok: false, text: msg }
   }
   if (saveMsgTimer) clearTimeout(saveMsgTimer)
   saveMsgTimer = setTimeout(() => { saveMsg.value = null }, 3000)

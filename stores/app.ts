@@ -526,10 +526,12 @@ export const useAppStore = defineStore('app', () => {
 
   // ── Settings ──────────────────────────────────────────────────────────────
   const saveSettings = async (newSettings: any) => {
-    if (!$supabase) throw new Error('Supabase not configured')
-    if (!user.value) throw new Error('Not authenticated')
+    if (!$supabase) throw new Error('Supabase not configured — go to Settings → Database Connection')
+    if (!user.value) throw new Error('Not authenticated — please log in first')
+
     Object.assign(settings.value, newSettings)
-    const { error } = await ($supabase as any).from('profiles').upsert({
+
+    const payload = {
       id: user.value.id,
       business_name: settings.value.businessName,
       email: settings.value.email,
@@ -544,10 +546,14 @@ export const useAppStore = defineStore('app', () => {
       square_sandbox: settings.value.squareSandbox,
       services: services.value,
       expenses: expenses.value,
-    })
+    }
+
+    console.log('[saveSettings] Payload:', JSON.stringify(payload, null, 2))
+
+    const { error } = await ($supabase as any).from('profiles').upsert(payload)
     if (error) {
-      console.error('[saveSettings Error]', error)
-      throw error
+      console.error('[saveSettings] Supabase error:', JSON.stringify(error))
+      throw new Error(error.message || 'Database save failed')
     }
   }
 
