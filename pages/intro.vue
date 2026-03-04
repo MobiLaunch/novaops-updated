@@ -41,33 +41,33 @@
 
         <!-- Wordmark -->
         <div class="wordmark" :class="{ visible: phase >= 0 }">
-          <div class="logo-mark">
+          <div class="logo-mark" style="filter: drop-shadow(0 6px 20px rgba(253,67,114,0.35))">
             <svg class="logo-svg" viewBox="0 0 709 709" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M531.067 0H177.022C79.2556 0 0 79.2556 0 177.022V531.067C0 628.834 79.2556 708.089 177.022 708.089H531.067C628.834 708.089 708.089 628.834 708.089 531.067V177.022C708.089 79.2556 628.834 0 531.067 0Z" fill="url(#paint0_linear)"/>
-              <g filter="url(#filter2_d)">
-                <path d="M452.379 137.68H493.443C523.743 137.68 547.079 164.414 542.985 194.435L491.717 570.401H393.371L452.379 137.68Z" fill="url(#paint1_linear)"/>
+              <path d="M531.067 0H177.022C79.2556 0 0 79.2556 0 177.022V531.067C0 628.834 79.2556 708.089 177.022 708.089H531.067C628.834 708.089 708.089 628.834 708.089 531.067V177.022C708.089 79.2556 628.834 0 531.067 0Z" fill="url(#paint0_linear_1260_273)"/>
+              <g filter="url(#filter2_d_1260_273)">
+                <path d="M452.379 137.68H493.443C523.743 137.68 547.079 164.414 542.985 194.435L491.717 570.401H393.371L452.379 137.68Z" fill="url(#paint1_linear_1260_273)"/>
               </g>
-              <g filter="url(#filter3_d)">
-                <path d="M196.687 137.68H265.247C281.002 137.68 293.137 151.581 291.008 167.193L236.025 570.401H137.68L196.687 137.68Z" fill="url(#paint2_linear)"/>
+              <g filter="url(#filter3_d_1260_273)">
+                <path d="M196.687 137.68H265.247C281.002 137.68 293.137 151.581 291.008 167.193L236.025 570.401H137.68L196.687 137.68Z" fill="url(#paint2_linear_1260_273)"/>
               </g>
-              <path d="M196.707 137.68H262.857C282.464 137.68 300.262 149.14 308.375 166.99L491.744 570.401H393.398L196.707 137.68Z" fill="url(#paint3_linear)" fill-opacity="0.2"/>
+              <path d="M196.707 137.68H262.857C282.464 137.68 300.262 149.14 308.375 166.99L491.744 570.401H393.398L196.707 137.68Z" fill="url(#paint3_linear_1260_273)" fill-opacity="0.2"/>
               <defs>
-                <filter id="filter2_d" x="378.271" y="137.58" width="180.282" height="462.923" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-                  <feFlood flood-opacity="0" result="BackgroundImageFix"/><feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/><feOffset dy="15"/><feGaussianBlur stdDeviation="7.55"/><feComposite in2="hardAlpha" operator="out"/><feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/><feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/><feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
+                <filter id="filter2_d_1260_273" x="378.271" y="137.58" width="180.282" height="462.923" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                  <feFlood flood-opacity="0" result="BackgroundImageFix"/><feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/><feOffset dy="15"/><feGaussianBlur stdDeviation="7.55"/><feComposite in2="hardAlpha" operator="out"/><feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/><feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1260_273"/><feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1260_273" result="shape"/>
                 </filter>
-                <filter id="filter3_d" x="122.58" y="137.58" width="183.77" height="462.923" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-                  <feFlood flood-opacity="0" result="BackgroundImageFix"/><feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/><feOffset dy="15"/><feGaussianBlur stdDeviation="7.55"/><feComposite in2="hardAlpha" operator="out"/><feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/><feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/><feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
+                <filter id="filter3_d_1260_273" x="122.58" y="137.58" width="183.77" height="462.923" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                  <feFlood flood-opacity="0" result="BackgroundImageFix"/><feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/><feOffset dy="15"/><feGaussianBlur stdDeviation="7.55"/><feComposite in2="hardAlpha" operator="out"/><feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/><feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1260_273"/><feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1260_273" result="shape"/>
                 </filter>
-                <linearGradient id="paint0_linear" x1="0" y1="354.045" x2="708.089" y2="354.045" gradientUnits="userSpaceOnUse">
-                  <stop stop-color="#F9AA32"/><stop offset="0.2" stop-color="#F8774E"/><stop offset="0.41" stop-color="#FD4372"/><stop offset="0.585" stop-color="#F95DA5"/><stop offset="0.8" stop-color="#F57DE4"/><stop offset="1" stop-color="#43B9FB"/>
+                <linearGradient id="paint0_linear_1260_273" x1="0" y1="354.045" x2="708.089" y2="354.045" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#F9AA32"/><stop offset="0.2" stop-color="#F8774E"/><stop offset="0.410649" stop-color="#FD4372"/><stop offset="0.585" stop-color="#F95DA5"/><stop offset="0.8" stop-color="#F57DE4"/><stop offset="1" stop-color="#43B9FB"/>
                 </linearGradient>
-                <linearGradient id="paint1_linear" x1="472.048" y1="570.401" x2="472.049" y2="137.68" gradientUnits="userSpaceOnUse">
+                <linearGradient id="paint1_linear_1260_273" x1="472.048" y1="570.401" x2="472.049" y2="137.68" gradientUnits="userSpaceOnUse">
                   <stop stop-color="#009DDC"/><stop offset="1" stop-color="#3C9D51"/>
                 </linearGradient>
-                <linearGradient id="paint2_linear" x1="216.356" y1="570.401" x2="216.357" y2="137.68" gradientUnits="userSpaceOnUse">
+                <linearGradient id="paint2_linear_1260_273" x1="216.356" y1="570.401" x2="216.357" y2="137.68" gradientUnits="userSpaceOnUse">
                   <stop stop-color="#009DDC"/><stop offset="1" stop-color="#3C9D51"/>
                 </linearGradient>
-                <linearGradient id="paint3_linear" x1="344.226" y1="570.401" x2="344.226" y2="137.68" gradientUnits="userSpaceOnUse">
+                <linearGradient id="paint3_linear_1260_273" x1="344.226" y1="570.401" x2="344.226" y2="137.68" gradientUnits="userSpaceOnUse">
                   <stop stop-color="#009DDC"/><stop offset="1" stop-color="#3C9D51" stop-opacity="0.85"/>
                 </linearGradient>
               </defs>
@@ -578,13 +578,10 @@ onUnmounted(() => cancelAnimationFrame(raf))
 .wordmark.visible { opacity: 1; transform: translateY(0); }
 
 .logo-mark {
-  width: 46px; height: 46px; border-radius: 14px;
-  background: linear-gradient(135deg, #f8f8ff, #ede9fe);
+  width: 46px; height: 46px;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 16px rgba(99,102,241,0.2), inset 0 1px 0 rgba(255,255,255,0.9);
-  outline: 1px solid rgba(99,102,241,0.15);
 }
-.logo-svg { width: 28px; height: 28px; }
+.logo-svg { width: 46px; height: 46px; }
 
 .logo-text { font-size: 21px; font-weight: 900; letter-spacing: -0.6px; }
 .logo-nova { color: #1e1b4b; }
@@ -728,14 +725,30 @@ onUnmounted(() => cancelAnimationFrame(raf))
 
 /* ── Responsive ── */
 @media (max-width: 840px) {
-  .intro-layout {
-    flex-direction: column-reverse;
-    gap: 28px; padding: 24px 20px 32px;
-    align-items: stretch;
+  .intro-root {
+    position: fixed; inset: 0;
+    overflow-y: auto; overflow-x: hidden;
+    align-items: flex-start;
   }
-  .anim-side { width: 100%; }
-  .canvas-wrap canvas { width: 100%; height: auto; }
-  .features { grid-template-columns: 1fr; }
-  .headline { font-size: clamp(22px, 6vw, 30px); }
+  .intro-layout {
+    flex-direction: column;
+    gap: 24px; padding: 28px 20px 48px;
+    align-items: stretch;
+    min-height: 100%;
+  }
+  .anim-side { width: 100%; order: 2; }
+  .copy-side { order: 1; }
+  .canvas-wrap { padding: 14px 14px 20px; }
+  .canvas-wrap canvas { width: 100%; height: auto; max-height: 280px; object-fit: contain; }
+  .features { grid-template-columns: 1fr; gap: 6px; }
+  .headline { font-size: clamp(24px, 6vw, 32px); }
+  .cta-btn { width: 100%; justify-content: center; }
+}
+
+@media (max-width: 480px) {
+  .intro-layout { padding: 20px 16px 40px; gap: 20px; }
+  .canvas-badge { font-size: 10px; }
+  .wordmark { gap: 9px; }
+  .logo-nova, .logo-ops { font-size: 18px; }
 }
 </style>

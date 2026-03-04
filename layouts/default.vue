@@ -152,7 +152,7 @@ import {
   FileText, Settings as SettingsIcon, Menu, X, MapPin, Wrench, ScanLine, Upload,
   Globe, Plus, Monitor, Moon, Sun, Download, ChevronRight, Sparkles,
   TicketPlus, UserPlus, Tag, Barcode, Clock, AlertCircle,
-  MessageCircle, Cpu, Tv, BarChart3,
+  MessageCircle, Tv, BarChart3,
 } from 'lucide-vue-next'
 import { useScreenLock } from '~/composables/useScreenLock'
 
@@ -211,7 +211,7 @@ const currentTheme = ref<string>('light')
 // Settings, website-settings, services etc. have their own data loads
 // and must be accessible even when the main store hasn't finished yet.
 const NO_LOADING_GATE_PATHS = [
-  '/settings', '/website-settings', '/services', '/barcodes',
+  '/settings', '/website-settings', '/barcodes',
   '/forms', '/import', '/display', '/analytics', '/messages',
 ]
 const noLoadingGate = computed(() => NO_LOADING_GATE_PATHS.includes(route.path))
@@ -245,7 +245,6 @@ const navigation = [
   { name: 'Bookings',    path: '/bookings',          icon: ClipboardList,   color: '#6366f1', badge: { label: 'New',    color: '#f59e0b' }, group: 'core' },
   { name: 'Customers',   path: '/customers',         icon: Users,           color: '#3b82f6', badge: null,                         group: 'core' },
   { name: 'Inventory',   path: '/inventory',         icon: Package,         color: '#8b5cf6', badge: null,                         group: 'core' },
-  { name: 'Services',       path: '/services',          icon: Cpu,             color: '#22d3ee', badge: null,                         group: 'core' },
   { name: 'Calendar',    path: '/calendar',          icon: CalendarDays,    color: '#06b6d4', badge: null,                         group: 'core' },
   { name: 'POS',         path: '/pos',               icon: ShoppingCart,    color: '#ec4899', badge: { label: 'Live',   color: '#10b981' }, group: 'core' },
   { name: 'Analytics',   path: '/analytics',         icon: BarChart3,       color: '#10b981', badge: null,                         group: 'tools' },
@@ -291,7 +290,6 @@ function onKeydown(e: KeyboardEvent) {
     't': '/bookings', 'h': '/bookings', 'u': '/customers',
     'r': '/pos', 'i': '/forms', 'b': '/barcodes',
     'd': '/dashboard', ',': '/settings', 'm': '/messages',
-    'n': '/services',
   }
   const path = map[e.key.toLowerCase()]
   if (path) { e.preventDefault(); navigateTo(path) }
