@@ -361,44 +361,26 @@ const RailContent = defineComponent({
 
     return () => h('div', { class: 'flex flex-col items-center h-full w-full gap-0' }, [
 
-      // ── Wordmark logo ──────────────────────────────────────────────
-      h('div', { class: 'flex flex-col items-center w-full px-2 pt-1 pb-2 flex-shrink-0' }, [
-        h('div', {
-          class: props.isMobile ? 'w-[72px] h-12 rounded-[18px] flex items-center justify-center select-none cursor-pointer' : 'w-14 h-10 rounded-[16px] flex items-center justify-center select-none cursor-pointer',
-          style: 'background: linear-gradient(145deg, #6366f1 0%, #818cf8 100%); box-shadow: 0 2px 8px #6366f130',
-          onClick: () => navigateTo('/dashboard'),
-        }, [
-          h('div', { style: 'display: flex; flex-direction: column; align-items: center; line-height: 1' }, [
-            h('span', {
-              style: `color: rgba(255,255,255,0.75); font-size: ${props.isMobile ? '9' : '8'}px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase`,
-            }, 'nova'),
-            h('span', {
-              style: `color: white; font-size: ${props.isMobile ? '15' : '13'}px; font-weight: 900; letter-spacing: -0.04em; margin-top: -1px`,
-            }, 'ops'),
-          ]),
-        ]),
-      ]),
-
-      // More button — opens the upcoming + quick-add drawer
-      h('div', { class: 'flex flex-col items-center w-full px-2 pb-3 flex-shrink-0' }, [
+      // More button (FAB) — opens the upcoming + quick-add drawer
+      h('div', { class: 'flex flex-col items-center w-full px-2 pt-3 pb-3 flex-shrink-0' }, [
         h('button', {
           class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-[18px] flex items-center justify-center transition-all duration-200 active:scale-[0.92] hover:scale-[1.04]`,
           style: props.activeDrawer === 'more'
-            ? 'background: #6366f118; border: 2px solid #6366f140'
-            : 'background: #6366f1; box-shadow: 0 2px 8px #6366f145; border: 2px solid transparent',
+            ? 'background: #ec489918; border: 2px solid #ec489940'
+            : 'background: linear-gradient(145deg, #f9a8d4, #ec4899); box-shadow: 0 2px 8px #ec489945; border: 2px solid transparent',
           title: 'More',
           onClick: () => emit('set-drawer', 'more'),
         }, [
           h(Plus, {
             class: `${props.isMobile ? 'w-6 h-6' : 'w-5 h-5'} transition-all duration-200`,
             style: props.activeDrawer === 'more'
-              ? 'color: #6366f1; transform: rotate(45deg)'
+              ? 'color: #ec4899; transform: rotate(45deg)'
               : 'color: white',
           }),
         ]),
         h('span', {
           class: `${props.isMobile ? 'text-[11px]' : 'text-[10px]'} font-semibold leading-none mt-1`,
-          style: props.activeDrawer === 'more' ? 'color: #6366f1' : 'color: hsl(var(--muted-foreground))',
+          style: props.activeDrawer === 'more' ? 'color: #ec4899' : 'color: hsl(var(--muted-foreground))',
         }, 'More'),
       ]),
 

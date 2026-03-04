@@ -161,16 +161,31 @@ export default defineEventHandler(async (event) => {
   const cfg = PLATFORMS[platform]
   const clientId = (rc as any)[cfg.clientIdEnv]
   const clientSecret = (rc as any)[cfg.clientSecretEnv]
-  const redirectBase = rc.brandOauthRedirectBase as string
   const serviceKey = rc.supabaseServiceRoleKey as string
   const supabaseUrl = (rc.public as any).supabaseUrl as string
 
-  if (!clientId || !clientSecret || !serviceKey || !supabaseUrl || !redirectBase) {
+  // Derive the redirect base: prefer env var, fall back to request origin
+  // This ensures the redirect_uri matches what the client-side buildOauthUrl() used
+  let redirectBase = (rc.brandOauthRedirectBase as string) || ''
+  if (!redirectBase) {
+    const host = getHeader(event, 'x-forwarded-host') || getHeader(event, 'host') || ''
+    const proto = getHeader(event, 'x-forwarded-proto') || 'https'
+    if (host) {
+      redirectBase = `${proto}://${host}`
+    }
+  }
+
+  if (!clientId || !clientSecret || !serviceKey || !supabaseUrl) {
     console.error(
-      `[BrandCallback:${platform}] Missing env vars — check BRAND_OAUTH_REDIRECT_BASE, ` +
+      `[BrandCallback:${platform}] Missing env vars — check ` +
       `${cfg.clientIdEnv}, ${cfg.clientSecretEnv}, SUPABASE_SERVICE_ROLE_KEY`
     )
     return closePopup('Server configuration error — contact support.', false)
+  }
+
+  if (!redirectBase) {
+    console.error(`[BrandCallback:${platform}] Could not determine redirect base — set BRAND_OAUTH_REDIRECT_BASE or ensure Host header is present`)
+    return closePopup('Could not determine callback URL — contact support.', false)
   }
 
   try {
