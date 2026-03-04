@@ -344,6 +344,166 @@
       </div>
     </template>
 
+    <!-- ── SQUARE TAB ────────────────────────────────────────────── -->
+    <template v-if="activeTab === 'square'">
+      <!-- Not configured banner -->
+      <div v-if="!square.isConfigured.value" class="rounded-[28px] p-10 text-center bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+        <div class="w-16 h-16 rounded-[28px] flex items-center justify-center mx-auto mb-4" style="background: #6366f114">
+          <CreditCard class="w-8 h-8" style="color: #6366f1; opacity: 0.5" />
+        </div>
+        <p class="text-sm font-black mb-1">Square Not Connected</p>
+        <p class="text-xs text-muted-foreground font-medium">Add your Square Access Token and Location ID in Settings to import financial data.</p>
+      </div>
+
+      <template v-else>
+        <!-- Loading -->
+        <div v-if="square.isLoading.value" class="flex items-center justify-center py-16">
+          <div class="animate-spin w-8 h-8 border-4 border-muted border-t-[#6366f1] rounded-full" />
+          <span class="ml-3 text-sm font-bold text-muted-foreground">Loading Square data…</span>
+        </div>
+
+        <template v-else>
+          <!-- KPI Row -->
+          <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+            <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #10b98114; outline: 2px solid #10b98128; outline-offset: 0">
+              <div class="flex items-center justify-between">
+                <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #10b98124"><DollarSign class="w-5 h-5" style="color: #10b981" /></div>
+                <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #10b98120; color: #10b981">REVENUE</span>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-muted-foreground">Square Revenue</p>
+                <p class="text-2xl font-black" style="color: #10b981">{{ formatCurrency(square.totalRevenue.value) }}</p>
+                <p class="text-[10px] text-muted-foreground font-semibold mt-0.5">{{ square.payments.value.length }} payments</p>
+              </div>
+            </div>
+            <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0">
+              <div class="flex items-center justify-between">
+                <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #ef444424"><TrendingDown class="w-5 h-5" style="color: #ef4444" /></div>
+                <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #ef444420; color: #ef4444">FEES</span>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-muted-foreground">Processing Fees</p>
+                <p class="text-2xl font-black" style="color: #ef4444">{{ formatCurrency(square.totalFees.value) }}</p>
+                <p class="text-[10px] text-muted-foreground font-semibold mt-0.5">Deducted by Square</p>
+              </div>
+            </div>
+            <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #6366f114; outline: 2px solid #6366f128; outline-offset: 0">
+              <div class="flex items-center justify-between">
+                <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #6366f124"><Target class="w-5 h-5" style="color: #6366f1" /></div>
+                <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #6366f120; color: #6366f1">NET</span>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-muted-foreground">Net Revenue</p>
+                <p class="text-2xl font-black" style="color: #6366f1">{{ formatCurrency(square.netRevenue.value) }}</p>
+                <p class="text-[10px] text-muted-foreground font-semibold mt-0.5">After fees</p>
+              </div>
+            </div>
+            <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #f59e0b14; outline: 2px solid #f59e0b28; outline-offset: 0">
+              <div class="flex items-center justify-between">
+                <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #f59e0b24"><Receipt class="w-5 h-5" style="color: #f59e0b" /></div>
+                <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #f59e0b20; color: #f59e0b">TIPS</span>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-muted-foreground">Tips Received</p>
+                <p class="text-2xl font-black" style="color: #f59e0b">{{ formatCurrency(square.totalTips.value) }}</p>
+                <p class="text-[10px] text-muted-foreground font-semibold mt-0.5">From customers</p>
+              </div>
+            </div>
+            <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #06b6d414; outline: 2px solid #06b6d428; outline-offset: 0">
+              <div class="flex items-center justify-between">
+                <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #06b6d424"><Truck class="w-5 h-5" style="color: #06b6d4" /></div>
+                <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #06b6d420; color: #06b6d4">DEPOSITS</span>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-muted-foreground">Bank Deposits</p>
+                <p class="text-2xl font-black" style="color: #06b6d4">{{ formatCurrency(square.totalPayouts.value) }}</p>
+                <p class="text-[10px] text-muted-foreground font-semibold mt-0.5">{{ square.payouts.value.length }} payouts</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payments + Payouts side by side -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <!-- Recent Payments -->
+            <div class="lg:col-span-2 rounded-[28px] bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+              <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60">
+                <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #10b98120">
+                  <DollarSign class="w-4 h-4" style="color: #10b981" />
+                </div>
+                <h3 class="text-sm font-black flex-1">Recent Payments</h3>
+                <span class="text-[10px] font-bold text-muted-foreground">{{ square.payments.value.length }} total</span>
+              </div>
+              <div class="p-3 max-h-[420px] overflow-y-auto">
+                <div v-if="square.payments.value.length === 0" class="py-12 text-center text-xs text-muted-foreground font-medium">No payments found for this period</div>
+                <div v-for="p in square.payments.value" :key="p.id" class="flex items-center gap-3 px-3 py-2.5 rounded-[16px] hover:bg-muted/20 transition-all">
+                  <div class="w-9 h-9 rounded-[16px] flex items-center justify-center flex-shrink-0" :style="`background: ${p.status === 'COMPLETED' ? '#10b981' : '#f59e0b'}18`">
+                    <CreditCard class="w-4 h-4" :style="`color: ${p.status === 'COMPLETED' ? '#10b981' : '#f59e0b'}`" />
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold truncate">{{ p.cardBrand || 'Payment' }} {{ p.lastFour ? `••••${p.lastFour}` : '' }}</p>
+                    <p class="text-[10px] text-muted-foreground font-semibold">{{ formatDate(p.createdAt) }} {{ p.note ? `— ${p.note}` : '' }}</p>
+                  </div>
+                  <div class="text-right flex-shrink-0">
+                    <p class="text-xs font-black" style="color: #10b981">{{ formatCurrency(p.amount) }}</p>
+                    <p v-if="p.tip > 0" class="text-[10px] font-bold" style="color: #f59e0b">+{{ formatCurrency(p.tip) }} tip</p>
+                  </div>
+                  <a v-if="p.receiptUrl" :href="p.receiptUrl" target="_blank" class="w-7 h-7 rounded-[12px] flex items-center justify-center hover:bg-muted/40" title="View receipt">
+                    <Download class="w-3 h-3 text-muted-foreground" />
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Payouts -->
+            <div class="rounded-[28px] bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+              <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60">
+                <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #06b6d420">
+                  <Truck class="w-4 h-4" style="color: #06b6d4" />
+                </div>
+                <h3 class="text-sm font-black flex-1">Bank Deposits</h3>
+              </div>
+              <div class="p-3 max-h-[420px] overflow-y-auto">
+                <div v-if="square.payouts.value.length === 0" class="py-12 text-center text-xs text-muted-foreground font-medium">No payouts found</div>
+                <div v-for="p in square.payouts.value" :key="p.id" class="flex items-center gap-3 px-3 py-3 rounded-[16px] hover:bg-muted/20 transition-all">
+                  <div class="w-9 h-9 rounded-[16px] flex items-center justify-center flex-shrink-0" :style="`background: ${p.status === 'PAID' ? '#06b6d4' : '#f59e0b'}18`">
+                    <Truck class="w-4 h-4" :style="`color: ${p.status === 'PAID' ? '#06b6d4' : '#f59e0b'}`" />
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold">{{ p.status === 'PAID' ? 'Deposited' : p.status }}</p>
+                    <p class="text-[10px] text-muted-foreground font-semibold">{{ p.arrivalDate || formatDate(p.createdAt) }}</p>
+                  </div>
+                  <p class="text-xs font-black" style="color: #06b6d4">{{ formatCurrency(p.amount) }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Square Customers -->
+          <div class="rounded-[28px] bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+            <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60">
+              <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #8b5cf620">
+                <Users class="w-4 h-4" style="color: #8b5cf6" />
+              </div>
+              <h3 class="text-sm font-black flex-1">Square Customers</h3>
+              <span class="text-[10px] font-bold text-muted-foreground">{{ square.sqCustomers.value.length }} total</span>
+            </div>
+            <div class="p-3 max-h-[320px] overflow-y-auto">
+              <div v-if="square.sqCustomers.value.length === 0" class="py-10 text-center text-xs text-muted-foreground">No customers found in Square</div>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                <div v-for="c in square.sqCustomers.value" :key="c.id" class="flex items-center gap-3 px-3 py-2.5 rounded-[16px] hover:bg-muted/20 transition-all">
+                  <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style="background: #8b5cf618; color: #8b5cf6; font-size: 11px; font-weight: 800;">{{ c.name?.charAt(0) || '?' }}</div>
+                  <div class="min-w-0">
+                    <p class="text-xs font-bold truncate">{{ c.name }}</p>
+                    <p class="text-[10px] text-muted-foreground font-semibold truncate">{{ c.email || c.phone || 'No contact' }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </template>
+    </template>
+
     <!-- ── Add Expense Dialog ─────────────────────────────────── -->
     <Dialog v-model:open="addExpenseOpen">
       <DialogContent class="max-w-md">
@@ -417,8 +577,10 @@ const tabs = [
   { label: 'Overview', value: 'overview' },
   { label: 'Expenses', value: 'expenses' },
   { label: 'Performance', value: 'performance' },
+  { label: 'Square', value: 'square' },
 ]
 
+// ── Square data ─────────────────────────────────────────────────────
 const dateRange = ref('30')
 const dateRanges = [
   { label: '7d', value: '7' },
@@ -426,6 +588,20 @@ const dateRanges = [
   { label: '3mo', value: '90' },
   { label: 'Year', value: '365' },
 ]
+
+const square = useSquareData()
+const squareFetched = ref(false)
+watch(activeTab, (tab) => {
+  if (tab === 'square' && !squareFetched.value && square.isConfigured.value) {
+    squareFetched.value = true
+    square.fetchAll(parseInt(dateRange.value))
+  }
+})
+watch(dateRange, () => {
+  if (activeTab.value === 'square' && square.isConfigured.value) {
+    square.fetchAll(parseInt(dateRange.value))
+  }
+})
 
 const periodLabel = computed(() => ({
   '7': 'Last 7 Days', '30': 'Last 30 Days', '90': 'Last 3 Months', '365': 'Last Year'
