@@ -1,450 +1,691 @@
 <template>
-  <div class="flex flex-col gap-8">
+  <div class="dash-root">
 
-    <!-- ── Page Header ─────────────────────────────────────────── -->
-    <div class="flex items-center justify-between flex-wrap gap-4">
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg"
-          :style="activeMode === 'housecall'
-            ? 'background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 20px #10b98150'
-            : 'background: linear-gradient(135deg, #06b6d4, #0891b2); box-shadow: 0 4px 20px #06b6d450'">
-          <component :is="activeMode === 'housecall' ? MapPin : Calendar" class="w-6 h-6 text-white" />
+    <!-- ── Context Banner ──────────────────────────────────────────── -->
+    <div class="context-banner" :class="bannerVariant">
+      <div class="context-banner-left">
+        <div class="banner-weather-icon">
+          <component :is="weatherIconComponent" class="w-6 h-6 banner-icon-svg" :class="{ 'animate-spin-slow': weather.loaded && weather.conditionCode >= 95 }" />
         </div>
-        <div>
-          <h1 class="text-3xl font-black tracking-tight">Calendar</h1>
-          <p class="text-sm text-muted-foreground font-medium mt-0.5">
-            {{ activeMode === 'housecall' ? 'On-site house calls & field repairs' : 'In-shop appointments & scheduling' }}
+        <div class="banner-text">
+          <p class="banner-greeting">{{ banner.greeting }}</p>
+          <p class="banner-message" v-if="weather.loaded">
+            It's <strong>{{ weather.temp }}°F</strong> and {{ weather.description.toLowerCase() }} in {{ weather.location }}.
+            Perfect weather for <strong>{{ banner.suggestion }}</strong> {{ banner.emoji }}
+          </p>
+          <p class="banner-message" v-else-if="weather.loading">
+            Fetching your local weather…
+          </p>
+          <p class="banner-message banner-tap" v-else @click="loadWeather">
+            Tap to load local weather &amp; get a suggestion ☕
           </p>
         </div>
       </div>
-      <div class="flex items-center gap-2 flex-wrap">
-        <button class="h-10 px-4 rounded-full text-sm font-bold transition-all hover:scale-[1.02] active:scale-95"
-          style="background: hsl(var(--muted)/0.6)" @click="goToday">Today</button>
-
-        <!-- Mode toggle -->
-        <div class="flex gap-0.5 rounded-full p-1" style="background: hsl(var(--muted)/0.5)">
-          <button class="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black transition-all"
-            :style="activeMode === 'appointment'
-              ? 'background: white; color: #06b6d4; box-shadow: 0 2px 8px rgba(0,0,0,0.12)'
-              : 'color: hsl(var(--muted-foreground))'"
-            @click="activeMode = 'appointment'">
-            <Calendar class="w-3 h-3" /> In-Shop
-          </button>
-          <button class="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black transition-all"
-            :style="activeMode === 'housecall'
-              ? 'background: white; color: #10b981; box-shadow: 0 2px 8px rgba(0,0,0,0.12)'
-              : 'color: hsl(var(--muted-foreground))'"
-            @click="activeMode = 'housecall'">
-            <MapPin class="w-3 h-3" /> House Calls
-          </button>
-        </div>
-
-        <button class="m3-fab flex items-center gap-2 h-10 px-5 rounded-full text-sm font-black text-white"
-          :style="activeMode === 'housecall'
-            ? 'background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 16px #10b98140'
-            : 'background: linear-gradient(135deg, #06b6d4, #0891b2); box-shadow: 0 4px 16px #06b6d440'"
-          @click="openNew">
-          <Plus class="w-4 h-4" />
-          {{ activeMode === 'housecall' ? 'Schedule Call' : 'New Appointment' }}
-        </button>
+      <div class="banner-right" v-if="weather.loaded">
+        <p class="banner-temp">{{ weather.temp }}°</p>
+        <p class="banner-feels">feels {{ weather.feelsLike }}°</p>
       </div>
     </div>
 
-    <!-- ── Stat Cards ───────────────────────────────────────────── -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <div v-for="stat in statCards" :key="stat.label"
-        class="m3-stat-card rounded-[28px] p-5 flex flex-col gap-3"
-        :style="`background: ${stat.color}12; outline: 2px solid ${stat.color}28; outline-offset: 0`">
-        <div class="flex items-center justify-between">
-          <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" :style="`background: ${stat.color}24`">
-            <component :is="stat.icon" class="w-5 h-5" :style="`color: ${stat.color}`" />
-          </div>
-          <span class="text-[10px] font-black px-2 py-1 rounded-full"
-            :style="`background: ${stat.color}20; color: ${stat.color}`">{{ stat.badge }}</span>
+    <!-- ── Header ─────────────────────────────────────────────────── -->
+    <div class="dash-header">
+      <div class="flex items-center gap-4">
+        <div class="dash-header-icon">
+          <LayoutDashboard class="w-5 h-5 text-white" />
         </div>
         <div>
-          <p class="text-xs font-semibold text-muted-foreground">{{ stat.label }}</p>
-          <p class="text-2xl font-black" :style="`color: ${stat.color}`">{{ stat.value }}</p>
+          <p class="dash-greeting">{{ greeting }}</p>
+          <h1 class="dash-title">Dashboard</h1>
+        </div>
+      </div>
+      <div class="dash-date">
+        <CalendarDays class="w-4 h-4" />
+        <span>{{ todayLabel }}</span>
+      </div>
+    </div>
+
+    <!-- ── Revenue Hero + Core Stats ──────────────────────────────── -->
+    <div class="stats-zone">
+
+      <!-- Revenue Hero Card -->
+      <div class="hero-card" @click="navigateTo('/analytics')">
+        <div class="hero-bg-shape" />
+        <div class="hero-content">
+          <div class="hero-icon-wrap">
+            <Banknote class="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <p class="hero-label">Total Revenue</p>
+            <p class="hero-value">{{ formatCurrency(totalRevenue) }}</p>
+            <p class="hero-sub">{{ completedTickets.length }} completed jobs</p>
+          </div>
+        </div>
+        <div class="hero-trend">
+          <TrendingUp class="w-4 h-4" />
+          <span>View analytics →</span>
+        </div>
+      </div>
+
+      <!-- Secondary Stats Column -->
+      <div class="secondary-stats">
+        <div class="stat-pill" style="--c: #3b82f6" @click="navigateTo('/bookings')">
+          <div class="stat-pill-icon"><TicketCheck class="w-4 h-4" /></div>
+          <div class="stat-pill-body">
+            <p class="stat-pill-label">Active Tickets</p>
+            <p class="stat-pill-value">{{ activeTickets.length }}</p>
+          </div>
+          <p class="stat-pill-sub">{{ completedToday }} done today</p>
+        </div>
+
+        <div class="stat-pill" style="--c: #8b5cf6" @click="navigateTo('/customers')">
+          <div class="stat-pill-icon"><Users class="w-4 h-4" /></div>
+          <div class="stat-pill-body">
+            <p class="stat-pill-label">Customers</p>
+            <p class="stat-pill-value">{{ (customers || []).length }}</p>
+          </div>
+          <p class="stat-pill-sub">Total clients</p>
+        </div>
+
+        <div class="stat-pill" style="--c: #f59e0b" @click="navigateTo('/inventory')">
+          <div class="stat-pill-icon"><Box class="w-4 h-4" /></div>
+          <div class="stat-pill-body">
+            <p class="stat-pill-label">Inventory</p>
+            <p class="stat-pill-value">{{ (inventory || []).length }}</p>
+          </div>
+          <p class="stat-pill-sub" :class="lowStockItems > 0 ? 'text-amber-500' : 'text-emerald-500'">
+            {{ lowStockItems > 0 ? `${lowStockItems} low stock` : 'All stocked' }}
+          </p>
+        </div>
+
+        <div class="stat-pill" style="--c: #06b6d4" @click="navigateTo('/calendar')">
+          <div class="stat-pill-icon"><CalendarDays class="w-4 h-4" /></div>
+          <div class="stat-pill-body">
+            <p class="stat-pill-label">Upcoming</p>
+            <p class="stat-pill-value">{{ upcomingAppointments }}</p>
+          </div>
+          <p class="stat-pill-sub">Appointments</p>
         </div>
       </div>
     </div>
 
-    <!-- ── Month Navigation ───────────────────────────────────── -->
-    <div class="flex items-center gap-3">
-      <button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90" @click="prevMonth">
-        <ChevronLeft class="w-5 h-5" />
-      </button>
-      <h2 class="text-xl font-black flex-1 text-center">{{ monthLabel }}</h2>
-      <button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90" @click="nextMonth">
-        <ChevronRight class="w-5 h-5" />
-      </button>
-    </div>
-
-    <!-- ── Calendar Grid ─────────────────────────────────────── -->
-    <div class="rounded-[32px] overflow-hidden bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
-      <div class="grid grid-cols-7 border-b border-border/60"
-        :style="activeMode === 'housecall' ? 'background: #10b98108' : 'background: #06b6d408'">
-        <div v-for="d in ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']" :key="d"
-          class="py-3 text-center text-xs font-black text-muted-foreground uppercase tracking-widest">{{ d }}</div>
-      </div>
-      <div class="grid grid-cols-7">
-        <div v-for="(day, idx) in calendarDays" :key="idx"
-          class="min-h-[80px] p-2 border-b border-r border-border/20 last:border-r-0 cursor-pointer transition-all hover:bg-muted/20 relative"
-          :class="{ 'opacity-35': !day.currentMonth }"
-          :style="day.isToday ? (activeMode === 'housecall' ? 'background: #10b9810d' : 'background: #06b6d40d') : ''"
-          @click="day.currentMonth && selectDay(day.date)">
-          <div class="w-6 h-6 flex items-center justify-center rounded-full mb-1 text-xs font-black"
-            :style="day.isToday ? (activeMode === 'housecall' ? 'background:#10b981;color:white' : 'background:#06b6d4;color:white') : ''">
-            {{ day.day }}
+    <!-- ── Quick Actions ──────────────────────────────────────────── -->
+    <div class="quick-actions-section">
+      <p class="section-label">Quick Actions</p>
+      <div class="quick-actions-grid">
+        <button
+          v-for="action in quickActions"
+          :key="action.label"
+          class="action-tile"
+          :style="`--ac: ${action.color}`"
+          @click="action.onClick()"
+        >
+          <div class="action-icon" :style="`background: linear-gradient(135deg, ${action.color}, ${action.colorDark}); box-shadow: 0 4px 14px ${action.color}40`">
+            <component :is="action.icon" class="w-5 h-5 text-white" />
           </div>
-          <div class="space-y-0.5">
-            <div v-for="appt in getDayAppts(day.date)" :key="appt.id"
-              class="text-[9px] font-bold px-1.5 py-0.5 rounded-[6px] truncate flex items-center gap-0.5"
-              :style="appt.type === 'housecall'
-                ? 'background: #10b98122; color: #10b981'
-                : 'background: #06b6d422; color: #06b6d4'">
-              <MapPin v-if="appt.type === 'housecall'" class="w-2 h-2 flex-shrink-0" />
-              {{ appt.title || appt.description }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── Upcoming List ──────────────────────────────────────── -->
-    <div class="rounded-[28px] p-6 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
-      <div class="flex items-center justify-between mb-5">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-[18px] flex items-center justify-center"
-            :style="activeMode === 'housecall' ? 'background: #10b98120' : 'background: #06b6d420'">
-            <Clock class="w-4 h-4" :style="activeMode === 'housecall' ? 'color:#10b981' : 'color:#06b6d4'" />
-          </div>
-          <h3 class="text-sm font-black">
-            Upcoming {{ activeMode === 'housecall' ? 'House Calls' : 'Appointments' }}
-          </h3>
-        </div>
-        <span class="text-xs text-muted-foreground font-semibold">{{ upcomingList.length }} scheduled</span>
-      </div>
-
-      <div v-if="upcomingList.length" class="space-y-2">
-        <div v-for="appt in upcomingList" :key="appt.id"
-          class="m3-appt-row flex items-center gap-3 px-4 py-3 rounded-[20px] cursor-pointer"
-          :style="activeMode === 'housecall'
-            ? 'background: #10b98110; outline: 1.5px solid #10b98122; outline-offset: 0'
-            : 'background: #06b6d410; outline: 1.5px solid #06b6d422; outline-offset: 0'"
-          @click="openEdit(appt)">
-          <div class="w-10 h-10 rounded-[20px] flex items-center justify-center flex-shrink-0"
-            :style="activeMode === 'housecall' ? 'background:#10b98120' : 'background:#06b6d420'">
-            <component :is="activeMode === 'housecall' ? MapPin : Calendar" class="w-5 h-5"
-              :style="activeMode === 'housecall' ? 'color:#10b981' : 'color:#06b6d4'" />
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-bold truncate">{{ appt.title || appt.description }}</p>
-            <p class="text-xs text-muted-foreground font-medium">{{ formatApptDate(appt.date) }} at {{ appt.time || '—' }}</p>
-            <p v-if="appt.address" class="text-xs font-semibold flex items-center gap-1 mt-0.5" style="color:#10b981">
-              <MapPin class="w-3 h-3" />{{ appt.address }}
-            </p>
-          </div>
-          <div class="flex items-center gap-2 flex-shrink-0">
-            <span class="text-[10px] font-black px-2.5 py-1 rounded-full capitalize"
-              :style="statusStyle(appt.status)">{{ appt.status }}</span>
-            <button v-if="activeMode === 'housecall' && appt.status !== 'Completed' && appt.status !== 'completed'"
-              class="h-8 px-3 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95"
-              style="background:#f59e0b20;color:#f59e0b"
-              @click.stop="advanceCall(appt)">
-              {{ appt.status === 'In Progress' ? 'Complete' : 'Start' }}
-            </button>
-            <button class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-950/30 transition-all hover:scale-110 active:scale-90"
-              @click.stop="deleteAppt(appt)">
-              <Trash2 class="w-3.5 h-3.5 text-muted-foreground" />
-            </button>
-          </div>
-        </div>
-      </div>
-      <div v-else class="flex flex-col items-center gap-3 py-10">
-        <div class="w-16 h-16 rounded-[28px] flex items-center justify-center"
-          :style="activeMode === 'housecall' ? 'background:#10b98114' : 'background:#06b6d414'">
-          <component :is="activeMode === 'housecall' ? MapPin : Calendar" class="w-8 h-8"
-            :style="activeMode === 'housecall' ? 'color:#10b981;opacity:0.45' : 'color:#06b6d4;opacity:0.45'" />
-        </div>
-        <p class="text-sm font-bold text-muted-foreground">
-          No upcoming {{ activeMode === 'housecall' ? 'house calls' : 'appointments' }}
-        </p>
-        <button class="px-5 py-2.5 rounded-full text-sm font-black text-white transition-all hover:scale-105 active:scale-95"
-          :style="activeMode === 'housecall'
-            ? 'background:linear-gradient(135deg,#10b981,#059669)'
-            : 'background:linear-gradient(135deg,#06b6d4,#0891b2)'"
-          @click="openNew">
-          {{ activeMode === 'housecall' ? 'Schedule First Call' : 'Book Appointment' }}
+          <p class="action-label">{{ action.label }}</p>
+          <p class="action-sub">{{ action.sub }}</p>
         </button>
       </div>
     </div>
 
-    <!-- ── Form Dialog ────────────────────────────────────────── -->
-    <Dialog v-model:open="formOpen">
-      <DialogContent class="max-w-md">
-        <div class="flex flex-col gap-5 p-7">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center"
-              :style="activeMode === 'housecall'
-                ? 'background:linear-gradient(135deg,#10b981,#059669)'
-                : 'background:linear-gradient(135deg,#06b6d4,#0891b2)'">
-              <component :is="activeMode === 'housecall' ? MapPin : Calendar" class="w-5 h-5 text-white" />
-            </div>
+    <!-- ── Bottom Row ─────────────────────────────────────────────── -->
+    <div class="bottom-row">
+
+      <!-- Today's Summary -->
+      <div class="summary-card">
+        <div class="card-header">
+          <div class="card-header-icon" style="background: #6366f118; color: #6366f1">
+            <TrendingUp class="w-4 h-4" />
+          </div>
+          <h3 class="card-title">Today</h3>
+        </div>
+        <div class="summary-grid">
+          <div
+            v-for="s in todaySummary"
+            :key="s.label"
+            class="summary-chip"
+            :style="`--sc: ${s.color}`"
+          >
+            <component :is="s.icon" class="w-3.5 h-3.5 summary-chip-icon" />
             <div>
-              <h2 class="text-base font-black">
-                {{ editingAppt ? 'Edit' : 'New' }} {{ activeMode === 'housecall' ? 'House Call' : 'Appointment' }}
-              </h2>
-              <p class="text-xs text-muted-foreground font-medium">
-                {{ activeMode === 'housecall' ? 'On-site repair visit' : 'In-shop appointment' }}
-              </p>
+              <p class="summary-chip-label">{{ s.label }}</p>
+              <p class="summary-chip-value">{{ s.value }}</p>
             </div>
-          </div>
-
-          <div class="space-y-2">
-            <label class="m3-label">Title</label>
-            <input v-model="form.title" :placeholder="activeMode === 'housecall' ? 'TV repair at client home' : 'Screen repair consultation'" class="m3-input" />
-          </div>
-          <div class="space-y-2">
-            <label class="m3-label">Customer</label>
-            <CustomerSelect v-model="form.customerId" />
-          </div>
-          <div v-if="activeMode === 'housecall'" class="space-y-2">
-            <label class="m3-label">Address</label>
-            <input v-model="form.address" placeholder="123 Main St, City, State" class="m3-input" />
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div class="space-y-2">
-              <label class="m3-label">Date</label>
-              <input v-model="form.date" type="date" class="m3-input" />
-            </div>
-            <div class="space-y-2">
-              <label class="m3-label">Time</label>
-              <input v-model="form.time" type="time" class="m3-input" />
-            </div>
-          </div>
-          <div v-if="editingAppt" class="space-y-2">
-            <label class="m3-label">Status</label>
-            <select v-model="form.status" class="m3-input">
-              <option value="scheduled">Scheduled</option>
-              <option v-if="activeMode === 'housecall'" value="In Progress">In Progress</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-          <div class="space-y-2">
-            <label class="m3-label">Notes</label>
-            <textarea v-model="form.description" placeholder="Details…" rows="2"
-              class="m3-input resize-none" style="height:auto;padding-top:12px" />
-          </div>
-
-          <div class="flex gap-3 pt-1">
-            <button class="flex-1 h-12 rounded-full text-sm font-bold transition-all hover:scale-105 active:scale-95"
-              style="outline:2px solid hsl(var(--border));outline-offset:0"
-              @click="formOpen = false">Cancel</button>
-            <button class="flex-1 h-12 rounded-full text-sm font-black text-white transition-all hover:scale-105 active:scale-95"
-              :style="activeMode === 'housecall'
-                ? 'background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 4px 16px #10b98140'
-                : 'background:linear-gradient(135deg,#06b6d4,#0891b2);box-shadow:0 4px 16px #06b6d440'"
-              @click="saveAppt">
-              {{ editingAppt ? 'Save Changes' : 'Schedule' }}
-            </button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+
+      <!-- Recent Tickets -->
+      <div class="tickets-card">
+        <div class="card-header">
+          <div class="card-header-icon" style="background: #f59e0b18; color: #f59e0b">
+            <TicketCheck class="w-4 h-4" />
+          </div>
+          <h3 class="card-title">Recent Tickets</h3>
+          <button class="view-all-btn" @click="navigateTo('/bookings')">View all →</button>
+        </div>
+
+        <div class="ticket-list">
+          <div
+            v-for="ticket in recentTickets"
+            :key="ticket.id"
+            class="ticket-row"
+            @click="navigateTo('/bookings')"
+          >
+            <div class="ticket-dot" :style="`background: ${ticketStatusColor(ticket.status)}`" />
+            <div class="ticket-info">
+              <p class="ticket-title">#{{ ticket.id }} — {{ ticket.device }}</p>
+              <p class="ticket-customer">{{ getCustomerName(ticket.customerId) }}</p>
+            </div>
+            <div class="ticket-meta">
+              <span class="ticket-status-badge" :style="`background: ${ticketStatusColor(ticket.status)}18; color: ${ticketStatusColor(ticket.status)}`">
+                {{ ticket.status }}
+              </span>
+              <span class="ticket-price" :style="`color: ${ticketStatusColor(ticket.status)}`">
+                {{ formatCurrency(ticket.price) }}
+              </span>
+            </div>
+          </div>
+          <div v-if="recentTickets.length === 0" class="tickets-empty">
+            <TicketCheck class="w-6 h-6 opacity-20" />
+            <p>No tickets yet — create your first one!</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- New Ticket Dialog -->
+    <NewTicketDialog v-model="newTicketOpen" :customers="customers" @create="handleCreateTicket" />
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { Calendar, MapPin, Plus, ChevronLeft, ChevronRight, Clock, CheckCircle, Trash2, TicketCheck } from 'lucide-vue-next'
-import { Dialog, DialogContent } from '~/components/ui/dialog'
+import { ref, computed, onMounted } from 'vue'
 import { useAppStore } from '~/stores/app'
+import { storeToRefs } from 'pinia'
+import { useRouter } from 'vue-router'
+import type { Ticket } from '~/types'
+import {
+  Banknote, TicketCheck, Users, Box, Wrench,
+  ShoppingCart, CalendarDays, Package, ClipboardCheck, UserPlus,
+  DollarSign, TrendingUp, LayoutDashboard, MessageCircle,
+  Sun, Cloud, CloudRain, CloudSnow, CloudDrizzle, CloudLightning, Snowflake,
+} from 'lucide-vue-next'
+import NewTicketDialog from '~/components/NewTicketDialog.vue'
+import { useWeather, wmoIconKey, getContextBanner } from '~/composables/useWeather'
+import { useNotifications } from '~/composables/useNotifications'
 
 definePageMeta({ middleware: ['auth'] })
 
-const appStore = useAppStore()
-const allAppts  = computed(() => appStore.appointments ?? [])
-const customers = computed(() => appStore.customers ?? [])
+const router    = useRouter()
+const appStore  = useAppStore()
+const { customers, tickets, inventory, appointments, settings } = storeToRefs(appStore)
+const { trackDevice } = appStore
+const { weather, fetchWeather } = useWeather()
 
-// ── Mode ──────────────────────────────────────────────────────
-const activeMode = ref<'appointment' | 'housecall'>('appointment')
+const newTicketOpen = ref(false)
+const navigateTo    = (path: string) => router.push(path)
 
-// Appointments for the active mode
-// Treat missing/undefined type as 'appointment' for backward compat
-const viewAppts = computed(() =>
-  allAppts.value.filter((a: any) =>
-    activeMode.value === 'housecall'
-      ? a.type === 'housecall'
-      : (a.type === 'appointment' || !a.type)
-  )
-)
-
-// ── Calendar nav ───────────────────────────────────────────────
-const now = new Date()
-const viewYear  = ref(now.getFullYear())
-const viewMonth = ref(now.getMonth())
-const today = new Date().toISOString().split('T')[0]
-
-const monthLabel = computed(() =>
-  new Date(viewYear.value, viewMonth.value).toLocaleDateString([], { month: 'long', year: 'numeric' })
-)
-const prevMonth = () => { if (viewMonth.value === 0) { viewMonth.value = 11; viewYear.value-- } else viewMonth.value-- }
-const nextMonth = () => { if (viewMonth.value === 11) { viewMonth.value = 0; viewYear.value++ } else viewMonth.value++ }
-const goToday   = () => { viewYear.value = now.getFullYear(); viewMonth.value = now.getMonth() }
-
-const calendarDays = computed(() => {
-  const firstDay    = new Date(viewYear.value, viewMonth.value, 1).getDay()
-  const daysInMonth = new Date(viewYear.value, viewMonth.value + 1, 0).getDate()
-  const daysInPrev  = new Date(viewYear.value, viewMonth.value, 0).getDate()
-  const todayStr    = today
-  const days: any[] = []
-  for (let i = firstDay - 1; i >= 0; i--)
-    days.push({ day: daysInPrev - i, currentMonth: false, date: '', isToday: false })
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${viewYear.value}-${String(viewMonth.value + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`
-    days.push({ day: d, currentMonth: true, date: dateStr, isToday: dateStr === todayStr })
+// Auto-load weather on mount (silent — no geolocation prompt unless user hasn't granted yet)
+onMounted(() => {
+  if (!weather.value.loaded && !weather.value.loading) {
+    fetchWeather().catch(() => {})
   }
-  while (days.length % 7 !== 0) days.push({ day: days.length - firstDay - daysInMonth + 1, currentMonth: false, date: '', isToday: false })
-  return days
 })
 
-// Show ALL appointments on grid (color coded), filtered list below
-const getDayAppts = (date: string) => date ? allAppts.value.filter((a: any) => a.date === date) : []
+const loadWeather = async () => { if (!weather.value.loaded) await fetchWeather() }
 
-// ── Stats ──────────────────────────────────────────────────────
-const upcomingList = computed(() =>
-  viewAppts.value
-    .filter((a: any) => a.date >= today && a.status !== 'completed' && a.status !== 'cancelled')
-    .sort((a: any, b: any) => (a.date + (a.time||'')).localeCompare(b.date + (b.time||'')))
-    .slice(0, 10)
+// ── Banner ─────────────────────────────────────────────────────────
+const banner = computed(() =>
+  weather.value.loaded
+    ? getContextBanner(weather.value.temp, weather.value.conditionCode)
+    : getContextBanner(68, 0)   // neutral default before load
 )
 
-const color = computed(() => activeMode.value === 'housecall' ? '#10b981' : '#06b6d4')
+const bannerVariant = computed(() => {
+  const t = weather.value.temp
+  if (!weather.value.loaded) return 'banner-neutral'
+  if (t <= 40) return 'banner-cold'
+  if (t <= 65) return 'banner-mild'
+  return 'banner-warm'
+})
 
-const statCards = computed(() => [
-  {
-    label: activeMode.value === 'housecall' ? 'All Calls' : 'All Appts',
-    value: viewAppts.value.length,
-    color: color.value,
-    badge: 'TOTAL',
-    icon: activeMode.value === 'housecall' ? MapPin : Calendar
-  },
-  {
-    label: 'Upcoming',
-    value: viewAppts.value.filter((a: any) => a.date >= today && a.status !== 'completed' && a.status !== 'cancelled').length,
-    color: '#3b82f6',
-    badge: 'SCHED',
-    icon: Clock
-  },
-  {
-    label: 'Completed',
-    value: viewAppts.value.filter((a: any) => a.status === 'completed' || a.status === 'Completed').length,
-    color: '#10b981',
-    badge: 'DONE',
-    icon: CheckCircle
-  },
-  {
-    label: 'Today',
-    value: viewAppts.value.filter((a: any) => a.date === today).length,
-    color: '#f59e0b',
-    badge: 'TODAY',
-    icon: Calendar
-  },
+// Resolve lucide icon from WMO icon key
+const weatherIconComponent = computed(() => {
+  const key = weather.value.icon || 'cloud'
+  const map: Record<string, any> = {
+    'sun': Sun,
+    'cloud-sun': Cloud,
+    'cloud': Cloud,
+    'cloud-rain': CloudRain,
+    'snowflake': Snowflake,
+    'cloud-drizzle': CloudDrizzle,
+    'cloud-snow': CloudSnow,
+    'cloud-lightning': CloudLightning,
+  }
+  return map[key] || Cloud
+})
+
+// ── Computed Data ──────────────────────────────────────────────────
+const totalRevenue = computed(() =>
+  (tickets.value || []).filter(t => t.price > 0 && (t.status === 'Completed' || t.status === 'Delivered'))
+    .reduce((acc, t) => acc + (t.price || 0), 0)
+)
+const activeTickets    = computed(() => (tickets.value || []).filter(t => t.status !== 'Closed' && t.status !== 'Delivered'))
+const completedTickets = computed(() => (tickets.value || []).filter(t => t.status === 'Closed' || t.status === 'Delivered'))
+const completedToday   = computed(() => {
+  const today = new Date().toDateString()
+  return (tickets.value || []).filter(t => {
+    const ua = t.updatedAt ? new Date(t.updatedAt).toDateString() : null
+    return (t.status === 'Completed' || t.status === 'Delivered') && ua === today
+  }).length
+})
+const lowStockItems        = computed(() => (inventory.value || []).filter(item => item.stock <= (item.low || 5)).length)
+const upcomingAppointments = computed(() => (appointments.value || []).filter(a => a.status === 'scheduled').length)
+const recentTickets        = computed(() => [...(tickets.value || [])].sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 8))
+
+const formatCurrency   = (amount: number) => `${settings.value?.currency || '$'}${(amount || 0).toFixed(2)}`
+const getCustomerName  = (customerId: number) => (customers.value || []).find(c => c.id === customerId)?.name || 'Unknown'
+const ticketStatusColor = (status: string) => {
+  const map: Record<string, string> = {
+    'Open': '#3b82f6', 'In Progress': '#f59e0b', 'Waiting for Parts': '#f97316',
+    'Completed': '#10b981', 'Delivered': '#64748b'
+  }
+  return map[status] || '#64748b'
+}
+
+// ── Greeting ───────────────────────────────────────────────────────
+const greeting = computed(() => {
+  const h = new Date().getHours()
+  if (h < 12) return 'Good morning'
+  if (h < 17) return 'Good afternoon'
+  return 'Good evening'
+})
+const todayLabel = computed(() => new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }))
+
+// ── Quick Actions ──────────────────────────────────────────────────
+const quickActions = computed(() => [
+  { label: 'New Sale',   sub: 'POS transaction',              color: '#ec4899', colorDark: '#db2777', icon: ShoppingCart,   onClick: () => navigateTo('/pos') },
+  { label: 'Schedule',   sub: `${upcomingAppointments.value} upcoming`,  color: '#8b5cf6', colorDark: '#7c3aed', icon: CalendarDays,   onClick: () => navigateTo('/calendar') },
+  { label: 'Inventory',  sub: 'Manage stock',                 color: '#f59e0b', colorDark: '#d97706', icon: Package,        onClick: () => navigateTo('/inventory') },
+  { label: 'Bookings',   sub: 'Repairs, House Calls & Shipments', color: '#3b82f6', colorDark: '#2563eb', icon: ClipboardCheck, onClick: () => navigateTo('/bookings') },
+  { label: 'Customers',  sub: 'Manage clients',               color: '#06b6d4', colorDark: '#0891b2', icon: UserPlus,       onClick: () => navigateTo('/customers') },
+  { label: 'Messages',   sub: 'Email & chat',                 color: '#ec4899', colorDark: '#db2777', icon: MessageCircle,  onClick: () => navigateTo('/messages') },
 ])
 
-// ── Form ───────────────────────────────────────────────────────
-const formOpen    = ref(false)
-const editingAppt = ref<any>(null)
-const selectedDay = ref(today)
+// ── Today Summary ──────────────────────────────────────────────────
+const todaySummary = computed(() => [
+  { label: 'Revenue',   value: formatCurrency(totalRevenue.value),  color: '#3b82f6', icon: DollarSign },
+  { label: 'Completed', value: String(completedToday.value),         color: '#10b981', icon: TicketCheck },
+  { label: 'Active',    value: String(activeTickets.value.length),   color: '#f97316', icon: TicketCheck },
+  { label: 'Scheduled', value: String(upcomingAppointments.value),   color: '#8b5cf6', icon: CalendarDays },
+])
 
-const form = ref({
-  title: '', customerId: null as any, date: today,
-  time: '', description: '', status: 'scheduled',
-  address: '', type: 'appointment'
-})
+const { addNotification } = useNotifications()
+const { sendTicketEmail, sendInternalAlert } = useEmailNotifications()
 
-const openNew = () => {
-  editingAppt.value = null
-  form.value = {
-    title: '', customerId: null,
-    date: selectedDay.value || today,
-    time: '', description: '', status: 'scheduled',
-    address: '', type: activeMode.value
+const getCustomerPhone = (customerId: number) => (customers.value || []).find((c: any) => c.id === customerId)?.phone || ''
+
+const handleCreateTicket = async (ticketData: any) => {
+  try {
+    let customerId = ticketData.customerId
+    if (ticketData.newCustomer?.name) {
+      const newCust = await appStore.createCustomer(ticketData.newCustomer)
+      customerId = newCust.id
+    }
+    const ticket = await appStore.createTicket({
+      ...ticketData,
+      customerId,
+      status: 'Open',
+      price: 0,
+      services: [],
+      parts: [],
+      payments: [],
+      notes: [],
+      timeLog: [],
+    })
+    trackDevice(ticket.device)
+    addNotification('Ticket Created', `Ticket #${ticket.id} created successfully`, 'success')
+    newTicketOpen.value = false
+    // Fire email notifications (non-blocking)
+    sendTicketEmail({ ...ticket, customerId }).catch(() => {})
+    sendInternalAlert({ eventType: 'New Ticket', eventSummary: `Ticket #${ticket.id} created`, customerName: getCustomerName(customerId), customerPhone: getCustomerPhone(customerId), deviceName: ticketData.device || '', issueDescription: ticketData.issue || '', ticketNumber: String(ticket.id) }).catch(() => {})
+  } catch (err: any) {
+    addNotification('Error', err.message || 'Failed to create ticket', 'error')
   }
-  formOpen.value = true
 }
-
-const selectDay = (date: string) => {
-  selectedDay.value = date
-  openNew()
-}
-
-const openEdit = (appt: any) => {
-  editingAppt.value = appt
-  form.value = { ...appt }
-  formOpen.value = true
-}
-
-const saveAppt = async () => {
-  if (!form.value.title && !form.value.description) return
-  const data = { ...form.value, type: activeMode.value }
-  if (editingAppt.value) {
-    await appStore.updateAppointment(editingAppt.value.id, data)
-  } else {
-    await appStore.createAppointment(data)
-  }
-  formOpen.value = false
-  editingAppt.value = null
-}
-
-const deleteAppt = async (appt: any) => {
-  if (!confirm(`Delete "${appt.title || appt.description}"?`)) return
-  await appStore.deleteAppointment(appt.id)
-}
-
-const advanceCall = async (appt: any) => {
-  const s = appt.status
-  const next = (s === 'scheduled' || s === 'Scheduled') ? 'In Progress' : 'completed'
-  await appStore.updateAppointment(appt.id, { status: next })
-}
-
-// ── Helpers ────────────────────────────────────────────────────
-const formatApptDate = (d: string) =>
-  d ? new Date(d + 'T00:00:00').toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : ''
-
-const statusStyle = (s: string) => ({
-  'scheduled':   'background:#3b82f620;color:#3b82f6',
-  'Scheduled':   'background:#3b82f620;color:#3b82f6',
-  'In Progress': 'background:#f59e0b20;color:#f59e0b',
-  'completed':   'background:#10b98120;color:#10b981',
-  'Completed':   'background:#10b98120;color:#10b981',
-  'cancelled':   'background:#ef444420;color:#ef4444',
-}[s] || 'background:hsl(var(--muted)/0.5);color:hsl(var(--muted-foreground))')
 </script>
 
 <style scoped>
-.m3-fab {
-  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease;
+/* ── Root ─────────────────────────────────────────────────────────── */
+.dash-root {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
-.m3-fab:hover  { transform: scale(1.05) translateY(-2px); }
-.m3-fab:active { transform: scale(0.92); }
 
-.m3-stat-card {
-  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease;
+/* ── Context Banner ───────────────────────────────────────────────── */
+.context-banner {
+  border-radius: 24px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  transition: all 0.4s ease;
+  border: 1.5px solid transparent;
 }
-.m3-stat-card:hover  { transform: scale(1.03) translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.1); }
-.m3-stat-card:active { transform: scale(0.96); }
+.banner-cold   { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-color: #93c5fd50; color: #1e40af; }
+.banner-mild   { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-color: #6ee7b750; color: #065f46; }
+.banner-warm   { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-color: #fcd34d50; color: #92400e; }
+.banner-neutral{ background: hsl(var(--muted)/0.4); border-color: hsl(var(--border)/0.4); }
 
-.m3-appt-row {
-  transition: transform 0.35s cubic-bezier(0.34,1.4,0.64,1);
+.context-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
 }
-.m3-appt-row:hover  { transform: scale(1.01) translateY(-1px); }
-.m3-appt-row:active { transform: scale(0.98); }
+.banner-weather-icon {
+  width: 48px; height: 48px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.5);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  backdrop-filter: blur(4px);
+}
+.banner-icon-svg { opacity: 0.9; }
+.banner-text { min-width: 0; }
+.banner-greeting {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+  margin-bottom: 2px;
+}
+.banner-message {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  opacity: 0.9;
+}
+.banner-message strong { font-weight: 900; }
+.banner-tap { cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 
-.m3-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
-.m3-input:focus { border-color: #06b6d4; box-shadow: 0 0 0 3px #06b6d418; }
+.banner-right { text-align: right; flex-shrink: 0; }
+.banner-temp  { font-size: 28px; font-weight: 900; line-height: 1; }
+.banner-feels { font-size: 11px; font-weight: 600; opacity: 0.6; }
 
-.m3-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
+/* ── Header ──────────────────────────────────────────────────────── */
+.dash-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.dash-header-icon {
+  width: 40px; height: 40px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  box-shadow: 0 4px 14px #6366f140;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.dash-greeting {
+  font-size: 12px;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 1px;
+}
+.dash-title {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+.dash-date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted)/0.4);
+  padding: 6px 12px;
+  border-radius: 99px;
+}
+
+/* ── Stats Zone ──────────────────────────────────────────────────── */
+.stats-zone {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 900px) { .stats-zone { grid-template-columns: 1fr; } }
+
+/* Hero Revenue Card */
+.hero-card {
+  position: relative;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+  padding: 24px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 160px;
+}
+.hero-card:hover  { transform: scale(1.02) translateY(-3px); box-shadow: 0 16px 40px #10b98140; }
+.hero-card:active { transform: scale(0.97); }
+.hero-bg-shape {
+  position: absolute;
+  top: -20px; right: -20px;
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  pointer-events: none;
+}
+.hero-content { display: flex; align-items: flex-start; gap: 14px; position: relative; z-index: 1; }
+.hero-icon-wrap {
+  width: 44px; height: 44px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  backdrop-filter: blur(4px);
+}
+.hero-label { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.8); margin-bottom: 4px; }
+.hero-value { font-size: 32px; font-weight: 900; color: white; line-height: 1; letter-spacing: -1px; }
+.hero-sub   { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 4px; font-weight: 600; }
+.hero-trend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  position: relative; z-index: 1;
+}
+
+/* Secondary Stats */
+.secondary-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.stat-pill {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 20px;
+  background: hsl(var(--card));
+  border: 1.5px solid hsl(var(--border)/0.6);
+  cursor: pointer;
+  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s, border-color 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.stat-pill::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--c);
+  opacity: 0.6;
+  border-radius: 99px 99px 0 0;
+}
+.stat-pill:hover  { transform: translateY(-3px) scale(1.02); border-color: color-mix(in srgb, var(--c) 30%, transparent); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+.stat-pill:active { transform: scale(0.97); }
+.stat-pill-icon {
+  width: 30px; height: 30px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--c) 15%, transparent);
+  color: var(--c);
+}
+.stat-pill-label  { font-size: 11px; font-weight: 600; color: hsl(var(--muted-foreground)); }
+.stat-pill-value  { font-size: 22px; font-weight: 900; color: hsl(var(--foreground)); line-height: 1.1; }
+.stat-pill-sub    { font-size: 11px; font-weight: 600; color: hsl(var(--muted-foreground)); }
+
+/* ── Quick Actions ───────────────────────────────────────────────── */
+.section-label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 12px;
+}
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+@media (max-width: 1200px) { .quick-actions-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 640px)  { .quick-actions-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.action-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 10px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--ac) 7%, hsl(var(--card)));
+  border: 1.5px solid color-mix(in srgb, var(--ac) 20%, transparent);
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s;
+}
+.action-tile:hover  { transform: scale(1.06) translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,0.1); }
+.action-tile:active { transform: scale(0.93); }
+.action-icon {
+  width: 48px; height: 48px;
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.action-tile:hover .action-icon { transform: scale(1.1) rotate(-4deg); }
+.action-label { font-size: 12px; font-weight: 800; color: hsl(var(--foreground)); line-height: 1; }
+.action-sub   { font-size: 10px; font-weight: 600; color: hsl(var(--muted-foreground)); line-height: 1; }
+
+/* ── Bottom Row ──────────────────────────────────────────────────── */
+.bottom-row {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 900px) { .bottom-row { grid-template-columns: 1fr; } }
+
+.summary-card,
+.tickets-card {
+  border-radius: 24px;
+  background: hsl(var(--card));
+  border: 1.5px solid hsl(var(--border)/0.6);
+  padding: 20px;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.card-header-icon {
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.card-title { font-size: 13px; font-weight: 800; flex: 1; }
+.view-all-btn {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 99px;
+  background: #6366f112;
+  color: #6366f1;
+  transition: all 0.2s;
+}
+.view-all-btn:hover { background: #6366f120; transform: scale(1.04); }
+
+/* Summary Grid */
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.summary-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--sc) 10%, hsl(var(--muted)/0.3));
+  border: 1px solid color-mix(in srgb, var(--sc) 20%, transparent);
+}
+.summary-chip-icon  { color: var(--sc); flex-shrink: 0; }
+.summary-chip-label { font-size: 10px; font-weight: 600; color: hsl(var(--muted-foreground)); }
+.summary-chip-value { font-size: 16px; font-weight: 900; color: hsl(var(--foreground)); line-height: 1; }
+
+/* Tickets List */
+.ticket-list { display: flex; flex-direction: column; gap: 4px; }
+.ticket-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.25s cubic-bezier(0.34,1.4,0.64,1);
+}
+.ticket-row:hover  { background: hsl(var(--muted)/0.3); transform: translateX(2px); }
+.ticket-row:active { transform: scale(0.98); }
+.ticket-dot    { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.ticket-info   { flex: 1; min-width: 0; }
+.ticket-title    { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ticket-customer { font-size: 11px; color: hsl(var(--muted-foreground)); }
+.ticket-meta { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.ticket-status-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+.ticket-price { font-size: 12px; font-weight: 800; }
+.tickets-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+  font-size: 12px;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  justify-content: center;
+}
+
+/* Slow spin for stormy weather icon */
+@keyframes spinSlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.animate-spin-slow { animation: spinSlow 4s linear infinite; }
 </style>
