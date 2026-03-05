@@ -1007,8 +1007,7 @@ function showExpenseMsg(ok: boolean, text: string) {
 async function handleAddExpense() {
   savingExpense.value = true
   try {
-    appStore.expenses.push({ ...expenseForm.value, id: Date.now() })
-    await appStore.saveAll()
+    await appStore.createExpense({ ...expenseForm.value })
     showExpenseMsg(true, 'Expense added')
     resetExpenseForm()
     showExpenseForm.value = false
@@ -1020,8 +1019,7 @@ async function handleAddExpense() {
 
 async function handleDeleteExpense(id: number) {
   try {
-    appStore.expenses = appStore.expenses.filter((e: any) => e.id !== id)
-    await appStore.saveAll()
+    await appStore.deleteExpense(id)
     showExpenseMsg(true, 'Expense deleted')
   } catch (e: any) {
     showExpenseMsg(false, e.message || 'Failed to delete')
@@ -1062,12 +1060,10 @@ const testSquareConnection = async () => {
 const saveSquareSettings = async () => {
   savingSquare.value = true
   try {
-    await appStore.saveSettings({
-      squareAccessToken: form.value.squareAccessToken,
-      squareLocationId:  form.value.squareLocationId,
-      squareSandbox:     form.value.squareSandbox,
-    })
+    await appStore.saveSquareConfig()
     await testSquareConnection()
+  } catch (e: any) {
+    console.error('[Settings] Square save failed:', e)
   } finally {
     savingSquare.value = false
   }

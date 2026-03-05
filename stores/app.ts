@@ -166,7 +166,7 @@ export const useAppStore = defineStore('app', () => {
     isLoading.value = true
 
     try {
-      const [t, c, i, h, vr, a, p, svc, bsRow] = await Promise.all([
+      const [t, c, i, h, vr, a, p, svc, bsRow, expRows, sqRow] = await Promise.all([
         ($supabase as any).from('tickets').select('*').eq('profile_id', uid).order('created_at', { ascending: false }),
         ($supabase as any).from('customers').select('*').eq('profile_id', uid).order('created_at', { ascending: false }),
         ($supabase as any).from('inventory').select('*').eq('profile_id', uid).order('name', { ascending: true }),
@@ -176,6 +176,8 @@ export const useAppStore = defineStore('app', () => {
         ($supabase as any).from('profiles').select('*').eq('id', uid).single(),
         ($supabase as any).from('services').select('*').eq('profile_id', uid).order('name', { ascending: true }),
         ($supabase as any).from('settings').select('*').limit(1).single(),
+        ($supabase as any).from('expenses').select('*').eq('profile_id', uid).order('date', { ascending: false }),
+        ($supabase as any).from('square_config').select('*').eq('profile_id', uid).single(),
       ])
 
       tickets.value = (t.data || []).map(normalizeTicket)
@@ -186,7 +188,7 @@ export const useAppStore = defineStore('app', () => {
       appointments.value = (a.data || []).map(normalizeAppointment)
       services.value = (svc.data || [])
 
-      // Business settings come from the `settings` table
+      // Business settings from the `settings` table
       const bs = bsRow?.data
       if (bs) {
         settings.value = {
@@ -199,18 +201,28 @@ export const useAppStore = defineStore('app', () => {
           taxRate: bs.tax_rate || 0,
           statuses: bs.statuses || 'Open, In Progress, Completed',
         }
-        settingsRowId.value = bs.id  // remember the row id for updates
+        settingsRowId.value = bs.id
       }
-      // PIN and Square creds come from the `profiles` table
+
+      // Expenses from the `expenses` table
+      expenses.value = expRows?.data || []
+
+      // Square config from the `square_config` table
+      if (sqRow?.data) {
+        settings.value = {
+          ...settings.value,
+          squareAccessToken: sqRow.data.access_token || '',
+          squareLocationId: sqRow.data.location_id || '',
+          squareSandbox: sqRow.data.sandbox ?? false,
+        }
+      }
+
+      // PIN from profiles (only thing we still read from profiles)
       if (p.data) {
         settings.value = {
           ...settings.value,
           pin: p.data.pin || '1234',
-          squareAccessToken: p.data.square_access_token || '',
-          squareLocationId: p.data.square_location_id || '',
-          squareSandbox: p.data.square_sandbox || false,
         }
-        expenses.value = p.data.expenses || []
       }
 
       isLoaded.value = true
@@ -559,21 +571,19 @@ export const useAppStore = defineStore('app', () => {
       statuses: settings.value.statuses,
     }
 
-    // Remove undefined values
     Object.keys(bizPayload).forEach(k => {
       if (bizPayload[k] === undefined) delete bizPayload[k]
     })
 
     console.log('[saveSettings] Business payload:', JSON.stringify(bizPayload, null, 2))
 
-    // If we have an existing row id, update it; otherwise insert
     const rowId = settingsRowId.value
     let bizError: any
     if (rowId) {
       const res = await ($supabase as any).from('settings').update(bizPayload).eq('id', rowId)
       bizError = res.error
     } else {
-      const res = await ($supabase as any).from('settings').insert(bizPayload).select().single()
+      const res = await ($supabase as any).from('settings').insert({ ...bizPayload, profile_id: user.value.id }).select().single()
       bizError = res.error
       if (!bizError && res.data) {
         settingsRowId.value = res.data.id
@@ -584,50 +594,52 @@ export const useAppStore = defineStore('app', () => {
       console.error('[saveSettings] Settings table error:', JSON.stringify(bizError))
       throw new Error(bizError.message || 'Failed to save business settings')
     }
-
-    // ── Save PIN and Square creds to `profiles` table ────────────────
-    const profilePayload: Record<string, any> = {
-      id: user.value.id,
-      pin: settings.value.pin,
-      square_access_token: settings.value.squareAccessToken,
-      square_location_id: settings.value.squareLocationId,
-      square_sandbox: settings.value.squareSandbox,
-    }
-
-    Object.keys(profilePayload).forEach(k => {
-      if (profilePayload[k] === undefined) delete profilePayload[k]
-    })
-
-    const { error: profError } = await ($supabase as any).from('profiles').upsert(profilePayload)
-    if (profError) {
-      console.error('[saveSettings] Profiles table error:', JSON.stringify(profError))
-      // Don't throw — business settings were already saved successfully
-      console.warn('[saveSettings] Business settings saved, but PIN/Square creds failed')
-    }
   }
 
   const saveAll = async () => {
-    // saveAll persists services alongside settings for pages that mutate
-    // local state directly before calling saveAll (calendar, pos, import)
+    // saveAll persists business settings — used by pages that mutate
+    // settings directly before saving (calendar, pos, import)
     if (!$supabase) throw new Error('Supabase not configured')
     if (!user.value) throw new Error('Not authenticated')
-    const { error } = await ($supabase as any).from('profiles').upsert({
-      id: user.value.id,
-      business_name: settings.value.businessName,
-      email: settings.value.email,
-      phone: settings.value.phone,
-      address: settings.value.address,
-      currency: settings.value.currency,
-      tax_rate: settings.value.taxRate,
-      statuses: settings.value.statuses,
-      pin: settings.value.pin,
-      square_access_token: settings.value.squareAccessToken,
-      square_location_id: settings.value.squareLocationId,
-      square_sandbox: settings.value.squareSandbox,
-      expenses: expenses.value,
-    })
+    await saveSettings({ ...settings.value })
+  }
+
+  // ── Expenses CRUD ──────────────────────────────────────────────────────────
+  const createExpense = async (item: any) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    if (!user.value) throw new Error('Not authenticated')
+    const { data, error } = await ($supabase as any).from('expenses').insert({
+      profile_id: user.value.id,
+      description: item.description || '',
+      amount: item.amount || 0,
+      category: item.category || 'Overhead',
+      date: item.date || new Date().toISOString().split('T')[0],
+    }).select().single()
+    if (error) throw error
+    expenses.value.unshift(data)
+    return data
+  }
+
+  const deleteExpense = async (id: any) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    const { error } = await ($supabase as any).from('expenses').delete().eq('id', id)
+    if (error) throw error
+    expenses.value = expenses.value.filter((e: any) => e.id !== id)
+  }
+
+  // ── Square Config ──────────────────────────────────────────────────────────
+  const saveSquareConfig = async () => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    if (!user.value) throw new Error('Not authenticated')
+    const payload = {
+      profile_id: user.value.id,
+      access_token: settings.value.squareAccessToken,
+      location_id: settings.value.squareLocationId,
+      sandbox: settings.value.squareSandbox,
+    }
+    const { error } = await ($supabase as any).from('square_config').upsert(payload, { onConflict: 'profile_id' })
     if (error) {
-      console.error('[saveAll Error]', error)
+      console.error('[saveSquareConfig] Error:', JSON.stringify(error))
       throw error
     }
   }
@@ -727,6 +739,9 @@ export const useAppStore = defineStore('app', () => {
     createService,
     updateService,
     deleteService,
+    createExpense,
+    deleteExpense,
+    saveSquareConfig,
     saveAll,
     trackDevice,
     logout
