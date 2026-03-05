@@ -52,10 +52,10 @@
 
           <!-- Live barcode preview -->
           <div v-if="barcodeValue" class="rounded-[24px] p-6 flex flex-col items-center gap-4" style="background: white; outline: 2px solid #06b6d420; outline-offset: 0">
-            <div v-if="barcodeFormat === 'QR'">
+            <div v-show="barcodeFormat === 'QR'">
               <canvas ref="qrCanvas" class="rounded-[12px]" />
             </div>
-            <svg v-else ref="barcodeSvg" class="max-w-full" />
+            <svg v-show="barcodeFormat !== 'QR'" ref="barcodeSvg" class="max-w-full" />
             <p class="text-xs font-bold text-gray-500">{{ barcodeLabel || barcodeValue }}</p>
             <p v-if="barcodeError" class="text-xs font-bold text-red-500">{{ barcodeError }}</p>
             <div class="flex gap-2">

@@ -451,13 +451,33 @@ const paymentMethods = [
 
 // ── Category tabs ──────────────────────────────────────────────────
 const categoryTabs = computed(() => {
-  const cats = [...new Set((inventory.value as any[]).map((i: any) => i.category).filter(Boolean))]
+  const cats = [...new Set(allPosItems.value.map((i: any) => i.category).filter(Boolean))]
   return [null, ...cats]
+})
+
+// ── Merge standalone services into POS catalog ────────────────────
+const allPosItems = computed(() => {
+  const inv = inventory.value as any[]
+  // Merge services from the separate services table that aren't already in inventory
+  const existingNames = new Set(inv.map((i: any) => (i.name || '').toLowerCase()))
+  const extraServices = (appStore.services as any[] || [])
+    .filter((s: any) => s.active !== false && !existingNames.has((s.name || '').toLowerCase()))
+    .map((s: any) => ({
+      id: `svc-${s.id}`,
+      name: s.name,
+      price: s.price || 0,
+      category: s.category || 'Services',
+      itemType: 'service',
+      stock: 9999,
+      sku: '',
+      description: s.description || '',
+    }))
+  return [...inv, ...extraServices]
 })
 
 // ── Filtered products ──────────────────────────────────────────────
 const filteredProducts = computed(() =>
-  (inventory.value as any[]).filter((item: any) => {
+  allPosItems.value.filter((item: any) => {
     const q = searchQuery.value.toLowerCase()
     const matches = !q || (item.name||'').toLowerCase().includes(q)
       || (item.sku||'').toLowerCase().includes(q)
@@ -725,13 +745,14 @@ async function executeTicketCreation(finalMethod: string) {
     paymentMethod: finalMethod,
   } as any)
 
-  // Deduct physical stock
+  // Deduct physical stock (skip non-numeric IDs like 'akko', 'custom-*', 'svc-*')
   const deductions = cart.value
-    .filter((item: any) => item.id && !item.isService && !item.isTicket)
+    .filter((item: any) => item.id && typeof item.id === 'number' && !item.isService && !item.isTicket)
     .map((item: any) => {
       const inv = (appStore.inventory as any[]).find((i: any) => i.id === item.id)
       if (!inv) return null
       return appStore.updateInventoryItem(item.id, { stock: Math.max(0, inv.stock - item.quantity) })
+        .catch((err: any) => console.warn(`[POS] Stock deduction failed for item ${item.id}:`, err))
     }).filter(Boolean)
   await Promise.all(deductions)
 

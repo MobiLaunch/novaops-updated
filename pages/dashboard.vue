@@ -274,7 +274,7 @@ const totalRevenue = computed(() =>
     .reduce((acc, t) => acc + (t.price || 0), 0)
 )
 const activeTickets    = computed(() => (tickets.value || []).filter(t => t.status !== 'Closed' && t.status !== 'Delivered'))
-const completedTickets = computed(() => (tickets.value || []).filter(t => t.status === 'Closed' || t.status === 'Delivered'))
+const completedTickets = computed(() => (tickets.value || []).filter(t => t.status === 'Completed' || t.status === 'Delivered'))
 const completedToday   = computed(() => {
   const today = new Date().toDateString()
   return (tickets.value || []).filter(t => {
@@ -282,7 +282,7 @@ const completedToday   = computed(() => {
     return (t.status === 'Completed' || t.status === 'Delivered') && ua === today
   }).length
 })
-const lowStockItems        = computed(() => (inventory.value || []).filter(item => item.stock <= (item.low || 5)).length)
+const lowStockItems        = computed(() => (inventory.value || []).filter(item => (item.itemType || 'product') !== 'service' && item.stock <= (item.low || 5)).length)
 const upcomingAppointments = computed(() => (appointments.value || []).filter(a => a.status === 'scheduled').length)
 const recentTickets        = computed(() => [...(tickets.value || [])].sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 8))
 
@@ -316,8 +316,15 @@ const quickActions = computed(() => [
 ])
 
 // ── Today Summary ──────────────────────────────────────────────────
+const todayRevenue = computed(() => {
+  const today = new Date().toDateString()
+  return (tickets.value || [])
+    .filter(t => t.price > 0 && (t.status === 'Completed' || t.status === 'Delivered')
+      && t.updatedAt && new Date(t.updatedAt).toDateString() === today)
+    .reduce((acc, t) => acc + (t.price || 0), 0)
+})
 const todaySummary = computed(() => [
-  { label: 'Revenue',   value: formatCurrency(totalRevenue.value),  color: '#3b82f6', icon: DollarSign },
+  { label: 'Revenue',   value: formatCurrency(todayRevenue.value),   color: '#3b82f6', icon: DollarSign },
   { label: 'Completed', value: String(completedToday.value),         color: '#10b981', icon: TicketCheck },
   { label: 'Active',    value: String(activeTickets.value.length),   color: '#f97316', icon: TicketCheck },
   { label: 'Scheduled', value: String(upcomingAppointments.value),   color: '#8b5cf6', icon: CalendarDays },

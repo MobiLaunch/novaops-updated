@@ -22,9 +22,9 @@ export const useScreenLock = () => {
 
   const lockScreen = () => {
     if (!process.client) return
-    
+
     const currentPath = useRoute().path
-    
+
     // Don't lock on login or lock screen
     if (currentPath === '/login' || currentPath === '/lock') return
 
@@ -60,8 +60,23 @@ export const useScreenLock = () => {
   const setupActivityListeners = () => {
     if (!process.client) return
 
+    // Sync lock state across tabs via storage events
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'screen_locked') {
+        if (e.newValue === 'true') {
+          const currentPath = useRoute().path
+          if (currentPath !== '/login' && currentPath !== '/lock') {
+            navigateTo('/lock')
+          }
+        } else if (e.newValue === 'false') {
+          // Another tab unlocked — refresh activity timer
+          resetLockTimer()
+        }
+      }
+    })
+
     const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click']
-    
+
     events.forEach(event => {
       document.addEventListener(event, resetLockTimer, true)
     })

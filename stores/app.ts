@@ -531,6 +531,11 @@ export const useAppStore = defineStore('app', () => {
 
     Object.assign(settings.value, newSettings)
 
+    // Persist PIN to localStorage for cross-tab lock screen access
+    if (typeof localStorage !== 'undefined' && settings.value.pin) {
+      localStorage.setItem('novaops_pin', settings.value.pin)
+    }
+
     const payload = {
       id: user.value.id,
       business_name: settings.value.businessName,

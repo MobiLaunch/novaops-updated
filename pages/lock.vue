@@ -108,10 +108,16 @@ const error = ref('')
 const savedPin = ref('1234')
 
 onMounted(async () => {
+  // Read PIN from localStorage as cross-tab fallback
+  const storedPin = localStorage.getItem('novaops_pin')
+  if (storedPin) savedPin.value = storedPin
   try {
     const mod = await import('~/stores/app')
     const store = mod.useAppStore()
-    if (store?.settings?.pin) savedPin.value = store.settings.pin
+    if (store?.settings?.pin) {
+      savedPin.value = store.settings.pin
+      localStorage.setItem('novaops_pin', store.settings.pin)
+    }
   } catch { }
 })
 
