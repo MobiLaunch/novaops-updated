@@ -68,9 +68,10 @@
               <p class="text-xs text-muted-foreground font-medium">Screen locks after 3 minutes of inactivity</p>
             </div>
             <div class="pt-4 border-t border-border/60 flex items-center gap-4">
-              <button @click="saveSettings" class="m3-btn-primary flex items-center gap-2.5 h-12 px-7 rounded-full text-sm font-black text-white">
-                <Save class="w-4 h-4" />
-                Save Business Settings
+              <button @click="saveSettings" :disabled="saving" class="m3-btn-primary flex items-center gap-2.5 h-12 px-7 rounded-full text-sm font-black text-white disabled:opacity-50">
+                <div v-if="saving" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <Save v-else class="w-4 h-4" />
+                {{ saving ? 'Saving…' : 'Save Business Settings' }}
               </button>
               <Transition name="save-msg">
                 <div v-if="saveMsg" class="flex items-center gap-2 text-sm font-bold" :style="saveMsg.ok ? 'color:#10b981' : 'color:#ef4444'">
@@ -893,13 +894,16 @@ const form = ref({
   pin: '', squareAccessToken: '', squareLocationId: '', squareSandbox: false,
 })
 
-watch(settings, (s) => { if (s) form.value = { ...form.value, ...s } }, { immediate: true, deep: false })
+watch(settings, (s) => { if (s) form.value = { ...form.value, ...s } }, { immediate: true, deep: true })
 
 // ── Business save ─────────────────────────────────────────────────────
 const saveMsg = ref<{ ok: boolean; text: string } | null>(null)
+const saving = ref(false)
 let saveMsgTimer: ReturnType<typeof setTimeout> | null = null
 
 const saveSettings = async () => {
+  if (saving.value) return
+  saving.value = true
   try {
     await appStore.saveSettings({ ...form.value })
     saveMsg.value = { ok: true, text: 'Saved!' }
@@ -907,6 +911,8 @@ const saveSettings = async () => {
     const msg = err?.message || err?.data?.message || JSON.stringify(err) || 'Save failed'
     console.error('[Settings] Save failed:', err)
     saveMsg.value = { ok: false, text: msg }
+  } finally {
+    saving.value = false
   }
   if (saveMsgTimer) clearTimeout(saveMsgTimer)
   saveMsgTimer = setTimeout(() => { saveMsg.value = null }, 3000)

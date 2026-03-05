@@ -536,7 +536,7 @@ export const useAppStore = defineStore('app', () => {
       localStorage.setItem('novaops_pin', settings.value.pin)
     }
 
-    const payload = {
+    const payload: Record<string, any> = {
       id: user.value.id,
       business_name: settings.value.businessName,
       email: settings.value.email,
@@ -550,6 +550,11 @@ export const useAppStore = defineStore('app', () => {
       square_location_id: settings.value.squareLocationId,
       square_sandbox: settings.value.squareSandbox,
     }
+
+    // Remove undefined/null values to avoid Supabase column-not-found errors
+    Object.keys(payload).forEach(k => {
+      if (payload[k] === undefined) delete payload[k]
+    })
 
     console.log('[saveSettings] Payload:', JSON.stringify(payload, null, 2))
 
