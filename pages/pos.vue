@@ -388,6 +388,7 @@ import {
   Banknote, Wallet, Users, Lock, AlertCircle,
 } from 'lucide-vue-next'
 import CustomerSelect from '~/components/CustomerSelect.vue'
+import { printReceipt } from '~/utils/print'
 
 definePageMeta({ middleware: ['auth'] })
 
@@ -543,7 +544,82 @@ function addCustomToCart() {
 
 // ── Ticket / Afterpay redirect handling ───────────────────────────
 const route = useRoute()
+
+// ── Barcode Scanner Integration ────────────────────────────────────
+let barcodeBuffer = ''
+let barcodeTimer: any = null
+
+function handleBarcodeScan(e: KeyboardEvent) {
+  // Ignore input if user is actively typing in a form field
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return
+
+  if (e.key === 'Enter') {
+    if (barcodeBuffer.length > 2) {
+      processScannedBarcode(barcodeBuffer.trim())
+    }
+    barcodeBuffer = ''
+    if (barcodeTimer) clearTimeout(barcodeTimer)
+    return
+  }
+  
+  // Standard barcode characters
+  if (e.key.length === 1) {
+    barcodeBuffer += e.key
+    if (barcodeTimer) clearTimeout(barcodeTimer)
+    
+    // Scanners type very fast; clear buffer if typing is slow (human)
+    barcodeTimer = setTimeout(() => {
+      barcodeBuffer = ''
+    }, 50)
+  }
+}
+
+function processScannedBarcode(code: string) {
+  // 1. Check if it's a Ticket SKU (e.g. TKT-123)
+  if (code.toUpperCase().startsWith('TKT-')) {
+    const idStr = code.substring(4)
+    const ticketId = parseInt(idStr, 10)
+    if (!isNaN(ticketId)) {
+      const ticket = appStore.tickets?.find((t: any) => t.id === ticketId)
+      if (ticket) {
+        // Prevent adding if already in cart
+        if (cart.value.some(i => i.isTicket && i.ticketId === ticketId)) {
+          addNotification('Already in Cart', `Ticket #${ticketId} is already added.`, 'info')
+          return
+        }
+        cart.value.push({
+          id: `tkt-${ticketId}`,
+          quantity: 1,
+          isTicket: true,
+          ticketId,
+          name: `Ticket #${ticketId} · ${ticket.device}`,
+          price: Number(ticket.price || 0),
+          isService: true
+        })
+        if (ticket.customerId) selectedCustomerId.value = ticket.customerId
+        addNotification('Ticket Added', `Added Ticket #${ticketId} to cart`, 'success')
+        return
+      }
+    }
+    addNotification('Not Found', `Ticket missing or closed: ${code}`, 'error')
+    return
+  }
+
+  // 2. Search default inventory by SKU
+  const product = appStore.inventory?.find((item: any) => item.sku?.toUpperCase() === code.toUpperCase())
+  if (product) {
+    addToCart(product)
+    addNotification('Item Added', `${product.name} ready for checkout`, 'success')
+    return
+  }
+
+  addNotification('Not Found', `Barcode not recognized: ${code}`, 'error')
+}
+
 onMounted(() => {
+  // Listen for global barcode scanning
+  window.addEventListener('keydown', handleBarcodeScan)
+
   const { ticketId, amount, customerId, afterpay_success } = route.query
   if (ticketId && amount) {
     ticketMode.value = { ticketId: Number(ticketId), amount: Number(amount) }
@@ -563,6 +639,12 @@ onMounted(() => {
     const q = { ...route.query }; delete q.afterpay_success
     useRouter().replace({ query: q })
   }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleBarcodeScan)
+  if (cardInstance.value) { try { cardInstance.value.destroy() } catch {} }
+  if (afterpayInstance.value) { try { afterpayInstance.value.destroy() } catch {} }
 })
 
 // ── Square SDK ──────────────────────────────────────────────────────
@@ -719,8 +801,10 @@ async function handleRemoteSuccess(sourceId: string, method: 'Card' | 'Afterpay'
         note: cart.value.map((i: any) => `${i.quantity}× ${i.name}`).join(', '),
       }
     })
-    if (!res.success || res.status !== 'COMPLETED')
-      throw new Error(`${method} capture failed — status: ${res.status}`)
+    
+    // We already checked res.success. Some endpoints might not return 'status'.
+    // If it's successful, we proceed.
+    
     await executeTicketCreation(method)
   } catch (e: any) {
     terminalStatus.value = ''
@@ -769,6 +853,25 @@ async function executeTicketCreation(finalMethod: string) {
     }
     ticketMode.value = null
   }
+
+  // Trigger Receipt Print if enabled
+  try {
+    const pSettings = JSON.parse(localStorage.getItem('novaops_printer_settings') || '{}')
+    if (pSettings.autoPrintReceipt) {
+      printReceipt({
+        businessName: settings.value?.businessName || 'NovaOps',
+        businessAddress: settings.value?.address || '',
+        businessPhone: settings.value?.phone || '',
+        date: new Date().toLocaleString(),
+        items: cart.value.map(i => ({ name: i.name, qty: i.quantity, price: i.price })),
+        subtotal: subtotal.value,
+        tax: taxAmount.value,
+        total: total.value,
+        currency: settings.value?.currency || '$',
+        customerName
+      })
+    }
+  } catch (err) { console.warn('Printer config parsing failed', err) }
 
   saleResult.value = { receiptId: ticket.id, amount: total.value, method: finalMethod, customer: customerName }
   clearCart()

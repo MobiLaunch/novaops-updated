@@ -330,7 +330,31 @@ export const useAppStore = defineStore('app', () => {
       console.error('[Ticket Creation Error]:', error)
       throw error
     }
-    tickets.value.unshift(normalizeTicket(data))
+
+    const normalizedTicket = normalizeTicket(data)
+    tickets.value.unshift(normalizedTicket)
+
+    // Auto-generate SKU and trigger Auto-Print Label if enabled
+    try {
+      const printerConfig = JSON.parse(localStorage.getItem('novaops_printer_settings') || '{}')
+      if (printerConfig.autoPrintBarcode) {
+        // Find customer name for the label
+        const customer = customers.value.find(c => c.id === ticketData.customerId)
+        const customerName = customer ? customer.name : 'Walk-in'
+
+        const sku = `TKT-${data.id}`
+        printBarcodeLabel({
+          sku,
+          name: `${ticketData.device} ${ticketData.deviceModel || ''}`.trim(),
+          customerName,
+          price: ticketData.price || 0,
+          currency: settings.value?.currency || '$'
+        }).catch((e: any) => console.warn('Failed to auto-print label:', e))
+      }
+    } catch (e: any) {
+      console.warn('Could not read printer settings for auto-print', e)
+    }
+
     return data
   }
 

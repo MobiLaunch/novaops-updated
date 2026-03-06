@@ -560,123 +560,59 @@
           </div>
         </div>
 
-        <!-- Printer Setup (Electron only) -->
-        <div v-if="isElectron" class="m3-bento-card">
-          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #f59e0b08">
-            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #f59e0b, #d97706)">
+        <!-- Web Printing Preferences -->
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #06b6d408">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #06b6d4, #0891b2)">
               <Printer class="w-5 h-5 text-white" />
             </div>
             <div class="flex-1">
-              <p class="text-sm font-black">Printer Setup</p>
-              <p class="text-xs text-muted-foreground font-medium">Receipt and barcode label printers</p>
+              <p class="text-sm font-black">Printing & Barcodes</p>
+              <p class="text-xs text-muted-foreground font-medium">Receipt and barcode label settings</p>
             </div>
-            <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-105"
-              style="background: #f59e0b18; color: #f59e0b"
-              :disabled="loadingPrinters" @click="refreshPrinters">
-              <RefreshCw class="w-3 h-3" :class="{ 'animate-spin': loadingPrinters }" />
-              {{ loadingPrinters ? 'Scanning…' : 'Refresh' }}
-            </button>
           </div>
-          <div class="p-6 space-y-5">
-            <div v-if="!loadingPrinters && printers.length === 0" class="flex items-center gap-3 rounded-[20px] px-4 py-3" style="background: hsl(var(--muted)/0.4)">
-              <XCircle class="w-4 h-4 text-muted-foreground flex-shrink-0" />
-              <p class="text-sm text-muted-foreground font-medium">No printers detected. Make sure your printers are connected and powered on.</p>
-            </div>
-            <div v-if="printers.length > 0" class="space-y-1.5 max-h-40 overflow-y-auto">
-              <div v-for="p in printers" :key="p.name"
-                class="flex items-center gap-3 px-3 py-2.5 rounded-[16px]"
-                :style="(printerSettings.receiptPrinter === p.name || printerSettings.barcodePrinter === p.name)
-                  ? 'background: #f59e0b10; outline: 1.5px solid #f59e0b28; outline-offset:0'
-                  : 'background: hsl(var(--muted)/0.3)'">
-                <div class="w-7 h-7 rounded-[14px] flex items-center justify-center flex-shrink-0"
-                  :style="p.status === 0 ? 'background: #10b98118' : 'background: #ef444414'">
-                  <Printer class="w-3.5 h-3.5" :style="p.status === 0 ? 'color:#10b981' : 'color:#ef4444'" />
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs font-bold truncate">{{ p.displayName }}</p>
-                  <p class="text-[10px] text-muted-foreground font-medium">
-                    {{ p.status === 0 ? '● Ready' : '○ Offline' }}{{ p.isDefault ? ' · Default' : '' }}
-                  </p>
-                </div>
-                <div class="flex items-center gap-1 flex-shrink-0">
-                  <span v-if="printerSettings.receiptPrinter === p.name" class="text-[10px] font-black px-2 py-0.5 rounded-full" style="background: #10b98118; color: #10b981">Receipt</span>
-                  <span v-if="printerSettings.barcodePrinter === p.name" class="text-[10px] font-black px-2 py-0.5 rounded-full" style="background: #06b6d418; color: #06b6d4">Barcode</span>
-                </div>
-              </div>
-            </div>
-            <!-- Receipt Printer -->
-            <div class="space-y-3">
-              <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-[14px] flex items-center justify-center" style="background: #10b98118">
-                  <Receipt class="w-3.5 h-3.5" style="color: #10b981" />
-                </div>
-                <label class="m3-label">Receipt Printer</label>
-              </div>
-              <select v-model="printerSettings.receiptPrinter" class="m3-input">
-                <option value="">— None selected —</option>
-                <option v-for="p in printers" :key="p.name" :value="p.name">{{ p.displayName }}{{ p.isDefault ? ' (Default)' : '' }}</option>
-              </select>
+          <div class="p-6 space-y-4">
+            <!-- Receipt Printing -->
+            <div class="flex items-center justify-between p-4 rounded-[16px]" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.5)">
               <div class="flex items-center gap-3">
-                <div class="space-y-1 flex-1">
-                  <label class="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Paper Size</label>
-                  <select v-model="printerSettings.receiptPaperSize" class="m3-input" style="height: 40px; font-size: 13px">
-                    <option value="A4">A4</option><option value="Letter">Letter</option>
-                    <option value="80mm">80mm Thermal Roll</option><option value="58mm">58mm Thermal Roll</option>
-                  </select>
+                <div class="w-8 h-8 rounded-[12px] flex items-center justify-center" style="background: #10b98118">
+                  <Receipt class="w-4 h-4" style="color: #10b981" />
                 </div>
-                <div class="space-y-1">
-                  <label class="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Copies</label>
-                  <input v-model.number="printerSettings.receiptCopies" type="number" min="1" max="5" class="m3-input" style="width:80px;height:40px;font-size:13px" />
+                <div>
+                  <p class="text-sm font-bold">Auto-Print Receipts</p>
+                  <p class="text-xs text-muted-foreground font-medium mt-0.5">Prompt to print receipt after POS checkout</p>
                 </div>
-                <button class="self-end h-10 px-4 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 disabled:opacity-40"
-                  style="background: #10b98118; color: #10b981"
-                  :disabled="!printerSettings.receiptPrinter || testingReceipt" @click="testReceiptPrint">
-                  <div v-if="testingReceipt" class="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  <Printer v-else class="w-3.5 h-3.5" />
-                  Test Print
-                </button>
               </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" v-model="printerSettings.autoPrintReceipt" class="sr-only peer" @change="savePrinterSettings" />
+                <div class="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+              </label>
             </div>
-            <!-- Barcode Printer -->
-            <div class="space-y-3 pt-4 border-t border-border/40">
-              <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-[14px] flex items-center justify-center" style="background: #06b6d418">
-                  <ScanLine class="w-3.5 h-3.5" style="color: #06b6d4" />
-                </div>
-                <label class="m3-label">Barcode / Label Printer</label>
-              </div>
-              <select v-model="printerSettings.barcodePrinter" class="m3-input">
-                <option value="">— None selected —</option>
-                <option v-for="p in printers" :key="p.name" :value="p.name">{{ p.displayName }}{{ p.isDefault ? ' (Default)' : '' }}</option>
-              </select>
+            <button class="m3-btn-tonal h-10 px-5 rounded-full text-xs font-bold w-full max-w-[200px]" @click="testReceiptPrint">Test Receipt Print</button>
+
+            <!-- Barcode Printing -->
+            <div class="flex items-center justify-between p-4 rounded-[16px] mt-4" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.5)">
               <div class="flex items-center gap-3">
-                <div class="space-y-1 flex-1">
-                  <label class="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Label Size</label>
-                  <select v-model="printerSettings.labelSize" class="m3-input" style="height:40px;font-size:13px">
-                    <option value="4x2">4" × 2" (Standard)</option><option value="4x3">4" × 3"</option>
-                    <option value="4x6">4" × 6" (Shipping)</option><option value="2x1">2" × 1" (Small)</option>
-                    <option value="letter">Letter (Sheet of labels)</option>
-                  </select>
+                <div class="w-8 h-8 rounded-[12px] flex items-center justify-center" style="background: #06b6d418">
+                  <ScanLine class="w-4 h-4" style="color: #06b6d4" />
                 </div>
-                <button class="self-end h-10 px-4 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 disabled:opacity-40"
-                  style="background: #06b6d418; color: #06b6d4"
-                  :disabled="!printerSettings.barcodePrinter || testingBarcode" @click="testBarcodePrint">
-                  <div v-if="testingBarcode" class="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  <ScanLine v-else class="w-3.5 h-3.5" />
-                  Test Label
-                </button>
+                <div>
+                  <p class="text-sm font-bold">Auto-Print Barcode Labels</p>
+                  <p class="text-xs text-muted-foreground font-medium mt-0.5">Prompt to print barcode label when a ticket is created</p>
+                </div>
               </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" v-model="printerSettings.autoPrintBarcode" class="sr-only peer" @change="savePrinterSettings" />
+                <div class="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+              </label>
             </div>
-            <div v-if="printerMsg" class="flex items-center gap-2 rounded-[16px] px-4 py-2.5 text-xs font-bold"
+            <button class="m3-btn-tonal h-10 px-5 rounded-full text-xs font-bold w-full max-w-[200px]" @click="testBarcodePrint">Test Label Print</button>
+            
+            <div v-if="printerMsg" class="flex items-center gap-2 rounded-[16px] px-4 py-2.5 text-xs font-bold mt-4"
               :style="printerMsg.type === 'success' ? 'background:#10b98114;color:#10b981' : 'background:#ef444414;color:#ef4444'">
               <CheckCircle v-if="printerMsg.type === 'success'" class="w-3.5 h-3.5" />
               <AlertCircle v-else class="w-3.5 h-3.5" />
               {{ printerMsg.text }}
-            </div>
-            <div class="pt-2 border-t border-border/40">
-              <button @click="savePrinterSettings" class="m3-btn-tonal flex items-center gap-2 h-11 px-6 rounded-full text-sm font-bold">
-                <Save class="w-4 h-4" /> Save Printer Settings
-              </button>
             </div>
           </div>
         </div>
@@ -1104,24 +1040,19 @@ function showConfirm(title: string, message: string, confirmLabel: string, onCon
   confirmDialog.value = { open: true, title, message, confirmLabel, onConfirm }
 }
 
-// ── Electron / Printer ────────────────────────────────────────────────
-const isElectron = computed(() => typeof window !== 'undefined' && !!(window as any).posShell)
-const printers = ref<any[]>([])
-const loadingPrinters = ref(false)
-const testingReceipt  = ref(false)
-const testingBarcode  = ref(false)
+// ── Printer Settings (Web) ────────────────────────────────────────────────
+import { printReceipt, printBarcodeLabel } from '~/utils/print'
+
 const printerMsg      = ref<{ type: 'success' | 'error'; text: string } | null>(null)
 const PRINTER_KEY     = 'novaops_printer_settings'
-const printerSettings = ref({ receiptPrinter: '', receiptPaperSize: 'A4', receiptCopies: 1, barcodePrinter: '', labelSize: '4x2' })
+const printerSettings = ref({ autoPrintReceipt: true, autoPrintBarcode: true })
 
-const LABEL_SIZES:  Record<string, any> = { '4x2': { width: 101600, height: 50800 }, '4x3': { width: 101600, height: 76200 }, '4x6': { width: 101600, height: 152400 }, '2x1': { width: 50800, height: 25400 }, letter: 'Letter' }
-const PAPER_SIZES:  Record<string, any> = { A4: 'A4', Letter: 'Letter', '80mm': { width: 80000, height: 297000 }, '58mm': { width: 58000, height: 297000 } }
-
-async function refreshPrinters() {
-  loadingPrinters.value = true
-  try { printers.value = await (window as any).posShell.getPrinters() } catch {}
-  loadingPrinters.value = false
-}
+onMounted(() => {
+  try {
+    const saved = localStorage.getItem(PRINTER_KEY)
+    if (saved) printerSettings.value = { ...printerSettings.value, ...JSON.parse(saved) }
+  } catch (e) {}
+})
 
 function savePrinterSettings() {
   localStorage.setItem(PRINTER_KEY, JSON.stringify(printerSettings.value))
@@ -1133,43 +1064,31 @@ function showPrinterMsg(type: 'success' | 'error', text: string) {
   setTimeout(() => { printerMsg.value = null }, 3500)
 }
 
-async function testReceiptPrint() {
-  if (!printerSettings.value.receiptPrinter) return
-  testingReceipt.value = true
-  try {
-    const html = `<!DOCTYPE html><html><body style="font-family:monospace;padding:16px;font-size:12px">
-      <h2 style="text-align:center">${form.value.businessName || 'NovaOps'}</h2>
-      <p style="text-align:center;color:#666">TEST RECEIPT</p>
-      <hr/><div style="display:flex;justify-content:space-between"><span>Test Item</span><span>$10.00</span></div>
-      <hr/><div style="display:flex;justify-content:space-between;font-weight:900"><span>TOTAL</span><span>$10.00</span></div>
-      <p style="text-align:center;font-size:10px;margin-top:12px">${new Date().toLocaleString()}</p>
-    </body></html>`
-    const result = await (window as any).posShell.printReceipt(html, printerSettings.value.receiptPrinter, {
-      copies: printerSettings.value.receiptCopies,
-      pageSize: PAPER_SIZES[printerSettings.value.receiptPaperSize] || 'A4',
-      silent: true,
-    })
-    result.success ? showPrinterMsg('success', 'Test receipt sent') : showPrinterMsg('error', `Print failed: ${result.failureReason || 'unknown'}`)
-  } catch (e: any) { showPrinterMsg('error', e.message || 'Print error') }
-  testingReceipt.value = false
+function testReceiptPrint() {
+  printReceipt({
+    businessName: form.value.businessName || 'NovaOps Demo',
+    businessAddress: form.value.address || '123 Tech Lane',
+    businessPhone: form.value.phone || '555-0123',
+    date: new Date().toLocaleString(),
+    items: [
+      { name: 'Hardware Diagnostic', qty: 1, price: 49.00 },
+      { name: 'Screen Replacement', qty: 1, price: 120.00 }
+    ],
+    subtotal: 169.00,
+    tax: 16.90,
+    total: 185.90,
+    currency: form.value.currency || '$'
+  })
 }
 
-async function testBarcodePrint() {
-  if (!printerSettings.value.barcodePrinter) return
-  testingBarcode.value = true
-  try {
-    const html = `<!DOCTYPE html><html><body style="display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
-      <div style="text-align:center;padding:8px;border:1px solid #ddd;border-radius:6px">
-        <p style="font-family:monospace;font-size:11px;margin:4px 0">TEST-LABEL-001</p>
-        <p style="font-size:9px;color:#666">NovaOps Label Test</p>
-      </div></body></html>`
-    const result = await (window as any).posShell.printBarcodeLabel(html, printerSettings.value.barcodePrinter, {
-      pageSize: LABEL_SIZES[printerSettings.value.labelSize] || { width: 101600, height: 50800 },
-      silent: true,
-    })
-    result.success ? showPrinterMsg('success', 'Test label sent') : showPrinterMsg('error', `Print failed: ${result.failureReason || 'unknown'}`)
-  } catch (e: any) { showPrinterMsg('error', e.message || 'Print error') }
-  testingBarcode.value = false
+function testBarcodePrint() {
+  printBarcodeLabel({
+    sku: 'TKT-99999',
+    name: 'TEST LABEL',
+    customerName: 'John Doe',
+    price: 0.00,
+    currency: form.value.currency || '$'
+  })
 }
 
 // ── Actions ───────────────────────────────────────────────────────────
@@ -1293,12 +1212,6 @@ const runDiagnostics = async () => {
 
 // Lifecycle hooks
 onMounted(() => {
-  // Load printer settings
-  try {
-    const saved = localStorage.getItem(PRINTER_KEY)
-    if (saved) printerSettings.value = { ...printerSettings.value, ...JSON.parse(saved) }
-  } catch {}
-  if (isElectron.value) refreshPrinters()
   // Check Square status on load if credentials exist
   if (form.value.squareAccessToken && form.value.squareLocationId) {
     testSquareConnection()
