@@ -265,30 +265,37 @@ export async function printBarcodeLabel(data: BarcodeLabelData) {
     const custStr = data.customerName || '';
 
     // Choose Code128 vs QR code based on passed format
-    const barcodeZpl = data.format === 'QR'
-      ? `^FO30,70^BQN,2,4^FDQA,${data.sku}^FS\r\n`
-      : `^FO30,70^BCN,50,Y,N,N^FD${data.sku}^FS\r\n`;
+    // Intermec Direct Protocol (DP)
+    // SETUP: align bottom left, print speed, clear buffer
+    // ALIGN 5 = bottom left origin. FORMAT = setup grid.
+    const priceStrPrint = priceStr ? `PRPOS 280,150\r\nDIR 1\r\nALIGN 4\r\nFONT "Swiss 721 BT"\r\nPRTXT "${priceStr}"\r\n` : '';
+    const custStrPrint = custStr ? `PRPOS 30,150\r\nDIR 1\r\nALIGN 4\r\nFONT "Swiss 721 BT"\r\nPRTXT "${custStr}"\r\n` : '';
 
-    // ^XA = Start, ^MMT = Tear off mode, ^MNY = Media tracking (Web/Gap)
-    // ^PW400 = Print width 400 dots (~2 inches at 203 dpi)
-    // ^LL200 = Label length 200 dots (~1 inch at 203 dpi)
-    // ^LS0 = Label shift 0
-    const zpl = `^XA\r\n` +
-      `^MMT\r\n` +
-      `^MNY\r\n` +
-      `^PW400\r\n` +
-      `^LL200\r\n` +
-      `^LS0\r\n` +
-      `^FO30,30^A0N,25,25^FD${data.name}^FS\r\n` +
-      barcodeZpl +
-      `^FO30,150^A0N,20,20^FD${custStr}^FS\r\n` +
-      `^FO280,150^A0N,20,20^FD${priceStr}^FS\r\n` +
-      `^PQ1,0,1,Y\r\n` +
-      `^XZ\r\n`;
+    // DP Barcode syntax:
+    // BARMAG = magnification
+    // BARTYPE = "CODE128" or "QRCODE"
+    // PRBAR = print barcode data
+    const barcodeDp = data.format === 'QR'
+      ? `PRPOS 30,70\r\nDIR 1\r\nBARTYPE "QRCODE"\r\nBARMAG 3\r\nPRBAR "${data.sku}"\r\n`
+      : `PRPOS 30,70\r\nDIR 1\r\nBARTYPE "CODE128"\r\nBARMAG 2\r\nBARHEIGHT 50\r\nPRBAR "${data.sku}"\r\n`;
 
-    console.log("Sending ZPL payload to USB printer:", zpl);
+    const dp =
+      `CLL\r\n` +                     // Clear image buffer
+      `OPTIMIZE "BATCH" ON\r\n` +     // Batch optimization
+      `ALIGN 5\r\n` +                 // Set origin
+      `PRPOS 30,30\r\n` +             // Position (X,Y)
+      `DIR 1\r\n` +                   // Orientation
+      `ALIGN 4\r\n` +                 // Left align text
+      `FONT "Swiss 721 BT"\r\n` +     // Standard readable font
+      `PRTXT "${data.name}"\r\n` +    // Print name
+      barcodeDp +                     // Print Barcode
+      custStrPrint +                  // Print Customer
+      priceStrPrint +                 // Print Price
+      `PRINTFEED\r\n`;                // Print and feed one label
+
+    console.log("Sending DP payload to USB printer:", dp);
     const encoder = new TextEncoder();
-    const payload = encoder.encode(zpl);
+    const payload = encoder.encode(dp);
     const success = await sendWebUSB(savedPrinter, payload);
     if (success) {
       console.log("WebUSB label transfer succeeded.");
@@ -393,33 +400,37 @@ export async function printBarcodeBatch(items: BarcodeLabelData[]) {
 
   const savedPrinter = localStorage.getItem('novaops_label_printer');
   if (savedPrinter) {
-    let fullZpl = '';
-    // Concatenate standard Code 128 labels into one payload bundle to shoot all at once
+    let fullDp = '';
+
     items.forEach(data => {
       const priceStr = data.price !== undefined ? `${data.currency || '$'}${(data.price || 0).toFixed(2)}` : '';
       const custStr = data.customerName || '';
 
-      const barcodeZpl = data.format === 'QR'
-        ? `^FO30,70^BQN,2,4^FDQA,${data.sku}^FS\r\n`
-        : `^FO30,70^BCN,50,Y,N,N^FD${data.sku}^FS\r\n`;
+      const priceStrPrint = priceStr ? `PRPOS 280,150\r\nDIR 1\r\nALIGN 4\r\nFONT "Swiss 721 BT"\r\nPRTXT "${priceStr}"\r\n` : '';
+      const custStrPrint = custStr ? `PRPOS 30,150\r\nDIR 1\r\nALIGN 4\r\nFONT "Swiss 721 BT"\r\nPRTXT "${custStr}"\r\n` : '';
 
-      fullZpl += `^XA\r\n` +
-        `^MMT\r\n` +
-        `^MNY\r\n` +
-        `^PW400\r\n` +
-        `^LL200\r\n` +
-        `^LS0\r\n` +
-        `^FO30,30^A0N,25,25^FD${data.name}^FS\r\n` +
-        barcodeZpl +
-        `^FO30,150^A0N,20,20^FD${custStr}^FS\r\n` +
-        `^FO280,150^A0N,20,20^FD${priceStr}^FS\r\n` +
-        `^PQ1,0,1,Y\r\n` +
-        `^XZ\r\n`;
+      const barcodeDp = data.format === 'QR'
+        ? `PRPOS 30,70\r\nDIR 1\r\nBARTYPE "QRCODE"\r\nBARMAG 3\r\nPRBAR "${data.sku}"\r\n`
+        : `PRPOS 30,70\r\nDIR 1\r\nBARTYPE "CODE128"\r\nBARMAG 2\r\nBARHEIGHT 50\r\nPRBAR "${data.sku}"\r\n`;
+
+      fullDp +=
+        `CLL\r\n` +
+        `OPTIMIZE "BATCH" ON\r\n` +
+        `ALIGN 5\r\n` +
+        `PRPOS 30,30\r\n` +
+        `DIR 1\r\n` +
+        `ALIGN 4\r\n` +
+        `FONT "Swiss 721 BT"\r\n` +
+        `PRTXT "${data.name}"\r\n` +
+        barcodeDp +
+        custStrPrint +
+        priceStrPrint +
+        `PRINTFEED\r\n`;
     });
 
-    console.log(`Sending Batch ZPL payload to USB printer (${items.length} labels)`);
+    console.log(`Sending Batch DP payload to USB printer (${items.length} labels)`);
     const encoder = new TextEncoder();
-    const payload = encoder.encode(fullZpl);
+    const payload = encoder.encode(fullDp);
     const success = await sendWebUSB(savedPrinter, payload);
 
     // Fall back to HTML if USB fails/denied
