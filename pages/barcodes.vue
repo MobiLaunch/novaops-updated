@@ -287,13 +287,17 @@ function getSvgDataUrl(): string | null {
 function printBarcode() {
   const dataUrl = getSvgDataUrl()
   const label   = barcodeLabel.value || barcodeValue.value
-  const tag     = barcodeFormat.value === 'QR' ? `<img src="${dataUrl}" style="width:180px;height:180px" />` : `<img src="${dataUrl}" style="max-width:320px" />`
+  const tag     = barcodeFormat.value === 'QR' ? `<img src="${dataUrl}" style="height:auto; max-width:100%; max-height: 0.6in;" />` : `<img src="${dataUrl}" style="max-width:100%; max-height: 0.5in;" />`
   const html = `<!DOCTYPE html><html><head><title>Label: ${label}</title><style>
-.m3-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
-    body{margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:system-ui,sans-serif;background:white}
-    .label{padding:20px;text-align:center;border:1px solid #e5e7eb;border-radius:12px}
-    p{margin:8px 0 0;font-size:13px;font-weight:700;color:#374151}
-  </style></head><body><div class="label">${tag}<p>${label}</p></div><script>window.onload=()=>window.print()<\/script></body></html>`
+    body { margin:0; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; font-family:system-ui,sans-serif; background:white; }
+    .label { padding:10px; text-align:center; border:1px solid #e5e7eb; border-radius:12px; }
+    p { margin:4px 0 0; font-size:11px; font-weight:700; color:#000; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
+    @media print {
+      @page { margin: 0; size: 2in 1in; }
+      body { width: 2in; height: 1in; min-height: 1in; overflow: hidden; display: block; }
+      .label { width: 100%; height: 100%; border: none; border-radius: 0; padding: 0.05in; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    }
+  </style></head><body><div class="label">${tag}<p>${label}</p></div><script>setTimeout(()=>window.print(), 350)<\/script></body></html>`
   const w = window.open(''); if (w) { w.document.write(html); w.document.close() }
 }
 
@@ -329,12 +333,24 @@ async function printBatch() {
   }))
 
   const html = `<!DOCTYPE html><html><head><title>Batch Labels</title><style>
-    body{margin:0;font-family:system-ui,sans-serif;background:white}
-    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px}
-    .label{border:1px solid #e5e7eb;border-radius:8px;padding:12px;text-align:center;break-inside:avoid}
-    img{max-width:100%} p{margin:6px 0 0;font-size:11px;font-weight:700;color:#374151}
-    @media print{.grid{gap:4px;padding:4px}}
-  </style></head><body><div class="grid">${labelHtmlParts.join('')}</div><script>window.onload=()=>window.print()<\/script></body></html>`
+    body { margin:0; font-family:system-ui,sans-serif; background:white; }
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:16px; }
+    .label { border:1px solid #e5e7eb; border-radius:8px; padding:12px; text-align:center; break-inside:avoid; }
+    img { max-width:100%; } 
+    p { margin:4px 0 0; font-size:11px; font-weight:700; color:#000; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
+    @media print {
+      @page { margin: 0; size: 2in 1in; }
+      body { min-height: 100vh; }
+      .grid { display: block; padding: 0; gap: 0; }
+      .label { 
+        width: 2in; height: 1in; box-sizing: border-box; 
+        border: none; border-radius: 0; padding: 0.05in; 
+        display: flex; flex-direction: column; align-items: center; justify-content: center; 
+        page-break-after: always; break-after: page; 
+      }
+      img { max-height: 0.5in; width: auto; }
+    }
+  </style></head><body><div class="grid">${labelHtmlParts.join('')}</div><script>setTimeout(()=>window.print(), 500)<\/script></body></html>`
   const w = window.open(''); if (w) { w.document.write(html); w.document.close() }
 }
 

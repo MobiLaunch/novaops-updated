@@ -269,20 +269,24 @@ export async function printBarcodeLabel(data: BarcodeLabelData) {
 
     // ^XA: Start Format, ^PW: Print Width (dots), ^LL: Label Length (dots)
     // Adjust coordinates based on typical 2x1" label @ 203 DPI (PW=400, LL=200)
-    const zpl = `^XA
-^PW400
-^LL200
-^FO30,30^A0N,25,25^FD${data.name}^FS
-^FO30,70^BCN,50,Y,N,N^FD${data.sku}^FS
-^FO30,150^A0N,20,20^FD${custStr}^FS
-^FO280,150^A0N,20,20^FD${priceStr}^FS
-^XZ`;
+    const zpl = `^XA\r\n` +
+      `^PW400\r\n` +
+      `^LL200\r\n` +
+      `^FO30,30^A0N,25,25^FD${data.name}^FS\r\n` +
+      `^FO30,70^BCN,50,Y,N,N^FD${data.sku}^FS\r\n` +
+      `^FO30,150^A0N,20,20^FD${custStr}^FS\r\n` +
+      `^FO280,150^A0N,20,20^FD${priceStr}^FS\r\n` +
+      `^PQ1\r\n` +   // Print 1 label
+      `^XZ\r\n`;
 
+    console.log("Sending ZPL payload to USB printer:", zpl);
     const encoder = new TextEncoder();
     const payload = encoder.encode(zpl);
     const success = await sendWebUSB(savedPrinter, payload);
-    // If successful, skip HTML fallback popup
-    if (success) return;
+    if (success) {
+      console.log("WebUSB label transfer succeeded.");
+      return;
+    }
   }
 
   await loadJsBarcode();
@@ -316,15 +320,15 @@ export async function printBarcodeLabel(data: BarcodeLabelData) {
           font-family: sans-serif;
           margin: 0;
           padding: 0;
-          /* Typical label size e.g., 2x1 inches or roughly 50x25mm */
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           text-align: center;
           width: 100%;
-          height: 100vh; /* Fill the print page */
+          min-height: 100vh;
           box-sizing: border-box;
+          background: white;
         }
         .container {
           padding: 10px;
@@ -344,6 +348,7 @@ export async function printBarcodeLabel(data: BarcodeLabelData) {
         .barcode {
           max-width: 100%;
           height: auto;
+          max-height: 0.5in;
         }
         .details {
           font-size: 12px;
@@ -354,9 +359,9 @@ export async function printBarcodeLabel(data: BarcodeLabelData) {
         }
         
         @media print {
-          @page { margin: 0; size: auto; }
-          body { height: auto; padding: 2mm; }
-          .container { padding: 0; width: 100%; }
+          @page { margin: 0; size: 2in 1in; }
+          body { width: 2in; height: 1in; min-height: 1in; overflow: hidden; display: block; }
+          .container { width: 100%; height: 100%; border: none; padding: 0.05in; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         }
       </style>
     </head>
