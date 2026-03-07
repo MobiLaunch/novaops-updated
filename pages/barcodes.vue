@@ -178,7 +178,7 @@
 
 <script setup lang="ts">
 import { ScanLine, Barcode, Package, Layers } from 'lucide-vue-next'
-import { printHtmlContent } from '~/utils/print'
+import { printHtmlContent, printBarcodeLabel, printBarcodeBatch } from '~/utils/print'
 definePageMeta({ middleware: ['auth'] })
 
 const appStore  = useAppStore()
@@ -278,21 +278,14 @@ function getSvgDataUrl(): string | null {
 }
 
 function printBarcode() {
-  const dataUrl = getSvgDataUrl()
-  const label   = barcodeLabel.value || barcodeValue.value
-  const tag     = barcodeFormat.value === 'QR' ? `<img src="${dataUrl}" style="height:auto; max-width:100%; max-height: 0.6in;" />` : `<img src="${dataUrl}" style="max-width:100%; max-height: 0.5in;" />`
-  const html = `<!DOCTYPE html><html><head><title>Label: ${label}</title><style>
-    body { margin:0; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; font-family:system-ui,sans-serif; background:white; }
-    .label { padding:10px; text-align:center; border:1px solid #e5e7eb; border-radius:12px; }
-    p { margin:4px 0 0; font-size:11px; font-weight:700; color:#000; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
-    @media print {
-      @page { margin: 0; size: 2in 1in; }
-      body { width: 2in; height: 1in; min-height: 1in; overflow: hidden; display: block; }
-      .label { width: 100%; height: 100%; border: none; border-radius: 0; padding: 0.05in; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    }
-  </style></head><body><div class="label">${tag}<p>${label}</p></div></body></html>`
+  const label = barcodeLabel.value || barcodeValue.value
   
-  printHtmlContent(html)
+  // Hand off to our central print manager which will attempt WebUSB (ZPL) natively first
+  printBarcodeLabel({
+    sku: barcodeValue.value,
+    name: label,
+    format: barcodeFormat.value === 'QR' ? 'QR' : 'CODE128',
+  })
 }
 
 function downloadBarcode() {
@@ -312,41 +305,18 @@ const toggleSelected = (id: any) => {
 }
 
 async function printBatch() {
-  await loadJsBarcode()
-  await loadQrCode()
-
   const items = (inventory.value as any[]).filter((i: any) => selectedItems.value.includes(i.id))
-  const labelHtmlParts = await Promise.all(items.map(async (item: any) => {
-    const val = item.sku || String(item.id)
-    try {
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-      ;(window as any).JsBarcode(svg, val, { format: 'CODE128', width: 2, height: 50, displayValue: true, fontSize: 11, margin: 6 })
-      const svgStr = new XMLSerializer().serializeToString(svg)
-      return `<div class="label"><img src="data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgStr)))}" /><p>${item.name}</p></div>`
-    } catch { return `<div class="label"><p style="font-family:monospace;font-size:18px;font-weight:bold">${val}</p><p>${item.name}</p></div>` }
+  
+  // Build our standardized payload objects
+  const payload = items.map((item: any) => ({
+    sku: item.sku || String(item.id),
+    name: item.name,
+    price: item.price,
+    currency: settings.value?.currency,
+    format: 'CODE128'
   }))
 
-  const html = `<!DOCTYPE html><html><head><title>Batch Labels</title><style>
-    body { margin:0; font-family:system-ui,sans-serif; background:white; }
-    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:16px; }
-    .label { border:1px solid #e5e7eb; border-radius:8px; padding:12px; text-align:center; break-inside:avoid; }
-    img { max-width:100%; } 
-    p { margin:4px 0 0; font-size:11px; font-weight:700; color:#000; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
-    @media print {
-      @page { margin: 0; size: 2in 1in; }
-      body { min-height: 100vh; }
-      .grid { display: block; padding: 0; gap: 0; }
-      .label { 
-        width: 2in; height: 1in; box-sizing: border-box; 
-        border: none; border-radius: 0; padding: 0.05in; 
-        display: flex; flex-direction: column; align-items: center; justify-content: center; 
-        page-break-after: always; break-after: page; 
-      }
-      img { max-height: 0.5in; width: auto; }
-    }
-  </style></head><body><div class="grid">${labelHtmlParts.join('')}</div></body></html>`
-  
-  printHtmlContent(html)
+  printBarcodeBatch(payload)
 }
 
 // ── Scan Lookup ───────────────────────────────────────────────────────────────

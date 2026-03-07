@@ -253,6 +253,7 @@ export interface BarcodeLabelData {
   price?: number;
   currency?: string;
   customerName?: string;
+  format?: string;
 }
 
 export async function printBarcodeLabel(data: BarcodeLabelData) {
@@ -260,21 +261,22 @@ export async function printBarcodeLabel(data: BarcodeLabelData) {
 
   const savedPrinter = localStorage.getItem('novaops_label_printer');
   if (savedPrinter) {
-    // Intermec PC23d and standard generics parse ZPL effectively via ZSim
-    // Build ZPL (Zebra Programming Language) Payload
     const priceStr = data.price !== undefined ? `${data.currency || '$'}${(data.price || 0).toFixed(2)}` : '';
     const custStr = data.customerName || '';
 
-    // ^XA: Start Format, ^PW: Print Width (dots), ^LL: Label Length (dots)
-    // Adjust coordinates based on typical 2x1" label @ 203 DPI (PW=400, LL=200)
+    // Choose Code128 vs QR code based on passed format
+    const barcodeZpl = data.format === 'QR'
+      ? `^FO30,70^BQN,2,4^FDQA,${data.sku}^FS\r\n` // QA implies high density mode (QR)
+      : `^FO30,70^BCN,50,Y,N,N^FD${data.sku}^FS\r\n`;
+
     const zpl = `^XA\r\n` +
       `^PW400\r\n` +
       `^LL200\r\n` +
       `^FO30,30^A0N,25,25^FD${data.name}^FS\r\n` +
-      `^FO30,70^BCN,50,Y,N,N^FD${data.sku}^FS\r\n` +
+      barcodeZpl +
       `^FO30,150^A0N,20,20^FD${custStr}^FS\r\n` +
       `^FO280,150^A0N,20,20^FD${priceStr}^FS\r\n` +
-      `^PQ1\r\n` +   // Print 1 label
+      `^PQ1\r\n` +
       `^XZ\r\n`;
 
     console.log("Sending ZPL payload to USB printer:", zpl);
@@ -375,6 +377,84 @@ export async function printBarcodeLabel(data: BarcodeLabelData) {
     </body>
     </html>
   `;
+
+  printHtmlContent(html);
+}
+
+export async function printBarcodeBatch(items: BarcodeLabelData[]) {
+  if (typeof window === 'undefined') return;
+
+  const savedPrinter = localStorage.getItem('novaops_label_printer');
+  if (savedPrinter) {
+    let fullZpl = '';
+    // Concatenate standard Code 128 labels into one payload bundle to shoot all at once
+    items.forEach(data => {
+      const priceStr = data.price !== undefined ? `${data.currency || '$'}${(data.price || 0).toFixed(2)}` : '';
+      const custStr = data.customerName || '';
+
+      const barcodeZpl = data.format === 'QR'
+        ? `^FO30,70^BQN,2,4^FDQA,${data.sku}^FS\r\n`
+        : `^FO30,70^BCN,50,Y,N,N^FD${data.sku}^FS\r\n`;
+
+      fullZpl += `^XA\r\n` +
+        `^PW400\r\n` +
+        `^LL200\r\n` +
+        `^FO30,30^A0N,25,25^FD${data.name}^FS\r\n` +
+        barcodeZpl +
+        `^FO30,150^A0N,20,20^FD${custStr}^FS\r\n` +
+        `^FO280,150^A0N,20,20^FD${priceStr}^FS\r\n` +
+        `^PQ1\r\n` +
+        `^XZ\r\n`;
+    });
+
+    console.log(`Sending Batch ZPL payload to USB printer (${items.length} labels)`);
+    const encoder = new TextEncoder();
+    const payload = encoder.encode(fullZpl);
+    const success = await sendWebUSB(savedPrinter, payload);
+
+    // Fall back to HTML if USB fails/denied
+    if (success) return;
+  }
+
+  // --- Fallback HTML Path (Grid) ---
+  await loadJsBarcode();
+
+  // Resolve JSBarcodes on temporary canvases sequentially, or fake a <div> grid
+  // To keep it clean, we'll mimic what POS does for batch
+  const htmlParts = await Promise.all(items.map(async (data: BarcodeLabelData) => {
+    const val = data.sku || 'UNKNOWN';
+    try {
+      if (data.format === 'QR') {
+        // dynamic load QrCode if needed, but for fallback grid JS barcode is easier/simpler, skipping native qr image for now
+      }
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      (window as any).JsBarcode(svg, val, { format: 'CODE128', width: 2, height: 50, displayValue: true, fontSize: 11, margin: 6 });
+      const svgStr = new XMLSerializer().serializeToString(svg);
+      return `<div class="label"><img src="data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgStr)))}" /><p>${data.name}</p></div>`
+    } catch {
+      return `<div class="label"><p style="font-family:monospace;font-size:18px;font-weight:bold">${val}</p><p>${data.name}</p></div>`
+    }
+  }));
+
+  const html = `<!DOCTYPE html><html><head><title>Batch Labels</title><style>
+    body { margin:0; font-family:system-ui,sans-serif; background:white; }
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:16px; }
+    .label { border:1px solid #e5e7eb; border-radius:8px; padding:12px; text-align:center; break-inside:avoid; }
+    img { max-width:100%; } 
+    p { margin:4px 0 0; font-size:11px; font-weight:700; color:#000; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
+    @media print {
+      @page { margin: 0; size: 2in 1in; }
+      body { min-height: 100vh; }
+      .grid { display: block; padding: 0; gap: 0; }
+      .label { 
+        width: 2in; height: 1in; box-sizing: border-box; 
+        border: none; border-radius: 0; padding: 0.05in; 
+        display: flex; flex-direction: column; align-items: center; justify-content: center; 
+        page-break-after: always; break-after: page; 
+      }
+      img { max-height: 0.5in; width: auto; }
+    }
+  </style></head><body><div class="grid">${htmlParts.join('')}</div></body></html>`
 
   printHtmlContent(html);
 }
