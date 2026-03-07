@@ -571,42 +571,131 @@
               <p class="text-xs text-muted-foreground font-medium">Receipt and barcode label settings</p>
             </div>
           </div>
-          <div class="p-6 space-y-4">
-            <!-- Receipt Printing -->
-            <div class="flex items-center justify-between p-4 rounded-[16px]" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.5)">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-[12px] flex items-center justify-center" style="background: #10b98118">
-                  <Receipt class="w-4 h-4" style="color: #10b981" />
+          <div class="p-6 space-y-6">
+
+            <!-- Zadig Setup Instructions -->
+            <div class="rounded-[20px] p-5 space-y-3" style="background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.6); outline-offset: 0">
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-[16px] flex items-center justify-center flex-shrink-0 mt-0.5" style="background: #06b6d420">
+                  <Printer class="w-4 h-4" style="color: #06b6d4" />
                 </div>
+                <div>
+                  <p class="text-sm font-black">Windows USB Setup Instructions</p>
+                  <p class="text-xs text-muted-foreground font-medium mt-0.5 leading-relaxed">
+                    By default, Windows blocks apps from talking directly to USB printers. Follow these steps once to fix it:
+                  </p>
+                </div>
+              </div>
+              <div class="space-y-3 mt-2 text-xs font-medium text-muted-foreground pl-11">
+                <div class="space-y-0.5">
+                  <p class="text-foreground font-bold">1. Download Zadig</p>
+                  <p>Go to the official site <a href="https://zadig.akeo.ie" target="_blank" class="text-blue-500 hover:underline">zadig.akeo.ie</a> and download the latest version (portable, no install needed).</p>
+                </div>
+                <div class="space-y-0.5">
+                  <p class="text-foreground font-bold">2. Connect Your Printer</p>
+                  <p>Plug your USB thermal printer into your computer. Make sure it's powered on and detected by Windows.</p>
+                </div>
+                <div class="space-y-0.5">
+                  <p class="text-foreground font-bold">3. Run Zadig</p>
+                  <p>Launch Zadig.exe as Administrator (right-click -> Run as administrator). From the Options menu, select "List All Devices". Find your printer in the dropdown.</p>
+                </div>
+                <div class="space-y-0.5">
+                  <p class="text-foreground font-bold">4. Replace the Driver</p>
+                  <p>With the printer selected, choose <strong>WinUSB</strong> on the right side and click "Replace Driver" or "Install Driver". Wait for the success message.</p>
+                  <div class="mt-2 p-3 rounded-[12px] flex items-start gap-2 text-[11px]" style="background: #f59e0b18; color: #d97706">
+                    <AlertTriangle class="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                    <p><strong>Important:</strong> This detaches the standard Windows printer driver and replaces it with WinUSB. After this, the printer will no longer work with standard Windows printing — it will only work via WebUSB from your app.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Default Thermal Printer Setup -->
+            <div class="flex flex-col gap-3 p-4 rounded-[16px]" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.5)">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-[12px] flex items-center justify-center" style="background: #10b98118">
+                    <Receipt class="w-4 h-4" style="color: #10b981" />
+                  </div>
+                  <div>
+                    <p class="text-sm font-bold">Default Thermal Printer</p>
+                    <p class="text-xs text-muted-foreground font-medium mt-0.5" v-if="!pairedThermalPrinter">No device linked</p>
+                  </div>
+                </div>
+                <button v-if="!pairedThermalPrinter" @click="pairUSBPrinter('thermal')" class="m3-btn-primary h-8 px-4 rounded-full text-xs font-bold text-white transition-all hover:scale-105">Pair a Device</button>
+              </div>
+              
+              <div v-if="pairedThermalPrinter" class="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-[12px]" style="background: hsl(var(--background)); outline: 1px solid hsl(var(--border)/0.5)">
+                <div class="flex items-start gap-3">
+                  <p class="text-xs font-bold mt-0.5">1.</p>
+                  <div>
+                    <p class="text-sm font-bold">{{ pairedThermalPrinter.productName || 'USB Printer' }}</p>
+                    <p class="text-[11px] text-muted-foreground mt-0.5 font-mono">Serial Number: {{ pairedThermalPrinter.serialNumber || 'Unknown' }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-4 align-self-end">
+                  <button @click="pairUSBPrinter('thermal')" class="m3-btn-tonal h-8 px-4 rounded-full text-[11px] font-bold">Link Printer</button>
+                  <button @click="removeUSBPrinter('thermal')" class="text-[11px] font-bold text-red-500 hover:underline">Remove device</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Default Label Printer Setup -->
+            <div class="flex flex-col gap-3 p-4 rounded-[16px]" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.5)">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-[12px] flex items-center justify-center" style="background: #06b6d418">
+                    <ScanLine class="w-4 h-4" style="color: #06b6d4" />
+                  </div>
+                  <div>
+                    <p class="text-sm font-bold">Default Label Printer</p>
+                    <p class="text-xs text-muted-foreground font-medium mt-0.5" v-if="!pairedLabelPrinter">No device linked</p>
+                  </div>
+                </div>
+                <button v-if="!pairedLabelPrinter" @click="pairUSBPrinter('label')" class="m3-btn-primary h-8 px-4 rounded-full text-xs font-bold text-white transition-all hover:scale-105">Pair a Device</button>
+              </div>
+              
+              <div v-if="pairedLabelPrinter" class="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-[12px]" style="background: hsl(var(--background)); outline: 1px solid hsl(var(--border)/0.5)">
+                <div class="flex items-start gap-3">
+                  <p class="text-xs font-bold mt-0.5">1.</p>
+                  <div>
+                    <p class="text-sm font-bold">{{ pairedLabelPrinter.productName || 'USB Printer' }}</p>
+                    <p class="text-[11px] text-muted-foreground mt-0.5 font-mono">Serial Number: {{ pairedLabelPrinter.serialNumber || 'Unknown' }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-4 align-self-end">
+                  <button @click="pairUSBPrinter('label')" class="m3-btn-tonal h-8 px-4 rounded-full text-[11px] font-bold">Link Printer</button>
+                  <button @click="removeUSBPrinter('label')" class="text-[11px] font-bold text-red-500 hover:underline">Remove device</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Receipt & Barcode Options -->
+            <div class="pt-4 border-t border-border/60 space-y-4">
+              <div class="flex items-center justify-between mt-2">
                 <div>
                   <p class="text-sm font-bold">Auto-Print Receipts</p>
                   <p class="text-xs text-muted-foreground font-medium mt-0.5">Prompt to print receipt after POS checkout</p>
                 </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" v-model="printerSettings.autoPrintReceipt" class="sr-only peer" @change="savePrinterSettings" />
+                  <div class="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                </label>
               </div>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" v-model="printerSettings.autoPrintReceipt" class="sr-only peer" @change="savePrinterSettings" />
-                <div class="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-              </label>
-            </div>
-            <button class="m3-btn-tonal h-10 px-5 rounded-full text-xs font-bold w-full max-w-[200px]" @click="testReceiptPrint">Test Receipt Print</button>
+              <button class="m3-btn-tonal h-10 px-5 rounded-full text-xs font-bold w-full max-w-[200px]" @click="testReceiptPrint">Test Receipt Print</button>
 
-            <!-- Barcode Printing -->
-            <div class="flex items-center justify-between p-4 rounded-[16px] mt-4" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.5)">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-[12px] flex items-center justify-center" style="background: #06b6d418">
-                  <ScanLine class="w-4 h-4" style="color: #06b6d4" />
-                </div>
+              <div class="flex items-center justify-between pt-4 border-t border-border/60 text-foreground">
                 <div>
                   <p class="text-sm font-bold">Auto-Print Barcode Labels</p>
                   <p class="text-xs text-muted-foreground font-medium mt-0.5">Prompt to print barcode label when a ticket is created</p>
                 </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" v-model="printerSettings.autoPrintBarcode" class="sr-only peer" @change="savePrinterSettings" />
+                  <div class="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                </label>
               </div>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" v-model="printerSettings.autoPrintBarcode" class="sr-only peer" @change="savePrinterSettings" />
-                <div class="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
-              </label>
+              <button class="m3-btn-tonal h-10 px-5 rounded-full text-xs font-bold w-full max-w-[200px]" @click="testBarcodePrint">Test Label Print</button>
             </div>
-            <button class="m3-btn-tonal h-10 px-5 rounded-full text-xs font-bold w-full max-w-[200px]" @click="testBarcodePrint">Test Label Print</button>
             
             <div v-if="printerMsg" class="flex items-center gap-2 rounded-[16px] px-4 py-2.5 text-xs font-bold mt-4"
               :style="printerMsg.type === 'success' ? 'background:#10b98114;color:#10b981' : 'background:#ef444414;color:#ef4444'">
@@ -1047,10 +1136,19 @@ const printerMsg      = ref<{ type: 'success' | 'error'; text: string } | null>(
 const PRINTER_KEY     = 'novaops_printer_settings'
 const printerSettings = ref({ autoPrintReceipt: true, autoPrintBarcode: true })
 
+const pairedThermalPrinter = ref<{ productName?: string; serialNumber?: string; vendorId?: number; productId?: number } | null>(null)
+const pairedLabelPrinter = ref<{ productName?: string; serialNumber?: string; vendorId?: number; productId?: number } | null>(null)
+
 onMounted(() => {
   try {
     const saved = localStorage.getItem(PRINTER_KEY)
     if (saved) printerSettings.value = { ...printerSettings.value, ...JSON.parse(saved) }
+    
+    const savedThermal = localStorage.getItem('novaops_thermal_printer')
+    if (savedThermal) pairedThermalPrinter.value = JSON.parse(savedThermal)
+    
+    const savedLabel = localStorage.getItem('novaops_label_printer')
+    if (savedLabel) pairedLabelPrinter.value = JSON.parse(savedLabel)
   } catch (e) {}
 })
 
@@ -1062,6 +1160,46 @@ function savePrinterSettings() {
 function showPrinterMsg(type: 'success' | 'error', text: string) {
   printerMsg.value = { type, text }
   setTimeout(() => { printerMsg.value = null }, 3500)
+}
+
+async function pairUSBPrinter(type: 'thermal' | 'label') {
+  if (!(navigator as any).usb) {
+    showPrinterMsg('error', 'WebUSB is not supported in this browser.')
+    return
+  }
+  try {
+    const device = await (navigator as any).usb.requestDevice({ filters: [] })
+    if (device) {
+      const printerData = {
+        productName: device.productName || 'USB Printer',
+        serialNumber: device.serialNumber || 'Unknown',
+        vendorId: device.vendorId,
+        productId: device.productId
+      }
+      if (type === 'thermal') {
+        pairedThermalPrinter.value = printerData
+        localStorage.setItem('novaops_thermal_printer', JSON.stringify(printerData))
+      } else {
+        pairedLabelPrinter.value = printerData
+        localStorage.setItem('novaops_label_printer', JSON.stringify(printerData))
+      }
+      showPrinterMsg('success', `${type === 'thermal' ? 'Thermal' : 'Label'} printer linked!`)
+    }
+  } catch (e: any) {
+    if (e.name !== 'NotFoundError' && !e.message?.includes('No device selected')) {
+      showPrinterMsg('error', e.message || 'Failed to link printer')
+    }
+  }
+}
+
+function removeUSBPrinter(type: 'thermal' | 'label') {
+  if (type === 'thermal') {
+    pairedThermalPrinter.value = null
+    localStorage.removeItem('novaops_thermal_printer')
+  } else {
+    pairedLabelPrinter.value = null
+    localStorage.removeItem('novaops_label_printer')
+  }
 }
 
 function testReceiptPrint() {

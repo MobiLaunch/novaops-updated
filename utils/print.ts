@@ -54,6 +54,44 @@ function printHtmlContent(html: string) {
   }, 250); // Small delay to ensure rendering
 }
 
+async function sendWebUSB(deviceDataRaw: string, payload: Uint8Array): Promise<boolean> {
+  if (typeof window === 'undefined' || !('usb' in navigator)) return false;
+  try {
+    const pInfo = JSON.parse(deviceDataRaw);
+    const devices = await (navigator as any).usb.getDevices();
+    const device = devices.find((d: any) => d.vendorId === pInfo.vendorId && d.productId === pInfo.productId);
+    if (!device) return false;
+
+    await device.open();
+    if (device.configuration === null) await device.selectConfiguration(1);
+
+    let interfaceNumber = 0;
+    let endpointNumber = 0;
+    for (const iface of device.configuration.interfaces) {
+      for (const alt of iface.alternates) {
+        // Class 7 is printer, but fallback to any bulk out terminal
+        const ep = alt.endpoints.find((e: any) => e.direction === 'out' && e.type === 'bulk');
+        if (ep) {
+          interfaceNumber = iface.interfaceNumber;
+          endpointNumber = ep.endpointNumber;
+          break;
+        }
+      }
+      if (endpointNumber) break;
+    }
+
+    if (endpointNumber === 0) throw new Error("No OUT endpoint found on printer device");
+
+    await device.claimInterface(interfaceNumber);
+    await device.transferOut(endpointNumber, payload);
+    await device.close();
+    return true;
+  } catch (err) {
+    console.warn("WebUSB print failed:", err);
+    return false;
+  }
+}
+
 export interface ReceiptData {
   businessName: string;
   businessAddress: string;
@@ -68,8 +106,51 @@ export interface ReceiptData {
   customerName?: string;
 }
 
-export function printReceipt(data: ReceiptData) {
+export async function printReceipt(data: ReceiptData) {
   const formatMoney = (amount: number) => `${data.currency}${(amount || 0).toFixed(2)}`;
+
+  if (typeof window !== 'undefined') {
+    const savedPrinter = localStorage.getItem('novaops_thermal_printer');
+    if (savedPrinter) {
+      // Build ESC/POS payload
+      const ESC = '\x1B';
+      const GS = '\x1D';
+      let out = '';
+      out += ESC + '@'; // Initialize
+      out += ESC + 'a' + '\x01'; // Align center
+      out += ESC + 'E' + '\x01'; // Bold on
+      out += (data.businessName || 'Receipt') + '\n';
+      out += ESC + 'E' + '\x00'; // Bold off
+      out += ESC + 'a' + '\x00'; // Align left
+
+      if (data.businessAddress) out += data.businessAddress + '\n';
+      if (data.businessPhone) out += data.businessPhone + '\n';
+      out += data.date + '\n';
+      if (data.ticketRef) out += 'Ticket: ' + data.ticketRef + '\n';
+      if (data.customerName) out += 'Customer: ' + data.customerName + '\n';
+      out += '--------------------------------\n';
+
+      data.items.forEach(item => {
+        const line = `${item.qty}x ${item.name} ` + formatMoney(item.price * item.qty);
+        out += line + '\n';
+      });
+
+      out += '--------------------------------\n';
+      out += `Subtotal: ${formatMoney(data.subtotal)}\n`;
+      out += `Tax:      ${formatMoney(data.tax)}\n`;
+      out += ESC + 'E' + '\x01'; // Bold on
+      out += `Total:    ${formatMoney(data.total)}\n`;
+      out += ESC + 'E' + '\x00'; // Bold off
+      out += '\nThank you for your business!\n\n\n\n\n';
+      out += GS + 'V' + '\x41' + '\x00'; // Cut
+
+      const encoder = new TextEncoder();
+      const payload = encoder.encode(out);
+      const success = await sendWebUSB(savedPrinter, payload);
+      // If successful, skip HTML fallback popup
+      if (success) return;
+    }
+  }
 
   const itemsHtml = data.items.map(item => `
     <tr>
@@ -174,6 +255,31 @@ export interface BarcodeLabelData {
 
 export async function printBarcodeLabel(data: BarcodeLabelData) {
   if (typeof window === 'undefined') return;
+
+  const savedPrinter = localStorage.getItem('novaops_label_printer');
+  if (savedPrinter) {
+    // Intermec PC23d and standard generics parse ZPL effectively via ZSim
+    // Build ZPL (Zebra Programming Language) Payload
+    const priceStr = data.price !== undefined ? `${data.currency || '$'}${(data.price || 0).toFixed(2)}` : '';
+    const custStr = data.customerName || '';
+
+    // ^XA: Start Format, ^PW: Print Width (dots), ^LL: Label Length (dots)
+    // Adjust coordinates based on typical 2x1" label @ 203 DPI (PW=400, LL=200)
+    const zpl = `^XA
+^PW400
+^LL200
+^FO30,30^A0N,25,25^FD${data.name}^FS
+^FO30,70^BCN,50,Y,N,N^FD${data.sku}^FS
+^FO30,150^A0N,20,20^FD${custStr}^FS
+^FO280,150^A0N,20,20^FD${priceStr}^FS
+^XZ`;
+
+    const encoder = new TextEncoder();
+    const payload = encoder.encode(zpl);
+    const success = await sendWebUSB(savedPrinter, payload);
+    // If successful, skip HTML fallback popup
+    if (success) return;
+  }
 
   await loadJsBarcode();
 

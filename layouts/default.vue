@@ -51,12 +51,9 @@
     </Transition>
 
     <!-- ── Desktop Rail ───────────────────────────────────────────── -->
-    <!-- In Electron the custom titlebar is 40px fixed at top:0, so the sidebar
-         must start below it. fixed elements ignore the padding-top on the page
-         root, so we set top/height dynamically based on isElectron. -->
     <aside
       class="hidden lg:flex fixed left-0 z-40 w-[76px] bg-card border-r border-border/60 flex-col items-center py-3 gap-1"
-      :style="isElectron ? 'top:40px;height:calc(100vh - 40px)' : 'top:0;height:100vh'"
+      style="top:0;height:100vh"
     >
       <RailContent
         :navigation="navigation"
@@ -76,7 +73,7 @@
       <aside
         v-if="activeDrawer && !mobileMenuOpen"
         class="hidden lg:flex fixed left-[76px] z-30 w-64 bg-card border-r border-border/60 flex-col shadow-xl"
-        :style="isElectron ? 'top:40px;height:calc(100vh - 40px)' : 'top:0;height:100vh'"
+        style="top:0;height:100vh"
       >
         <DrawerContent
           :drawer="activeDrawer"
@@ -160,10 +157,6 @@ const appStore = useAppStore()
 const { tickets, appointments } = storeToRefs(appStore)
 const settings = computed(() => appStore.settings ?? { businessName: '', email: '' })
 const route = useRoute()
-
-// Detect Electron so fixed sidebars can clear the custom 40px titlebar
-const isElectron = ref(false)
-onMounted(() => { isElectron.value = !!(window as any).electronAPI?.isElectron })
 
 const upcomingItems = computed(() => {
   const now = new Date()

@@ -9,67 +9,7 @@
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "electron:dev": "concurrently --kill-others --names NUXT,ELECTRON \"nuxt dev\" \"node electron/dev.cjs\"",
-    "electron:build": "cross-env ELECTRON_BUILD=1 nuxt generate && electron-builder --win",
-    "electron:build:mac": "cross-env ELECTRON_BUILD=1 nuxt generate && electron-builder --mac",
-    "electron:build:linux": "cross-env ELECTRON_BUILD=1 nuxt generate && electron-builder --linux"
-  },
-  "build": {
-    "appId": "com.novaops.app",
-    "productName": "NovaOps",
-    "copyright": "Copyright © 2025 NovaOps",
-    "asarUnpack": [
-      "**/node_modules/koffi/**/*"
-    ],
-    "files": [
-      "electron/**/*",
-      ".output/public/**/*",
-      "public/**/*"
-    ],
-    "extraResources": [
-      {
-        "from": "drivers",
-        "to": "drivers",
-        "filter": [
-          "**/*",
-          "!**/.gitkeep"
-        ]
-      },
-      {
-        "from": "itunes-files",
-        "to": "itunes-tools",
-        "filter": [
-          "**/*",
-          "!Qt5WebEngineCore.dll",
-          "!QtWebEngineProcess.exe",
-          "!qtwebengine_*.pak",
-          "!opengl32sw.dll",
-          "!D3Dcompiler_47.dll"
-        ]
-      }
-    ],
-    "win": {
-      "target": [
-        "nsis"
-      ]
-    },
-    "mac": {
-      "target": [
-        "dmg"
-      ],
-      "category": "public.app-category.business"
-    },
-    "linux": {
-      "target": [
-        "AppImage"
-      ],
-      "category": "Office"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true
-    }
+    "preview": "nuxt preview"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
@@ -78,7 +18,6 @@
     "@vueuse/core": "^11.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "koffi": "^2.15.1",
     "lucide-vue-next": "^0.460.0",
     "node-fetch": "^2.7.0",
     "nuxt": "^3.13.2",
@@ -92,11 +31,8 @@
   "devDependencies": {
     "@nuxt/devtools": "^1.5.1",
     "@nuxtjs/tailwindcss": "^6.12.0",
+    "@vite-pwa/nuxt": "^1.1.1",
     "autoprefixer": "^10.4.20",
-    "concurrently": "^9.1.0",
-    "cross-env": "^7.0.3",
-    "electron": "^34.0.0",
-    "electron-builder": "^25.1.8",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.5.4",

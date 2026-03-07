@@ -53,7 +53,52 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
 
-  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],
+  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', '@vite-pwa/nuxt'],
+
+  pwa: {
+    registerType: 'autoUpdate',
+    manifest: {
+      name: 'NovaOps',
+      short_name: 'NovaOps',
+      description: 'Modern Repair Shop Management System',
+      theme_color: '#0f172a',
+      background_color: '#0f172a',
+      display: 'standalone',
+      orientation: 'portrait-primary',
+      icons: [
+        {
+          src: '/icon-192.png',
+          sizes: '192x192',
+          type: 'image/png'
+        },
+        {
+          src: '/icon-512.png',
+          sizes: '512x512',
+          type: 'image/png'
+        },
+        {
+          src: '/icon-512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'any maskable'
+        }
+      ]
+    },
+    workbox: {
+      navigateFallback: '/',
+      globPatterns: ['**/*.{js,css,html,png,svg,ico}']
+    },
+    client: {
+      installPrompt: true,
+      periodicSyncForUpdates: 3600
+    },
+    devOptions: {
+      enabled: true,
+      suppressWarnings: true,
+      navigateFallbackAllowlist: [/^\/$/],
+      type: 'module',
+    },
+  },
 
   runtimeConfig: {
     // ── Private (server-side only) ─────────────────────────────────────────
@@ -103,20 +148,12 @@ export default defineNuxtConfig({
   },
 
   app: {
-    // ELECTRON FIX: Use './' so all asset paths are relative.
-    // When Electron loads the app via loadFile() (file:// protocol),
-    // an empty baseURL produces absolute paths like /assets/... which
-    // 404 because there is no server. './' makes them relative so the
-    // browser resolves them correctly from the HTML file's location.
-    baseURL: process.env.ELECTRON_BUILD ? './' : '/',
+    baseURL: '/',
     buildAssetsDir: 'assets',
   },
 
   imports: { autoImport: true },
   css: ['~/assets/css/main.css'],
-
-  // SSR off — required for Electron (no server renderer in the desktop shell)
-  ssr: false,
 
   postcss: {
     plugins: {
