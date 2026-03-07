@@ -198,7 +198,9 @@ function formatApptTime(date: string, time: string) {
 
 const mobileMenuOpen = ref(false)
 const activeDrawer = ref<string | null>(null)
+// Prevent hydration mismatch by using an empty string on SSR
 const currentTheme = ref<string>('light')
+const hasHydrated = ref(false)
 
 // Pages that should never be blocked by the data-loading spinner.
 // Settings, website-settings, services etc. have their own data loads
@@ -212,10 +214,11 @@ const noLoadingGate = computed(() => NO_LOADING_GATE_PATHS.includes(route.path))
 const { checkLockStatus, setupActivityListeners, cleanup } = useScreenLock()
 
 onMounted(() => {
+  hasHydrated.value = true
   appStore.setupAuthListener()
   checkLockStatus()
   setupActivityListeners()
-  currentTheme.value = (typeof localStorage !== 'undefined' ? localStorage.getItem('theme') : null) || 'light'
+  currentTheme.value = localStorage.getItem('theme') || 'light'
 })
 onUnmounted(() => cleanup())
 

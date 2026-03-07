@@ -86,8 +86,12 @@ async function sendWebUSB(deviceDataRaw: string, payload: Uint8Array): Promise<b
     await device.transferOut(endpointNumber, payload);
     await device.close();
     return true;
-  } catch (err) {
-    console.warn("WebUSB print failed:", err);
+  } catch (err: any) {
+    if (err.name === 'SecurityError') {
+      console.warn("WebUSB SecurityError: Direct USB access was denied by the browser (or missing user gesture). Falling back to standard print.", err.message);
+    } else {
+      console.warn("WebUSB print failed:", err);
+    }
     return false;
   }
 }

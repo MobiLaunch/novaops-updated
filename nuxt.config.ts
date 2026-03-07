@@ -85,8 +85,23 @@ export default defineNuxtConfig({
       ]
     },
     workbox: {
-      navigateFallback: '/',
-      globPatterns: ['**/*.{js,css,html,png,svg,ico}']
+      navigateFallback: null,
+      globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+      runtimeCaching: [
+        {
+          urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+          handler: 'NetworkOnly',
+          options: {
+            cacheName: 'supabase-api-cache',
+            backgroundSync: {
+              name: 'supabase-sync',
+              options: {
+                maxRetentionTime: 24 * 60
+              }
+            }
+          }
+        }
+      ]
     },
     client: {
       installPrompt: true,
