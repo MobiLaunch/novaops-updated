@@ -178,6 +178,7 @@
 
 <script setup lang="ts">
 import { ScanLine, Barcode, Package, Layers } from 'lucide-vue-next'
+import { printHtmlContent } from '~/utils/print'
 definePageMeta({ middleware: ['auth'] })
 
 const appStore  = useAppStore()
@@ -289,8 +290,9 @@ function printBarcode() {
       body { width: 2in; height: 1in; min-height: 1in; overflow: hidden; display: block; }
       .label { width: 100%; height: 100%; border: none; border-radius: 0; padding: 0.05in; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     }
-  </style></head><body><div class="label">${tag}<p>${label}</p></div><script>setTimeout(()=>window.print(), 350)<\/script></body></html>`
-  const w = window.open(''); if (w) { w.document.write(html); w.document.close() }
+  </style></head><body><div class="label">${tag}<p>${label}</p></div></body></html>`
+  
+  printHtmlContent(html)
 }
 
 function downloadBarcode() {
@@ -342,8 +344,9 @@ async function printBatch() {
       }
       img { max-height: 0.5in; width: auto; }
     }
-  </style></head><body><div class="grid">${labelHtmlParts.join('')}</div><script>setTimeout(()=>window.print(), 500)<\/script></body></html>`
-  const w = window.open(''); if (w) { w.document.write(html); w.document.close() }
+  </style></head><body><div class="grid">${labelHtmlParts.join('')}</div></body></html>`
+  
+  printHtmlContent(html)
 }
 
 // ── Scan Lookup ───────────────────────────────────────────────────────────────

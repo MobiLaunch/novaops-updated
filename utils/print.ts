@@ -34,7 +34,7 @@ function getPrintIframe(): HTMLIFrameElement {
 }
 
 // Injects HTML into the iframe and calls print
-function printHtmlContent(html: string) {
+export function printHtmlContent(html: string) {
   const iframe = getPrintIframe();
   const doc = iframe.contentWindow?.document;
   if (!doc) return;
