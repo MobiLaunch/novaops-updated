@@ -6,84 +6,84 @@
 // We'll dynamically load JsBarcode if needed for label printing
 let jsBarcodePromise: Promise<void> | null = null;
 const loadJsBarcode = () => {
-    if (typeof window === 'undefined') return Promise.resolve();
-    if ((window as any).JsBarcode) return Promise.resolve();
-    if (!jsBarcodePromise) {
-        jsBarcodePromise = new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js';
-            script.onload = () => resolve();
-            script.onerror = reject;
-            document.head.appendChild(script);
-        });
-    }
-    return jsBarcodePromise;
+  if (typeof window === 'undefined') return Promise.resolve();
+  if ((window as any).JsBarcode) return Promise.resolve();
+  if (!jsBarcodePromise) {
+    jsBarcodePromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js';
+      script.onload = () => resolve();
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+  return jsBarcodePromise;
 };
 
 // Creates or gets the hidden print iframe
 function getPrintIframe(): HTMLIFrameElement {
-    let iframe = document.getElementById('print-iframe') as HTMLIFrameElement;
-    if (!iframe) {
-        iframe = document.createElement('iframe');
-        iframe.id = 'print-iframe';
-        iframe.style.position = 'fixed';
-        iframe.style.right = '0';
-        iframe.style.bottom = '0';
-        iframe.style.width = '0';
-        iframe.style.height = '0';
-        iframe.style.border = '0';
-        document.body.appendChild(iframe);
-    }
-    return iframe;
+  let iframe = document.getElementById('print-iframe') as HTMLIFrameElement;
+  if (!iframe) {
+    iframe = document.createElement('iframe');
+    iframe.id = 'print-iframe';
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+  }
+  return iframe;
 }
 
 // Injects HTML into the iframe and calls print
 function printHtmlContent(html: string) {
-    const iframe = getPrintIframe();
-    const doc = iframe.contentWindow?.document;
-    if (!doc) return;
+  const iframe = getPrintIframe();
+  const doc = iframe.contentWindow?.document;
+  if (!doc) return;
 
-    doc.open();
-    doc.write(html);
-    doc.close();
+  doc.open();
+  doc.write(html);
+  doc.close();
 
-    // Wait for images/fonts to load, then print
-    setTimeout(() => {
-        iframe.contentWindow?.focus();
-        iframe.contentWindow?.print();
-    }, 250); // Small delay to ensure rendering
+  // Wait for images/fonts to load, then print
+  setTimeout(() => {
+    iframe.contentWindow?.focus();
+    iframe.contentWindow?.print();
+  }, 250); // Small delay to ensure rendering
 }
 
 export interface ReceiptData {
-    businessName: string;
-    businessAddress: string;
-    businessPhone: string;
-    date: string;
-    items: Array<{ name: string; qty: number; price: number }>;
-    subtotal: number;
-    tax: number;
-    total: number;
-    currency: string;
-    ticketRef?: string;
-    customerName?: string;
+  businessName: string;
+  businessAddress: string;
+  businessPhone: string;
+  date: string;
+  items: Array<{ name: string; qty: number; price: number }>;
+  subtotal: number;
+  tax: number;
+  total: number;
+  currency: string;
+  ticketRef?: string;
+  customerName?: string;
 }
 
 export function printReceipt(data: ReceiptData) {
-    const formatMoney = (amount: number) => `${data.currency}${(amount || 0).toFixed(2)}`;
+  const formatMoney = (amount: number) => `${data.currency}${(amount || 0).toFixed(2)}`;
 
-    const itemsHtml = data.items.map(item => `
+  const itemsHtml = data.items.map(item => `
     <tr>
       <td style="padding: 4px 0;">
-        <div style="font-weight: 600;">${item.name}</div>
-        <div style="font-size: 11px; color: #666;">${item.qty} x ${formatMoney(item.price)}</div>
+        <div style="font-weight: 900;">${item.name}</div>
+        <div style="font-size: 11px; color: #000; font-weight: 700;">${item.qty} x ${formatMoney(item.price)}</div>
       </td>
-      <td style="text-align: right; padding: 4px 0; font-weight: 600;">
+      <td style="text-align: right; padding: 4px 0; font-weight: 900;">
         ${formatMoney(item.qty * item.price)}
       </td>
     </tr>
   `).join('');
 
-    const html = `
+  const html = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -92,8 +92,11 @@ export function printReceipt(data: ReceiptData) {
       <style>
         body {
           font-family: 'Courier New', Courier, monospace; /* Classic receipt font */
-          font-size: 12px;
+          font-size: 13px;
           color: #000;
+          font-weight: 700;
+          -webkit-font-smoothing: none; /* Crucial for solid black thermal prints */
+          text-rendering: geometricPrecision;
           margin: 0;
           padding: 10px;
           /* Typical thermal receipt width is around 58mm to 80mm */
@@ -102,13 +105,13 @@ export function printReceipt(data: ReceiptData) {
           margin-left: auto;
           margin-right: auto;
         }
-        h1 { font-size: 18px; margin: 0 0 5px 0; text-align: center; }
-        .header-info { text-align: center; font-size: 11px; margin-bottom: 15px; color: #444; }
+        h1 { font-size: 18px; margin: 0 0 5px 0; text-align: center; font-weight: 900; }
+        .header-info { text-align: center; font-size: 12px; margin-bottom: 15px; color: #000; font-weight: 700; }
         .divider { border-top: 1px dashed #000; margin: 10px 0; }
-        table { width: 100%; border-collapse: collapse; }
-        .totals-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
-        .totals-row.bold { font-weight: bold; font-size: 14px; margin-top: 5px; }
-        .footer { text-align: center; font-size: 11px; margin-top: 20px; color: #444; }
+        table { width: 100%; border-collapse: collapse; color: #000; }
+        .totals-row { display: flex; justify-content: space-between; margin-bottom: 3px; font-weight: 700; }
+        .totals-row.bold { font-weight: 900; font-size: 15px; margin-top: 5px; }
+        .footer { text-align: center; font-size: 12px; margin-top: 20px; color: #000; font-weight: 700; }
         
         /* Print-specific overrides */
         @media print {
@@ -158,41 +161,41 @@ export function printReceipt(data: ReceiptData) {
     </html>
   `;
 
-    printHtmlContent(html);
+  printHtmlContent(html);
 }
 
 export interface BarcodeLabelData {
-    sku: string;
-    name: string;
-    price?: number;
-    currency?: string;
-    customerName?: string;
+  sku: string;
+  name: string;
+  price?: number;
+  currency?: string;
+  customerName?: string;
 }
 
 export async function printBarcodeLabel(data: BarcodeLabelData) {
-    if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined') return;
 
-    await loadJsBarcode();
+  await loadJsBarcode();
 
-    // Create a temporary canvas to generate the barcode data URI
-    const canvas = document.createElement('canvas');
-    try {
-        (window as any).JsBarcode(canvas, data.sku, {
-            format: "CODE128",
-            displayValue: true,
-            fontSize: 16,
-            margin: 10,
-            width: 2,
-            height: 50
-        });
-    } catch (err) {
-        console.error("Failed to generate barcode:", err);
-        return;
-    }
+  // Create a temporary canvas to generate the barcode data URI
+  const canvas = document.createElement('canvas');
+  try {
+    (window as any).JsBarcode(canvas, data.sku, {
+      format: "CODE128",
+      displayValue: true,
+      fontSize: 16,
+      margin: 10,
+      width: 2,
+      height: 50
+    });
+  } catch (err) {
+    console.error("Failed to generate barcode:", err);
+    return;
+  }
 
-    const barcodeDataUrl = canvas.toDataURL("image/png");
+  const barcodeDataUrl = canvas.toDataURL("image/png");
 
-    const html = `
+  const html = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -260,5 +263,5 @@ export async function printBarcodeLabel(data: BarcodeLabelData) {
     </html>
   `;
 
-    printHtmlContent(html);
+  printHtmlContent(html);
 }
