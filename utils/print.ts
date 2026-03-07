@@ -266,17 +266,24 @@ export async function printBarcodeLabel(data: BarcodeLabelData) {
 
     // Choose Code128 vs QR code based on passed format
     const barcodeZpl = data.format === 'QR'
-      ? `^FO30,70^BQN,2,4^FDQA,${data.sku}^FS\r\n` // QA implies high density mode (QR)
+      ? `^FO30,70^BQN,2,4^FDQA,${data.sku}^FS\r\n`
       : `^FO30,70^BCN,50,Y,N,N^FD${data.sku}^FS\r\n`;
 
+    // ^XA = Start, ^MMT = Tear off mode, ^MNY = Media tracking (Web/Gap)
+    // ^PW400 = Print width 400 dots (~2 inches at 203 dpi)
+    // ^LL200 = Label length 200 dots (~1 inch at 203 dpi)
+    // ^LS0 = Label shift 0
     const zpl = `^XA\r\n` +
+      `^MMT\r\n` +
+      `^MNY\r\n` +
       `^PW400\r\n` +
       `^LL200\r\n` +
+      `^LS0\r\n` +
       `^FO30,30^A0N,25,25^FD${data.name}^FS\r\n` +
       barcodeZpl +
       `^FO30,150^A0N,20,20^FD${custStr}^FS\r\n` +
       `^FO280,150^A0N,20,20^FD${priceStr}^FS\r\n` +
-      `^PQ1\r\n` +
+      `^PQ1,0,1,Y\r\n` +
       `^XZ\r\n`;
 
     console.log("Sending ZPL payload to USB printer:", zpl);
@@ -397,13 +404,16 @@ export async function printBarcodeBatch(items: BarcodeLabelData[]) {
         : `^FO30,70^BCN,50,Y,N,N^FD${data.sku}^FS\r\n`;
 
       fullZpl += `^XA\r\n` +
+        `^MMT\r\n` +
+        `^MNY\r\n` +
         `^PW400\r\n` +
         `^LL200\r\n` +
+        `^LS0\r\n` +
         `^FO30,30^A0N,25,25^FD${data.name}^FS\r\n` +
         barcodeZpl +
         `^FO30,150^A0N,20,20^FD${custStr}^FS\r\n` +
         `^FO280,150^A0N,20,20^FD${priceStr}^FS\r\n` +
-        `^PQ1\r\n` +
+        `^PQ1,0,1,Y\r\n` +
         `^XZ\r\n`;
     });
 
