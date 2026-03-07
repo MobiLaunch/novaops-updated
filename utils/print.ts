@@ -267,26 +267,25 @@ export async function printBarcodeLabel(data: BarcodeLabelData) {
     // Choose Code128 vs QR code based on passed format
     // Intermec Direct Protocol (DP)
     // SETUP: align bottom left, print speed, clear buffer
-    // ALIGN 5 = bottom left origin. FORMAT = setup grid.
-    const priceStrPrint = priceStr ? `PRPOS 280,150\r\nDIR 1\r\nALIGN 4\r\nFONT "Swiss 721 BT"\r\nPRTXT "${priceStr}"\r\n` : '';
-    const custStrPrint = custStr ? `PRPOS 30,150\r\nDIR 1\r\nALIGN 4\r\nFONT "Swiss 721 BT"\r\nPRTXT "${custStr}"\r\n` : '';
+    // ALIGN 1 = Top Left origin
+    const priceStrPrint = priceStr ? `PRPOS 280,140\r\nDIR 1\r\nALIGN 1\r\nFONT "Swiss 721 BT"\r\nPRTXT "${priceStr}"\r\n` : '';
+    const custStrPrint = custStr ? `PRPOS 20,140\r\nDIR 1\r\nALIGN 1\r\nFONT "Swiss 721 BT"\r\nPRTXT "${custStr}"\r\n` : '';
 
     // DP Barcode syntax:
     // BARMAG = magnification
     // BARTYPE = "CODE128" or "QRCODE"
     // PRBAR = print barcode data
     const barcodeDp = data.format === 'QR'
-      ? `PRPOS 30,70\r\nDIR 1\r\nBARTYPE "QRCODE"\r\nBARMAG 3\r\nPRBAR "${data.sku}"\r\n`
-      : `PRPOS 30,70\r\nDIR 1\r\nBARTYPE "CODE128"\r\nBARMAG 2\r\nBARHEIGHT 50\r\nPRBAR "${data.sku}"\r\n`;
+      ? `PRPOS 20,60\r\nDIR 1\r\nALIGN 1\r\nBARTYPE "QRCODE"\r\nBARMAG 3\r\nPRBAR "${data.sku}"\r\n`
+      : `PRPOS 20,60\r\nDIR 1\r\nALIGN 1\r\nBARTYPE "CODE128"\r\nBARMAG 2\r\nBARHEIGHT 60\r\nPRBAR "${data.sku}"\r\n`;
 
     const dp =
       `CLL\r\n` +                     // Clear image buffer
       `OPTIMIZE "BATCH" ON\r\n` +     // Batch optimization
-      `ALIGN 5\r\n` +                 // Set origin
-      `PRPOS 30,30\r\n` +             // Position (X,Y)
+      `PRPOS 20,15\r\n` +             // Position (X=20,Y=15)
       `DIR 1\r\n` +                   // Orientation
-      `ALIGN 4\r\n` +                 // Left align text
-      `FONT "Swiss 721 BT"\r\n` +     // Standard readable font
+      `ALIGN 1\r\n` +                 // Top-left align text
+      `FONT "Swiss 721 Bold BT",10\r\n` + // Attempt bolder font
       `PRTXT "${data.name}"\r\n` +    // Print name
       barcodeDp +                     // Print Barcode
       custStrPrint +                  // Print Customer
@@ -406,21 +405,20 @@ export async function printBarcodeBatch(items: BarcodeLabelData[]) {
       const priceStr = data.price !== undefined ? `${data.currency || '$'}${(data.price || 0).toFixed(2)}` : '';
       const custStr = data.customerName || '';
 
-      const priceStrPrint = priceStr ? `PRPOS 280,150\r\nDIR 1\r\nALIGN 4\r\nFONT "Swiss 721 BT"\r\nPRTXT "${priceStr}"\r\n` : '';
-      const custStrPrint = custStr ? `PRPOS 30,150\r\nDIR 1\r\nALIGN 4\r\nFONT "Swiss 721 BT"\r\nPRTXT "${custStr}"\r\n` : '';
+      const priceStrPrint = priceStr ? `PRPOS 280,140\r\nDIR 1\r\nALIGN 1\r\nFONT "Swiss 721 BT"\r\nPRTXT "${priceStr}"\r\n` : '';
+      const custStrPrint = custStr ? `PRPOS 20,140\r\nDIR 1\r\nALIGN 1\r\nFONT "Swiss 721 BT"\r\nPRTXT "${custStr}"\r\n` : '';
 
       const barcodeDp = data.format === 'QR'
-        ? `PRPOS 30,70\r\nDIR 1\r\nBARTYPE "QRCODE"\r\nBARMAG 3\r\nPRBAR "${data.sku}"\r\n`
-        : `PRPOS 30,70\r\nDIR 1\r\nBARTYPE "CODE128"\r\nBARMAG 2\r\nBARHEIGHT 50\r\nPRBAR "${data.sku}"\r\n`;
+        ? `PRPOS 20,60\r\nDIR 1\r\nALIGN 1\r\nBARTYPE "QRCODE"\r\nBARMAG 3\r\nPRBAR "${data.sku}"\r\n`
+        : `PRPOS 20,60\r\nDIR 1\r\nALIGN 1\r\nBARTYPE "CODE128"\r\nBARMAG 2\r\nBARHEIGHT 60\r\nPRBAR "${data.sku}"\r\n`;
 
       fullDp +=
         `CLL\r\n` +
         `OPTIMIZE "BATCH" ON\r\n` +
-        `ALIGN 5\r\n` +
-        `PRPOS 30,30\r\n` +
+        `PRPOS 20,15\r\n` +
         `DIR 1\r\n` +
-        `ALIGN 4\r\n` +
-        `FONT "Swiss 721 BT"\r\n` +
+        `ALIGN 1\r\n` +
+        `FONT "Swiss 721 Bold BT",10\r\n` +
         `PRTXT "${data.name}"\r\n` +
         barcodeDp +
         custStrPrint +
