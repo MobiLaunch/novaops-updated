@@ -23,11 +23,13 @@ function getPrintIframe(): HTMLIFrameElement {
     iframe = document.createElement('iframe');
     iframe.id = 'print-iframe';
     iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
+    iframe.style.right = '100%';
+    iframe.style.bottom = '100%';
+    iframe.style.width = '1px';
+    iframe.style.height = '1px';
     iframe.style.border = '0';
+    iframe.style.opacity = '0';
+    iframe.style.pointerEvents = 'none';
     document.body.appendChild(iframe);
   }
   return iframe;

@@ -374,6 +374,7 @@
             </div>
           </div>
           <button class="modal-done-btn" @click="saleResult = null">Done</button>
+          <button v-if="saleResult" class="modal-print-btn" @click="reprintLastReceipt">🖨 Print Receipt</button>
         </div>
       </div>
     </Transition>
@@ -436,7 +437,9 @@ const processing         = ref(false)
 const terminalStatus     = ref('')
 const keypadAmount       = ref('0')
 const cardLoading        = ref(false)
-const saleResult         = ref<null | { receiptId: number; amount: number; method: string; customer?: string }>(null)
+const saleResult         = ref<null | { receiptId: number; amount: number; method: string; customer?: string }>({} as any)
+saleResult.value = null
+const lastReceiptData    = ref<any>(null)
 
 // ── Mobile tab navigation ──────────────────────────────────────────
 const mobileTab = ref<'products' | 'cart' | 'checkout'>('products')
@@ -854,28 +857,39 @@ async function executeTicketCreation(finalMethod: string) {
     ticketMode.value = null
   }
 
+  const payloadData = {
+    businessName: settings.value?.businessName || 'NovaOps',
+    businessAddress: settings.value?.address || '',
+    businessPhone: settings.value?.phone || '',
+    date: new Date().toLocaleString(),
+    items: cart.value.map(i => ({ name: i.name, qty: i.quantity, price: i.price })),
+    subtotal: subtotal.value,
+    tax: taxAmount.value,
+    total: total.value,
+    currency: settings.value?.currency || '$',
+    customerName
+  }
+  
+  // Store logic so reprint button works
+  lastReceiptData.value = { ...payloadData, ticketRef: String(ticket.id) }
+
   // Trigger Receipt Print if enabled
   try {
     const pSettings = JSON.parse(localStorage.getItem('novaops_printer_settings') || '{}')
     if (pSettings.autoPrintReceipt) {
-      printReceipt({
-        businessName: settings.value?.businessName || 'NovaOps',
-        businessAddress: settings.value?.address || '',
-        businessPhone: settings.value?.phone || '',
-        date: new Date().toLocaleString(),
-        items: cart.value.map(i => ({ name: i.name, qty: i.quantity, price: i.price })),
-        subtotal: subtotal.value,
-        tax: taxAmount.value,
-        total: total.value,
-        currency: settings.value?.currency || '$',
-        customerName
-      })
+      printReceipt(lastReceiptData.value)
     }
   } catch (err) { console.warn('Printer config parsing failed', err) }
 
   saleResult.value = { receiptId: ticket.id, amount: total.value, method: finalMethod, customer: customerName }
   clearCart()
   terminalStatus.value = ''
+}
+
+function reprintLastReceipt() {
+  if (lastReceiptData.value) {
+    printReceipt(lastReceiptData.value)
+  }
 }
 
 onUnmounted(() => {
@@ -1453,8 +1467,16 @@ onUnmounted(() => {
   box-shadow: 0 4px 16px #10b98130;
   transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
 }
-.modal-done-btn:hover { transform: scale(1.03) translateY(-1px); box-shadow: 0 6px 22px #10b98150; }
 .modal-done-btn:active { transform: scale(0.97); }
+
+.modal-print-btn {
+  width: 100%; height: 42px; border-radius: 12px; margin-top: 4px;
+  font-size: 13px; font-weight: 800; color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted)/0.3); border: 2px solid transparent;
+  transition: all 0.2s; 
+}
+.modal-print-btn:hover { background: hsl(var(--muted)/0.6); color: hsl(var(--foreground)); border-color: hsl(var(--border)/0.5); }
+.modal-print-btn:active { transform: scale(0.97); }
 
 /* ── Transitions ────────────────────────────────────────────────────── */
 .slide-down-enter-active, .slide-down-leave-active { transition: all 0.3s ease; }
