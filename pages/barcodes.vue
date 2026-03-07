@@ -212,24 +212,16 @@ let qrCodeLoaded    = false
 
 async function loadJsBarcode(): Promise<void> {
   if (jsBarcodeLoaded || (window as any).JsBarcode) { jsBarcodeLoaded = true; return }
-  await new Promise<void>((resolve, reject) => {
-    const s = document.createElement('script')
-    s.src = 'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js'
-    s.onload = () => { jsBarcodeLoaded = true; resolve() }
-    s.onerror = reject
-    document.head.appendChild(s)
-  })
+  const mod = await import('jsbarcode')
+  ;(window as any).JsBarcode = mod.default || mod
+  jsBarcodeLoaded = true
 }
 
 async function loadQrCode(): Promise<void> {
   if (qrCodeLoaded || (window as any).QRCode) { qrCodeLoaded = true; return }
-  await new Promise<void>((resolve, reject) => {
-    const s = document.createElement('script')
-    s.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js'
-    s.onload = () => { qrCodeLoaded = true; resolve() }
-    s.onerror = reject
-    document.head.appendChild(s)
-  })
+  const mod = await import('qrcode')
+  ;(window as any).QRCode = mod.default || mod
+  qrCodeLoaded = true
 }
 
 // ── Barcode generation ────────────────────────────────────────────────────────

@@ -9,12 +9,8 @@ const loadJsBarcode = () => {
   if (typeof window === 'undefined') return Promise.resolve();
   if ((window as any).JsBarcode) return Promise.resolve();
   if (!jsBarcodePromise) {
-    jsBarcodePromise = new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js';
-      script.onload = () => resolve();
-      script.onerror = reject;
-      document.head.appendChild(script);
+    jsBarcodePromise = import('jsbarcode').then(mod => {
+      (window as any).JsBarcode = mod.default || mod;
     });
   }
   return jsBarcodePromise;
