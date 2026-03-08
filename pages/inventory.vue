@@ -14,6 +14,9 @@
         </div>
       </div>
       <div class="flex gap-3">
+        <button class="m3-btn-tonal flex items-center gap-2 h-10 px-5 rounded-full text-sm font-bold" @click="handleBatchPrint" title="Print barcodes for all currently filtered items">
+          <Printer class="w-4 h-4" /> Print Labels
+        </button>
         <button class="m3-btn-tonal flex items-center gap-2 h-10 px-5 rounded-full text-sm font-bold" @click="checkLowStock">
           <AlertTriangle class="w-4 h-4" /> Low Stock
         </button>
@@ -158,7 +161,7 @@
               :style="form.itemType === t
                 ? 'background:white;color:#8b5cf6;box-shadow:0 2px 8px rgba(0,0,0,0.08)'
                 : 'color:hsl(var(--muted-foreground))'"
-              @click="form.itemType = t">
+              @click="form.itemType = t as 'product' | 'service'">
               {{ t === 'product' ? '📦 Product' : '🔧 Service' }}
             </button>
           </div>
@@ -197,15 +200,23 @@
             </template>
           </div>
 
-          <div class="flex gap-3 pt-1">
-            <button class="flex-1 h-12 rounded-full text-sm font-bold transition-all hover:scale-105 active:scale-95"
+          <div class="flex gap-3 pt-1 w-full flex-wrap">
+            <button v-if="editingItem"
+              class="flex items-center justify-center gap-2 h-12 px-5 rounded-full text-sm font-bold transition-all hover:scale-105 active:scale-95"
               style="outline:2px solid hsl(var(--border));outline-offset:0"
-              @click="newOpen=false;editingItem=null">Cancel</button>
-            <button class="flex-1 h-12 rounded-full text-sm font-black text-white transition-all hover:scale-105 active:scale-95"
-              :style="form.itemType === 'service'
-                ? 'background:linear-gradient(135deg,#22d3ee,#0891b2);box-shadow:0 4px 16px #22d3ee40'
-                : 'background:linear-gradient(135deg,#8b5cf6,#7c3aed);box-shadow:0 4px 16px #8b5cf640'"
-              @click="saveItem">{{ editingItem ? 'Save Changes' : 'Add Item' }}</button>
+              @click="printCurrentLabel">
+              <Printer class="w-4 h-4" /> Print Label
+            </button>
+            <div class="flex-1 flex gap-3 min-w-[200px]">
+              <button class="flex-1 h-12 rounded-full text-sm font-bold transition-all hover:scale-105 active:scale-95"
+                style="outline:2px solid hsl(var(--border));outline-offset:0"
+                @click="newOpen=false;editingItem=null">Cancel</button>
+              <button class="flex-1 h-12 rounded-full text-sm font-black text-white transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+                :style="form.itemType === 'service'
+                  ? 'background:linear-gradient(135deg,#22d3ee,#0891b2);box-shadow:0 4px 16px #22d3ee40'
+                  : 'background:linear-gradient(135deg,#8b5cf6,#7c3aed);box-shadow:0 4px 16px #8b5cf640'"
+                @click="saveItem">{{ editingItem ? 'Save Changes' : 'Add Item' }}</button>
+            </div>
           </div>
         </div>
       </DialogContent>
@@ -216,10 +227,11 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Package, Search, Plus, AlertTriangle, Wrench } from 'lucide-vue-next'
+import { Package, Search, Plus, AlertTriangle, Wrench, Printer } from 'lucide-vue-next'
 import { DollarSign, Tag } from 'lucide-vue-next'
 import { Dialog, DialogContent } from '~/components/ui/dialog'
 import { useAppStore } from '~/stores/app'
+import { printBarcodeLabel, printBarcodeBatch } from '~/utils/print'
 
 definePageMeta({ middleware: ['auth'] })
 
@@ -330,6 +342,38 @@ const saveItem = async () => {
   } finally {
     isSaving.value = false
   }
+}
+
+// --- Barcode Printing ---
+const printCurrentLabel = () => {
+  if (!form.value.name) return
+  // Fallback to a placeholder SKU if it's a service without one
+  const sku = form.value.sku || (editingItem.value?.id ? `SVC-${editingItem.value.id}` : 'NO-SKU')
+  printBarcodeLabel({
+    sku,
+    name: form.value.name,
+    price: form.value.price || 0,
+    currency: settings.value?.currency || '$',
+    format: form.value.itemType === 'service' ? 'CODE128' : 'UPC' // Compact barcode for services
+  })
+}
+
+const handleBatchPrint = () => {
+  if (!filtered.value.length) return alert('No items to print.')
+  const count = filtered.value.length
+  if (count > 50) {
+    if (!confirm(`You are about to print ${count} labels. Are you sure you want to proceed?`)) return
+  }
+  
+  const payload = filtered.value.map((i: any) => ({
+    sku: i.sku || `SVC-${i.id}`,
+    name: i.name,
+    price: i.price || 0,
+    currency: settings.value?.currency || '$',
+    format: i.itemType === 'service' ? 'CODE128' : 'UPC' as any
+  }))
+
+  printBarcodeBatch(payload)
 }
 </script>
 

@@ -477,3 +477,109 @@ export async function printBarcodeBatch(items: BarcodeLabelData[]) {
 
   printHtmlContent(html);
 }
+
+export interface HousecallPrintData {
+  businessName: string;
+  businessAddress: string;
+  businessPhone: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+  serviceAddress: string;
+  date: string;
+  time: string;
+  issue: string;
+  status: string;
+}
+
+export function printHousecall(data: HousecallPrintData) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>House Call - ${data.customerName}</title>
+      <meta charset="utf-8">
+      <style>
+        body {
+          font-family: system-ui, -apple-system, sans-serif;
+          margin: 0;
+          padding: 40px;
+          color: #1f2937;
+          line-height: 1.5;
+        }
+        .header { display: flex; justify-content: space-between; border-bottom: 2px solid #e5e7eb; padding-bottom: 20px; margin-bottom: 30px; }
+        .business-info h1 { margin: 0 0 5px 0; font-size: 24px; color: #111827; font-weight: 900; letter-spacing: -0.5px; }
+        .business-info p { margin: 2px 0; font-size: 14px; color: #4b5563; }
+        .doc-title { text-align: right; }
+        .doc-title h2 { margin: 0; font-size: 28px; color: #8b5cf6; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; }
+        .doc-title p { margin: 5px 0 0 0; font-size: 14px; font-weight: 600; color: #6b7280; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+        .box { border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; background: #f9fafb; }
+        .box-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; margin: 0 0 10px 0; }
+        .box p { margin: 5px 0; font-size: 15px; font-weight: 500; }
+        .box .highlight { font-weight: 700; color: #111827; }
+        
+        .issue-section { border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px; margin-bottom: 40px; }
+        .issue-text { font-size: 16px; color: #374151; white-space: pre-wrap; font-weight: 500; }
+        
+        .notes-section { height: 250px; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 40px; }
+        
+        .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 50px; }
+        .sig-line { border-top: 1px solid #9ca3af; padding-top: 10px; font-size: 14px; font-weight: 600; color: #4b5563; }
+        
+        @media print {
+          @page { margin: 0.5in; size: letter; }
+          body { padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .box { background: #f9fafb !important; border: 1px solid #e5e7eb !important; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="business-info">
+          <h1>${data.businessName || 'NovaOps'}</h1>
+          ${data.businessAddress ? `<p>${data.businessAddress}</p>` : ''}
+          ${data.businessPhone ? `<p>${data.businessPhone}</p>` : ''}
+        </div>
+        <div class="doc-title">
+          <h2>House Call</h2>
+          <p>${data.status.toUpperCase()}</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="box">
+          <h3 class="box-title">Customer Details</h3>
+          <p class="highlight" style="font-size: 18px;">${data.customerName || 'Unknown Customer'}</p>
+          <p>${data.customerPhone || 'No Phone'}</p>
+          <p>${data.customerEmail || 'No Email'}</p>
+        </div>
+        <div class="box" style="border-color: #8b5cf640; background: #8b5cf605;">
+          <h3 class="box-title" style="color: #8b5cf6;">Service Appointment</h3>
+          <p><span class="highlight">Date:</span> ${data.date || 'TBD'}</p>
+          <p><span class="highlight">Time:</span> ${data.time || 'TBD'}</p>
+          <p style="margin-top: 10px;"><span class="highlight">Location:</span></p>
+          <p style="line-height: 1.4;">${data.serviceAddress || 'No Address Provided'}</p>
+        </div>
+      </div>
+
+      <div class="issue-section">
+        <h3 class="box-title">Reported Issue / Description</h3>
+        <div class="issue-text">${data.issue || 'No details provided.'}</div>
+      </div>
+
+      <div class="notes-section">
+        <h3 class="box-title">Technician Notes & Parts Used</h3>
+      </div>
+
+      <div class="signatures">
+        <div class="sig-line">Technician Signature & Date</div>
+        <div class="sig-line">Customer Signature & Date</div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  printHtmlContent(html);
+}

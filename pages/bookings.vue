@@ -52,7 +52,7 @@
         :style="activeTab === tab.id
           ? `background: ${tab.color}; color: white; box-shadow: 0 4px 12px ${tab.color}50`
           : 'color: hsl(var(--muted-foreground))'"
-        @click="activeTab = tab.id"
+        @click="activeTab = tab.id as 'tickets' | 'housecalls' | 'thirdparty'"
       >
         <component :is="tab.icon" class="w-4 h-4" />
         {{ tab.label }}
@@ -467,11 +467,19 @@
         </div>
 
         <!-- Fixed footer buttons -->
-        <div class="flex gap-3 px-4 sm:px-7 py-4 flex-shrink-0 border-t border-border/40">
-          <button class="flex-1 h-12 rounded-full font-bold text-sm transition-all hover:scale-[1.02] active:scale-95" style="outline: 2px solid hsl(var(--border)); outline-offset: 0" @click="housecallFormOpen = false">Cancel</button>
-          <button class="flex-1 h-12 rounded-full font-black text-sm text-white transition-all hover:scale-[1.02] active:scale-95" style="background: linear-gradient(135deg, #10b981, #059669)" @click="saveHousecall">
-            {{ editingHousecall ? 'Save Changes' : 'Schedule' }}
+        <div class="flex gap-3 px-4 sm:px-7 py-4 flex-shrink-0 border-t border-border/40 flex-wrap">
+          <button v-if="editingHousecall"
+            class="flex items-center justify-center gap-2 h-12 px-5 rounded-full text-sm font-bold transition-all hover:scale-105 active:scale-95"
+            style="outline: 2px solid hsl(var(--border)); outline-offset: 0"
+            @click="printCurrentHousecall">
+            <Printer class="w-4 h-4" /> Print Details
           </button>
+          <div class="flex-1 flex gap-3 min-w-[200px]">
+            <button class="flex-1 h-12 rounded-full font-bold text-sm transition-all hover:scale-[1.02] active:scale-95" style="outline: 2px solid hsl(var(--border)); outline-offset: 0" @click="housecallFormOpen = false">Cancel</button>
+            <button class="flex-1 h-12 rounded-full font-black text-sm text-white transition-all hover:scale-[1.02] active:scale-95" style="background: linear-gradient(135deg, #10b981, #059669)" @click="saveHousecall">
+              {{ editingHousecall ? 'Save Changes' : 'Schedule' }}
+            </button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
@@ -558,13 +566,14 @@
 import {
   ClipboardList, TicketCheck, MapPin, Building2, Plus, Search, Smartphone, Inbox,
   Clock, Wrench, CheckCircle, BarChart3, Trash2, Truck, RotateCcw,
-  Calendar as CalendarIcon, Package, AlertCircle, Navigation, Calculator
+  Calendar as CalendarIcon, Package, AlertCircle, Navigation, Calculator, Printer
 } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import type { Ticket } from '~/types'
 import { Dialog, DialogContent } from '~/components/ui/dialog'
 import NewTicketDialog from '~/components/NewTicketDialog.vue'
 import TicketDetailDialog from '~/components/TicketDetailDialog.vue'
+import { printHousecall } from '~/utils/print'
 
 definePageMeta({ middleware: ['auth'] })
 
@@ -728,6 +737,25 @@ const deleteHousecall = async (call: any) => {
     try { await appStore.deleteHouseCall(call.id) }
     catch(e: any) { addNotification('Error', 'Failed to delete house call', 'error') }
   } 
+}
+
+const printCurrentHousecall = () => {
+  if (!housecallForm.value) return
+  const customerEmail = customers.value.find((c: any) => c.id === housecallForm.value.customerId)?.email || ''
+  
+  printHousecall({
+    businessName: settings.value?.businessName || 'NovaOps',
+    businessAddress: settings.value?.address || '',
+    businessPhone: settings.value?.phone || '',
+    customerName: getCustomerName(housecallForm.value.customerId),
+    customerPhone: getCustomerPhone(housecallForm.value.customerId),
+    customerEmail,
+    serviceAddress: housecallForm.value.address,
+    date: housecallForm.value.date ? formatDate(housecallForm.value.date) : 'TBD',
+    time: housecallForm.value.time || 'TBD',
+    issue: housecallForm.value.issue || 'No details provided.',
+    status: housecallForm.value.status
+  })
 }
 
 // ── House Call: Maps + Calculator ────────────────────────────────────────────
