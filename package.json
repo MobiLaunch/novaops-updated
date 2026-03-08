@@ -4,7 +4,6 @@
   "description": "NovaOps — Modern Repair Shop Management System",
   "private": true,
   "type": "module",
-  "main": "electron/main.cjs",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -44,6 +43,7 @@
     "@parcel/watcher": "2.4.1"
   },
   "optionalDependencies": {
+    "nodemailer": "^6.9.15",
     "@parcel/watcher-darwin-arm64": "2.4.1",
     "@parcel/watcher-darwin-x64": "2.4.1",
     "@parcel/watcher-linux-x64-glibc": "2.4.1",

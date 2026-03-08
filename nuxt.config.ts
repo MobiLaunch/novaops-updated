@@ -170,6 +170,13 @@ export default defineNuxtConfig({
   imports: { autoImport: true },
   css: ['~/assets/css/main.css'],
 
+  components: [
+    {
+      path: '~/components',
+      ignore: ['**/index.ts'],
+    },
+  ],
+
   postcss: {
     plugins: {
       tailwindcss: {},

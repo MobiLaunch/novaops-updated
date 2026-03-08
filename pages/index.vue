@@ -1,3 +1,9 @@
+<template>
+  <div class="flex min-h-screen items-center justify-center">
+    <div class="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+  </div>
+</template>
+
 <script setup lang="ts">
 // Root route — decide first destination.
 //
@@ -7,18 +13,12 @@
 //      user sees the onboarding animation before anything else.
 //   2. Otherwise redirect to /login (which bounces authenticated users to
 //      /dashboard via the auth middleware).
-//
-// This file must exist; without it Nuxt's file-based router has no handler for /
-// and serves a blank 404.
 definePageMeta({ middleware: [] })
 
-const isFirstLaunch = import.meta.client
-  ? !localStorage.getItem('novaops_launched')
-  : false
+const isFirstLaunch = import.meta.client && !localStorage.getItem('novaops_launched')
 
 if (isFirstLaunch) {
-  // Mark as launched so subsequent visits go straight to login
-  if (import.meta.client) localStorage.setItem('novaops_launched', '1')
+  localStorage.setItem('novaops_launched', '1')
   await navigateTo('/intro', { replace: true })
 } else {
   await navigateTo('/login', { replace: true })
