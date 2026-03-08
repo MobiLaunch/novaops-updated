@@ -490,6 +490,7 @@ export interface HousecallPrintData {
   time: string;
   issue: string;
   status: string;
+  estimate?: string;
 }
 
 export function printHousecall(data: HousecallPrintData) {
@@ -559,6 +560,7 @@ export function printHousecall(data: HousecallPrintData) {
           <h3 class="box-title" style="color: #8b5cf6;">Service Appointment</h3>
           <p><span class="highlight">Date:</span> ${data.date || 'TBD'}</p>
           <p><span class="highlight">Time:</span> ${data.time || 'TBD'}</p>
+          ${data.estimate ? `<p><span class="highlight">Estimate:</span> ${data.estimate}</p>` : ''}
           <p style="margin-top: 10px;"><span class="highlight">Location:</span></p>
           <p style="line-height: 1.4;">${data.serviceAddress || 'No Address Provided'}</p>
         </div>

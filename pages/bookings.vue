@@ -742,6 +742,16 @@ const deleteHousecall = async (call: any) => {
 const printCurrentHousecall = () => {
   if (!housecallForm.value) return
   const customerEmail = customers.value.find((c: any) => c.id === housecallForm.value.customerId)?.email || ''
+
+  // Format 24-hr time to 12-hr AM/PM
+  let displayTime = housecallForm.value.time || 'TBD'
+  if (displayTime !== 'TBD' && displayTime.includes(':')) {
+    const [h, m] = displayTime.split(':')
+    const hour = parseInt(h, 10)
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const hour12 = hour % 12 || 12
+    displayTime = `${hour12}:${m} ${ampm}`
+  }
   
   printHousecall({
     businessName: settings.value?.businessName || 'NovaOps',
@@ -752,9 +762,10 @@ const printCurrentHousecall = () => {
     customerEmail,
     serviceAddress: housecallForm.value.address,
     date: housecallForm.value.date ? formatDate(housecallForm.value.date) : 'TBD',
-    time: housecallForm.value.time || 'TBD',
+    time: displayTime,
     issue: housecallForm.value.issue || 'No details provided.',
-    status: housecallForm.value.status
+    status: housecallForm.value.status,
+    estimate: housecallEstimate.value ? `${settings.value?.currency || '$'}${housecallEstimate.value.toFixed(2)}` : undefined
   })
 }
 
