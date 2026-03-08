@@ -461,6 +461,11 @@
           @click="emailCustomer">
           <Mail class="w-3.5 h-3.5" /> Email
         </button>
+        <button class="flex items-center gap-1.5 h-11 px-4 rounded-full text-sm font-bold transition-all hover:scale-[1.03] hover:bg-muted/60 active:scale-95"
+          style="outline: 2px solid hsl(var(--border)); outline-offset: 0"
+          @click="printIntakeLabel">
+          <Printer class="w-3.5 h-3.5" /> Print Label
+        </button>
         <button class="h-11 px-5 rounded-full text-sm font-bold transition-all hover:scale-[1.03] hover:bg-muted/60 active:scale-95"
           style="outline: 2px solid hsl(var(--border)); outline-offset: 0"
           @click="isOpen = false">Close</button>
@@ -479,8 +484,9 @@
 </template>
 
 <script setup lang="ts">
-import { X, Plus, Search, Clock, DollarSign, Save, Trash2, Loader2, Mail, TicketCheck } from 'lucide-vue-next'
+import { X, Plus, Search, Clock, DollarSign, Save, Trash2, Loader2, Mail, TicketCheck, Printer } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
+import { printBarcodeLabel } from '~/utils/print'
 import { Dialog, DialogContent } from '~/components/ui/dialog'
 import { Card, CardContent } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
@@ -760,6 +766,18 @@ function emailCustomer() {
       ticketId: String(props.ticket.id),
       customerId: String(props.ticket.customerId),
     }
+  })
+}
+
+function printIntakeLabel() {
+  if (!props.ticket) return
+  // Fire off the exact standard Direct Protocol expected by the label printer
+  printBarcodeLabel({
+    sku: `TKT-${props.ticket.id}`, // the literal string POS listens for
+    name: `Ticket #${props.ticket.id} - ${props.ticket.device}`,
+    price: laborTotal.value + partsTotal.value,
+    customerName: getCustomerName(props.ticket.customerId),
+    format: 'CODE128' // Fall back to standard bar so it's vertically compact
   })
 }
 

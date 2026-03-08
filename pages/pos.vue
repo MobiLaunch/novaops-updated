@@ -547,6 +547,8 @@ function addCustomToCart() {
 
 // ── Ticket / Afterpay redirect handling ───────────────────────────
 const route = useRoute()
+const { $supabase } = useNuxtApp()
+const from = (table: string) => ($supabase as any).from(table)
 
 // ── Barcode Scanner Integration ────────────────────────────────────
 let barcodeBuffer = ''
@@ -577,30 +579,48 @@ function handleBarcodeScan(e: KeyboardEvent) {
   }
 }
 
-function processScannedBarcode(code: string) {
+async function processScannedBarcode(code: string) {
   // 1. Check if it's a Ticket SKU (e.g. TKT-123)
   if (code.toUpperCase().startsWith('TKT-')) {
     const idStr = code.substring(4)
     const ticketId = parseInt(idStr, 10)
     if (!isNaN(ticketId)) {
-      const ticket = appStore.tickets?.find((t: any) => t.id === ticketId)
-      if (ticket) {
-        // Prevent adding if already in cart
-        if (cart.value.some(i => i.isTicket && i.ticketId === ticketId)) {
-          addNotification('Already in Cart', `Ticket #${ticketId} is already added.`, 'info')
-          return
+      
+      // Prevent adding if already in cart
+      if (cart.value.some(i => i.isTicket && i.ticketId === ticketId)) {
+        addNotification('Already in Cart', `Ticket #${ticketId} is already added.`, 'info')
+        return
+      }
+
+      // 1a. Check Local Store Memory First
+      let ticket = appStore.tickets?.find((t: any) => t.id === ticketId)
+      
+      // 1b. If not in local memory, hit Supabase directly (e.g. cold / old ticket)
+      if (!ticket) {
+        try {
+          // Since setup contains $supabase via useNuxtApp(), we use from() directly
+          const { data, error } = await from('tickets').select('*').eq('id', ticketId).single()
+          if (!error && data) {
+            ticket = data
+          }
+        } catch (e) {
+          console.error("Failed to fetch cold ticket:", e)
         }
+      }
+
+      // If we found the ticket either locally or remotely, build the cart row
+      if (ticket) {
         cart.value.push({
           id: `tkt-${ticketId}`,
           quantity: 1,
           isTicket: true,
-          ticketId,
-          name: `Ticket #${ticketId} · ${ticket.device}`,
+          ticketId: ticket.id,
+          name: `Ticket #${ticket.id} · ${ticket.device || 'Device'}`,
           price: Number(ticket.price || 0),
           isService: true
         })
         if (ticket.customerId) selectedCustomerId.value = ticket.customerId
-        addNotification('Ticket Added', `Added Ticket #${ticketId} to cart`, 'success')
+        addNotification('Ticket Added', `Added Ticket #${ticket.id} to cart`, 'success')
         return
       }
     }
