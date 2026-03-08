@@ -1,5 +1,6 @@
 <template>
   <div :class="{ 'electron-app': isElectron }">
+    <VitePwaManifest />
     <ElectronTitlebar />
     <NuxtLayout>
       <NuxtPage />

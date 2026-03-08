@@ -176,9 +176,9 @@ export const useAppStore = defineStore('app', () => {
         ($supabase as any).from('appointments').select('*').eq('profile_id', uid).order('date', { ascending: true }),
         ($supabase as any).from('profiles').select('*').eq('id', uid).single(),
         ($supabase as any).from('services').select('*').eq('profile_id', uid).order('name', { ascending: true }),
-        ($supabase as any).from('settings').select('*').limit(1).single(),
+        ($supabase as any).from('settings').select('*').eq('profile_id', uid).maybeSingle(),
         ($supabase as any).from('expenses').select('*').eq('profile_id', uid).order('date', { ascending: false }),
-        ($supabase as any).from('square_config').select('*').eq('profile_id', uid).single(),
+        ($supabase as any).from('square_config').select('*').eq('profile_id', uid).maybeSingle(),
       ])
 
       tickets.value = (t.data || []).map(normalizeTicket)
@@ -208,14 +208,35 @@ export const useAppStore = defineStore('app', () => {
       // Expenses from the `expenses` table
       expenses.value = expRows?.data || []
 
-      // Square config from the `square_config` table
-      if (sqRow?.data) {
+      // Square config from the `square_config` table, with localStorage fallback
+      const sqData = sqRow?.data
+      if (sqData?.access_token && sqData?.location_id) {
         settings.value = {
           ...settings.value,
-          squareAccessToken: sqRow.data.access_token || '',
-          squareLocationId: sqRow.data.location_id || '',
-          squareSandbox: sqRow.data.sandbox ?? false,
+          squareAccessToken: sqData.access_token || '',
+          squareLocationId: sqData.location_id || '',
+          squareSandbox: sqData.sandbox ?? false,
         }
+        if (typeof localStorage !== 'undefined') {
+          try {
+            localStorage.setItem('novaops_square_config', JSON.stringify({ access_token: sqData.access_token, location_id: sqData.location_id, sandbox: sqData.sandbox }))
+          } catch { /* ignore */ }
+        }
+      } else if (typeof localStorage !== 'undefined') {
+        try {
+          const cached = localStorage.getItem('novaops_square_config')
+          if (cached) {
+            const parsed = JSON.parse(cached)
+            if (parsed?.access_token && parsed?.location_id) {
+              settings.value = {
+                ...settings.value,
+                squareAccessToken: parsed.access_token || '',
+                squareLocationId: parsed.location_id || '',
+                squareSandbox: parsed.sandbox ?? false,
+              }
+            }
+          }
+        } catch { /* ignore */ }
       }
 
       // PIN from profiles (only thing we still read from profiles)
@@ -666,6 +687,11 @@ export const useAppStore = defineStore('app', () => {
     if (error) {
       console.error('[saveSquareConfig] Error:', JSON.stringify(error))
       throw error
+    }
+    if (typeof localStorage !== 'undefined' && payload.access_token && payload.location_id) {
+      try {
+        localStorage.setItem('novaops_square_config', JSON.stringify({ access_token: payload.access_token, location_id: payload.location_id, sandbox: payload.sandbox }))
+      } catch { /* ignore */ }
     }
   }
 
