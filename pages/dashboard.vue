@@ -155,6 +155,38 @@
         </div>
       </div>
 
+      <!-- Repair Shop Alerts (Warranty & Parts) -->
+      <div v-if="warrantyExpiringSoon.length > 0 || waitingForParts.length > 0" class="summary-card" style="border: 2px solid #f59e0b30; background: #fef3c708; grid-column: 1 / -1">
+        <div class="card-header">
+          <div class="card-header-icon" style="background: #f59e0b18; color: #f59e0b">
+            <AlertCircle class="w-4 h-4" />
+          </div>
+          <h3 class="card-title">Repair Alerts</h3>
+        </div>
+        <div class="flex flex-col gap-2">
+          <div
+            v-for="t in warrantyExpiringSoon.slice(0, 3)"
+            :key="'w-' + t.id"
+            class="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-muted/40 cursor-pointer transition-colors"
+            style="background: #f59e0b08; border: 1px solid #f59e0b20"
+            @click="navigateTo('/bookings')"
+          >
+            <span class="text-xs font-semibold">#{{ t.id }} — Warranty expiring</span>
+            <span class="text-[10px] text-amber-600 font-bold">{{ warrantyDaysLeft(t) }}d left</span>
+          </div>
+          <div
+            v-for="t in waitingForParts.slice(0, 3)"
+            :key="'p-' + t.id"
+            class="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-muted/40 cursor-pointer transition-colors"
+            style="background: #ef444408; border: 1px solid #ef444420"
+            @click="navigateTo('/bookings')"
+          >
+            <span class="text-xs font-semibold">#{{ t.id }} — Waiting for parts</span>
+            <span class="text-[10px] text-red-600 font-bold">{{ t.device }}</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Recent Tickets -->
       <div class="tickets-card">
         <div class="card-header">
@@ -211,7 +243,7 @@ import {
   Banknote, TicketCheck, Users, Box, Wrench,
   ShoppingCart, CalendarDays, Package, ClipboardCheck, UserPlus,
   DollarSign, TrendingUp, LayoutDashboard, MessageCircle,
-  Sun, Cloud, CloudRain, CloudSnow, CloudDrizzle, CloudLightning, Snowflake,
+  Sun, Cloud, CloudRain, CloudSnow, CloudDrizzle, CloudLightning, Snowflake, AlertCircle,
 } from 'lucide-vue-next'
 import NewTicketDialog from '~/components/NewTicketDialog.vue'
 import { useWeather, wmoIconKey, getContextBanner } from '~/composables/useWeather'
@@ -285,6 +317,26 @@ const completedToday   = computed(() => {
 const lowStockItems        = computed(() => (inventory.value || []).filter(item => (item.itemType || 'product') !== 'service' && item.stock <= (item.low || 5)).length)
 const upcomingAppointments = computed(() => (appointments.value || []).filter(a => a.status === 'scheduled').length)
 const recentTickets        = computed(() => [...(tickets.value || [])].sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 8))
+const waitingForParts     = computed(() => (tickets.value || []).filter(t => t.status === 'Waiting for Parts'))
+const warrantyExpiringSoon = computed(() => {
+  const now = new Date()
+  const inDays = (d: Date) => Math.ceil((d.getTime() - now.getTime()) / 86400000)
+  return (tickets.value || [])
+    .filter(t => (t.status === 'Completed' || t.status === 'Delivered') && t.warrantyDays > 0 && t.warrantyStart)
+    .map(t => {
+      const start = new Date(t.warrantyStart)
+      const end = new Date(start.getTime() + (t.warrantyDays || 0) * 86400000)
+      return { ...t, _daysLeft: inDays(end) }
+    })
+    .filter(t => t._daysLeft >= 0 && t._daysLeft <= 14)
+    .sort((a, b) => a._daysLeft - b._daysLeft)
+})
+const warrantyDaysLeft = (t: any) => {
+  if (!t.warrantyStart || !t.warrantyDays) return 0
+  const start = new Date(t.warrantyStart)
+  const end = new Date(start.getTime() + (t.warrantyDays || 0) * 86400000)
+  return Math.max(0, Math.ceil((end.getTime() - Date.now()) / 86400000))
+}
 
 const formatCurrency   = (amount: number) => `${settings.value?.currency || '$'}${(amount || 0).toFixed(2)}`
 const getCustomerName  = (customerId: number) => (customers.value || []).find(c => c.id === customerId)?.name || 'Unknown'

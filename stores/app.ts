@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useNuxtApp } from '#app'
+import { printBarcodeLabel } from '~/utils/print'
 
 export const useAppStore = defineStore('app', () => {
   const { $supabase } = useNuxtApp()

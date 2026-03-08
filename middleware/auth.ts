@@ -2,8 +2,8 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   const { $supabase } = useNuxtApp()
 
-  // Pages that never require auth
-  const publicPaths = ['/login', '/register', '/auth/callback', '/intro']
+  // Pages that never require auth (display = customer TV/projector view)
+  const publicPaths = ['/login', '/register', '/auth/callback', '/intro', '/display']
   if (publicPaths.includes(to.path)) {
     // If already authenticated, skip login/register (but not callback)
     if ($supabase && to.path !== '/auth/callback') {
