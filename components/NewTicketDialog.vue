@@ -9,14 +9,14 @@
         </div>
         <div>
           <h2 class="text-base font-black">New Repair Ticket</h2>
-          <p class="text-xs text-muted-foreground font-medium mt-0.5">Step {{ currentStep }} of 5</p>
+          <p class="text-xs text-muted-foreground font-medium mt-0.5">Step {{ displayStep }} of {{ totalSteps }}</p>
         </div>
         <!-- Progress pills -->
         <div class="flex gap-1.5 ml-auto mr-10">
-          <div v-for="i in 5" :key="i"
+          <div v-for="i in totalSteps" :key="i"
             class="h-1.5 rounded-full transition-all duration-500"
-            :class="i <= currentStep ? 'w-6' : 'w-3'"
-            :style="i <= currentStep ? 'background: #6366f1' : 'background: hsl(var(--border))'"
+            :class="i <= displayStep ? 'w-6' : 'w-3'"
+            :style="i <= displayStep ? 'background: #6366f1' : 'background: hsl(var(--border))'"
           />
         </div>
       </div>
@@ -31,12 +31,39 @@
           </div>
           <div v-else class="grid grid-cols-2 md:grid-cols-3 gap-3">
             <button
-              v-for="brand in brands" :key="brand"
+              v-for="brand in allBrands" :key="brand"
               class="m3-step-chip group"
               :class="selectedBrand === brand ? 'm3-step-chip--active' : ''"
               @click="selectBrand(brand)"
             >
-              <span class="text-sm font-bold">{{ brand }}</span>
+              <div class="flex items-center gap-2">
+                <span class="text-lg leading-none">{{ brandEmoji(brand) }}</span>
+                <span class="text-sm font-bold">{{ brand }}</span>
+              </div>
+            </button>
+            <!-- Other brand button -->
+            <button
+              class="m3-step-chip group"
+              :class="isOtherBrand ? 'm3-step-chip--active' : ''"
+              @click="selectOtherBrand"
+            >
+              <div class="flex items-center gap-2">
+                <span class="text-lg leading-none">✏️</span>
+                <span class="text-sm font-bold">Other</span>
+              </div>
+            </button>
+          </div>
+          <!-- Custom brand input (shown when Other is selected) -->
+          <div v-if="isOtherBrand" class="space-y-3 pt-2 border-t border-border/50 animate-in fade-in slide-in-from-top-2 duration-200">
+            <label class="m3-dialog-label">Enter Brand Name</label>
+            <input v-model="customBrand" placeholder="e.g. Motorola, OnePlus, Lenovo…" class="m3-dialog-input" @keyup.enter="confirmOtherBrand" />
+            <button
+              class="w-full h-11 rounded-full text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+              :style="customBrand ? 'background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 4px 16px #6366f140' : 'background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); cursor: not-allowed'"
+              :disabled="!customBrand"
+              @click="confirmOtherBrand"
+            >
+              Continue with "{{ customBrand || '…' }}" <ChevronRight class="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -44,24 +71,60 @@
         <!-- ── Step 2: Category ───────────────────────────── -->
         <div v-if="currentStep === 2" class="space-y-4">
           <div class="flex items-center gap-2">
-            <button class="m3-back-btn" @click="currentStep = 1">
+            <button class="m3-back-btn" @click="goBackFromStep2">
               <ChevronLeft class="w-4 h-4" />
             </button>
             <label class="m3-dialog-label mb-0">{{ selectedBrand }} — Category</label>
           </div>
-          <div v-if="loadingCategories" class="flex items-center justify-center py-10">
-            <div class="w-8 h-8 border-[3px] border-primary/30 border-t-primary rounded-full animate-spin" />
+          <!-- Custom brand: show manual category + model entry -->
+          <div v-if="isOtherBrand" class="space-y-4">
+            <div class="rounded-[20px] p-4 flex items-center gap-3" style="background: #6366f110; outline: 1.5px solid #6366f128; outline-offset: 0">
+              <span class="text-2xl">✏️</span>
+              <div class="text-sm">
+                <p class="font-black">Custom Device Entry</p>
+                <p class="text-muted-foreground font-medium text-xs mt-0.5">Fill in the details for {{ selectedBrand }}</p>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="m3-dialog-label">Device Category</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  v-for="cat in commonCategories" :key="cat.label"
+                  class="m3-step-chip"
+                  :class="selectedCategory === cat.label ? 'm3-step-chip--active' : ''"
+                  @click="selectedCategory = cat.label; customCategory = ''"
+                >
+                  <div class="flex items-center gap-2">
+                    <span class="text-base leading-none">{{ cat.emoji }}</span>
+                    <span class="text-sm font-bold">{{ cat.label }}</span>
+                  </div>
+                </button>
+              </div>
+              <input v-model="customCategory" placeholder="Or type custom category…" class="m3-dialog-input mt-2"
+                @focus="selectedCategory = ''"
+                @input="selectedCategory = customCategory" />
+            </div>
+            <div class="space-y-2">
+              <label class="m3-dialog-label">Model / Device Name</label>
+              <input v-model="customModel" placeholder="e.g. Edge 40 Pro, Nord CE3, Tab P12…" class="m3-dialog-input" />
+            </div>
           </div>
-          <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <button
-              v-for="cat in categories" :key="cat"
-              class="m3-step-chip"
-              :class="selectedCategory === cat ? 'm3-step-chip--active' : ''"
-              @click="selectCategory(cat)"
-            >
-              <span class="text-sm font-bold text-left">{{ cat }}</span>
-            </button>
-          </div>
+          <!-- Normal brand: category chips from DB -->
+          <template v-else>
+            <div v-if="loadingCategories" class="flex items-center justify-center py-10">
+              <div class="w-8 h-8 border-[3px] border-primary/30 border-t-primary rounded-full animate-spin" />
+            </div>
+            <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <button
+                v-for="cat in categories" :key="cat"
+                class="m3-step-chip"
+                :class="selectedCategory === cat ? 'm3-step-chip--active' : ''"
+                @click="selectCategory(cat)"
+              >
+                <span class="text-sm font-bold text-left">{{ cat }}</span>
+              </button>
+            </div>
+          </template>
         </div>
 
         <!-- ── Step 3: Model ─────────────────────────────── -->
@@ -180,6 +243,67 @@
             <textarea v-model="ticketData.deviceDescription" rows="2" placeholder="Color, visible damage, accessories included…" class="m3-dialog-textarea" />
           </div>
 
+          <!-- Photo Attachments -->
+          <div class="space-y-3">
+            <label class="m3-dialog-label">Photos <span class="normal-case font-medium opacity-60">(optional — up to 6)</span></label>
+
+            <!-- Drop zone -->
+            <div
+              class="photo-dropzone"
+              :class="{ 'photo-dropzone--drag': isDragging, 'photo-dropzone--has-files': photoAttachments.length > 0 }"
+              @dragover.prevent="isDragging = true"
+              @dragleave.prevent="isDragging = false"
+              @drop.prevent="handlePhotoDrop"
+              @click="triggerPhotoInput"
+            >
+              <input
+                ref="photoInputRef"
+                type="file"
+                accept="image/*"
+                multiple
+                class="hidden"
+                @change="handlePhotoSelect"
+              />
+              <div v-if="photoAttachments.length === 0" class="flex flex-col items-center gap-2 py-4">
+                <div class="w-10 h-10 rounded-[18px] flex items-center justify-center" style="background: #6366f115">
+                  <Camera class="w-5 h-5" style="color: #6366f1" />
+                </div>
+                <p class="text-sm font-bold text-muted-foreground">Drop photos here or <span style="color: #6366f1">click to browse</span></p>
+                <p class="text-xs text-muted-foreground/60 font-medium">JPG, PNG, HEIC up to 10 MB each</p>
+              </div>
+              <div v-else class="grid grid-cols-3 gap-2 p-1" @click.stop>
+                <div
+                  v-for="(photo, idx) in photoAttachments" :key="idx"
+                  class="photo-thumb group relative"
+                >
+                  <img :src="photo.preview" :alt="photo.file.name" class="w-full h-20 object-cover rounded-[14px]" />
+                  <div class="absolute inset-0 rounded-[14px] bg-black/0 group-hover:bg-black/20 transition-all duration-200" />
+                  <button
+                    class="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-black/80"
+                    @click.stop="removePhoto(idx)"
+                  >
+                    <X class="w-3 h-3 text-white" />
+                  </button>
+                  <div class="absolute bottom-1 left-1 right-1 text-white text-[9px] font-bold truncate opacity-0 group-hover:opacity-100 transition-opacity px-1">
+                    {{ photo.file.name }}
+                  </div>
+                </div>
+                <!-- Add more button (if under limit) -->
+                <button
+                  v-if="photoAttachments.length < 6"
+                  class="h-20 rounded-[14px] border-2 border-dashed flex items-center justify-center transition-all hover:scale-[1.02]"
+                  style="border-color: #6366f140; background: #6366f108"
+                  @click.stop="triggerPhotoInput"
+                >
+                  <Plus class="w-5 h-5" style="color: #6366f1" />
+                </button>
+              </div>
+            </div>
+            <p v-if="photoAttachments.length > 0" class="text-xs text-muted-foreground font-medium text-right">
+              {{ photoAttachments.length }}/6 photo{{ photoAttachments.length !== 1 ? 's' : '' }} added
+            </p>
+          </div>
+
           <SignaturePad v-model="ticketData.signature" label="Customer Signature (optional)" :width="Math.min(550, typeof window !== 'undefined' ? window.innerWidth - 80 : 550)" :height="150" />
         </div>
 
@@ -211,7 +335,7 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronLeft, ChevronRight, Search, Zap, Droplets, Volume2, Wifi, Battery, Eye, Wrench, Check } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Search, Zap, Droplets, Volume2, Wifi, Battery, Eye, Wrench, Check, Camera, X, Plus } from 'lucide-vue-next'
 import { Dialog, DialogContent } from '~/components/ui/dialog'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '~/components/ui/select'
 import SignaturePad from '~/components/SignaturePad.vue'
@@ -226,6 +350,56 @@ const emit = defineEmits(['update:modelValue', 'create'])
 
 const { $supabase } = useNuxtApp()
 const from = (table: string) => ($supabase as unknown as any).from(table)
+
+// ── Known brands & devices (used as fallback / supplement to DB) ──────────
+const KNOWN_BRANDS = [
+  'Apple', 'Samsung', 'Google', 'Sony', 'LG',
+  'Microsoft', 'Dell', 'HP', 'Lenovo', 'ASUS',
+  'Acer', 'Huawei', 'OnePlus', 'Motorola', 'Nokia',
+  'Xiaomi', 'Oppo', 'Vivo', 'Realme', 'Nothing',
+]
+
+const commonCategories = [
+  { label: 'Smartphone', emoji: '📱' },
+  { label: 'Tablet',     emoji: '📟' },
+  { label: 'Laptop',     emoji: '💻' },
+  { label: 'Desktop',    emoji: '🖥️' },
+  { label: 'Smartwatch', emoji: '⌚' },
+  { label: 'Gaming',     emoji: '🎮' },
+  { label: 'Headphones', emoji: '🎧' },
+  { label: 'Camera',     emoji: '📷' },
+]
+
+const brandEmojiMap: Record<string, string> = {
+  Apple: '🍎', Samsung: '🌀', Google: '🔍', Sony: '🎵', LG: '⚡',
+  Microsoft: '🪟', Dell: '💻', HP: '🖨️', Lenovo: '🔴', ASUS: '🦅',
+  Acer: '🌊', Huawei: '🌸', OnePlus: '➕', Motorola: '〽️', Nokia: '🔵',
+  Xiaomi: '🟠', Oppo: '🔶', Vivo: '🟣', Realme: '🟡', Nothing: '⚪',
+}
+const brandEmoji = (brand: string) => brandEmojiMap[brand] ?? '📱'
+
+// Merge DB brands with known brands (DB wins on duplicates)
+const allBrands = computed(() => {
+  const dbSet = new Set(brands.value.map(b => b.toLowerCase()))
+  const extra = KNOWN_BRANDS.filter(b => !dbSet.has(b.toLowerCase()))
+  return [...brands.value, ...extra].sort((a, b) => a.localeCompare(b))
+})
+
+// Other / custom brand state
+const isOtherBrand = ref(false)
+const customBrand = ref('')
+const customCategory = ref('')
+
+// Step display — "Other" brand skips step 3, so total = 4
+const totalSteps = computed(() => isOtherBrand.value ? 4 : 5)
+const displayStep = computed(() => {
+  if (!isOtherBrand.value) return currentStep.value
+  // Map internal steps: 1→1, 2→2, 4→3, 5→4
+  if (currentStep.value <= 2) return currentStep.value
+  if (currentStep.value === 4) return 3
+  if (currentStep.value === 5) return 4
+  return currentStep.value
+})
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -295,9 +469,34 @@ const issues = [
   { name: 'Other',             icon: Wrench,   description: 'Other issues' }
 ]
 
+const selectOtherBrand = () => {
+  isOtherBrand.value = true
+  selectedBrand.value = ''
+  customBrand.value = ''
+}
+
+const confirmOtherBrand = () => {
+  if (!customBrand.value) return
+  selectedBrand.value = customBrand.value
+  selectedCategory.value = ''
+  selectedModel.value = ''
+  customModel.value = ''
+  currentStep.value = 2
+}
+
+const goBackFromStep2 = () => {
+  currentStep.value = 1
+  if (isOtherBrand.value) {
+    selectedBrand.value = ''
+  }
+}
+
 const canProceed = computed(() => {
-  if (currentStep.value === 1) return !!selectedBrand.value
-  if (currentStep.value === 2) return !!selectedCategory.value
+  if (currentStep.value === 1) return !!selectedBrand.value || (isOtherBrand.value && !!customBrand.value)
+  if (currentStep.value === 2) {
+    if (isOtherBrand.value) return (!!selectedCategory.value || !!customCategory.value) && !!customModel.value
+    return !!selectedCategory.value
+  }
   if (currentStep.value === 3) return !!selectedModel.value || !!customModel.value
   if (currentStep.value === 4) return !!selectedIssue.value || !!customIssue.value
   return false
@@ -306,6 +505,8 @@ const canProceed = computed(() => {
 const canCreate = computed(() => !!ticketData.value.customerId)
 
 const selectBrand = async (brand: string) => {
+  isOtherBrand.value = false
+  customBrand.value = ''
   selectedBrand.value = brand
   selectedCategory.value = ''
   selectedModel.value = ''
@@ -332,6 +533,12 @@ const handleCustomModelEnter = () => { if (customModel.value) selectModel(custom
 const selectIssue = (issue: string) => { selectedIssue.value = issue; customIssue.value = '' }
 
 const nextStep = () => {
+  if (currentStep.value === 2 && isOtherBrand.value) {
+    // For "Other" brand, category+model are collected in step 2, jump straight to issues
+    if (customCategory.value) selectedCategory.value = customCategory.value
+    currentStep.value = 4
+    return
+  }
   if (currentStep.value === 3 && customModel.value) selectedModel.value = customModel.value
   if (currentStep.value === 4 && customIssue.value) selectedIssue.value = customIssue.value
   currentStep.value++
@@ -340,6 +547,40 @@ const nextStep = () => {
 const handleCancel = () => { resetForm(); isOpen.value = false }
 
 const creating = ref(false)
+
+// ── Photo attachments ─────────────────────────────────────────────────────
+interface PhotoAttachment { file: File; preview: string }
+const photoAttachments = ref<PhotoAttachment[]>([])
+const photoInputRef = ref<HTMLInputElement | null>(null)
+const isDragging = ref(false)
+
+const triggerPhotoInput = () => photoInputRef.value?.click()
+
+const addPhotoFiles = (files: FileList | File[]) => {
+  const arr = Array.from(files)
+  const remaining = 6 - photoAttachments.value.length
+  arr.slice(0, remaining).forEach(file => {
+    if (!file.type.startsWith('image/')) return
+    const preview = URL.createObjectURL(file)
+    photoAttachments.value.push({ file, preview })
+  })
+}
+
+const handlePhotoSelect = (e: Event) => {
+  const input = e.target as HTMLInputElement
+  if (input.files) addPhotoFiles(input.files)
+  input.value = ''
+}
+
+const handlePhotoDrop = (e: DragEvent) => {
+  isDragging.value = false
+  if (e.dataTransfer?.files) addPhotoFiles(e.dataTransfer.files)
+}
+
+const removePhoto = (idx: number) => {
+  URL.revokeObjectURL(photoAttachments.value[idx].preview)
+  photoAttachments.value.splice(idx, 1)
+}
 const createTicket = () => {
   if (!canCreate.value || creating.value) return
   creating.value = true
@@ -352,7 +593,8 @@ const createTicket = () => {
     deviceDescription: ticketData.value.deviceDescription,
     serialNumber: ticketData.value.serialNumber,
     priority: ticketData.value.priority,
-    signature: ticketData.value.signature
+    signature: ticketData.value.signature,
+    photos: photoAttachments.value.map(p => p.file)
   })
   // Parent controls closing via v-model; reset after a tick so data is preserved during the async save
   setTimeout(() => { resetForm(); creating.value = false }, 300)
@@ -367,11 +609,16 @@ const resetForm = () => {
   modelSearch.value = ''
   selectedIssue.value = ''
   customIssue.value = ''
+  isOtherBrand.value = false
+  customBrand.value = ''
+  customCategory.value = ''
   brands.value = []
   categories.value = []
   models.value = []
   ticketData.value = { customerId: null, deviceDescription: '', serialNumber: '', priority: 'normal', signature: '' }
-
+  photoAttachments.value.forEach(p => URL.revokeObjectURL(p.preview))
+  photoAttachments.value = []
+  isDragging.value = false
 }
 </script>
 
@@ -462,4 +709,43 @@ const resetForm = () => {
 }
 .m3-back-btn:hover { transform: scale(1.1); background: hsl(var(--muted)); }
 .m3-back-btn:active { transform: scale(0.9); }
+
+.photo-dropzone {
+  border-radius: 20px;
+  border: 2px dashed hsl(var(--border)/0.8);
+  background: hsl(var(--muted)/0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 12px;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.photo-dropzone:hover,
+.photo-dropzone--drag {
+  border-color: #6366f1;
+  background: #6366f108;
+  box-shadow: 0 0 0 3px #6366f115;
+}
+.photo-dropzone--has-files {
+  cursor: default;
+  border-style: solid;
+  border-color: hsl(var(--border)/0.6);
+  background: hsl(var(--muted)/0.2);
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+.photo-dropzone--has-files:hover {
+  border-color: hsl(var(--border)/0.6);
+  background: hsl(var(--muted)/0.2);
+  box-shadow: none;
+  cursor: default;
+}
+.photo-thumb {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
 </style>

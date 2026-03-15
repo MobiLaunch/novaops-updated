@@ -61,6 +61,60 @@
 
         <!-- ── Info Tab ──────────────────────────────────────────── -->
         <div v-if="activeTab === 'info'" class="space-y-4">
+
+          <!-- Customer Contact Card -->
+          <Card v-if="ticketCustomer" class="customer-contact-card overflow-hidden">
+            <CardContent class="p-0">
+              <div class="flex items-center gap-3 px-4 pt-4 pb-3"
+                style="background: linear-gradient(135deg, #6366f108, #8b5cf608); border-bottom: 1px solid hsl(var(--border)/0.5)">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-black text-white select-none"
+                  :style="`background: linear-gradient(135deg, ${avatarColor(ticketCustomer.name)}, ${avatarColor(ticketCustomer.name)}cc)`">
+                  {{ initials(ticketCustomer.name) }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-black truncate">{{ ticketCustomer.name }}</p>
+                  <p class="text-[11px] text-muted-foreground font-medium">Customer</p>
+                </div>
+                <div class="flex gap-1.5">
+                  <a v-if="ticketCustomer.phone"
+                    :href="`tel:${ticketCustomer.phone}`"
+                    class="contact-action-btn"
+                    title="Call customer"
+                  >
+                    <Phone class="w-3.5 h-3.5" />
+                  </a>
+                  <button v-if="ticketCustomer.email"
+                    class="contact-action-btn"
+                    title="Email customer"
+                    @click="emailCustomer"
+                  >
+                    <Mail class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+              <div class="px-4 py-3 space-y-2 text-sm">
+                <div v-if="ticketCustomer.phone" class="flex items-center gap-2.5">
+                  <Phone class="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                  <a :href="`tel:${ticketCustomer.phone}`" class="font-medium hover:text-indigo-500 transition-colors">
+                    {{ ticketCustomer.phone }}
+                  </a>
+                </div>
+                <div v-if="ticketCustomer.email" class="flex items-center gap-2.5">
+                  <Mail class="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                  <button class="font-medium hover:text-indigo-500 transition-colors truncate text-left" @click="emailCustomer">
+                    {{ ticketCustomer.email }}
+                  </button>
+                </div>
+                <div v-if="ticketCustomer.address" class="flex items-start gap-2.5">
+                  <MapPin class="w-3.5 h-3.5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                  <span class="text-muted-foreground leading-snug">{{ ticketCustomer.address }}</span>
+                </div>
+                <div v-if="!ticketCustomer.phone && !ticketCustomer.email && !ticketCustomer.address"
+                  class="text-xs text-muted-foreground italic">No contact details on file</div>
+              </div>
+            </CardContent>
+          </Card>
+
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card>
               <CardContent class="p-4 space-y-3">
@@ -484,7 +538,7 @@
 </template>
 
 <script setup lang="ts">
-import { X, Plus, Search, Clock, DollarSign, Save, Trash2, Loader2, Mail, TicketCheck, Printer } from 'lucide-vue-next'
+import { X, Plus, Search, Clock, DollarSign, Save, Trash2, Loader2, Mail, TicketCheck, Printer, Phone, MapPin } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { printBarcodeLabel } from '~/utils/print'
 import { Dialog, DialogContent } from '~/components/ui/dialog'
@@ -616,6 +670,17 @@ const ticketStatusColor = (status?: string) => ({
 }[status || ''] || '#64748b')
 
 const priorityColorRaw = (p?: string) => ({ low: '#64748b', normal: '#3b82f6', high: '#ef4444' }[p || ''] || '#64748b')
+
+// ── Customer avatar helpers ───────────────────────────────────────
+const initials = (name: string) =>
+  (name || '?').split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
+
+const avatarColor = (name: string) => {
+  const colors = ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6']
+  let hash = 0
+  for (const c of (name || '')) hash = c.charCodeAt(0) + ((hash << 5) - hash)
+  return colors[Math.abs(hash) % colors.length]
+}
 
 // ── Filtered lists ────────────────────────────────────────────────
 const filteredCatalog = computed(() => {
@@ -802,3 +867,25 @@ const saveAll = async () => {
 }
 </script>
 
+<style scoped>
+.contact-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: hsl(var(--muted)/0.6);
+  color: hsl(var(--muted-foreground));
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.contact-action-btn:hover {
+  background: #6366f120;
+  color: #6366f1;
+  transform: scale(1.1);
+}
+.contact-action-btn:active {
+  transform: scale(0.92);
+}
+</style>
