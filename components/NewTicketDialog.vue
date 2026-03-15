@@ -37,7 +37,7 @@
               @click="selectBrand(brand)"
             >
               <div class="flex items-center gap-2.5">
-                <span class="w-6 h-6 flex-shrink-0 flex items-center justify-center" v-html="brandLogo(brand)" />
+                <span class="brand-logo w-6 h-6 flex-shrink-0 flex items-center justify-center" v-html="brandLogo(brand)"></span>
                 <span class="text-sm font-bold">{{ brand }}</span>
               </div>
             </button>
@@ -48,7 +48,7 @@
               @click="selectOtherBrand"
             >
               <div class="flex items-center gap-2.5">
-                <span class="w-6 h-6 flex-shrink-0 flex items-center justify-center opacity-50" v-html="otherBrandIcon" />
+                <span class="w-6 h-6 flex-shrink-0 flex items-center justify-center opacity-50" v-html="otherBrandIcon"></span>
                 <span class="text-sm font-bold">Other</span>
               </div>
             </button>
@@ -95,7 +95,7 @@
                   @click="selectedCategory = cat.label; customCategory = ''"
                 >
                   <div class="flex items-center gap-2">
-                    <span class="w-5 h-5 flex-shrink-0" v-html="cat.icon" />
+                    <span class="category-icon w-5 h-5 flex-shrink-0" v-html="cat.icon"></span>
                     <span class="text-sm font-bold">{{ cat.label }}</span>
                   </div>
                 </button>
@@ -768,5 +768,13 @@ const resetForm = () => {
   border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+/* Ensure v-html injected SVG logos fill their wrapper span */
+.brand-logo svg,
+.category-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 </style>
