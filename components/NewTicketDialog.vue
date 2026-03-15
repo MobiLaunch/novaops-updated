@@ -37,7 +37,7 @@
               @click="selectBrand(brand)"
             >
               <div class="flex items-center gap-2.5">
-                <span class="brand-logo w-6 h-6 flex-shrink-0 flex items-center justify-center" v-html="brandLogo(brand)"></span>
+                <img :src="brandLogoUrl(brand)" :alt="brand" class="brand-logo w-6 h-6 flex-shrink-0 object-contain" />
                 <span class="text-sm font-bold">{{ brand }}</span>
               </div>
             </button>
@@ -48,7 +48,7 @@
               @click="selectOtherBrand"
             >
               <div class="flex items-center gap-2.5">
-                <span class="w-6 h-6 flex-shrink-0 flex items-center justify-center opacity-50" v-html="otherBrandIcon"></span>
+                <span class="w-6 h-6 flex-shrink-0 flex items-center justify-center opacity-40" v-html="otherBrandIcon"></span>
                 <span class="text-sm font-bold">Other</span>
               </div>
             </button>
@@ -370,34 +370,37 @@ const commonCategories = [
   { label: 'Camera',     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>` },
 ]
 
-// ── Brand SVG logos (inline, theme-aware) ────────────────────────
-const BRAND_LOGOS: Record<string, string> = {
-  Apple: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>`,
-  Samsung: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M19.732 4.575A11.827 11.827 0 0 0 12.002.001a11.828 11.828 0 0 0-7.73 2.874C1.599 5.37.002 8.51.002 12.001c0 3.491 1.597 6.63 4.27 8.925A11.828 11.828 0 0 0 12.002 24a11.827 11.827 0 0 0 7.73-2.874C22.403 18.632 24 15.492 24 12.001c0-3.491-1.597-6.631-4.268-8.426zM12 21.265c-5.113 0-9.265-4.151-9.265-9.264S6.887 2.737 12 2.737s9.265 4.151 9.265 9.264S17.113 21.265 12 21.265zm4.949-10.691h-1.73c-.174-.738-.738-1.302-1.628-1.302-1.195 0-1.888.933-1.888 2.728s.693 2.728 1.888 2.728c.933 0 1.563-.52 1.714-1.389h-1.887v-1.368h3.531v.868c0 1.93-1.324 3.27-3.358 3.27-2.208 0-3.618-1.519-3.618-4.109s1.41-4.109 3.618-4.109c1.93 0 3.183 1.151 3.358 2.683z"/></svg>`,
-  Google: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg>`,
-  Sony: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.441 7.056l-1.502 1.502a4.408 4.408 0 0 0-3.939-2.43c-2.437 0-4.412 1.977-4.412 4.412 0 2.435 1.975 4.412 4.412 4.412a4.41 4.41 0 0 0 4.137-2.881H12.77v-2.01h4.729v.022a6.56 6.56 0 0 1-5.77 9.443A6.56 6.56 0 0 1 5.17 12.54a6.56 6.56 0 0 1 6.559-6.559 6.556 6.556 0 0 1 5.712 3.075z"/></svg>`,
-  LG: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm.234 17.01H6.75V6.99h2.016v8.004h3.468v2.016zm5.532 0h-4.5v-2.016h1.236V8.988H13.5V6.99h4.266v2.016H16.77v6.006h.996v2.016-.018z"/></svg>`,
-  Microsoft: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zm12.6 0H12.6V0H24v11.4z"/></svg>`,
-  Dell: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 4.5c4.136 0 7.5 3.364 7.5 7.5s-3.364 7.5-7.5 7.5S4.5 16.136 4.5 12 7.864 4.5 12 4.5zm0 2.25c-2.9 0-5.25 2.35-5.25 5.25S9.1 17.25 12 17.25 17.25 14.9 17.25 12 14.9 6.75 12 6.75z"/></svg>`,
-  HP: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zM8.308 16.5H6.75l1.5-9h2.572c1.69 0 2.617.75 2.617 2.108 0 1.876-1.432 2.95-3.5 2.95h-.93l-.7 3.942zm.994-5.25h.628c.938 0 1.566-.45 1.566-1.258 0-.557-.376-.882-1.066-.882h-.566l-.562 2.14zm6.948 5.25h-1.558l1.5-9h2.572c1.69 0 2.617.75 2.617 2.108 0 1.876-1.432 2.95-3.5 2.95h-.93l-.7 3.942zm.994-5.25h.628c.938 0 1.566-.45 1.566-1.258 0-.557-.376-.882-1.066-.882h-.566l-.562 2.14z"/></svg>`,
-  Lenovo: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M0 7.8h2.4V16h4.8v2.4H0zm7.2 0h2.388l2.4 5.988V7.8H14.4v10.8h-2.388L9.6 12.612V18.6H7.2zm9.6 0H24v2.4h-4.8v1.8H24v2.4h-4.8v1.8H24v2.4h-7.2z"/></svg>`,
-  ASUS: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M22.816 0H12.047L0 24h2.113l3.17-6.545h8.535L16.6 24h5.216L24 19.686V0zm-1.137 18.566L19.8 21.6h-2.52l-2.56-5.285H7.215l2.56-5.285h7.488l1.977-4.08h2.44z"/></svg>`,
-  Acer: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm4.95 16.243L12 11.29l-4.95 4.953L5.636 14.83 12 8.464l6.364 6.365z"/></svg>`,
-  Huawei: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12.002 0s-1.314 2.34-.648 4.932c.508 1.983 2.063 3.255 2.063 3.255s1.686-1.467 1.92-3.483C15.607 2.388 12.002 0 12.002 0zM4.627 4.044s-.522 2.622.879 4.896c1.063 1.713 2.838 2.538 2.838 2.538s1.29-1.803.918-3.795c-.453-2.38-4.635-3.639-4.635-3.639zm14.745 0s-4.182 1.26-4.635 3.639c-.372 1.992.918 3.795.918 3.795s1.775-.825 2.838-2.538c1.401-2.274.879-4.896.879-4.896zM2.016 10.395s.12 2.673 2.01 4.494c1.413 1.368 3.348 1.686 3.348 1.686s.648-2.07-.369-3.816c-1.245-2.148-4.989-2.364-4.989-2.364zm19.968 0s-3.744.216-4.989 2.364c-1.017 1.746-.369 3.816-.369 3.816s1.935-.318 3.348-1.686c1.89-1.821 2.01-4.494 2.01-4.494zM6.024 16.47s1.14 2.43 3.375 3.516c1.686.819 3.603.576 3.603.576s-.096-2.16-1.584-3.468c-1.848-1.614-5.394-.624-5.394-.624zm11.952 0s-3.546-.99-5.394.624c-1.488 1.308-1.584 3.468-1.584 3.468s1.917.243 3.603-.576c2.235-1.086 3.375-3.516 3.375-3.516zM12 17.568s-2.274 1.566-2.862 3.996C8.694 23.538 10.002 24 10.002 24h3.996s1.308-.462.864-2.436C14.274 19.134 12 17.568 12 17.568z"/></svg>`,
-  OnePlus: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M17.259 0H6.741C3.019 0 0 3.019 0 6.741v10.518C0 20.981 3.019 24 6.741 24h10.518C20.981 24 24 20.981 24 17.259V6.741C24 3.019 20.981 0 17.259 0zm-2.591 17.25h-2.136v-4.5H9.99V10.8h2.541V7.5h2.136v3.3h2.333v1.95h-2.333v4.5z"/></svg>`,
-  Motorola: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2.4c5.302 0 9.6 4.298 9.6 9.6s-4.298 9.6-9.6 9.6S2.4 17.302 2.4 12 6.698 2.4 12 2.4zm0 2.1a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15zm-3.6 3.6h2.1l1.5 3.6 1.5-3.6h2.1v7.8h-1.8V12l-1.8 3.3-1.8-3.3v3.9H8.4z"/></svg>`,
-  Nokia: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zM6.5 7h2.3l4.5 6.3V7H15.5v10h-2.3L8.7 10.7V17H6.5z"/></svg>`,
-  Xiaomi: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M15.03 4.5H8.97C6.51 4.5 4.5 6.51 4.5 8.97v6.06c0 2.46 2.01 4.47 4.47 4.47h6.06c2.46 0 4.47-2.01 4.47-4.47V8.97c0-2.46-2.01-4.47-4.47-4.47zm-6.03 9.75V9.75h1.5v1.5H12V9.75h1.5v4.5H12v-1.5h-1.5v1.5H8.97z"/></svg>`,
-  Oppo: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.4C6.698 2.4 2.4 6.698 2.4 12S6.698 21.6 12 21.6 21.6 17.302 21.6 12 17.302 2.4 12 2.4zM12 0C18.627 0 24 5.373 24 12s-5.373 12-12 12S0 18.627 0 12 5.373 0 12 0zm0 6a6 6 0 1 0 0 12A6 6 0 0 0 12 6zm0 2.4a3.6 3.6 0 1 1 0 7.2 3.6 3.6 0 0 1 0-7.2z"/></svg>`,
-  Vivo: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-2.4 7.2h2.1l2.4 6.6 2.4-6.6h2.1L15.3 16.8h-2.4z"/></svg>`,
-  Realme: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm4.8 16.8H7.2V7.2h2.4v7.2h7.2z"/></svg>`,
-  Nothing: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 4.8a7.2 7.2 0 1 1 0 14.4A7.2 7.2 0 0 1 12 4.8zm-3 5.4v1.8h6v-1.8H9zm0 2.4v1.8h6v-1.8H9z"/></svg>`,
+// ── Brand logos via Simple Icons CDN ─────────────────────────────
+// https://cdn.simpleicons.org/[slug]/[hex-color]
+const BRAND_SLUGS: Record<string, string> = {
+  Apple:     'apple',
+  Samsung:   'samsung',
+  Google:    'google',
+  Sony:      'sony',
+  LG:        'lg',
+  Microsoft: 'microsoft',
+  Dell:      'dell',
+  HP:        'hp',
+  Lenovo:    'lenovo',
+  ASUS:      'asus',
+  Acer:      'acer',
+  Huawei:    'huawei',
+  OnePlus:   'oneplus',
+  Motorola:  'motorola',
+  Nokia:     'nokia',
+  Xiaomi:    'xiaomi',
+  Oppo:      'oppo',
+  Vivo:      'vivo',
+  Realme:    'realme',
+  Nothing:   'nothing',
 }
 
-const otherBrandIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`
-
-const brandLogo = (brand: string): string =>
-  BRAND_LOGOS[brand] ?? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="17" r="1"/></svg>`
+const brandLogoUrl = (brand: string): string => {
+  const slug = BRAND_SLUGS[brand]
+  if (!slug) return ''
+  // Simple Icons CDN: /slug/light-hex/dark-hex
+  return `https://cdn.simpleicons.org/${slug}/555555/cccccc`
+}
 
 // Merge DB brands with known brands (DB wins on duplicates)
 const allBrands = computed(() => {
@@ -771,10 +774,10 @@ const resetForm = () => {
 }
 
 /* Ensure v-html injected SVG logos fill their wrapper span */
-.brand-logo svg,
 .category-icon svg {
   width: 100%;
   height: 100%;
   display: block;
 }
 </style>
+

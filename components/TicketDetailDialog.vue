@@ -35,7 +35,7 @@
       </div>
 
       <!-- M3 Pill Tabs -->
-      <div class="flex-shrink-0 px-6 py-3 border-b border-border/50">
+      <div class="flex-shrink-0 px-4 sm:px-7 py-3 border-b border-border/50">
         <div class="flex gap-1 rounded-full p-1 w-fit" style="background: hsl(var(--muted)/0.5)">
           <button
             v-for="tab in tabs"
@@ -57,13 +57,13 @@
       </div>
 
       <!-- Tab Content -->
-      <div class="flex-1 overflow-y-auto py-4 space-y-4">
+      <div class="flex-1 overflow-y-auto px-4 sm:px-7 py-5 space-y-4">
 
         <!-- ── Info Tab ──────────────────────────────────────────── -->
         <div v-if="activeTab === 'info'" class="space-y-4">
 
           <!-- Customer Contact Card -->
-          <Card v-if="ticketCustomer" class="customer-contact-card overflow-hidden">
+          <Card v-if="ticketCustomer" class="rounded-[20px] overflow-hidden">
             <CardContent class="p-0">
               <div class="flex items-center gap-3 px-4 pt-4 pb-3"
                 style="background: linear-gradient(135deg, #6366f108, #8b5cf608); border-bottom: 1px solid hsl(var(--border)/0.5)">
@@ -116,9 +116,9 @@
           </Card>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Card>
-              <CardContent class="p-4 space-y-3">
-                <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Device</p>
+            <Card class="rounded-[20px]">
+              <CardContent class="p-5 space-y-3">
+                <p class="m3-section-label">Device</p>
                 <div class="space-y-1.5 text-sm">
                   <div class="flex justify-between">
                     <span class="text-muted-foreground">Brand</span>
@@ -140,9 +140,9 @@
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent class="p-4 space-y-3">
-                <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Financials</p>
+            <Card class="rounded-[20px]">
+              <CardContent class="p-5 space-y-3">
+                <p class="m3-section-label">Financials</p>
                 <div class="space-y-1.5 text-sm">
                   <div class="flex justify-between">
                     <span class="text-muted-foreground">Labor</span>
@@ -172,9 +172,9 @@
           </div>
 
           <!-- Issue -->
-          <Card>
-            <CardContent class="p-4">
-              <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Issue</p>
+          <Card class="rounded-[20px]">
+            <CardContent class="p-5">
+              <p class="m3-section-label mb-2">Issue</p>
               <p class="text-sm">{{ ticket?.issue }}</p>
             </CardContent>
           </Card>
@@ -193,8 +193,8 @@
 
           <!-- Signature -->
           <div v-if="ticket?.signature">
-            <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Customer Signature</p>
-            <div class="border rounded-lg p-2 bg-muted/20">
+            <p class="m3-section-label mb-2">Customer Signature</p>
+            <div class="border rounded-[16px] p-3 bg-muted/20">
               <img :src="ticket.signature" alt="Signature" class="max-h-24 w-auto" />
             </div>
           </div>
@@ -210,9 +210,9 @@
         <div v-if="activeTab === 'services'" class="space-y-4">
 
           <!-- Add service -->
-          <Card>
-            <CardContent class="p-4 space-y-3">
-              <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Add Service</p>
+          <Card class="rounded-[20px]">
+            <CardContent class="p-5 space-y-3">
+              <p class="m3-section-label">Add Service</p>
               <div class="flex gap-2">
                 <div class="flex-1 relative">
                   <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
@@ -258,7 +258,7 @@
             <div
               v-for="(svc, idx) in localServices"
               :key="idx"
-              class="flex items-center gap-3 p-3 rounded-lg border bg-card"
+              class="flex items-center gap-3 px-4 py-3 rounded-[16px] border bg-card transition-all hover:bg-muted/30"
             >
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium">{{ svc.name }}</p>
@@ -294,13 +294,13 @@
               </button>
             </div>
 
-            <div v-if="localServices.length === 0" class="text-center py-8 text-sm text-muted-foreground border rounded-lg">
+            <div v-if="localServices.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-[16px] border border-dashed">
               No services added yet — search the catalog above
             </div>
           </div>
 
           <!-- Labor total -->
-          <div v-if="localServices.length > 0" class="flex justify-between items-center px-3 py-2 rounded-lg bg-muted/40 text-sm font-semibold">
+          <div v-if="localServices.length > 0" class="flex justify-between items-center px-4 py-3 rounded-[16px] bg-muted/40 text-sm font-semibold">
             <span>Labor Total</span>
             <span class="text-emerald-600">{{ formatCurrency(laborTotal) }}</span>
           </div>
@@ -308,9 +308,9 @@
 
         <!-- ── Parts Tab ──────────────────────────────────────────── -->
         <div v-if="activeTab === 'parts'" class="space-y-4">
-          <Card>
-            <CardContent class="p-4 space-y-3">
-              <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Add Part</p>
+          <Card class="rounded-[20px]">
+            <CardContent class="p-5 space-y-3">
+              <p class="m3-section-label">Add Part</p>
               <div class="flex gap-2">
                 <div class="flex-1 relative">
                   <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
@@ -348,7 +348,7 @@
             <div
               v-for="(part, idx) in localParts"
               :key="idx"
-              class="flex items-center gap-3 p-3 rounded-lg border bg-card"
+              class="flex items-center gap-3 px-4 py-3 rounded-[16px] border bg-card transition-all hover:bg-muted/30"
             >
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium">{{ part.name }}</p>
@@ -371,12 +371,12 @@
                 <X class="w-4 h-4" />
               </button>
             </div>
-            <div v-if="localParts.length === 0" class="text-center py-8 text-sm text-muted-foreground border rounded-lg">
+            <div v-if="localParts.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-[16px] border border-dashed">
               No parts added yet
             </div>
           </div>
 
-          <div v-if="localParts.length > 0" class="flex justify-between items-center px-3 py-2 rounded-lg bg-muted/40 text-sm font-semibold">
+          <div v-if="localParts.length > 0" class="flex justify-between items-center px-4 py-3 rounded-[16px] bg-muted/40 text-sm font-semibold">
             <span>Parts Total</span>
             <span class="text-purple-600">{{ formatCurrency(partsTotal) }}</span>
           </div>
@@ -387,19 +387,19 @@
 
           <!-- Balance summary -->
           <div class="grid grid-cols-3 gap-2 sm:gap-3">
-            <Card>
+            <Card class="rounded-[20px]">
               <CardContent class="p-3 text-center">
                 <p class="text-xs text-muted-foreground">Invoice</p>
                 <p class="text-lg font-bold">{{ formatCurrency(laborTotal + partsTotal) }}</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card class="rounded-[20px]">
               <CardContent class="p-3 text-center">
                 <p class="text-xs text-muted-foreground">Paid</p>
                 <p class="text-lg font-bold text-emerald-500">{{ formatCurrency(paymentsTotal) }}</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card class="rounded-[20px]">
               <CardContent class="p-3 text-center">
                 <p class="text-xs text-muted-foreground">Balance</p>
                 <p class="text-lg font-bold" :class="balance > 0 ? 'text-destructive' : 'text-emerald-500'">
@@ -410,9 +410,9 @@
           </div>
 
           <!-- Add payment -->
-          <Card>
-            <CardContent class="p-4 space-y-3">
-              <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Record Payment</p>
+          <Card class="rounded-[20px]">
+            <CardContent class="p-5 space-y-3">
+              <p class="m3-section-label">Record Payment</p>
               <div class="grid grid-cols-2 gap-3">
                 <div class="space-y-1.5">
                   <Label class="text-xs">Amount</Label>
@@ -450,7 +450,7 @@
             <div
               v-for="(payment, idx) in localPayments"
               :key="idx"
-              class="flex items-center gap-3 p-3 rounded-lg border bg-card"
+              class="flex items-center gap-3 px-4 py-3 rounded-[16px] border bg-card transition-all hover:bg-muted/30"
             >
               <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: #10b98118">
                 <DollarSign class="w-4 h-4 text-emerald-500" />
@@ -464,7 +464,7 @@
                 <X class="w-4 h-4" />
               </button>
             </div>
-            <div v-if="localPayments.length === 0" class="text-center py-8 text-sm text-muted-foreground border rounded-lg">
+            <div v-if="localPayments.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-[16px] border border-dashed">
               No payments recorded yet
             </div>
           </div>
@@ -482,7 +482,7 @@
             <div
               v-for="(note, idx) in localNotes"
               :key="idx"
-              class="p-3 rounded-lg border bg-card text-sm"
+              class="px-4 py-3 rounded-[16px] border bg-card text-sm transition-all hover:bg-muted/30"
             >
               <div class="flex items-start justify-between gap-2">
                 <p class="flex-1">{{ note.text }}</p>
@@ -492,7 +492,7 @@
               </div>
               <p class="text-xs text-muted-foreground mt-1">{{ formatDate(note.date) }}</p>
             </div>
-            <div v-if="localNotes.length === 0" class="text-center py-8 text-sm text-muted-foreground border rounded-lg">
+            <div v-if="localNotes.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-[16px] border border-dashed">
               No notes yet
             </div>
           </div>
@@ -868,6 +868,14 @@ const saveAll = async () => {
 </script>
 
 <style scoped>
+.m3-section-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
 .contact-action-btn {
   width: 32px;
   height: 32px;
@@ -889,3 +897,4 @@ const saveAll = async () => {
   transform: scale(0.92);
 }
 </style>
+
