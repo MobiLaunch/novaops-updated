@@ -13,10 +13,6 @@
           Business Settings
           <kbd>⌘,</kbd>
         </button>
-        <button class="menu-item" @click="go('/website-settings')">
-          <Sparkles class="w-3.5 h-3.5" style="color:#8b5cf6" />
-          Brand Manager
-        </button>
         <div class="menu-divider" />
         <div class="menu-section-label">Data</div>
         <button class="menu-item" @click="exportData">
@@ -175,7 +171,7 @@ import {
   Settings, Globe, Download, Upload,
   LayoutDashboard, TicketCheck, Users, Package, Calendar,
   ShoppingCart, ScanLine, FileText, BarChart3,
-  Plus, Monitor, Moon, Sun, RefreshCw, Wrench, MessageCircle, Sparkles, Cpu,
+  Plus, Monitor, Moon, Sun, RefreshCw, Wrench, MessageCircle, Cpu,
 } from 'lucide-vue-next'
 import { useAppStore } from '~/stores/app'
 
