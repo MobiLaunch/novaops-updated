@@ -63,6 +63,48 @@
             </div>
           </div>
 
+          <!-- IMEI / Model Number -->
+          <div class="rounded-[16px] p-4 space-y-3" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.5); outline-offset: 0">
+            <div class="flex items-center gap-2">
+              <Fingerprint class="w-4 h-4 text-muted-foreground" />
+              <p class="text-xs font-black">Device Identifiers <span class="font-normal text-muted-foreground">(improves lookup accuracy)</span></p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-1.5">
+                <label class="wi-label">IMEI / Serial</label>
+                <input
+                  v-model="form.imei"
+                  placeholder="15-digit IMEI…"
+                  class="wi-input font-mono text-xs"
+                  maxlength="17"
+                  @input="imeiValidState = null"
+                />
+                <p v-if="form.imei && imeiValidState === false" class="text-[10px] text-destructive font-medium">Invalid IMEI (check digits)</p>
+                <p v-else class="text-[10px] text-muted-foreground">Dial *#06# to find IMEI</p>
+              </div>
+              <div class="space-y-1.5">
+                <label class="wi-label">Model Number</label>
+                <input
+                  v-model="form.model_number"
+                  placeholder="MQ3D3LL/A, SM-G998B…"
+                  class="wi-input font-mono text-xs"
+                />
+                <p class="text-[10px] text-muted-foreground">Found in Settings → About</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resolved device banner (shown when IMEI/model# resolved the device) -->
+          <div v-if="resolvedDevice" class="flex items-center gap-3 p-3 rounded-[14px]"
+            style="background: #10b98110; outline: 1.5px solid #10b98130; outline-offset: 0">
+            <CheckCircle2 class="w-4 h-4 flex-shrink-0" style="color: #10b981" />
+            <div class="flex-1">
+              <p class="text-xs font-black" style="color: #10b981">Device identified via {{ resolvedDevice.method }}</p>
+              <p class="text-xs text-muted-foreground">{{ resolvedDevice.brand }} {{ resolvedDevice.model }}{{ resolvedDevice.storage ? ' · ' + resolvedDevice.storage : '' }}</p>
+            </div>
+            <button class="text-[10px] text-muted-foreground hover:text-foreground underline" @click="resolvedDevice = null">Clear</button>
+          </div>
+
           <!-- Market price fetch -->
           <div class="rounded-[18px] p-4 space-y-3" style="background: #f59e0b0c; outline: 1.5px solid #f59e0b28; outline-offset: 0">
             <div class="flex items-center justify-between">
@@ -71,16 +113,18 @@
                 <p class="text-xs font-black">Live Market Price</p>
               </div>
               <button
-                class="flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95"
+                class="flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                 style="background: #f59e0b; color: white"
-                :disabled="!form.brand || !form.model || fetchingPrice"
+                :disabled="(!form.brand && !form.model && !form.imei && !form.model_number) || fetchingPrice"
                 @click="fetchMarketPrice"
               >
                 <div v-if="fetchingPrice" class="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
                 <Search v-else class="w-3 h-3" />
-                {{ fetchingPrice ? 'Searching…' : 'Look Up' }}
+                {{ fetchingPrice ? fetchingStage : 'Look Up' }}
               </button>
             </div>
+
+            <!-- Results -->
             <div v-if="marketPriceResult" class="space-y-1">
               <div class="flex items-center justify-between">
                 <span class="text-xs text-muted-foreground">eBay avg (sold listings)</span>
@@ -94,16 +138,26 @@
                 <span class="text-xs font-semibold">Used Market Median</span>
                 <span class="font-black text-base" style="color: #f59e0b">{{ currency }}{{ marketPriceResult.median.toFixed(2) }}</span>
               </div>
-              <p class="text-[10px] text-muted-foreground">{{ marketPriceResult.source_note }}</p>
+              <div class="flex items-center gap-1.5 mt-0.5">
+                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold" style="background: #f59e0b18; color: #d97706">
+                  via {{ marketPriceResult.lookup_method === 'imei' ? 'IMEI' : marketPriceResult.lookup_method === 'model_number' ? 'Model #' : 'Name search' }}
+                </span>
+                <p class="text-[10px] text-muted-foreground">{{ marketPriceResult.source_note }}</p>
+              </div>
             </div>
-            <div v-else-if="priceError" class="text-xs text-destructive font-medium">{{ priceError }}</div>
-            <div v-else class="text-xs text-muted-foreground">Enter brand + model then tap Look Up for real-time pricing.</div>
+            <div v-else-if="priceError" class="space-y-1">
+              <p class="text-xs text-destructive font-medium">{{ priceError }}</p>
+              <p class="text-[10px] text-muted-foreground">Try adding an IMEI or model number above for a more precise lookup.</p>
+            </div>
+            <div v-else class="text-xs text-muted-foreground">
+              Enter device details above then tap Look Up. IMEI or model number gives the most accurate results.
+            </div>
 
             <!-- Manual override -->
             <div class="space-y-1.5 pt-1 border-t border-border/30">
               <label class="wi-label">Manual Market Price Override</label>
               <input v-model.number="form.market_price" type="number" min="0" step="0.01" placeholder="0.00" class="wi-input font-mono" />
-              <p class="text-[10px] text-muted-foreground">If Look Up fails, enter the current market value manually.</p>
+              <p class="text-[10px] text-muted-foreground">Enter the current market value manually if the lookup doesn't find a result.</p>
             </div>
           </div>
         </div>
@@ -403,7 +457,7 @@
 <script setup lang="ts">
 import {
   ArrowLeftRight, ChevronLeft, ChevronRight, Search, TrendingUp,
-  AlertTriangle, CheckCircle
+  AlertTriangle, CheckCircle, Fingerprint, CheckCircle2,
 } from 'lucide-vue-next'
 import { Dialog, DialogContent } from '~/components/ui/dialog'
 import CustomerSelect from '~/components/CustomerSelect.vue'
@@ -498,6 +552,8 @@ const defaultForm = () => ({
   customerId:          null as number | null,
   brand:               '',
   model:               '',
+  model_number:        '',
+  imei:                '',
   storage:             '',
   color:               '',
   market_price:        null as number | null,
@@ -519,8 +575,17 @@ const form = reactive(defaultForm())
 const currentStep   = ref(1)
 const saving        = ref(false)
 const fetchingPrice = ref(false)
+const fetchingStage = ref('Searching…')
 const priceError    = ref('')
-const marketPriceResult = ref<{ ebay_avg: number; swappa_avg: number; median: number; source_note: string } | null>(null)
+const imeiValidState = ref<boolean | null>(null)
+const resolvedDevice = ref<{ brand: string; model: string; storage?: string; method: string } | null>(null)
+const marketPriceResult = ref<{
+  ebay_avg: number
+  swappa_avg: number
+  median: number
+  source_note: string
+  lookup_method: string
+} | null>(null)
 
 // ── Computed pricing ──────────────────────────────────────────────
 const effectiveMarketPrice = computed(() =>
@@ -583,53 +648,96 @@ const nextStep = () => {
 }
 
 // ── Market price lookup ───────────────────────────────────────────
-// Uses a Claude-powered search to estimate current used market prices
+// Calls the Nuxt server route /api/trade-in/lookup which runs
+// Claude + web_search server-side (avoids CORS). Cascade:
+//   1. IMEI → IMEI.info → resolves device identity → price search
+//   2. Model number → Claude resolves identity → price search
+//   3. Brand + model name → price search
 const fetchMarketPrice = async () => {
-  if (!form.brand || !form.model) return
+  const hasIdentifier = form.brand || form.model || form.imei || form.model_number
+  if (!hasIdentifier || fetchingPrice.value) return
+
   fetchingPrice.value = true
   priceError.value = ''
   marketPriceResult.value = null
+  resolvedDevice.value = null
 
-  try {
-    const query = `${form.brand} ${form.model}${form.storage ? ' ' + form.storage : ''} used price USD`
-
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 400,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        system: `You are a device pricing expert. The user will give you a device query.
-Search for current used market prices on eBay sold listings and Swappa.
-Respond ONLY with a JSON object (no markdown, no preamble):
-{
-  "ebay_avg": <number>,
-  "swappa_avg": <number>,
-  "median": <number>,
-  "source_note": "<one sentence about data freshness>"
-}
-If you cannot find prices, return {"ebay_avg":0,"swappa_avg":0,"median":0,"source_note":"Could not find pricing data"}`,
-        messages: [{ role: 'user', content: query }],
-      }),
-    })
-
-    const data = await res.json()
-    const textBlock = data.content?.find((b: any) => b.type === 'text')
-    if (textBlock?.text) {
-      const clean = textBlock.text.replace(/```json|```/g, '').trim()
-      const parsed = JSON.parse(clean)
-      if (parsed.median > 0) {
-        marketPriceResult.value = parsed
-        if (!form.market_price) form.market_price = parsed.median
-      } else {
-        priceError.value = parsed.source_note || 'No pricing data found. Enter manually.'
+  // Validate IMEI client-side first so we give instant feedback
+  if (form.imei) {
+    const digits = form.imei.replace(/\D/g, '')
+    if (digits.length === 15) {
+      let sum = 0
+      for (let i = 0; i < 15; i++) {
+        let d = parseInt(digits[i])
+        if (i % 2 === 1) { d *= 2; if (d > 9) d -= 9 }
+        sum += d
+      }
+      imeiValidState.value = sum % 10 === 0
+      if (!imeiValidState.value) {
+        priceError.value = 'IMEI check digit is invalid — double-check the number.'
+        fetchingPrice.value = false
+        return
       }
     }
-  } catch {
-    priceError.value = 'Lookup failed. Enter market price manually above.'
+  }
+
+  try {
+    // Show progressive stage labels
+    if (form.imei) fetchingStage.value = 'Looking up IMEI…'
+    else if (form.model_number) fetchingStage.value = 'Resolving model #…'
+    else fetchingStage.value = 'Searching prices…'
+
+    const result = await $fetch('/api/trade-in/lookup', {
+      method: 'POST',
+      body: {
+        brand:        form.brand || undefined,
+        model:        form.model || undefined,
+        storage:      form.storage || undefined,
+        imei:         form.imei || undefined,
+        model_number: form.model_number || undefined,
+      },
+    }) as any
+
+    if (!result.ok) {
+      priceError.value = result.error || 'Lookup failed. Enter market price manually.'
+      return
+    }
+
+    // If IMEI or model # resolved the device, populate the form fields and show banner
+    if (result.resolved_brand || result.resolved_model) {
+      const methodLabel = result.lookup_method === 'imei' ? 'IMEI lookup'
+        : result.lookup_method === 'model_number' ? 'model number' : 'name search'
+
+      if (result.resolved_brand && !form.brand) form.brand = result.resolved_brand
+      if (result.resolved_model && !form.model) form.model = result.resolved_model
+      if (result.resolved_storage && !form.storage) form.storage = result.resolved_storage
+
+      if (result.lookup_method !== 'name') {
+        resolvedDevice.value = {
+          brand:   result.resolved_brand || form.brand,
+          model:   result.resolved_model || form.model,
+          storage: result.resolved_storage || form.storage || undefined,
+          method:  methodLabel,
+        }
+      }
+    }
+
+    marketPriceResult.value = {
+      ebay_avg:      result.ebay_avg,
+      swappa_avg:    result.swappa_avg,
+      median:        result.median,
+      source_note:   result.source_note,
+      lookup_method: result.lookup_method,
+    }
+
+    if (!form.market_price) form.market_price = result.median
+
+  } catch (err: any) {
+    const msg = err?.data?.message || err?.message || 'Lookup failed'
+    priceError.value = `${msg} — enter market price manually.`
   } finally {
     fetchingPrice.value = false
+    fetchingStage.value = 'Searching…'
   }
 }
 
@@ -663,6 +771,8 @@ const saveTradeIn = async () => {
       customer_id:       form.customerId || null,
       brand:             form.brand,
       model:             form.model,
+      model_number:      form.model_number || '',
+      imei:              form.imei || '',
       storage:           form.storage,
       color:             form.color,
       condition_grade:   form.condition_grade,
@@ -699,6 +809,8 @@ const handleClose = () => {
   currentStep.value = 1
   marketPriceResult.value = null
   priceError.value = ''
+  resolvedDevice.value = null
+  imeiValidState.value = null
   isOpen.value = false
 }
 

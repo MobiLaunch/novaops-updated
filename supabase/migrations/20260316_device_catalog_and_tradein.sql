@@ -66,6 +66,8 @@ CREATE TABLE IF NOT EXISTS trade_ins (
   -- Device identity
   brand               text         NOT NULL DEFAULT '',
   model               text         NOT NULL DEFAULT '',
+  model_number        text         NOT NULL DEFAULT '',   -- e.g. MQ3D3LL/A, SM-G998B
+  imei                text         NOT NULL DEFAULT '',   -- 15-digit IMEI or serial
   storage             text         NOT NULL DEFAULT '',
   color               text         NOT NULL DEFAULT '',
 
@@ -103,7 +105,7 @@ CREATE POLICY "trade_ins_owner" ON trade_ins
 
 CREATE OR REPLACE TRIGGER trade_ins_updated_at
   BEFORE UPDATE ON trade_ins
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- ── Indexes ───────────────────────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_device_brands_profile     ON device_brands(profile_id);

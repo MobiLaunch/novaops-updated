@@ -122,6 +122,7 @@ export default defineNuxtConfig({
     squareLocationId: process.env.SQUARE_LOCATION_ID || '',
     squareSandbox: process.env.SQUARE_SANDBOX === 'true',
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
 
     // Google OAuth — used for Gmail email support integration
     googleClientId: process.env.GOOGLE_CLIENT_ID || '',
