@@ -30,6 +30,7 @@
             @navigate="mobileMenuOpen = false"
             @set-theme="handleSetTheme"
             @export="handleExport"
+            @open-trade-in="tradeInOpen = true; mobileMenuOpen = false"
           />
         </div>
         <Transition name="drawer">
@@ -66,6 +67,7 @@
         @navigate="() => {}"
         @set-theme="handleSetTheme"
         @export="handleExport"
+        @open-trade-in="tradeInOpen = true"
       />
     </aside>
 
@@ -250,9 +252,9 @@ const navigation = [
   { name: 'Inventory',   path: '/inventory',         icon: Package,         color: '#8b5cf6', badge: null,                         group: 'core' },
   { name: 'Calendar',    path: '/calendar',          icon: CalendarDays,    color: '#06b6d4', badge: null,                         group: 'core' },
   { name: 'POS',         path: '/pos',               icon: ShoppingCart,    color: '#ec4899', badge: { label: 'Live',   color: '#10b981' }, group: 'core' },
+  { name: 'Trade-In',    path: '',                   icon: ArrowLeftRight,  color: '#f59e0b', badge: null,                         group: 'core', isModal: true },
   { name: 'Analytics',   path: '/analytics',         icon: BarChart3,       color: '#10b981', badge: null,                         group: 'tools' },
   { name: 'Messages',    path: '/messages',          icon: MessageCircle,   color: '#ec4899', badge: null,                         group: 'tools' },
-  { name: 'Trade-In',    path: '',                   icon: ArrowLeftRight,  color: '#f59e0b', badge: null,                         group: 'tools', isModal: true },
   { name: 'Display',     path: '/display',           icon: Tv,              color: '#06b6d4', badge: null,                         group: 'tools' },
   { name: 'Barcodes',    path: '/barcodes',          icon: ScanLine,        color: '#06b6d4', badge: null,                         group: 'tools' },
   { name: 'Import',      path: '/import',            icon: Upload,          color: '#8b5cf6', badge: null,                         group: 'tools' },
@@ -311,7 +313,7 @@ const RailContent = defineComponent({
     upcomingItems:  { type: Array as () => typeof upcomingItems.value, default: () => [] },
     isMobile:       { type: Boolean, default: false },
   },
-  emits: ['set-drawer', 'navigate', 'set-theme', 'export'],
+  emits: ['set-drawer', 'navigate', 'set-theme', 'export', 'open-trade-in'],
   setup(props, { emit }) {
     const route = useRoute()
     const NuxtLink = resolveComponent('NuxtLink')
@@ -330,21 +332,14 @@ const RailContent = defineComponent({
     function railItem(item: typeof navigation[0]) {
       const active = isActive(item.path)
       const m = props.isMobile
-      return h(NuxtLink, {
-        key: item.path,
-        to: item.path,
-        class: 'flex flex-col items-center gap-1.5 w-full px-1.5 group',
-        style: 'text-decoration: none',
-        onClick: () => emit('navigate'),
-      }, () => [
+
+      const inner = () => [
         h('div', {
           class: [
             `${m ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-[18px] flex items-center justify-center transition-all duration-300 relative`,
             active ? 'shadow-md' : 'hover:bg-muted/60',
           ].join(' '),
-          style: active
-            ? `background: ${item.color}28; transform: scale(1.05)`
-            : '',
+          style: active ? `background: ${item.color}28; transform: scale(1.05)` : '',
         }, [
           h(item.icon, {
             class: `${m ? 'w-6 h-6' : 'w-5 h-5'} transition-all duration-200`,
@@ -359,7 +354,24 @@ const RailContent = defineComponent({
           class: `${m ? 'text-[11px]' : 'text-[10px]'} font-semibold leading-none transition-all duration-200`,
           style: active ? `color: ${item.color}` : 'color: hsl(var(--muted-foreground))',
         }, item.name),
-      ])
+      ]
+
+      // Modal items (e.g. Trade-In) render as a button, not a NuxtLink
+      if ((item as any).isModal) {
+        return h('button', {
+          key: item.name,
+          class: 'flex flex-col items-center gap-1.5 w-full px-1.5 group',
+          onClick: () => emit('open-trade-in'),
+        }, inner)
+      }
+
+      return h(NuxtLink, {
+        key: item.path,
+        to: item.path,
+        class: 'flex flex-col items-center gap-1.5 w-full px-1.5 group',
+        style: 'text-decoration: none',
+        onClick: () => emit('navigate'),
+      }, inner)
     }
 
     return () => h('div', { class: 'flex flex-col items-center h-full w-full gap-0' }, [
