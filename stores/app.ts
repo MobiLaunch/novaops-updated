@@ -660,6 +660,39 @@ export const useAppStore = defineStore('app', () => {
   }
 
   // ── Expenses CRUD ──────────────────────────────────────────────────────────
+  // ── POS Sales ─────────────────────────────────────────────────────────────
+  // Regular POS transactions are stored in `pos_sales`, NOT in `tickets`.
+  // Tickets are exclusively for repair jobs. `ticketMode` payments (collecting
+  // payment on an existing repair ticket) still update the ticket's payments
+  // array, but that is handled in pos.vue after calling this function.
+  const createPosSale = async (saleData: {
+    customerId?: number | null
+    items: Array<{ name: string; price: number; quantity: number; sku?: string }>
+    subtotal: number
+    tax: number
+    total: number
+    paymentMethod: string
+    note?: string
+  }) => {
+    if (!$supabase) throw new Error('Supabase not configured')
+    if (!user.value) throw new Error('Not authenticated')
+
+    const { data, error } = await ($supabase as any).from('pos_sales').insert({
+      profile_id:     user.value.id,
+      customer_id:    saleData.customerId || null,
+      items:          saleData.items,
+      subtotal:       saleData.subtotal,
+      tax:            saleData.tax,
+      total:          saleData.total,
+      payment_method: saleData.paymentMethod,
+      note:           saleData.note || '',
+      status:         'completed',
+    }).select().single()
+
+    if (error) throw error
+    return data
+  }
+
   const createExpense = async (item: any) => {
     if (!$supabase) throw new Error('Supabase not configured')
     if (!user.value) throw new Error('Not authenticated')
@@ -801,6 +834,7 @@ export const useAppStore = defineStore('app', () => {
     deleteService,
     createExpense,
     deleteExpense,
+    createPosSale,
     saveSquareConfig,
     saveAll,
     trackDevice,

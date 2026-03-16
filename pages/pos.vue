@@ -658,7 +658,7 @@ onMounted(() => {
     paymentMethod.value = 'Afterpay'
     const saved = localStorage.getItem('novaops_pending_pos_cart')
     if (saved) { cart.value = JSON.parse(saved); localStorage.removeItem('novaops_pending_pos_cart') }
-    setTimeout(() => executeTicketCreation('Afterpay'), 800)
+    setTimeout(() => executeSale('Afterpay'), 800)
     const q = { ...route.query }; delete q.afterpay_success
     useRouter().replace({ query: q })
   }
@@ -790,7 +790,7 @@ async function handleCheckout() {
   }
   // Cash / Other
   processing.value = true
-  try { await executeTicketCreation(paymentMethod.value) }
+  try { await executeSale(paymentMethod.value) }
   catch (e: any) { terminalStatus.value = ''; addNotification('Sale Failed', e.message, 'error') }
   finally { processing.value = false }
 }
@@ -828,7 +828,7 @@ async function handleRemoteSuccess(sourceId: string, method: 'Card' | 'Afterpay'
     // We already checked res.success. Some endpoints might not return 'status'.
     // If it's successful, we proceed.
     
-    await executeTicketCreation(method)
+    await executeSale(method)
   } catch (e: any) {
     terminalStatus.value = ''
     // $fetch wraps server errors in e.data.message
@@ -837,20 +837,29 @@ async function handleRemoteSuccess(sourceId: string, method: 'Card' | 'Afterpay'
   }
 }
 
-async function executeTicketCreation(finalMethod: string) {
+async function executeSale(finalMethod: string) {
   const customerName = selectedCustomerId.value
     ? (customers.value as any[]).find((c: any) => c.id === selectedCustomerId.value)?.name
     : undefined
 
-  const ticket = await appStore.createTicket({
-    customerId: selectedCustomerId.value,
-    device: 'POS Sale',
-    issue: cart.value.map((i: any) => `${i.quantity}× ${i.name}`).join(', '),
-    status: 'Completed',
-    price: total.value,
-    posOrder: true,
+  // Build the structured items list for the sale record
+  const saleItems = cart.value.map((i: any) => ({
+    name:     i.name,
+    price:    i.price,
+    quantity: i.quantity,
+    sku:      i.sku || undefined,
+  }))
+
+  // Write to pos_sales — NOT tickets. Tickets are repair jobs only.
+  const sale = await appStore.createPosSale({
+    customerId:    selectedCustomerId.value || null,
+    items:         saleItems,
+    subtotal:      subtotal.value,
+    tax:           taxAmount.value,
+    total:         total.value,
     paymentMethod: finalMethod,
-  } as any)
+    note:          cart.value.map((i: any) => `${i.quantity}× ${i.name}`).join(', '),
+  })
 
   // Deduct physical stock (skip non-numeric IDs like 'akko', 'custom-*', 'svc-*')
   const deductions = cart.value
@@ -863,13 +872,13 @@ async function executeTicketCreation(finalMethod: string) {
     }).filter(Boolean)
   await Promise.all(deductions)
 
-  // Record payment on ticket if in ticket mode
+  // If in ticketMode: record the payment on the existing repair ticket
   if (ticketMode.value) {
     const sourceTicket = appStore.tickets?.find((t: any) => t.id === ticketMode.value!.ticketId)
     if (sourceTicket) {
       const payments = [...(sourceTicket.payments || []), {
         amount: total.value, method: finalMethod,
-        note: `Collected via POS · Sale #${ticket.id}`,
+        note: `Collected via POS · Sale #${sale.id}`,
         date: new Date().toISOString(),
       }]
       await appStore.updateTicket(ticketMode.value.ticketId, { payments, status: 'Completed' })
@@ -878,22 +887,22 @@ async function executeTicketCreation(finalMethod: string) {
   }
 
   const payloadData = {
-    businessName: settings.value?.businessName || 'NovaOps',
+    businessName:    settings.value?.businessName || 'NovaOps',
     businessAddress: settings.value?.address || '',
-    businessPhone: settings.value?.phone || '',
-    date: new Date().toLocaleString(),
-    items: cart.value.map(i => ({ name: i.name, qty: i.quantity, price: i.price })),
-    subtotal: subtotal.value,
-    tax: taxAmount.value,
-    total: total.value,
-    currency: settings.value?.currency || '$',
-    customerName
+    businessPhone:   settings.value?.phone || '',
+    date:            new Date().toLocaleString(),
+    items:           cart.value.map(i => ({ name: i.name, qty: i.quantity, price: i.price })),
+    subtotal:        subtotal.value,
+    tax:             taxAmount.value,
+    total:           total.value,
+    currency:        settings.value?.currency || '$',
+    customerName,
   }
-  
-  // Store logic so reprint button works
-  lastReceiptData.value = { ...payloadData, ticketRef: String(ticket.id) }
 
-  // Trigger Receipt Print if enabled
+  // Store for reprint
+  lastReceiptData.value = { ...payloadData, ticketRef: `S-${sale.id}` }
+
+  // Auto-print receipt if enabled
   try {
     const pSettings = JSON.parse(localStorage.getItem('novaops_printer_settings') || '{}')
     if (pSettings.autoPrintReceipt) {
@@ -901,7 +910,7 @@ async function executeTicketCreation(finalMethod: string) {
     }
   } catch (err) { console.warn('Printer config parsing failed', err) }
 
-  saleResult.value = { receiptId: ticket.id, amount: total.value, method: finalMethod, customer: customerName }
+  saleResult.value = { receiptId: sale.id, amount: total.value, method: finalMethod, customer: customerName }
   clearCart()
   terminalStatus.value = ''
 }

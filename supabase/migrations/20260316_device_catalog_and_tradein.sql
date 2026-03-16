@@ -112,3 +112,37 @@ CREATE INDEX IF NOT EXISTS idx_device_models_profile     ON device_models(profil
 CREATE INDEX IF NOT EXISTS idx_trade_ins_profile         ON trade_ins(profile_id);
 CREATE INDEX IF NOT EXISTS idx_trade_ins_customer        ON trade_ins(customer_id);
 CREATE INDEX IF NOT EXISTS idx_trade_ins_status          ON trade_ins(status);
+
+-- ── pos_sales ─────────────────────────────────────────────────────────────────
+-- Regular point-of-sale transactions. Completely separate from tickets, which
+-- are repair jobs. ticketMode payments (paying off a repair) update the
+-- ticket's payments JSONB array and reference this sale's ID in the note.
+CREATE TABLE IF NOT EXISTS pos_sales (
+  id             bigserial    PRIMARY KEY,
+  profile_id     uuid         NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  customer_id    bigint       REFERENCES customers(id) ON DELETE SET NULL,
+
+  -- Line items as JSONB array: [{name, price, quantity, sku?}]
+  items          jsonb        NOT NULL DEFAULT '[]',
+
+  subtotal       numeric(10,2) NOT NULL DEFAULT 0,
+  tax            numeric(10,2) NOT NULL DEFAULT 0,
+  total          numeric(10,2) NOT NULL DEFAULT 0,
+  payment_method text         NOT NULL DEFAULT 'Cash',
+  note           text         NOT NULL DEFAULT '',
+
+  -- 'completed' | 'refunded' | 'voided'
+  status         text         NOT NULL DEFAULT 'completed',
+
+  created_at     timestamptz  NOT NULL DEFAULT now()
+);
+
+ALTER TABLE pos_sales ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "pos_sales_owner" ON pos_sales;
+CREATE POLICY "pos_sales_owner" ON pos_sales
+  USING (profile_id = auth.uid())
+  WITH CHECK (profile_id = auth.uid());
+
+CREATE INDEX IF NOT EXISTS idx_pos_sales_profile    ON pos_sales(profile_id);
+CREATE INDEX IF NOT EXISTS idx_pos_sales_customer   ON pos_sales(customer_id);
+CREATE INDEX IF NOT EXISTS idx_pos_sales_created_at ON pos_sales(created_at DESC);

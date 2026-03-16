@@ -44,6 +44,7 @@
               :settings="settings"
               @navigate="mobileMenuOpen = false; activeDrawer = null"
               @close="activeDrawer = null"
+              @open-trade-in="tradeInOpen = true; mobileMenuOpen = false; activeDrawer = null"
             />
           </div>
         </Transition>
@@ -82,6 +83,7 @@
           :settings="settings"
           @navigate="activeDrawer = null"
           @close="activeDrawer = null"
+          @open-trade-in="tradeInOpen = true; activeDrawer = null"
         />
       </aside>
     </Transition>
@@ -136,6 +138,9 @@
         </div>
       </main>
     </div>
+
+    <!-- Global Trade-In Wizard (triggered from nav rail) -->
+    <TradeInWizard v-model="tradeInOpen" />
   </div>
 </template>
 
@@ -143,13 +148,14 @@
 import { ref, computed, watch, onMounted, onUnmounted, defineComponent, h, resolveComponent } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAppStore } from '~/stores/app'
+import TradeInWizard from '~/components/TradeInWizard.vue'
 import {
   LayoutDashboard, TicketCheck, Users, Package, CalendarDays, ShoppingCart,
   ClipboardList,
   FileText, Settings as SettingsIcon, Menu, X, MapPin, Wrench, ScanLine, Upload,
   Globe, Plus, Monitor, Moon, Sun, Download, ChevronRight,
   TicketPlus, UserPlus, Tag, Barcode, Clock, AlertCircle,
-  MessageCircle, Tv, BarChart3,
+  MessageCircle, Tv, BarChart3, ArrowLeftRight,
 } from 'lucide-vue-next'
 import { useScreenLock } from '~/composables/useScreenLock'
 
@@ -198,6 +204,7 @@ function formatApptTime(date: string, time: string) {
 
 const mobileMenuOpen = ref(false)
 const activeDrawer = ref<string | null>(null)
+const tradeInOpen = ref(false)
 // Prevent hydration mismatch by using an empty string on SSR
 const currentTheme = ref<string>('light')
 const hasHydrated = ref(false)
@@ -245,6 +252,7 @@ const navigation = [
   { name: 'POS',         path: '/pos',               icon: ShoppingCart,    color: '#ec4899', badge: { label: 'Live',   color: '#10b981' }, group: 'core' },
   { name: 'Analytics',   path: '/analytics',         icon: BarChart3,       color: '#10b981', badge: null,                         group: 'tools' },
   { name: 'Messages',    path: '/messages',          icon: MessageCircle,   color: '#ec4899', badge: null,                         group: 'tools' },
+  { name: 'Trade-In',    path: '',                   icon: ArrowLeftRight,  color: '#f59e0b', badge: null,                         group: 'tools', isModal: true },
   { name: 'Display',     path: '/display',           icon: Tv,              color: '#06b6d4', badge: null,                         group: 'tools' },
   { name: 'Barcodes',    path: '/barcodes',          icon: ScanLine,        color: '#06b6d4', badge: null,                         group: 'tools' },
   { name: 'Import',      path: '/import',            icon: Upload,          color: '#8b5cf6', badge: null,                         group: 'tools' },
@@ -530,7 +538,7 @@ const DrawerContent = defineComponent({
     userEmail:   { type: String, required: true },
     settings:    { type: Object, required: true },
   },
-  emits: ['navigate', 'close'],
+  emits: ['navigate', 'close', 'open-trade-in'],
   setup(props, { emit }) {
     const NuxtLink = resolveComponent('NuxtLink')
     const route = useRoute()
@@ -764,8 +772,28 @@ const DrawerContent = defineComponent({
             }, [h(X, { class: 'w-4 h-4' })]),
           ]),
           h('nav', { class: 'flex-1 p-3 space-y-0.5 overflow-y-auto' },
-            toolsNav.value.map(item =>
-              h(NuxtLink, {
+            toolsNav.value.map((item: any) => {
+              if (item.isModal) {
+                // Modal items render as buttons, not nav links
+                return h('button', {
+                  key: item.name,
+                  class: navLinkClass + ' w-full text-left',
+                  onClick: () => { emit('open-trade-in'); emit('close') },
+                }, () => [
+                  h('div', {
+                    class: 'w-9 h-9 rounded-[18px] flex items-center justify-center flex-shrink-0',
+                    style: `background: ${item.color}20`,
+                  }, [
+                    h(item.icon, { class: 'w-4 h-4', style: `color: ${item.color}` }),
+                  ]),
+                  h('span', { class: 'flex-1 truncate' }, item.name),
+                  h('span', {
+                    class: 'text-[9px] font-bold px-2 py-1 rounded-full flex-shrink-0 border',
+                    style: `background: ${item.color}18; color: ${item.color}; border-color: ${item.color}35`,
+                  }, 'Wizard'),
+                ])
+              }
+              return h(NuxtLink, {
                 key: item.path,
                 to: item.path,
                 class: navLinkClass,
@@ -784,7 +812,7 @@ const DrawerContent = defineComponent({
                   style: `background: ${item.badge.color}18; color: ${item.badge.color}; border-color: ${item.badge.color}35`,
                 }, item.badge.label) : null,
               ])
-            )
+            })
           ),
           h('div', { class: 'p-3 border-t border-border/60 flex-shrink-0 space-y-1' }, [
             h(NuxtLink, {
