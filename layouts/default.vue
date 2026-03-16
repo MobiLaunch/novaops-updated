@@ -252,7 +252,7 @@ const navigation = [
   { name: 'Inventory',   path: '/inventory',         icon: Package,         color: '#8b5cf6', badge: null,                         group: 'core' },
   { name: 'Calendar',    path: '/calendar',          icon: CalendarDays,    color: '#06b6d4', badge: null,                         group: 'core' },
   { name: 'POS',         path: '/pos',               icon: ShoppingCart,    color: '#ec4899', badge: { label: 'Live',   color: '#10b981' }, group: 'core' },
-  { name: 'Trade-In',    path: '',                   icon: ArrowLeftRight,  color: '#f59e0b', badge: null,                         group: 'core', isModal: true },
+  { name: 'Trade-In',    path: '#trade-in',          icon: ArrowLeftRight,  color: '#f59e0b', badge: null,                         group: 'core', isModal: true },
   { name: 'Analytics',   path: '/analytics',         icon: BarChart3,       color: '#10b981', badge: null,                         group: 'tools' },
   { name: 'Messages',    path: '/messages',          icon: MessageCircle,   color: '#ec4899', badge: null,                         group: 'tools' },
   { name: 'Display',     path: '/display',           icon: Tv,              color: '#06b6d4', badge: null,                         group: 'tools' },
@@ -330,8 +330,11 @@ const RailContent = defineComponent({
     function isActive(path: string) { return route.path === path }
 
     function railItem(item: typeof navigation[0]) {
-      const active = isActive(item.path)
       const m = props.isMobile
+      const isModal = (item as any).isModal === true
+
+      // Never mark a modal item as "active" — it has no real route
+      const active = isModal ? false : isActive(item.path)
 
       const inner = () => [
         h('div', {
@@ -356,11 +359,12 @@ const RailContent = defineComponent({
         }, item.name),
       ]
 
-      // Modal items (e.g. Trade-In) render as a button, not a NuxtLink
-      if ((item as any).isModal) {
+      // Modal items render as plain buttons — no NuxtLink, no routing
+      if (isModal) {
         return h('button', {
           key: item.name,
           class: 'flex flex-col items-center gap-1.5 w-full px-1.5 group',
+          style: 'background: none; border: none; cursor: pointer; padding: 0',
           onClick: () => emit('open-trade-in'),
         }, inner)
       }
