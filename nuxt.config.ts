@@ -122,7 +122,7 @@ export default defineNuxtConfig({
     squareLocationId: process.env.SQUARE_LOCATION_ID || '',
     squareSandbox: process.env.SQUARE_SANDBOX === 'true',
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-    anthropicApiKey: process.env.ANTHROPIC_API_KEY || process.env.NUXT_ANTHROPIC_API_KEY || '',
+    geminiApiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY || '',
 
     // Google OAuth — used for Gmail email support integration
     googleClientId: process.env.GOOGLE_CLIENT_ID || '',
@@ -178,12 +178,6 @@ export default defineNuxtConfig({
 
   nitro: {
     preset: process.env.VERCEL ? 'vercel' : 'node-server',
-
-    // 60s timeout for the trade-in price lookup — Claude + web_search takes 15-25s.
-    // Requires Vercel Pro plan. On Hobby the hard cap is 10s and cannot be raised.
-    routeRules: {
-      '/api/trade-in/lookup': { timeout: 60000 },
-    },
 
     // Explicitly register server/utils so Nitro's auto-import scanner
     // resolves them before any lazy-loaded route handler runs.
