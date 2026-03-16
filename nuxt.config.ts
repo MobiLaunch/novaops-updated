@@ -122,7 +122,7 @@ export default defineNuxtConfig({
     squareLocationId: process.env.SQUARE_LOCATION_ID || '',
     squareSandbox: process.env.SQUARE_SANDBOX === 'true',
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-    anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY || process.env.NUXT_ANTHROPIC_API_KEY || '',
 
     // Google OAuth — used for Gmail email support integration
     googleClientId: process.env.GOOGLE_CLIENT_ID || '',
@@ -147,6 +147,16 @@ export default defineNuxtConfig({
   app: {
     baseURL: '/',
     buildAssetsDir: 'assets',
+    head: {
+      link: [
+        { rel: 'icon',             type: 'image/x-icon', href: '/icon.ico' },
+        { rel: 'icon',             type: 'image/png',    href: '/icon-192.png', sizes: '192x192' },
+        { rel: 'apple-touch-icon',                       href: '/icon-192.png' },
+      ],
+      meta: [
+        { name: 'theme-color', content: '#0f172a' },
+      ],
+    },
   },
 
   imports: { autoImport: true },

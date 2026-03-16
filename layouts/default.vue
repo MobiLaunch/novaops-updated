@@ -252,7 +252,7 @@ const navigation = [
   { name: 'POS',         path: '/pos',               icon: ShoppingCart,    color: '#ec4899', badge: { label: 'Live',   color: '#10b981' }, group: 'core' },
   { name: 'Analytics',   path: '/analytics',         icon: BarChart3,       color: '#10b981', badge: null,                         group: 'tools' },
   { name: 'Messages',    path: '/messages',          icon: MessageCircle,   color: '#ec4899', badge: null,                         group: 'tools' },
-  { name: 'Trade-In',    path: '/recycle',           icon: ArrowLeftRight,  color: '#f59e0b', badge: null,                         group: 'tools', isModal: true },
+  { name: 'Trade-In',    path: '',                   icon: ArrowLeftRight,  color: '#f59e0b', badge: null,                         group: 'tools', isModal: true },
   { name: 'Display',     path: '/display',           icon: Tv,              color: '#06b6d4', badge: null,                         group: 'tools' },
   { name: 'Barcodes',    path: '/barcodes',          icon: ScanLine,        color: '#06b6d4', badge: null,                         group: 'tools' },
   { name: 'Import',      path: '/import',            icon: Upload,          color: '#8b5cf6', badge: null,                         group: 'tools' },
