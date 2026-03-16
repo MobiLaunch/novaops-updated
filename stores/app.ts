@@ -3,20 +3,49 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useNuxtApp } from '#app'
 import { printBarcodeLabel } from '~/utils/print'
+import type { Ticket, Customer, InventoryItem, Appointment, Expense } from '~/types'
+
+// Extended types for store-only entities
+interface HouseCall {
+  id: number | string
+  profile_id?: string
+  customerId: number
+  description?: string
+  address?: string
+  date?: string
+  time?: string
+  status?: string
+  notes?: string
+}
+
+interface VendorRepair {
+  id: number | string
+  profile_id?: string
+  customerId: number
+  device?: string
+  issue?: string
+  vendor?: string
+  ticketRef?: string
+  trackingNumber?: string
+  status?: string
+  sentDate?: string | null
+  estReturn?: string | null
+  notes?: string
+}
 
 export const useAppStore = defineStore('app', () => {
   const { $supabase } = useNuxtApp()
 
   // --- State ---
-  const tickets = ref<any[]>([])
-  const customers = ref<any[]>([])
-  const inventory = ref<any[]>([])
-  const houseCalls = ref<any[]>([])
-  const vendorRepairs = ref<any[]>([])
-  const appointments = ref<any[]>([])
+  const tickets = ref<Ticket[]>([])
+  const customers = ref<Customer[]>([])
+  const inventory = ref<InventoryItem[]>([])
+  const houseCalls = ref<HouseCall[]>([])
+  const vendorRepairs = ref<VendorRepair[]>([])
+  const appointments = ref<Appointment[]>([])
   const quickSales = ref<any[]>([])
   const services = ref<any[]>([])
-  const expenses = ref<Array<{ id: number; description: string; amount: number; category: string; date: string }>>([])
+  const expenses = ref<Expense[]>([])
   const settings = ref({
     businessName: '',
     email: '',
@@ -276,47 +305,29 @@ export const useAppStore = defineStore('app', () => {
       if (eventType !== 'DELETE') return
     }
 
-    const tableMap: Record<string, Ref<any[]>> = {
-      tickets,
-      customers,
-      inventory,
-      house_calls: houseCalls,
-      vendor_repairs: vendorRepairs,
-      appointments
+    const tableMap: Record<string, { array: any; normalize: (r: any) => any }> = {
+      tickets:        { array: tickets,       normalize: normalizeTicket },
+      customers:      { array: customers,     normalize: normalizeCustomer },
+      inventory:      { array: inventory,     normalize: normalizeInventory },
+      house_calls:    { array: houseCalls,    normalize: normalizeHouseCall },
+      vendor_repairs: { array: vendorRepairs, normalize: normalizeVendorRepair },
+      appointments:   { array: appointments,  normalize: normalizeAppointment },
     }
 
-    const targetArray = tableMap[table]
-    if (!targetArray) return
+    const target = tableMap[table]
+    if (!target) return
 
     switch (eventType) {
-      case 'INSERT': {
-        const norm = table === 'tickets' ? normalizeTicket(newRecord)
-          : table === 'customers' ? normalizeCustomer(newRecord)
-            : table === 'inventory' ? normalizeInventory(newRecord)
-              : table === 'house_calls' ? normalizeHouseCall(newRecord)
-                : table === 'vendor_repairs' ? normalizeVendorRepair(newRecord)
-                  : table === 'appointments' ? normalizeAppointment(newRecord)
-                    : newRecord
-        targetArray.value.unshift(norm)
+      case 'INSERT':
+        target.array.value.unshift(target.normalize(newRecord))
         break
-      }
       case 'UPDATE': {
-        const index = targetArray.value.findIndex((item: any) => item.id === newRecord.id)
-        if (index !== -1) {
-          // Apply the same normalizer used at load time so camelCase fields are correct
-          const norm = table === 'tickets' ? normalizeTicket(newRecord)
-            : table === 'customers' ? normalizeCustomer(newRecord)
-              : table === 'inventory' ? normalizeInventory(newRecord)
-                : table === 'house_calls' ? normalizeHouseCall(newRecord)
-                  : table === 'vendor_repairs' ? normalizeVendorRepair(newRecord)
-                    : table === 'appointments' ? normalizeAppointment(newRecord)
-                      : newRecord
-          targetArray.value[index] = norm
-        }
+        const index = target.array.value.findIndex((item: any) => item.id === newRecord.id)
+        if (index !== -1) target.array.value[index] = target.normalize(newRecord)
         break
       }
       case 'DELETE':
-        targetArray.value = targetArray.value.filter((item: any) => item.id !== oldRecord.id)
+        target.array.value = target.array.value.filter((item: any) => item.id !== oldRecord.id)
         break
     }
   }
@@ -620,8 +631,6 @@ export const useAppStore = defineStore('app', () => {
     Object.keys(bizPayload).forEach(k => {
       if (bizPayload[k] === undefined) delete bizPayload[k]
     })
-
-    console.log('[saveSettings] Business payload:', JSON.stringify(bizPayload, null, 2))
 
     const rowId = settingsRowId.value
     let bizError: any

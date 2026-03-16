@@ -76,18 +76,10 @@
                   <p class="text-[11px] text-muted-foreground font-medium">Customer</p>
                 </div>
                 <div class="flex gap-1.5">
-                  <a v-if="ticketCustomer.phone"
-                    :href="`tel:${ticketCustomer.phone}`"
-                    class="contact-action-btn"
-                    title="Call customer"
-                  >
+                  <a v-if="ticketCustomer.phone" :href="`tel:${ticketCustomer.phone}`" class="contact-action-btn" title="Call customer">
                     <Phone class="w-3.5 h-3.5" />
                   </a>
-                  <button v-if="ticketCustomer.email"
-                    class="contact-action-btn"
-                    title="Email customer"
-                    @click="emailCustomer"
-                  >
+                  <button v-if="ticketCustomer.email" class="contact-action-btn" title="Email customer" @click="emailCustomer">
                     <Mail class="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -95,101 +87,137 @@
               <div class="px-4 py-3 space-y-2 text-sm">
                 <div v-if="ticketCustomer.phone" class="flex items-center gap-2.5">
                   <Phone class="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                  <a :href="`tel:${ticketCustomer.phone}`" class="font-medium hover:text-indigo-500 transition-colors">
-                    {{ ticketCustomer.phone }}
-                  </a>
+                  <a :href="`tel:${ticketCustomer.phone}`" class="font-medium hover:text-indigo-500 transition-colors">{{ ticketCustomer.phone }}</a>
                 </div>
                 <div v-if="ticketCustomer.email" class="flex items-center gap-2.5">
                   <Mail class="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                  <button class="font-medium hover:text-indigo-500 transition-colors truncate text-left" @click="emailCustomer">
-                    {{ ticketCustomer.email }}
-                  </button>
+                  <button class="font-medium hover:text-indigo-500 transition-colors truncate text-left" @click="emailCustomer">{{ ticketCustomer.email }}</button>
                 </div>
                 <div v-if="ticketCustomer.address" class="flex items-start gap-2.5">
                   <MapPin class="w-3.5 h-3.5 text-muted-foreground flex-shrink-0 mt-0.5" />
                   <span class="text-muted-foreground leading-snug">{{ ticketCustomer.address }}</span>
                 </div>
-                <div v-if="!ticketCustomer.phone && !ticketCustomer.email && !ticketCustomer.address"
-                  class="text-xs text-muted-foreground italic">No contact details on file</div>
+                <div v-if="!ticketCustomer.phone && !ticketCustomer.email && !ticketCustomer.address" class="text-xs text-muted-foreground italic">No contact details on file</div>
               </div>
             </CardContent>
           </Card>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- ── Edit / View toggle ── -->
+          <div class="flex items-center justify-between">
+            <p class="m3-section-label mb-0">Device & Repair Details</p>
+            <button
+              class="flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95"
+              :style="editingInfo
+                ? 'background: #6366f120; color: #6366f1; outline: 1.5px solid #6366f140; outline-offset: 0'
+                : 'background: hsl(var(--muted)/0.6); color: hsl(var(--muted-foreground))'"
+              @click="editingInfo = !editingInfo"
+            >
+              <Pencil v-if="!editingInfo" class="w-3 h-3" /> <Check v-else class="w-3 h-3" />
+              {{ editingInfo ? 'Done Editing' : 'Edit' }}
+            </button>
+          </div>
+
+          <!-- VIEW MODE -->
+          <div v-if="!editingInfo" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card class="rounded-[20px]">
               <CardContent class="p-5 space-y-3">
                 <p class="m3-section-label">Device</p>
                 <div class="space-y-1.5 text-sm">
-                  <div class="flex justify-between">
-                    <span class="text-muted-foreground">Brand</span>
-                    <span class="font-medium">{{ ticket?.device }}</span>
+                  <div class="flex justify-between"><span class="text-muted-foreground">Brand</span><span class="font-medium">{{ ticket?.device }}</span></div>
+                  <div class="flex justify-between"><span class="text-muted-foreground">Model</span><span class="font-medium">{{ ticket?.deviceModel || '—' }}</span></div>
+                  <div class="flex justify-between"><span class="text-muted-foreground">Serial</span><span class="font-medium font-mono text-xs">{{ ticket?.serialNumber || '—' }}</span></div>
+                  <div class="flex justify-between capitalize"><span class="text-muted-foreground">Priority</span>
+                    <span class="font-bold text-xs px-2 py-0.5 rounded-full" :style="`background: ${priorityColorRaw(ticket?.priority)}20; color: ${priorityColorRaw(ticket?.priority)}`">{{ ticket?.priority }}</span>
                   </div>
-                  <div class="flex justify-between">
-                    <span class="text-muted-foreground">Model</span>
-                    <span class="font-medium">{{ ticket?.deviceModel || '—' }}</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-muted-foreground">Serial</span>
-                    <span class="font-medium font-mono text-xs">{{ ticket?.serialNumber || '—' }}</span>
-                  </div>
-                  <div v-if="ticket?.deviceDescription" class="pt-1">
-                    <span class="text-muted-foreground">Condition</span>
-                    <p class="text-xs mt-0.5">{{ ticket?.deviceDescription }}</p>
-                  </div>
+                  <div v-if="ticket?.deviceDescription" class="pt-1"><span class="text-muted-foreground block text-xs">Condition</span><p class="text-xs mt-0.5">{{ ticket?.deviceDescription }}</p></div>
                 </div>
               </CardContent>
             </Card>
-
             <Card class="rounded-[20px]">
               <CardContent class="p-5 space-y-3">
                 <p class="m3-section-label">Financials</p>
                 <div class="space-y-1.5 text-sm">
-                  <div class="flex justify-between">
-                    <span class="text-muted-foreground">Labor</span>
-                    <span class="font-medium text-blue-500">{{ formatCurrency(laborTotal) }}</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-muted-foreground">Parts</span>
-                    <span class="font-medium text-purple-500">{{ formatCurrency(partsTotal) }}</span>
-                  </div>
-                  <div class="flex justify-between border-t border-border pt-1.5">
-                    <span class="font-semibold">Total</span>
-                    <span class="font-bold">{{ formatCurrency(laborTotal + partsTotal) }}</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-muted-foreground">Paid</span>
-                    <span class="font-medium text-emerald-500">{{ formatCurrency(paymentsTotal) }}</span>
-                  </div>
+                  <div class="flex justify-between"><span class="text-muted-foreground">Labor</span><span class="font-medium text-blue-500">{{ formatCurrency(laborTotal) }}</span></div>
+                  <div class="flex justify-between"><span class="text-muted-foreground">Parts</span><span class="font-medium text-purple-500">{{ formatCurrency(partsTotal) }}</span></div>
+                  <div class="flex justify-between border-t border-border pt-1.5"><span class="font-semibold">Total</span><span class="font-bold">{{ formatCurrency(laborTotal + partsTotal) }}</span></div>
+                  <div class="flex justify-between"><span class="text-muted-foreground">Paid</span><span class="font-medium text-emerald-500">{{ formatCurrency(paymentsTotal) }}</span></div>
                   <div class="flex justify-between">
                     <span class="text-muted-foreground">Balance</span>
-                    <span class="font-bold" :class="balance > 0 ? 'text-destructive' : 'text-emerald-500'">
-                      {{ formatCurrency(balance) }}
-                    </span>
+                    <span class="font-bold" :class="balance > 0 ? 'text-destructive' : 'text-emerald-500'">{{ formatCurrency(balance) }}</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
-
-          <!-- Issue -->
-          <Card class="rounded-[20px]">
-            <CardContent class="p-5">
-              <p class="m3-section-label mb-2">Issue</p>
-              <p class="text-sm">{{ ticket?.issue }}</p>
+          <Card v-if="!editingInfo" class="rounded-[20px]">
+            <CardContent class="p-5 space-y-2">
+              <p class="m3-section-label">Issue Reported</p>
+              <p class="text-sm leading-relaxed">{{ ticket?.issue }}</p>
             </CardContent>
           </Card>
 
-          <!-- Editable fields -->
+          <!-- EDIT MODE -->
+          <Card v-if="editingInfo" class="rounded-[20px]">
+            <CardContent class="p-5 space-y-4">
+              <p class="m3-section-label">Edit Device Details</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1.5">
+                  <label class="field-label">Brand / Manufacturer</label>
+                  <input v-model="localDevice" class="m3-edit-input" placeholder="Apple, Samsung…" />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="field-label">Model</label>
+                  <input v-model="localDeviceModel" class="m3-edit-input" placeholder="iPhone 15 Pro…" />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="field-label">Serial Number</label>
+                  <input v-model="localSerialNumber" class="m3-edit-input font-mono text-xs" placeholder="Optional" />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="field-label">Priority</label>
+                  <select v-model="localPriority" class="m3-edit-input">
+                    <option value="low">Low</option>
+                    <option value="normal">Normal</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+                <div class="sm:col-span-2 space-y-1.5">
+                  <label class="field-label">Issue / Problem Description</label>
+                  <textarea v-model="localIssue" class="m3-edit-input resize-none" rows="3" placeholder="Describe the issue…" />
+                </div>
+                <div class="sm:col-span-2 space-y-1.5">
+                  <label class="field-label">Device Condition Notes</label>
+                  <textarea v-model="localDeviceDescription" class="m3-edit-input resize-none" rows="2" placeholder="Color, visible damage, accessories included…" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <!-- Always-editable fields -->
           <div class="grid grid-cols-2 gap-3">
             <div class="space-y-1.5">
-              <Label class="text-xs">Warranty Days</Label>
-              <Input v-model.number="localWarrantyDays" type="number" min="0" placeholder="0" @change="saveField('warranty_days', localWarrantyDays)" />
+              <label class="field-label">Warranty Days</label>
+              <input v-model.number="localWarrantyDays" type="number" min="0" placeholder="0" class="m3-edit-input" @change="saveField('warranty_days', localWarrantyDays)" />
             </div>
             <div class="space-y-1.5">
-              <Label class="text-xs">Tracking Number</Label>
-              <Input v-model="localTracking" placeholder="Optional" @change="saveField('tracking', localTracking)" />
+              <label class="field-label">Tracking Number</label>
+              <input v-model="localTracking" placeholder="Optional" class="m3-edit-input" @change="saveField('tracking', localTracking)" />
             </div>
           </div>
+
+          <!-- Financials summary (always visible) -->
+          <Card v-if="editingInfo" class="rounded-[20px]">
+            <CardContent class="p-5 space-y-2">
+              <p class="m3-section-label">Financials</p>
+              <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                <div class="flex justify-between"><span class="text-muted-foreground">Labor</span><span class="text-blue-500 font-medium">{{ formatCurrency(laborTotal) }}</span></div>
+                <div class="flex justify-between"><span class="text-muted-foreground">Parts</span><span class="text-purple-500 font-medium">{{ formatCurrency(partsTotal) }}</span></div>
+                <div class="flex justify-between col-span-2 border-t border-border pt-1"><span class="font-semibold">Balance</span>
+                  <span class="font-bold" :class="balance > 0 ? 'text-destructive' : 'text-emerald-500'">{{ formatCurrency(balance) }}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           <!-- Signature -->
           <div v-if="ticket?.signature">
@@ -538,7 +566,7 @@
 </template>
 
 <script setup lang="ts">
-import { X, Plus, Search, Clock, DollarSign, Save, Trash2, Loader2, Mail, TicketCheck, Printer, Phone, MapPin } from 'lucide-vue-next'
+import { X, Plus, Search, Clock, DollarSign, Save, Trash2, Loader2, Mail, TicketCheck, Printer, Phone, MapPin, Pencil, Check } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { printBarcodeLabel } from '~/utils/print'
 import { Dialog, DialogContent } from '~/components/ui/dialog'
@@ -578,6 +606,15 @@ const localPayments    = ref<any[]>([])
 const localNotes       = ref<any[]>([])
 const saving           = ref(false)
 
+// ── Editable info fields ──────────────────────────────────────────
+const editingInfo         = ref(false)
+const localDevice         = ref('')
+const localDeviceModel    = ref('')
+const localIssue          = ref('')
+const localDeviceDescription = ref('')
+const localSerialNumber   = ref('')
+const localPriority       = ref('normal')
+
 // ── Catalog ───────────────────────────────────────────────────────
 const serviceCatalog   = ref<any[]>([])
 const activeTab        = ref('info')
@@ -606,16 +643,23 @@ const statusList = computed(() =>
 // ── Watch ticket prop ─────────────────────────────────────────────
 watch(() => props.ticket, (t) => {
   if (!t) return
-  localStatus.value       = t.status || 'Open'
-  localWarrantyDays.value = t.warrantyDays || 0
-  localTracking.value     = t.tracking || ''
-  localServices.value     = JSON.parse(JSON.stringify(t.services || []))
-  localParts.value        = JSON.parse(JSON.stringify(t.parts || []))
-  localPayments.value     = JSON.parse(JSON.stringify(t.payments || []))
-  localNotes.value        = JSON.parse(JSON.stringify(t.notes || []))
-  activeTab.value         = 'info'
-  serviceSearch.value     = ''
-  partSearch.value        = ''
+  localStatus.value            = t.status || 'Open'
+  localWarrantyDays.value      = t.warrantyDays || 0
+  localTracking.value          = t.tracking || ''
+  localServices.value          = JSON.parse(JSON.stringify(t.services || []))
+  localParts.value             = JSON.parse(JSON.stringify(t.parts || []))
+  localPayments.value          = JSON.parse(JSON.stringify(t.payments || []))
+  localNotes.value             = JSON.parse(JSON.stringify(t.notes || []))
+  localDevice.value            = t.device || ''
+  localDeviceModel.value       = t.deviceModel || ''
+  localIssue.value             = t.issue || ''
+  localDeviceDescription.value = t.deviceDescription || ''
+  localSerialNumber.value      = t.serialNumber || ''
+  localPriority.value          = t.priority || 'normal'
+  editingInfo.value            = false
+  activeTab.value              = 'info'
+  serviceSearch.value          = ''
+  partSearch.value             = ''
 }, { immediate: true })
 
 // Fetch service catalog once
@@ -850,15 +894,23 @@ const saveAll = async () => {
   saving.value = true
   try {
     await appStore.updateTicket(props.ticket.id, {
-      status:        localStatus.value,
-      warranty_days: localWarrantyDays.value,
-      tracking:      localTracking.value,
-      services:      localServices.value,
-      parts:         localParts.value,
-      payments:      localPayments.value,
-      notes:         localNotes.value,
-      price:         laborTotal.value + partsTotal.value,
+      status:             localStatus.value,
+      warranty_days:      localWarrantyDays.value,
+      tracking:           localTracking.value,
+      services:           localServices.value,
+      parts:              localParts.value,
+      payments:           localPayments.value,
+      notes:              localNotes.value,
+      price:              laborTotal.value + partsTotal.value,
+      // Info fields (only written if editing was active)
+      device:             localDevice.value,
+      device_model:       localDeviceModel.value,
+      issue:              localIssue.value,
+      device_description: localDeviceDescription.value,
+      serial_number:      localSerialNumber.value,
+      priority:           localPriority.value,
     })
+    editingInfo.value = false
     emit('save')
     addNotification('Ticket Saved', `Ticket #${props.ticket.id} updated`, 'success')
   } finally {
@@ -874,6 +926,40 @@ const saveAll = async () => {
   color: hsl(var(--muted-foreground));
   text-transform: uppercase;
   letter-spacing: 0.12em;
+}
+
+.field-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.3rem;
+}
+
+.m3-edit-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 500;
+  background: hsl(var(--muted)/0.5);
+  border: 2px solid hsl(var(--border)/0.7);
+  color: hsl(var(--foreground));
+  outline: none;
+  transition: all 0.2s ease;
+}
+.m3-edit-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px #6366f115;
+  background: hsl(var(--background));
+}
+.m3-edit-input.resize-none {
+  height: auto;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .contact-action-btn {

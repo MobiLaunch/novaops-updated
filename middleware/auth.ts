@@ -2,21 +2,22 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   const { $supabase } = useNuxtApp()
 
-  // Pages that never require auth (display = customer TV/projector view)
+  // Pages that never require auth
   const publicPaths = ['/login', '/register', '/auth/callback', '/intro', '/display']
   if (publicPaths.includes(to.path)) {
-    // If already authenticated, skip login/register (but not callback)
+    // If already authenticated, skip login/register
     if ($supabase && to.path !== '/auth/callback') {
-      const { data: { user } } = await ($supabase as any).auth.getUser()
-      if (user) return navigateTo('/dashboard')
+      // getSession() is local (no network) — fine for nav guards
+      const { data: { session } } = await ($supabase as any).auth.getSession()
+      if (session?.user) return navigateTo('/dashboard')
     }
     return
   }
 
-  // If Supabase isn't configured, only allow public pages
   if (!$supabase) return navigateTo('/login')
 
-  // Validate session server-side (getUser hits the Supabase JWT endpoint)
-  const { data: { user } } = await ($supabase as any).auth.getUser()
-  if (!user) return navigateTo('/login')
+  // getSession() reads from localStorage — fast, no JWT roundtrip.
+  // The auth state listener in app.ts keeps it fresh via token refresh.
+  const { data: { session } } = await ($supabase as any).auth.getSession()
+  if (!session?.user) return navigateTo('/login')
 })

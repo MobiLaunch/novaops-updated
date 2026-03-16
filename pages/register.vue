@@ -503,7 +503,24 @@ const handleRegister = async () => {
       options: { data: { businessName: form.businessName, phone: form.phone, address: form.address, currency: form.currency } },
     })
     if (authError) throw authError
-    if (data.user) await navigateTo('/profile-setup')
+    if (data.user) {
+      // Write the profile directly so the user lands straight on the dashboard
+      // without being sent through the redundant profile-setup page.
+      await ($supabase as any).from('profiles').upsert({
+        id: data.user.id,
+        email: form.email,
+        business_name: form.businessName,
+        phone: form.phone,
+        address: form.address,
+        currency: form.currency,
+        tax_rate: 0,
+        statuses: 'Open, In Progress, Waiting for Parts, Completed, Delivered',
+        pin: '1234',
+        services: [],
+        expenses: [],
+      }, { onConflict: 'id' })
+      await navigateTo('/dashboard')
+    }
   } catch (err: any) {
     globalError.value = err.message || 'Failed to create account.'
   } finally {

@@ -259,11 +259,15 @@
         </div>
       </div>
     </div>
+
+    <!-- Trade-In Wizard -->
+    <TradeInWizard v-model="tradeInOpen" @saved="tradeInOpen = false" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { FileText, Receipt, ClipboardCheck, ShieldCheck, ChevronLeft, Printer, Plus, Trash2, Clock, Building, Eye } from 'lucide-vue-next'
+import { FileText, Receipt, ClipboardCheck, ShieldCheck, ChevronLeft, Printer, Plus, Trash2, Clock, Building, Eye, ArrowLeftRight } from 'lucide-vue-next'
+import TradeInWizard from '~/components/TradeInWizard.vue'
 definePageMeta({ middleware: ['auth'] })
 
 const appStore   = useAppStore()
@@ -275,6 +279,7 @@ const docNumber  = ref(Math.floor(1000 + Math.random() * 9000))
 
 const activeForm     = ref<any>(null)
 const invoiceHistory = ref<any[]>([])
+const tradeInOpen    = ref(false)
 
 const form = ref({
   customerId: null as any,
@@ -302,9 +307,16 @@ const formTemplates = [
     icon: ShieldCheck, color: '#8b5cf6', colorDark: '#7c3aed',
     tags: ['Authorization', 'Liability waiver', 'Signature line'],
   },
+  {
+    label: 'Trade-In Evaluator', desc: 'Multi-step device trade-in wizard with live market pricing',
+    icon: ArrowLeftRight, color: '#f59e0b', colorDark: '#d97706',
+    tags: ['Market price', 'Condition grading', 'Profit calc', 'Customer offer'],
+    isTradeIn: true,
+  },
 ]
 
 const openForm = (template: any) => {
+  if (template.isTradeIn) { tradeInOpen.value = true; return }
   activeForm.value = template
   docNumber.value = Math.floor(1000 + Math.random() * 9000)
   form.value = {

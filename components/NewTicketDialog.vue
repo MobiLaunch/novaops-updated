@@ -311,6 +311,14 @@
 
       <!-- Footer -->
       <div class="flex gap-3 px-7 pb-7">
+        <button
+          class="h-12 px-4 rounded-full text-xs font-bold transition-all hover:scale-[1.03] active:scale-95 flex items-center gap-1.5"
+          style="outline: 2px solid hsl(var(--border)); outline-offset: 0; color: hsl(var(--muted-foreground))"
+          title="Manage brands, categories & models"
+          @click="showDeviceMgr = true"
+        >
+          <Settings class="w-3.5 h-3.5" /> Devices
+        </button>
         <button class="flex-1 h-12 rounded-full text-sm font-bold transition-all hover:scale-[1.03] hover:bg-muted/60 active:scale-95"
           style="outline: 2px solid hsl(var(--border)); outline-offset: 0"
           @click="handleCancel">Cancel</button>
@@ -332,10 +340,138 @@
       </div>
     </DialogContent>
   </Dialog>
+
+  <!-- ══ Device Catalog Manager ══════════════════════════════════════ -->
+  <Dialog v-model:open="showDeviceMgr">
+    <DialogContent class="w-full max-w-[96vw] sm:max-w-2xl max-h-[90dvh] overflow-hidden flex flex-col">
+      <!-- Header -->
+      <div class="flex items-center gap-3 px-6 pt-6 pb-4 border-b border-border/50 flex-shrink-0">
+        <div class="w-10 h-10 rounded-[20px] flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed)">
+          <Cpu class="w-5 h-5 text-white" />
+        </div>
+        <div class="flex-1">
+          <h2 class="text-base font-black">Device Catalog</h2>
+          <p class="text-xs text-muted-foreground font-medium">Manage brands, categories, models and icons</p>
+        </div>
+        <!-- Tab pills -->
+        <div class="flex gap-1 p-1 rounded-full" style="background: hsl(var(--muted)/0.5)">
+          <button v-for="t in ['Brands','Categories','Models']" :key="t"
+            class="px-3 py-1.5 rounded-full text-xs font-bold transition-all"
+            :style="mgrTab === t ? 'background: white; color: hsl(var(--foreground)); box-shadow: 0 2px 6px rgba(0,0,0,0.08)' : 'color: hsl(var(--muted-foreground))'"
+            @click="mgrTab = t">{{ t }}</button>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-6 space-y-4">
+
+        <!-- ── BRANDS tab ── -->
+        <div v-if="mgrTab === 'Brands'" class="space-y-4">
+          <div class="flex gap-2">
+            <input v-model="newBrandName" placeholder="Brand name (e.g. Fairphone)" class="mgr-input flex-1" @keyup.enter="addBrand" />
+            <input v-model="newBrandIcon" placeholder="Icon URL or emoji 📱" class="mgr-input w-40" title="Paste an image URL, or type an emoji" />
+            <button class="mgr-add-btn" :disabled="!newBrandName.trim()" @click="addBrand">
+              <Plus class="w-4 h-4" /> Add
+            </button>
+          </div>
+          <p class="text-xs text-muted-foreground">Tip: paste any image URL or a Simple Icons slug like <code class="text-xs bg-muted px-1 py-0.5 rounded">fairphone</code> for the icon, or just leave it blank.</p>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div v-for="b in catalogBrands" :key="b.id"
+              class="flex items-center gap-2.5 p-3 rounded-[14px] group"
+              style="background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.5); outline-offset: 0">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden bg-muted/60">
+                <img v-if="b.icon_url && b.icon_url.startsWith('http')" :src="b.icon_url" class="w-5 h-5 object-contain" />
+                <span v-else-if="b.icon_url" class="text-base leading-none">{{ b.icon_url }}</span>
+                <span v-else class="text-xs text-muted-foreground font-bold">{{ b.name[0] }}</span>
+              </div>
+              <span class="text-sm font-bold flex-1 truncate">{{ b.name }}</span>
+              <button class="opacity-0 group-hover:opacity-100 w-6 h-6 rounded-full flex items-center justify-center transition-all hover:bg-destructive/20 hover:text-destructive" @click="deleteBrand(b.id)">
+                <X class="w-3 h-3" />
+              </button>
+            </div>
+            <div v-if="catalogBrands.length === 0" class="col-span-3 text-center py-8 text-sm text-muted-foreground">
+              No custom brands yet. Add one above.
+            </div>
+          </div>
+        </div>
+
+        <!-- ── CATEGORIES tab ── -->
+        <div v-if="mgrTab === 'Categories'" class="space-y-4">
+          <div class="flex gap-2">
+            <input v-model="newCatName" placeholder="Category name (e.g. E-Reader)" class="mgr-input flex-1" @keyup.enter="addCategory" />
+            <div class="flex items-center gap-1 mgr-input w-20 px-2 cursor-pointer" @click="showEmojiPicker = !showEmojiPicker">
+              <span class="text-lg">{{ newCatEmoji || '📦' }}</span>
+              <span class="text-xs text-muted-foreground">Icon</span>
+            </div>
+            <button class="mgr-add-btn" :disabled="!newCatName.trim()" @click="addCategory">
+              <Plus class="w-4 h-4" /> Add
+            </button>
+          </div>
+          <div v-if="showEmojiPicker" class="flex flex-wrap gap-1 p-3 rounded-[16px] border border-border/60 bg-muted/30">
+            <button v-for="e in categoryEmojis" :key="e" class="w-9 h-9 rounded-lg hover:bg-muted flex items-center justify-center text-xl transition-all hover:scale-110"
+              :class="newCatEmoji === e ? 'bg-purple-100 outline outline-2 outline-purple-400' : ''"
+              @click="newCatEmoji = e; showEmojiPicker = false">{{ e }}</button>
+          </div>
+          <div class="space-y-2">
+            <div v-for="c in catalogCategories" :key="c.id"
+              class="flex items-center gap-3 p-3 rounded-[14px] group"
+              style="background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.5); outline-offset: 0">
+              <span class="text-xl w-7 text-center flex-shrink-0">{{ c.emoji || '📦' }}</span>
+              <span class="text-sm font-bold flex-1">{{ c.name }}</span>
+              <button class="opacity-0 group-hover:opacity-100 w-6 h-6 rounded-full flex items-center justify-center transition-all hover:bg-destructive/20 hover:text-destructive" @click="deleteCategory(c.id)">
+                <X class="w-3 h-3" />
+              </button>
+            </div>
+            <div v-if="catalogCategories.length === 0" class="text-center py-8 text-sm text-muted-foreground">
+              No custom categories yet. Add one above.
+            </div>
+          </div>
+        </div>
+
+        <!-- ── MODELS tab ── -->
+        <div v-if="mgrTab === 'Models'" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <select v-model="newModelBrand" class="mgr-input">
+              <option value="">Select brand…</option>
+              <option v-for="b in allBrandsForMgr" :key="b" :value="b">{{ b }}</option>
+            </select>
+            <select v-model="newModelCategory" class="mgr-input">
+              <option value="">Select category…</option>
+              <option v-for="c in allCategoriesForMgr" :key="c" :value="c">{{ c }}</option>
+            </select>
+            <input v-model="newModelName" placeholder="Model name" class="mgr-input" @keyup.enter="addModel" />
+          </div>
+          <button class="mgr-add-btn w-full" :disabled="!newModelName.trim() || !newModelBrand || !newModelCategory" @click="addModel">
+            <Plus class="w-4 h-4" /> Add Model
+          </button>
+          <div class="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+            <div v-for="m in catalogModels" :key="m.id"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-[12px] group text-sm"
+              style="background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.5); outline-offset: 0">
+              <span class="text-muted-foreground text-xs w-20 flex-shrink-0 truncate">{{ m.brand }}</span>
+              <span class="text-muted-foreground text-xs w-20 flex-shrink-0 truncate">{{ m.category }}</span>
+              <span class="font-bold flex-1 truncate">{{ m.name }}</span>
+              <button class="opacity-0 group-hover:opacity-100 w-6 h-6 rounded-full flex items-center justify-center transition-all hover:bg-destructive/20 hover:text-destructive flex-shrink-0" @click="deleteModel(m.id)">
+                <X class="w-3 h-3" />
+              </button>
+            </div>
+            <div v-if="catalogModels.length === 0" class="text-center py-8 text-sm text-muted-foreground">
+              No custom models yet. Add one above.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-6 pb-6 pt-3 border-t border-border/50 flex-shrink-0">
+        <button class="w-full h-11 rounded-full text-sm font-bold transition-all hover:scale-[1.02]"
+          style="background: hsl(var(--muted)); color: hsl(var(--foreground))"
+          @click="showDeviceMgr = false; fetchBrands()">Done</button>
+      </div>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
-import { ChevronLeft, ChevronRight, Search, Zap, Droplets, Volume2, Wifi, Battery, Eye, Wrench, Check, Camera, X, Plus } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Search, Zap, Droplets, Volume2, Wifi, Battery, Eye, Wrench, Check, Camera, X, Plus, Settings, Cpu } from 'lucide-vue-next'
 import { Dialog, DialogContent } from '~/components/ui/dialog'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '~/components/ui/select'
 import SignaturePad from '~/components/SignaturePad.vue'
@@ -402,11 +538,14 @@ const brandLogoUrl = (brand: string): string => {
   return `https://cdn.simpleicons.org/${slug}/555555/cccccc`
 }
 
-// Merge DB brands with known brands (DB wins on duplicates)
+// Merge DB devices table brands + custom catalog brands + known brands (deduped)
 const allBrands = computed(() => {
-  const dbSet = new Set(brands.value.map(b => b.toLowerCase()))
+  const fromDevicesTable = brands.value
+  const fromCatalog = catalogBrandNames.value
+  const combined = [...new Set([...fromDevicesTable, ...fromCatalog].map(b => b))]
+  const dbSet = new Set(combined.map(b => b.toLowerCase()))
   const extra = KNOWN_BRANDS.filter(b => !dbSet.has(b.toLowerCase()))
-  return [...brands.value, ...extra].sort((a, b) => a.localeCompare(b))
+  return [...combined, ...extra].sort((a, b) => a.localeCompare(b))
 })
 
 // Other / custom brand state
@@ -624,6 +763,104 @@ const createTicket = () => {
   setTimeout(() => { resetForm(); creating.value = false }, 300)
 }
 
+// ── Device Catalog Manager ────────────────────────────────────────
+const showDeviceMgr  = ref(false)
+const mgrTab         = ref('Brands')
+const catalogBrands     = ref<any[]>([])
+const catalogCategories = ref<any[]>([])
+const catalogModels     = ref<any[]>([])
+
+// Add brand form
+const newBrandName = ref('')
+const newBrandIcon = ref('')
+// Add category form
+const newCatName    = ref('')
+const newCatEmoji   = ref('')
+const showEmojiPicker = ref(false)
+// Add model form
+const newModelBrand    = ref('')
+const newModelCategory = ref('')
+const newModelName     = ref('')
+
+const categoryEmojis = ['📱','💻','🖥️','⌚','🎮','🎧','📷','📺','🖨️','⌨️','🖱️','🔋','📡','🎙️','🕹️','📟','📠','🔭','📻']
+
+const loadCatalog = async () => {
+  if (!$supabase) return
+  const [br, ca, mo] = await Promise.all([
+    from('device_brands').select('*').order('name'),
+    from('device_categories').select('*').order('name'),
+    from('device_models').select('*').order('brand').order('name'),
+  ])
+  catalogBrands.value     = br.data || []
+  catalogCategories.value = ca.data || []
+  catalogModels.value     = mo.data || []
+}
+
+const addBrand = async () => {
+  if (!newBrandName.value.trim() || !$supabase) return
+  const iconVal = newBrandIcon.value.trim()
+  const icon_url = iconVal
+    ? iconVal.startsWith('http') ? iconVal : `https://cdn.simpleicons.org/${iconVal}/555555/cccccc`
+    : null
+  await from('device_brands').insert({ name: newBrandName.value.trim(), icon_url })
+  newBrandName.value = ''; newBrandIcon.value = ''
+  await loadCatalog()
+}
+
+const deleteBrand = async (id: number) => {
+  if (!$supabase) return
+  await from('device_brands').delete().eq('id', id)
+  await loadCatalog()
+}
+
+const addCategory = async () => {
+  if (!newCatName.value.trim() || !$supabase) return
+  await from('device_categories').insert({ name: newCatName.value.trim(), emoji: newCatEmoji.value || '📦' })
+  newCatName.value = ''; newCatEmoji.value = ''; showEmojiPicker.value = false
+  await loadCatalog()
+}
+
+const deleteCategory = async (id: number) => {
+  if (!$supabase) return
+  await from('device_categories').delete().eq('id', id)
+  await loadCatalog()
+}
+
+const addModel = async () => {
+  if (!newModelName.value.trim() || !newModelBrand.value || !newModelCategory.value || !$supabase) return
+  await from('device_models').insert({
+    brand: newModelBrand.value, category: newModelCategory.value, name: newModelName.value.trim()
+  })
+  newModelName.value = ''
+  await loadCatalog()
+}
+
+const deleteModel = async (id: number) => {
+  if (!$supabase) return
+  await from('device_models').delete().eq('id', id)
+  await loadCatalog()
+}
+
+// Combined brand list for model picker (DB custom + known)
+const allBrandsForMgr = computed(() => {
+  const custom = catalogBrands.value.map(b => b.name)
+  const extra = KNOWN_BRANDS.filter(b => !custom.map(c => c.toLowerCase()).includes(b.toLowerCase()))
+  return [...custom, ...extra].sort()
+})
+
+// Combined category list for model picker
+const allCategoriesForMgr = computed(() => {
+  const custom = catalogCategories.value.map(c => c.name)
+  const builtin = commonCategories.map(c => c.label)
+  const extra = builtin.filter(b => !custom.map(c => c.toLowerCase()).includes(b.toLowerCase()))
+  return [...custom, ...extra].sort()
+})
+
+watch(showDeviceMgr, (val) => { if (val) loadCatalog() })
+
+// Enrich allBrands with catalog brands
+const catalogBrandNames = computed(() => catalogBrands.value.map(b => b.name))
+
 const resetForm = () => {
   currentStep.value = 1
   selectedBrand.value = ''
@@ -779,5 +1016,44 @@ const resetForm = () => {
   height: 100%;
   display: block;
 }
+
+/* ── Device Catalog Manager ── */
+.mgr-input {
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 500;
+  background: hsl(var(--muted)/0.5);
+  border: 2px solid hsl(var(--border)/0.7);
+  color: hsl(var(--foreground));
+  outline: none;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+.mgr-input:focus {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px #8b5cf615;
+  background: hsl(var(--background));
+}
+
+.mgr-add-btn {
+  height: 42px;
+  padding: 0 18px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 800;
+  color: white;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+}
+.mgr-add-btn:hover:not(:disabled) { transform: scale(1.04) translateY(-1px); box-shadow: 0 4px 16px #8b5cf640; }
+.mgr-add-btn:active:not(:disabled) { transform: scale(0.96); }
+.mgr-add-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 </style>
 

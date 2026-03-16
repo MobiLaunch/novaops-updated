@@ -147,7 +147,7 @@ import {
   LayoutDashboard, TicketCheck, Users, Package, CalendarDays, ShoppingCart,
   ClipboardList,
   FileText, Settings as SettingsIcon, Menu, X, MapPin, Wrench, ScanLine, Upload,
-  Globe, Plus, Monitor, Moon, Sun, Download, ChevronRight, Sparkles,
+  Globe, Plus, Monitor, Moon, Sun, Download, ChevronRight,
   TicketPlus, UserPlus, Tag, Barcode, Clock, AlertCircle,
   MessageCircle, Tv, BarChart3,
 } from 'lucide-vue-next'
@@ -203,10 +203,10 @@ const currentTheme = ref<string>('light')
 const hasHydrated = ref(false)
 
 // Pages that should never be blocked by the data-loading spinner.
-// Settings, website-settings, services etc. have their own data loads
-// and must be accessible even when the main store hasn't finished yet.
+// These have their own data loads and must be accessible even when
+// the main store hasn't finished initializing yet.
 const NO_LOADING_GATE_PATHS = [
-  '/settings', '/website-settings', '/barcodes',
+  '/settings', '/barcodes',
   '/forms', '/import', '/display', '/analytics', '/messages',
 ]
 const noLoadingGate = computed(() => NO_LOADING_GATE_PATHS.includes(route.path))
@@ -249,7 +249,6 @@ const navigation = [
   { name: 'Barcodes',    path: '/barcodes',          icon: ScanLine,        color: '#06b6d4', badge: null,                         group: 'tools' },
   { name: 'Import',      path: '/import',            icon: Upload,          color: '#8b5cf6', badge: null,                         group: 'tools' },
   { name: 'Forms',       path: '/forms',             icon: FileText,        color: '#10b981', badge: null,                         group: 'tools' },
-  { name: 'Brand Mgr',   path: '/website-settings',  icon: Sparkles,        color: '#8b5cf6', badge: { label: 'Social', color: '#8b5cf6' }, group: 'tools' },
   { name: 'Settings',    path: '/settings',          icon: SettingsIcon,    color: '#64748b', badge: null,                         group: 'bottom' },
 ]
 

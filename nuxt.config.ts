@@ -122,21 +122,10 @@ export default defineNuxtConfig({
     squareLocationId: process.env.SQUARE_LOCATION_ID || '',
     squareSandbox: process.env.SQUARE_SANDBOX === 'true',
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-    brandOauthRedirectBase: process.env.BRAND_OAUTH_REDIRECT_BASE || '',
 
-    // Facebook / Instagram (same Meta app)
-    fbAppId: process.env.FB_APP_ID || '',
-    fbAppSecret: process.env.FB_APP_SECRET || '',
-    igAppId: process.env.IG_APP_ID || '',
-    igAppSecret: process.env.IG_APP_SECRET || '',
-
-    // Google Business Profile
+    // Google OAuth — used for Gmail email support integration
     googleClientId: process.env.GOOGLE_CLIENT_ID || '',
     googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-
-    // Yelp (OAuth 2 — limited public API)
-    yelpClientId: process.env.YELP_CLIENT_ID || '',
-    yelpClientSecret: process.env.YELP_CLIENT_SECRET || '',
 
     public: {
       // ── Public (safe in browser bundle) ─────────────────────────────────
@@ -145,16 +134,7 @@ export default defineNuxtConfig({
       squareSandbox: process.env.SQUARE_SANDBOX === 'true',
       supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL || '',
       supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY || '',
-
-      // Social sign-in buttons on the login page
-      socialGoogleEnabled: process.env.NUXT_PUBLIC_SOCIAL_GOOGLE === 'true',
-      socialFacebookEnabled: process.env.NUXT_PUBLIC_SOCIAL_FACEBOOK === 'true',
-
-      // OAuth app IDs (non-secret — used to build authorization URLs in the browser)
-      fbAppId: process.env.NUXT_PUBLIC_FB_APP_ID || '',
-      igAppId: process.env.NUXT_PUBLIC_IG_APP_ID || '',
       googleClientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID || '',
-      yelpClientId: process.env.NUXT_PUBLIC_YELP_CLIENT_ID || '',
 
       // EmailJS
       emailjsServiceId: process.env.NUXT_PUBLIC_EMAILJS_SERVICE_ID || '',

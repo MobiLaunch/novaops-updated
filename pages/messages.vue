@@ -485,7 +485,6 @@ onMounted(() => document.addEventListener('mousedown', onDocClick))
 onUnmounted(() => document.removeEventListener('mousedown', onDocClick))
 
 // ── Gmail connection state ──────────────────────────────────────────
-const brandManager = useBrandManager()
 const gmailConnected = ref(false)
 const gmailEmail = ref('')
 const currentProfileId = ref('')
@@ -510,9 +509,20 @@ async function checkGmailConnection() {
 }
 
 async function connectGmail() {
-  await brandManager.connectPlatform('gmail')
-  // Re-check after popup closes
-  setTimeout(() => checkGmailConnection(), 2000)
+  // Build the Google OAuth URL directly using the public client ID from runtimeConfig.
+  // The server-side callback at /auth/callback handles token exchange.
+  const config = useRuntimeConfig()
+  const clientId = config.public.googleClientId
+  if (!clientId) {
+    alert('Google Client ID is not configured. Add NUXT_PUBLIC_GOOGLE_CLIENT_ID to your environment variables.')
+    return
+  }
+  const redirectUri = `${window.location.origin}/auth/callback`
+  const scope = encodeURIComponent('https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send')
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}&access_type=offline&prompt=consent&state=gmail`
+  window.open(url, '_blank', 'width=500,height=600')
+  // Re-check after the popup likely closes
+  setTimeout(() => checkGmailConnection(), 3000)
 }
 
 // ── Gmail inbox sync ─────────────────────────────────────────────────
