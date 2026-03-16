@@ -30,7 +30,6 @@
             @navigate="mobileMenuOpen = false"
             @set-theme="handleSetTheme"
             @export="handleExport"
-            @open-trade-in="tradeInOpen = true; mobileMenuOpen = false"
           />
         </div>
         <Transition name="drawer">
@@ -45,7 +44,6 @@
               :settings="settings"
               @navigate="mobileMenuOpen = false; activeDrawer = null"
               @close="activeDrawer = null"
-              @open-trade-in="tradeInOpen = true; mobileMenuOpen = false; activeDrawer = null"
             />
           </div>
         </Transition>
@@ -67,7 +65,6 @@
         @navigate="() => {}"
         @set-theme="handleSetTheme"
         @export="handleExport"
-        @open-trade-in="tradeInOpen = true"
       />
     </aside>
 
@@ -85,7 +82,6 @@
           :settings="settings"
           @navigate="activeDrawer = null"
           @close="activeDrawer = null"
-          @open-trade-in="tradeInOpen = true; activeDrawer = null"
         />
       </aside>
     </Transition>
@@ -140,9 +136,6 @@
         </div>
       </main>
     </div>
-
-    <!-- Global Trade-In Wizard (triggered from nav rail) -->
-    <TradeInWizard v-model="tradeInOpen" />
   </div>
 </template>
 
@@ -150,7 +143,6 @@
 import { ref, computed, watch, onMounted, onUnmounted, defineComponent, h, resolveComponent } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAppStore } from '~/stores/app'
-import TradeInWizard from '~/components/TradeInWizard.vue'
 import {
   LayoutDashboard, TicketCheck, Users, Package, CalendarDays, ShoppingCart,
   ClipboardList,
@@ -206,7 +198,6 @@ function formatApptTime(date: string, time: string) {
 
 const mobileMenuOpen = ref(false)
 const activeDrawer = ref<string | null>(null)
-const tradeInOpen = ref(false)
 // Prevent hydration mismatch by using an empty string on SSR
 const currentTheme = ref<string>('light')
 const hasHydrated = ref(false)
@@ -215,7 +206,7 @@ const hasHydrated = ref(false)
 // These have their own data loads and must be accessible even when
 // the main store hasn't finished initializing yet.
 const NO_LOADING_GATE_PATHS = [
-  '/settings', '/barcodes',
+  '/settings', '/barcodes', '/tradein',
   '/forms', '/import', '/display', '/analytics', '/messages',
 ]
 const noLoadingGate = computed(() => NO_LOADING_GATE_PATHS.includes(route.path))
@@ -252,7 +243,7 @@ const navigation = [
   { name: 'Inventory',   path: '/inventory',         icon: Package,         color: '#8b5cf6', badge: null,                         group: 'core' },
   { name: 'Calendar',    path: '/calendar',          icon: CalendarDays,    color: '#06b6d4', badge: null,                         group: 'core' },
   { name: 'POS',         path: '/pos',               icon: ShoppingCart,    color: '#ec4899', badge: { label: 'Live',   color: '#10b981' }, group: 'core' },
-  { name: 'Trade-In',    path: '/tradein',           icon: ArrowLeftRight,  color: '#f59e0b', badge: null,                         group: 'core' },
+  { name: 'Trade-In',    path: '/tradein',           icon: ArrowLeftRight,  color: '#f59e0b', badge: null,                         group: 'core', isModal: false },
   { name: 'Analytics',   path: '/analytics',         icon: BarChart3,       color: '#10b981', badge: null,                         group: 'tools' },
   { name: 'Messages',    path: '/messages',          icon: MessageCircle,   color: '#ec4899', badge: null,                         group: 'tools' },
   { name: 'Display',     path: '/display',           icon: Tv,              color: '#06b6d4', badge: null,                         group: 'tools' },
@@ -313,7 +304,7 @@ const RailContent = defineComponent({
     upcomingItems:  { type: Array as () => typeof upcomingItems.value, default: () => [] },
     isMobile:       { type: Boolean, default: false },
   },
-  emits: ['set-drawer', 'navigate', 'set-theme', 'export', 'open-trade-in'],
+  emits: ['set-drawer', 'navigate', 'set-theme', 'export'],
   setup(props, { emit }) {
     const route = useRoute()
     const NuxtLink = resolveComponent('NuxtLink')
@@ -330,8 +321,8 @@ const RailContent = defineComponent({
     function isActive(path: string) { return route.path === path }
 
     function railItem(item: typeof navigation[0]) {
-      const active = isActive(item.path)
       const m = props.isMobile
+      const active = isActive(item.path)
 
       const inner = () => [
         h('div', {
@@ -355,15 +346,6 @@ const RailContent = defineComponent({
           style: active ? `color: ${item.color}` : 'color: hsl(var(--muted-foreground))',
         }, item.name),
       ]
-
-      // Modal items (e.g. Trade-In) render as a button, not a NuxtLink
-      if ((item as any).isModal) {
-        return h('button', {
-          key: item.name,
-          class: 'flex flex-col items-center gap-1.5 w-full px-1.5 group',
-          onClick: () => emit('open-trade-in'),
-        }, inner)
-      }
 
       return h(NuxtLink, {
         key: item.path,
@@ -550,7 +532,7 @@ const DrawerContent = defineComponent({
     userEmail:   { type: String, required: true },
     settings:    { type: Object, required: true },
   },
-  emits: ['navigate', 'close', 'open-trade-in'],
+  emits: ['navigate', 'close'],
   setup(props, { emit }) {
     const NuxtLink = resolveComponent('NuxtLink')
     const route = useRoute()
@@ -784,28 +766,8 @@ const DrawerContent = defineComponent({
             }, [h(X, { class: 'w-4 h-4' })]),
           ]),
           h('nav', { class: 'flex-1 p-3 space-y-0.5 overflow-y-auto' },
-            toolsNav.value.map((item: any) => {
-              if (item.isModal) {
-                // Modal items render as buttons, not nav links
-                return h('button', {
-                  key: item.name,
-                  class: navLinkClass + ' w-full text-left',
-                  onClick: () => { emit('open-trade-in'); emit('close') },
-                }, () => [
-                  h('div', {
-                    class: 'w-9 h-9 rounded-[18px] flex items-center justify-center flex-shrink-0',
-                    style: `background: ${item.color}20`,
-                  }, [
-                    h(item.icon, { class: 'w-4 h-4', style: `color: ${item.color}` }),
-                  ]),
-                  h('span', { class: 'flex-1 truncate' }, item.name),
-                  h('span', {
-                    class: 'text-[9px] font-bold px-2 py-1 rounded-full flex-shrink-0 border',
-                    style: `background: ${item.color}18; color: ${item.color}; border-color: ${item.color}35`,
-                  }, 'Wizard'),
-                ])
-              }
-              return h(NuxtLink, {
+            toolsNav.value.map((item: any) =>
+              h(NuxtLink, {
                 key: item.path,
                 to: item.path,
                 class: navLinkClass,
@@ -824,7 +786,7 @@ const DrawerContent = defineComponent({
                   style: `background: ${item.badge.color}18; color: ${item.badge.color}; border-color: ${item.badge.color}35`,
                 }, item.badge.label) : null,
               ])
-            })
+            )
           ),
           h('div', { class: 'p-3 border-t border-border/60 flex-shrink-0 space-y-1' }, [
             h(NuxtLink, {

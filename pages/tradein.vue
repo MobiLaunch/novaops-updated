@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-6 max-w-6xl">
- 
+
     <!-- ── Page Header ─────────────────────────────────────────── -->
     <div class="flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-4">
@@ -31,10 +31,10 @@
         </div>
       </div>
     </div>
- 
+
     <!-- ── Main Layout: Sidebar + Content ─────────────────────── -->
     <div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6 items-start">
- 
+
       <!-- Sidebar: step nav + summary -->
       <div class="flex flex-col gap-4">
         <!-- Step list -->
@@ -62,7 +62,7 @@
             </button>
           </div>
         </div>
- 
+
         <!-- Live summary card (visible after step 1 is filled) -->
         <div v-if="form.brand || form.model" class="rounded-[24px] p-4 space-y-3"
           style="background: hsl(var(--card)); outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
@@ -93,11 +93,11 @@
           </div>
         </div>
       </div>
- 
+
       <!-- ── Step Content ─────────────────────────────────────── -->
       <div class="rounded-[28px] p-6 space-y-5"
         style="background: hsl(var(--card)); outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
- 
+
         <!-- Step header -->
         <div class="flex items-center gap-3 pb-4 border-b border-border/50">
           <div class="w-9 h-9 rounded-[18px] flex items-center justify-center flex-shrink-0"
@@ -109,15 +109,15 @@
             <p class="text-xs text-muted-foreground font-medium">Step {{ currentStep }} of {{ TOTAL_STEPS }}</p>
           </div>
         </div>
- 
+
         <!-- ── Step 1: Device Identity ── -->
         <div v-if="currentStep === 1" class="space-y-5">
- 
+
           <div class="space-y-1.5">
             <label class="wi-label">Customer <span class="font-normal text-muted-foreground normal-case">(optional)</span></label>
             <CustomerSelect v-model="form.customerId" />
           </div>
- 
+
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-1.5">
               <label class="wi-label">Brand *</label>
@@ -142,7 +142,7 @@
               <input v-model="form.color" placeholder="Space Black, Silver…" class="wi-input" />
             </div>
           </div>
- 
+
           <!-- Identifiers -->
           <div class="rounded-[18px] p-4 space-y-3"
             style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.5); outline-offset: 0">
@@ -165,7 +165,7 @@
               </div>
             </div>
           </div>
- 
+
           <!-- Resolved device banner -->
           <div v-if="resolvedDevice" class="flex items-center gap-3 p-3 rounded-[14px]"
             style="background: #10b98110; outline: 1.5px solid #10b98130; outline-offset: 0">
@@ -179,7 +179,7 @@
             </div>
             <button class="text-[10px] text-muted-foreground hover:text-foreground underline" @click="resolvedDevice = null">Clear</button>
           </div>
- 
+
           <!-- Market price lookup -->
           <div class="rounded-[18px] p-4 space-y-4"
             style="background: #f59e0b08; outline: 1.5px solid #f59e0b28; outline-offset: 0">
@@ -198,7 +198,7 @@
                 {{ fetchingPrice ? fetchingStage : 'Look Up' }}
               </button>
             </div>
- 
+
             <div v-if="marketPriceResult" class="space-y-2">
               <div class="grid grid-cols-3 gap-3">
                 <div class="rounded-[14px] p-3 text-center" style="background: hsl(var(--muted)/0.4)">
@@ -232,7 +232,7 @@
             <div v-else class="text-xs text-muted-foreground">
               Enter device details above then tap Look Up. IMEI or model number gives the most accurate results.
             </div>
- 
+
             <div class="space-y-1.5 pt-1 border-t border-border/30">
               <label class="wi-label">Manual Override <span class="font-normal text-muted-foreground normal-case">(if lookup fails)</span></label>
               <div class="relative">
@@ -242,10 +242,10 @@
             </div>
           </div>
         </div>
- 
+
         <!-- ── Step 2: Condition ── -->
         <div v-if="currentStep === 2" class="space-y-5">
- 
+
           <div class="space-y-2">
             <label class="wi-label">Overall Grade</label>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -260,7 +260,7 @@
               </button>
             </div>
           </div>
- 
+
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div class="space-y-2">
               <label class="wi-label">Screen Condition</label>
@@ -280,7 +280,7 @@
                 </button>
               </div>
             </div>
- 
+
             <div class="space-y-5">
               <div class="space-y-2">
                 <div class="flex items-center justify-between">
@@ -295,7 +295,7 @@
                   <span>Dead</span><span>Good (80%)</span><span>New</span>
                 </div>
               </div>
- 
+
               <div class="space-y-2">
                 <label class="wi-label">Device Age</label>
                 <div class="grid grid-cols-3 gap-1.5">
@@ -312,10 +312,10 @@
             </div>
           </div>
         </div>
- 
+
         <!-- ── Step 3: Issues & Accessories ── -->
         <div v-if="currentStep === 3" class="space-y-5">
- 
+
           <div class="space-y-2">
             <div class="flex items-center justify-between">
               <label class="wi-label mb-0">Functional Issues</label>
@@ -336,7 +336,7 @@
               </button>
             </div>
           </div>
- 
+
           <div class="space-y-2">
             <div class="flex items-center justify-between">
               <label class="wi-label mb-0">Cosmetic Issues</label>
@@ -357,7 +357,7 @@
               </button>
             </div>
           </div>
- 
+
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div class="space-y-2">
               <div class="flex items-center justify-between">
@@ -380,7 +380,7 @@
                 </button>
               </div>
             </div>
- 
+
             <div class="space-y-4">
               <div class="space-y-2">
                 <label class="wi-label">Lock Status</label>
@@ -409,7 +409,7 @@
                   </label>
                 </div>
               </div>
- 
+
               <div class="space-y-1.5">
                 <label class="wi-label">Repair / Refurb Cost Estimate</label>
                 <div class="relative">
@@ -421,10 +421,10 @@
             </div>
           </div>
         </div>
- 
+
         <!-- ── Step 4: Offer & Summary ── -->
         <div v-if="currentStep === 4" class="space-y-5">
- 
+
           <!-- Pricing breakdown -->
           <div class="rounded-[20px] overflow-hidden" style="outline: 1.5px solid hsl(var(--border)/0.6); outline-offset: 0">
             <div class="px-5 py-3 border-b border-border/50" style="background: #f59e0b08">
@@ -480,7 +480,7 @@
               </div>
             </div>
           </div>
- 
+
           <!-- Adjustable final offer -->
           <div class="space-y-1.5">
             <label class="wi-label">Final Offer Price <span class="font-normal text-muted-foreground normal-case">(adjust as needed)</span></label>
@@ -498,7 +498,7 @@
               </button>
             </div>
           </div>
- 
+
           <!-- Profit metrics -->
           <div class="grid grid-cols-3 gap-3">
             <div class="p-4 rounded-[18px] text-center" style="background: #6366f10c; outline: 1.5px solid #6366f128; outline-offset: 0">
@@ -518,7 +518,7 @@
               <p class="text-lg font-black" :style="profitMargin >= 20 ? 'color: #10b981' : 'color: #f59e0b'">{{ profitMargin.toFixed(0) }}%</p>
             </div>
           </div>
- 
+
           <!-- Lock warning -->
           <div v-if="form.icloud_locked || form.frp_locked"
             class="flex items-start gap-3 p-4 rounded-[16px]"
@@ -533,13 +533,13 @@
               <p class="text-xs text-muted-foreground">Ensure the customer can provide proof of ownership and remove all locks before completing the trade-in.</p>
             </div>
           </div>
- 
+
           <div class="space-y-1.5">
             <label class="wi-label">Internal Notes</label>
             <textarea v-model="form.notes" class="wi-input resize-none" rows="3" placeholder="Any additional observations, condition details, or instructions…" />
           </div>
         </div>
- 
+
         <!-- ── Step navigation ── -->
         <div class="flex items-center gap-3 pt-4 border-t border-border/50">
           <button v-if="currentStep > 1"
@@ -548,9 +548,9 @@
             @click="currentStep--">
             <ChevronLeft class="w-4 h-4" /> Back
           </button>
- 
+
           <div class="flex-1" />
- 
+
           <button v-if="currentStep < TOTAL_STEPS"
             class="flex items-center gap-2 h-11 px-6 rounded-full text-sm font-black text-white transition-all hover:scale-[1.03] hover:-translate-y-0.5 active:scale-95"
             :style="canProceed
@@ -560,7 +560,7 @@
             @click="nextStep">
             Continue <ChevronRight class="w-4 h-4" />
           </button>
- 
+
           <button v-else
             class="flex items-center gap-2 h-11 px-6 rounded-full text-sm font-black text-white transition-all hover:scale-[1.03] hover:-translate-y-0.5 active:scale-95 disabled:opacity-50"
             style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 14px #10b98140"
@@ -571,12 +571,12 @@
             {{ saving ? 'Saving…' : 'Save Trade-In' }}
           </button>
         </div>
- 
+
       </div>
     </div>
   </div>
 </template>
- 
+
 <script setup lang="ts">
 import {
   ArrowLeftRight, ChevronLeft, ChevronRight, Search, TrendingUp,
@@ -591,43 +591,43 @@ import {
 import CustomerSelect from '~/components/CustomerSelect.vue'
 import { useAppStore } from '~/stores/app'
 import { storeToRefs } from 'pinia'
- 
+
 definePageMeta({ middleware: ['auth'] })
- 
+
 const { $supabase } = useNuxtApp()
 const appStore = useAppStore()
 const { settings } = storeToRefs(appStore)
 const currency = computed(() => settings.value?.currency || '$')
- 
+
 // ── Constants ──────────────────────────────────────────────────────
 const TOTAL_STEPS = 4
 const stepTitles = ['Device Identity', 'Condition', 'Issues & Accessories', 'Offer & Summary']
 const stepIcons  = [Smartphone, MonitorSmartphone, ListChecks, BarChart2]
- 
+
 const knownBrands = ['Apple', 'Samsung', 'Google', 'Sony', 'LG', 'Microsoft', 'Dell', 'HP',
   'Lenovo', 'ASUS', 'Acer', 'Huawei', 'OnePlus', 'Motorola', 'Nokia', 'Xiaomi', 'Oppo']
- 
+
 const storageOptions = ['16GB', '32GB', '64GB', '128GB', '256GB', '512GB', '1TB', '2TB']
- 
+
 const conditionGrades = [
   { value: 'Excellent', label: 'Excellent', icon: Star,       desc: 'Like new, minimal use',         color: '#10b981' },
   { value: 'Good',      label: 'Good',      icon: ThumbsUp,   desc: 'Normal wear, fully functional', color: '#6366f1' },
   { value: 'Fair',      label: 'Fair',      icon: Triangle,   desc: 'Visible wear, works fine',       color: '#f59e0b' },
   { value: 'Poor',      label: 'Poor',      icon: XCircle,    desc: 'Heavy damage or issues',         color: '#ef4444' },
 ]
- 
+
 const screenConditions = [
   { value: 'Perfect',         label: 'Perfect',         icon: MonitorSmartphone, desc: 'No scratches or damage',           color: '#10b981' },
   { value: 'Minor Scratches', label: 'Minor Scratches', icon: ScanLine,          desc: 'Light marks, visible in light',    color: '#6366f1' },
   { value: 'Cracked',         label: 'Cracked',         icon: Slash,             desc: 'Cracked, touchscreen still works', color: '#f59e0b' },
   { value: 'Shattered',       label: 'Shattered',       icon: XCircle,           desc: 'Severely broken, touch issues',   color: '#ef4444' },
 ]
- 
+
 const ageOptions = [
   { value: 0.5, label: '< 1 yr' }, { value: 1, label: '1 yr'  }, { value: 2, label: '2 yrs' },
   { value: 3,   label: '3 yrs'  }, { value: 4, label: '4 yrs' }, { value: 5, label: '5+ yrs' },
 ]
- 
+
 const functionalIssues = [
   { value: 'wont_turn_on',  label: "Won't Turn On",  icon: Zap       },
   { value: 'charging_port', label: 'Charging Port',  icon: Plug      },
@@ -639,7 +639,7 @@ const functionalIssues = [
   { value: 'water_damage',  label: 'Water Damage',   icon: Droplets  },
   { value: 'buttons',       label: 'Buttons Broken', icon: ToggleLeft},
 ]
- 
+
 const cosmeticIssues = [
   { value: 'back_cracked',  label: 'Back Glass Cracked', icon: Smartphone   },
   { value: 'dents',         label: 'Dents / Bends',       icon: Hammer       },
@@ -647,18 +647,18 @@ const cosmeticIssues = [
   { value: 'camera_lens',   label: 'Camera Lens Crack',   icon: Camera       },
   { value: 'missing_parts', label: 'Missing Parts',        icon: SlidersHorizontal },
 ]
- 
+
 const accessoryOptions = [
   { value: 'original_box', label: 'Original Box',  icon: Package   },
   { value: 'charger',      label: 'Charger / Cable', icon: Plug    },
   { value: 'earphones',    label: 'Earphones',      icon: Headphones},
   { value: 'case',         label: 'Case',           icon: Shield    },
 ]
- 
+
 const accessoryValueMap: Record<string, number> = {
   original_box: 8, charger: 6, earphones: 5, case: 3,
 }
- 
+
 // ── Deduction weights ─────────────────────────────────────────────
 const GRADE_DEDUCTIONS: Record<string, number> = {
   Excellent: 0.05, Good: 0.15, Fair: 0.30, Poor: 0.50,
@@ -673,7 +673,7 @@ const AGE_DEDUCTION_PER_YR  = 0.06
 const ACCESSORY_VALUES: Record<string, number> = {
   original_box: 8, charger: 6, earphones: 5, case: 3,
 }
- 
+
 // ── Form state ────────────────────────────────────────────────────
 const defaultForm = () => ({
   customerId:         null as number | null,
@@ -693,7 +693,7 @@ const defaultForm = () => ({
   offer_price:        0,
   notes:              '',
 })
- 
+
 const form            = reactive(defaultForm())
 const currentStep     = ref(1)
 const saving          = ref(false)
@@ -706,12 +706,12 @@ const marketPriceResult = ref<{
   ebay_avg: number; swappa_avg: number; median: number
   source_note: string; lookup_method: string
 } | null>(null)
- 
+
 // ── Computed ──────────────────────────────────────────────────────
 const effectiveMarketPrice = computed(() =>
   form.market_price ?? marketPriceResult.value?.median ?? 0
 )
- 
+
 const deductions = computed(() => {
   const mp = effectiveMarketPrice.value
   if (!mp) return 0
@@ -725,50 +725,50 @@ const deductions = computed(() => {
   if (form.icloud_locked || form.frp_locked) d += mp * LOCK_PENALTY
   return Math.min(d, mp * 0.92)
 })
- 
+
 const accessoryBonus = computed(() =>
   form.accessories.reduce((s, a) => s + (ACCESSORY_VALUES[a] || 0), 0)
 )
- 
+
 const calculatedOffer = computed(() =>
   Math.max(Math.round((effectiveMarketPrice.value - deductions.value - (form.repair_cost_est || 0) + accessoryBonus.value) * 2) / 2, 0)
 )
- 
+
 const estimatedResale = computed(() =>
   Math.max(effectiveMarketPrice.value - deductions.value * 0.3, calculatedOffer.value + 20)
 )
- 
+
 const estimatedProfit = computed(() =>
   estimatedResale.value - (form.offer_price || calculatedOffer.value) - (form.repair_cost_est || 0)
 )
- 
+
 const profitMargin = computed(() => {
   const r = estimatedResale.value
   return r ? (estimatedProfit.value / r) * 100 : 0
 })
- 
+
 watch(calculatedOffer, val => { if (!form.offer_price) form.offer_price = val }, { immediate: true })
- 
+
 // ── Navigation ────────────────────────────────────────────────────
 const canProceed = computed(() => {
   if (currentStep.value === 1) return !!form.brand && !!form.model
   if (currentStep.value === 2) return !!form.condition_grade && !!form.screen_condition
   return true
 })
- 
+
 function canNavigateTo(step: number) {
   if (step <= currentStep.value) return true
   if (step === 2) return !!form.brand && !!form.model
   if (step === 3) return !!form.condition_grade && !!form.screen_condition
   return false
 }
- 
+
 const nextStep = () => {
   if (!canProceed.value) return
   if (currentStep.value === 3) form.offer_price = calculatedOffer.value
   currentStep.value++
 }
- 
+
 // ── Pill style helper ─────────────────────────────────────────────
 function gradePillStyle(grade: string) {
   const colors: Record<string, string> = {
@@ -779,29 +779,29 @@ function gradePillStyle(grade: string) {
   }
   return colors[grade] || ''
 }
- 
+
 // ── Issue toggles ─────────────────────────────────────────────────
 const toggleIssue = (type: 'functional' | 'cosmetic', value: string) => {
   const arr = type === 'functional' ? form.functional_issues : form.cosmetic_issues
   const idx = arr.indexOf(value)
   if (idx >= 0) arr.splice(idx, 1); else arr.push(value)
 }
- 
+
 const toggleAccessory = (value: string) => {
   const idx = form.accessories.indexOf(value)
   if (idx >= 0) form.accessories.splice(idx, 1); else form.accessories.push(value)
 }
- 
+
 // ── Market price lookup ───────────────────────────────────────────
 const fetchMarketPrice = async () => {
   const hasIdentifier = form.brand || form.model || form.imei || form.model_number
   if (!hasIdentifier || fetchingPrice.value) return
- 
+
   fetchingPrice.value = true
   priceError.value = ''
   marketPriceResult.value = null
   resolvedDevice.value = null
- 
+
   if (form.imei) {
     const digits = form.imei.replace(/\D/g, '')
     if (digits.length === 15) {
@@ -819,12 +819,12 @@ const fetchMarketPrice = async () => {
       }
     }
   }
- 
+
   try {
     if (form.imei) fetchingStage.value = 'Looking up IMEI…'
     else if (form.model_number) fetchingStage.value = 'Resolving model #…'
     else fetchingStage.value = 'Searching prices…'
- 
+
     const result = await $fetch('/api/trade-in/lookup', {
       method: 'POST',
       body: {
@@ -835,9 +835,9 @@ const fetchMarketPrice = async () => {
         model_number: form.model_number || undefined,
       },
     }) as any
- 
+
     if (!result.ok) { priceError.value = result.error || 'Lookup failed. Enter market price manually.'; return }
- 
+
     if (result.resolved_brand || result.resolved_model) {
       const methodLabel = result.lookup_method === 'imei' ? 'IMEI lookup'
         : result.lookup_method === 'model_number' ? 'model number' : 'name search'
@@ -851,7 +851,7 @@ const fetchMarketPrice = async () => {
         }
       }
     }
- 
+
     marketPriceResult.value = {
       ebay_avg: result.ebay_avg, swappa_avg: result.swappa_avg,
       median: result.median, source_note: result.source_note, lookup_method: result.lookup_method,
@@ -864,7 +864,7 @@ const fetchMarketPrice = async () => {
     fetchingStage.value = 'Searching…'
   }
 }
- 
+
 // ── Save ──────────────────────────────────────────────────────────
 const saveTradeIn = async () => {
   if (!$supabase) return
@@ -872,7 +872,7 @@ const saveTradeIn = async () => {
   try {
     const { data: { user } } = await ($supabase as any).auth.getUser()
     if (!user) throw new Error('Not authenticated')
- 
+
     const { error } = await ($supabase as any).from('trade_ins').insert({
       profile_id:        user.id,
       customer_id:       form.customerId || null,
@@ -900,7 +900,7 @@ const saveTradeIn = async () => {
       notes:             form.notes,
     })
     if (error) throw error
- 
+
     // Reset form after save
     Object.assign(form, defaultForm())
     currentStep.value = 1
@@ -908,7 +908,7 @@ const saveTradeIn = async () => {
     priceError.value = ''
     resolvedDevice.value = null
     imeiValidState.value = null
- 
+
     await navigateTo('/dashboard')
   } catch (err: any) {
     console.error('[TradeIn save error]', err)
@@ -917,7 +917,7 @@ const saveTradeIn = async () => {
   }
 }
 </script>
- 
+
 <style scoped>
 .wi-label {
   display: block;
@@ -928,7 +928,7 @@ const saveTradeIn = async () => {
   letter-spacing: 0.12em;
   margin-bottom: 0.375rem;
 }
- 
+
 .wi-input {
   width: 100%;
   height: 44px;
@@ -944,14 +944,14 @@ const saveTradeIn = async () => {
 }
 .wi-input:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px #f59e0b18; background: hsl(var(--background)); }
 .wi-input.resize-none { height: auto; padding-top: 10px; padding-bottom: 10px; }
- 
+
 .wi-range { width: 100%; accent-color: #f59e0b; cursor: pointer; }
- 
+
 .wi-check {
   width: 16px; height: 16px; border-radius: 5px;
   accent-color: #f59e0b; cursor: pointer; flex-shrink: 0;
 }
- 
+
 /* Pills / badges */
 .pill {
   display: inline-flex;
@@ -967,7 +967,7 @@ const saveTradeIn = async () => {
   background: hsl(var(--muted)/0.6);
   color: hsl(var(--muted-foreground));
 }
- 
+
 .grade-chip {
   display: flex; flex-direction: column; align-items: center;
   padding: 14px 10px; border-radius: 18px; gap: 4px;
