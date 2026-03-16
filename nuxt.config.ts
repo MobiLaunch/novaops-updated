@@ -179,10 +179,14 @@ export default defineNuxtConfig({
   nitro: {
     preset: process.env.VERCEL ? 'vercel' : 'node-server',
 
+    // 60s timeout for the trade-in price lookup — Claude + web_search takes 15-25s.
+    // Requires Vercel Pro plan. On Hobby the hard cap is 10s and cannot be raised.
+    routeRules: {
+      '/api/trade-in/lookup': { timeout: 60000 },
+    },
+
     // Explicitly register server/utils so Nitro's auto-import scanner
     // resolves them before any lazy-loaded route handler runs.
-    // This prevents the TDZ race that manifests as "Cannot access
-    // 'renderer$1' before initialization".
     imports: {
       dirs: ['server/utils']
     }
