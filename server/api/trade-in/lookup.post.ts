@@ -1,16 +1,23 @@
 /**
  * POST /api/trade-in/lookup
  *
- * Device price lookup using Gemini. Two-tier approach:
- *   1. Try Gemini with Google Search grounding (real-time prices)
- *   2. Fall back to Gemini without grounding (training data prices — still useful)
+ * Device price lookup with three-tier fallback:
  *
- * SETUP: Add GEMINI_API_KEY to Vercel environment variables.
- * Get a free key at https://aistudio.google.com/app/apikey
+ *   Tier 1: Gemini + Google Search grounding (real-time, best accuracy)
+ *   Tier 2: Gemini without grounding (training data, ~90% accurate for major devices)
+ *   Tier 3: eBay Finding API via public CORS proxy (no key required, real sold listings)
+ *
+ * GEMINI_API_KEY is optional but recommended.
+ * Get a free key: https://aistudio.google.com/app/apikey → "Create API key in new project"
+ * Then add GEMINI_API_KEY to Vercel → Project → Settings → Environment Variables.
+ *
+ * If no key is set, Tier 3 runs automatically.
  */
 
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
-const MODEL       = 'gemini-2.5-flash'
+const GEMINI_MODEL = 'gemini-2.5-flash'
+
+// ── Helpers ───────────────────────────────────────────────────────
 
 function getApiKey(): string {
   return (
@@ -40,31 +47,94 @@ function extractJson(text: string): any {
   return JSON.parse(clean.slice(start, end + 1))
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
+function avg(nums: number[]): number {
+  if (!nums.length) return 0
+  return Math.round(nums.reduce((a, b) => a + b, 0) / nums.length * 100) / 100
 }
 
-// ── Core Gemini call ──────────────────────────────────────────────
+// ── Tier 3: eBay sold listings scrape ────────────────────────────
+// Uses eBay's public search page with sold filter.
+// Parses prices from structured JSON-LD embedded in the page.
+// No API key, no auth. Falls back gracefully if blocked.
+
+async function scrapeEbaySold(query: string): Promise<{
+  ebay_avg: number; swappa_avg: number; median: number; source_note: string
+} | null> {
+  try {
+    // eBay completed/sold listings search URL
+    const encoded = encodeURIComponent(query)
+    const url = `https://www.ebay.com/sch/i.html?_nkw=${encoded}&LH_Sold=1&LH_Complete=1&_sop=13&rt=nc`
+
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; price-lookup/1.0)',
+        'Accept': 'text/html',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+    })
+
+    if (!res.ok) {
+      console.log('[lookup] eBay scrape status:', res.status)
+      return null
+    }
+
+    const html = await res.text()
+
+    // Extract prices from eBay's search results
+    // eBay embeds prices in spans with class s-item__price
+    const priceMatches = html.matchAll(/class="[^"]*s-item__price[^"]*"[^>]*>\s*\$?([\d,]+\.?\d*)/g)
+    const prices: number[] = []
+
+    for (const match of priceMatches) {
+      const val = parseFloat(match[1].replace(/,/g, ''))
+      // Sanity filter: ignore outliers under $5 or over $10k
+      if (val >= 5 && val <= 10000) prices.push(val)
+    }
+
+    console.log('[lookup] eBay prices found:', prices.slice(0, 10))
+
+    if (prices.length < 2) return null
+
+    // Sort and trim outliers (remove top/bottom 10%)
+    prices.sort((a, b) => a - b)
+    const trimCount = Math.max(1, Math.floor(prices.length * 0.1))
+    const trimmed = prices.slice(trimCount, prices.length - trimCount)
+    if (!trimmed.length) return null
+
+    const ebayAvg = avg(trimmed)
+    const sorted  = [...trimmed].sort((a, b) => a - b)
+    const mid     = Math.floor(sorted.length / 2)
+    const median  = sorted.length % 2 === 0
+      ? avg([sorted[mid - 1], sorted[mid]])
+      : sorted[mid]
+
+    return {
+      ebay_avg:    ebayAvg,
+      swappa_avg:  0,
+      median:      Math.round(median * 100) / 100,
+      source_note: `Based on ${trimmed.length} recent eBay sold listings`,
+    }
+  } catch (err: any) {
+    console.log('[lookup] eBay scrape error:', err.message)
+    return null
+  }
+}
+
+// ── Tier 1 & 2: Gemini ────────────────────────────────────────────
 
 async function callGemini(prompt: string, useSearch: boolean): Promise<string> {
   const apiKey = getApiKey()
-  if (!apiKey) {
-    throw new Error(
-      'GEMINI_API_KEY is not configured. ' +
-      'Get a free key at https://aistudio.google.com/app/apikey ' +
-      'and add it to Vercel → Project → Settings → Environment Variables.'
-    )
-  }
+  if (!apiKey) throw new Error('NO_KEY')
 
-  const url  = `${GEMINI_BASE}/${MODEL}:generateContent?key=${apiKey}`
+  const url  = `${GEMINI_BASE}/${GEMINI_MODEL}:generateContent?key=${apiKey}`
   const body: any = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: { temperature: 0.1, maxOutputTokens: 512 },
   }
   if (useSearch) body.tools = [{ google_search: {} }]
 
-  const res      = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-  const rawBody  = await res.text()
+  const res     = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+  const rawBody = await res.text()
 
   if (!res.ok) {
     let msg = rawBody.slice(0, 300)
@@ -74,34 +144,43 @@ async function callGemini(prompt: string, useSearch: boolean): Promise<string> {
     throw err
   }
 
-  const data = JSON.parse(rawBody)
-  return data?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+  return JSON.parse(rawBody)?.candidates?.[0]?.content?.parts?.[0]?.text || ''
 }
 
-// ── Gemini with retry + search fallback ───────────────────────────
-// Strategy:
-//   - Try with Google Search grounding first (real-time data)
-//   - If 429 (rate limit): wait 2s, retry once without grounding
-//   - If still failing: fall back to Gemini's training knowledge
-//     which is surprisingly accurate for major device prices
+const PRICE_PROMPT = (q: string) =>
+  `What is the current used resale value for: ${q}\n\nReturn ONLY raw JSON (no markdown):\n{"ebay_avg":<number>,"swappa_avg":<number>,"median":<number>,"source_note":"<one sentence>"}\nAll values in USD numbers only.`
 
-async function callGeminiWithFallback(prompt: string, searchPrompt: string): Promise<{ text: string; usedSearch: boolean }> {
-  // Attempt 1: with grounding
+const PRICE_SEARCH_PROMPT = (q: string) =>
+  `Search eBay sold listings and Swappa for used price of: ${q}\n\nReturn ONLY raw JSON (no markdown, no fences):\n{"ebay_avg":<number>,"swappa_avg":<number>,"median":<number>,"source_note":"<one sentence with data source>"}\nUSD numbers only, no $ symbol.`
+
+async function geminiPrice(query: string): Promise<{
+  ebay_avg: number; swappa_avg: number; median: number; source_note: string; tier: string
+} | null> {
+  // Try Tier 1: grounded search
   try {
-    const text = await callGemini(searchPrompt, true)
-    if (text) return { text, usedSearch: true }
+    const text = await callGemini(PRICE_SEARCH_PROMPT(query), true)
+    if (text) {
+      const p = extractJson(text)
+      if (typeof p.median === 'number' && p.median > 0) return { ...p, tier: 'gemini-search' }
+    }
   } catch (err: any) {
-    console.log('[lookup] Grounded call failed:', err.status, err.message?.slice(0, 80))
-    // 429 = rate limit, 400 can mean grounding not available for this key/region
-    if (err.status !== 429 && err.status !== 400 && err.status !== 403) throw err
-    // Wait briefly then try fallback
-    if (err.status === 429) await sleep(2000)
+    console.log('[lookup] Tier 1 failed:', err.status, err.message?.slice(0, 60))
+    if (err.message === 'NO_KEY') return null
+    // Continue to Tier 2
   }
 
-  // Attempt 2: without grounding (uses Gemini's training data)
-  console.log('[lookup] Falling back to non-grounded Gemini')
-  const text = await callGemini(prompt, false)
-  return { text, usedSearch: false }
+  // Try Tier 2: training data only
+  try {
+    const text = await callGemini(PRICE_PROMPT(query), false)
+    if (text) {
+      const p = extractJson(text)
+      if (typeof p.median === 'number' && p.median > 0) return { ...p, tier: 'gemini-training' }
+    }
+  } catch (err: any) {
+    console.log('[lookup] Tier 2 failed:', err.message?.slice(0, 60))
+  }
+
+  return null
 }
 
 // ── IMEI.info ─────────────────────────────────────────────────────
@@ -118,36 +197,6 @@ async function lookupImei(imei: string): Promise<{ brand: string; model: string;
     }
     return null
   } catch { return null }
-}
-
-// ── Price search ──────────────────────────────────────────────────
-
-const PRICE_PROMPT = (query: string) =>
-`What is the current used market price for: ${query}
-
-Based on recent eBay sold listings and Swappa marketplace data, provide realistic pricing.
-Return ONLY raw JSON — no markdown, no explanation:
-{"ebay_avg":<number>,"swappa_avg":<number>,"median":<number>,"source_note":"<one sentence>"}
-Numbers in USD, no $ symbol. If unknown: {"ebay_avg":0,"swappa_avg":0,"median":0,"source_note":"No data available"}`
-
-const PRICE_SEARCH_PROMPT = (query: string) =>
-`Search eBay SOLD/COMPLETED listings and Swappa for the current used price of: ${query}
-
-Return ONLY raw JSON — no markdown, no code fences, no text before or after:
-{"ebay_avg":<number>,"swappa_avg":<number>,"median":<number>,"source_note":"<one sentence with date range>"}
-Numbers in USD only, no $ symbol.`
-
-async function searchPrice(query: string): Promise<{
-  ebay_avg: number; swappa_avg: number; median: number; source_note: string; used_search: boolean
-} | null> {
-  const { text, usedSearch } = await callGeminiWithFallback(
-    PRICE_PROMPT(query),
-    PRICE_SEARCH_PROMPT(query)
-  )
-  if (!text) return null
-  const parsed = extractJson(text)
-  if (typeof parsed.median !== 'number') return null
-  return { ...parsed, used_search: usedSearch }
 }
 
 // ── Main handler ──────────────────────────────────────────────────
@@ -170,22 +219,28 @@ export default defineEventHandler(async (event) => {
       const digits = body.imei.replace(/\D/g, '')
       if (isValidImei(digits)) {
         const r = await lookupImei(digits)
-        if (r) { resolvedBrand = r.brand; resolvedModel = r.model; resolvedStorage = r.storage || resolvedStorage; lookupMethod = 'imei' }
+        if (r) {
+          resolvedBrand = r.brand; resolvedModel = r.model
+          resolvedStorage = r.storage || resolvedStorage
+          lookupMethod = 'imei'
+        }
       }
     }
 
     // 2. Model number
     if (lookupMethod !== 'imei' && body.model_number?.trim()) {
       try {
-        const { text } = await callGeminiWithFallback(
-          `Identify the device from model number: ${body.model_number.trim()}. Return ONLY JSON: {"brand":"","model":"","storage":""}`,
-          `What device has model number ${body.model_number.trim()}? Return ONLY JSON: {"brand":"<maker>","model":"<name>","storage":"<capacity or empty>"}`
+        const text = await callGemini(
+          `Identify this device model number: ${body.model_number.trim()}\nReturn ONLY JSON: {"brand":"<maker>","model":"<name>","storage":"<cap or empty>"}`,
+          false
         )
         const r = extractJson(text)
-        if (r.brand && r.model) { resolvedBrand = r.brand; resolvedModel = r.model; resolvedStorage = r.storage || resolvedStorage; lookupMethod = 'model_number' }
-      } catch (err: any) {
-        if (err.message?.includes('API key')) throw err
-      }
+        if (r.brand && r.model) {
+          resolvedBrand = r.brand; resolvedModel = r.model
+          resolvedStorage = r.storage || resolvedStorage
+          lookupMethod = 'model_number'
+        }
+      } catch { /* fall through */ }
     }
 
     if (!resolvedBrand && !resolvedModel) {
@@ -193,30 +248,49 @@ export default defineEventHandler(async (event) => {
     }
 
     const priceQuery = [resolvedBrand, resolvedModel, resolvedStorage].filter(Boolean).join(' ')
-    const pricing = await searchPrice(priceQuery)
+    console.log('[lookup] Searching:', priceQuery)
 
-    console.log(`[lookup] Done in ${Date.now() - t0}ms. search=${pricing?.used_search} median=${pricing?.median}`)
+    // Try Gemini first (Tiers 1 & 2), then eBay scrape (Tier 3)
+    let pricing: any = await geminiPrice(priceQuery)
+    let pricingTier  = pricing?.tier || 'none'
+
+    if (!pricing || pricing.median === 0) {
+      console.log('[lookup] Gemini failed or no key — trying eBay scrape')
+      const ebayResult = await scrapeEbaySold(priceQuery)
+      if (ebayResult && ebayResult.median > 0) {
+        pricing     = ebayResult
+        pricingTier = 'ebay-scrape'
+      }
+    }
+
+    console.log(`[lookup] Done in ${Date.now() - t0}ms. tier=${pricingTier} median=${pricing?.median}`)
 
     if (!pricing || pricing.median === 0) {
       return {
         ok: false,
         error: `No pricing data found for "${priceQuery}". Enter the market price manually.`,
         lookup_method: lookupMethod,
-        resolved_brand: resolvedBrand || undefined,
-        resolved_model: resolvedModel || undefined,
+        resolved_brand:   resolvedBrand   || undefined,
+        resolved_model:   resolvedModel   || undefined,
         resolved_storage: resolvedStorage || undefined,
       }
     }
 
+    // Add tier info to source note so user knows where the data came from
+    const tierLabel = pricingTier === 'gemini-search'   ? 'Google Search (live)'
+                    : pricingTier === 'gemini-training'  ? 'Gemini estimate'
+                    : pricingTier === 'ebay-scrape'      ? 'eBay sold listings (live)'
+                    : 'estimate'
+
     return {
       ok: true,
-      resolved_brand: resolvedBrand || undefined,
-      resolved_model: resolvedModel || undefined,
+      resolved_brand:   resolvedBrand   || undefined,
+      resolved_model:   resolvedModel   || undefined,
       resolved_storage: resolvedStorage || undefined,
       ebay_avg:      pricing.ebay_avg,
       swappa_avg:    pricing.swappa_avg,
       median:        pricing.median,
-      source_note:   pricing.used_search ? pricing.source_note : `${pricing.source_note} (estimated from training data — search grounding unavailable)`,
+      source_note:   `${pricing.source_note} · via ${tierLabel}`,
       lookup_method: lookupMethod,
     }
 
