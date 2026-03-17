@@ -1,16 +1,59 @@
 /**
  * POST /api/trade-in/lookup
  *
- * Device price lookup — no API keys required.
+ * Device price lookup — two reliable tiers, no scraping:
  *
- *   Tier 1: PriceCharting API  (free, no key, real sold data for phones/electronics)
- *   Tier 2: Swappa scrape      (real marketplace listings, HTML parse)
- *   Tier 3: eBay sold scrape   (completed listings, regex price parse)
+ *   Tier 1: PriceCharting API   — free, no key, real sold data. Covers most
+ *                                  popular phones/tablets reliably.
  *
- * All three run in parallel and results are merged for best accuracy.
- * IMEI resolution uses imei.info (free, no key).
- * Model number resolution uses a static lookup table (no AI needed).
+ *   Tier 2: Gemini (training)   — kicks in only when PriceCharting has no
+ *                                  match (obscure/older devices). Uses training
+ *                                  data only — no live grounding, no search tool.
+ *                                  Optional: set GEMINI_API_KEY env var.
+ *                                  Free key: https://aistudio.google.com/app/apikey
+ *
+ *   Cache: results are cached in-memory for 6 hours so repeat lookups of the
+ *          same device never hit external APIs again.
+ *
+ * IMEI resolution: imei.info (free, no key)
+ * Model # resolution: static lookup table (no network call needed)
  */
+
+const GEMINI_BASE  = 'https://generativelanguage.googleapis.com/v1beta/models'
+const GEMINI_MODEL = 'gemini-2.5-flash'
+const CACHE_TTL_MS = 6 * 60 * 60 * 1000  // 6 hours
+const BROWSER_UA   = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+
+// ── In-memory cache ───────────────────────────────────────────────
+// Safe on Vercel: each function instance caches independently.
+// Avoids hammering PriceCharting for the same device repeatedly.
+
+interface CacheEntry {
+  result: PricingResult
+  expiresAt: number
+}
+interface PricingResult {
+  ebay_avg: number; swappa_avg: number; median: number
+  source_note: string; tier: string
+}
+
+const cache = new Map<string, CacheEntry>()
+
+function cacheKey(query: string) {
+  return query.toLowerCase().replace(/\s+/g, ' ').trim()
+}
+
+function cacheGet(query: string): PricingResult | null {
+  const entry = cache.get(cacheKey(query))
+  if (!entry) return null
+  if (Date.now() > entry.expiresAt) { cache.delete(cacheKey(query)); return null }
+  console.log('[lookup] Cache hit:', query)
+  return entry.result
+}
+
+function cacheSet(query: string, result: PricingResult) {
+  cache.set(cacheKey(query), { result, expiresAt: Date.now() + CACHE_TTL_MS })
+}
 
 // ── Helpers ───────────────────────────────────────────────────────
 
@@ -30,47 +73,20 @@ function avg(nums: number[]): number {
   return Math.round(nums.reduce((a, b) => a + b, 0) / nums.length * 100) / 100
 }
 
-function calcMedian(nums: number[]): number {
-  if (!nums.length) return 0
-  const s = [...nums].sort((a, b) => a - b)
-  const m = Math.floor(s.length / 2)
-  return s.length % 2 === 0 ? avg([s[m - 1], s[m]]) : s[m]
-}
-
-function trimOutliers(prices: number[]): number[] {
-  if (prices.length < 4) return prices
-  prices.sort((a, b) => a - b)
-  const cut = Math.max(1, Math.floor(prices.length * 0.1))
-  return prices.slice(cut, prices.length - cut)
-}
-
-const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
-
-async function fetchHtml(url: string, extraHeaders: Record<string, string> = {}): Promise<string | null> {
-  try {
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': BROWSER_UA,
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Cache-Control': 'no-cache',
-        ...extraHeaders,
-      },
-      signal: AbortSignal.timeout(8000),
-    })
-    if (!res.ok) { console.log(`[lookup] fetch ${url} → ${res.status}`); return null }
-    return await res.text()
-  } catch (err: any) {
-    console.log(`[lookup] fetch error ${url}:`, err.message)
-    return null
-  }
+function extractJson(text: string): any {
+  // Strip thinking blocks that Gemini 2.5 may emit before the JSON
+  const withoutThinking = text.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim()
+  const clean = withoutThinking.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim()
+  const start = clean.indexOf('{')
+  const end   = clean.lastIndexOf('}')
+  if (start === -1 || end === -1) throw new Error(`No JSON object found in response: ${clean.slice(0, 120)}`)
+  return JSON.parse(clean.slice(start, end + 1))
 }
 
 // ── Static model-number → device map ─────────────────────────────
-// Covers the most common trade-in models. Extend as needed.
 
 const MODEL_NUMBER_MAP: Record<string, { brand: string; model: string; storage?: string }> = {
-  // iPhone
+  // iPhone 14 series
   'MQ3D3LL/A': { brand: 'Apple', model: 'iPhone 14', storage: '128GB' },
   'MPWH3LL/A': { brand: 'Apple', model: 'iPhone 14', storage: '256GB' },
   'MQ3E3LL/A': { brand: 'Apple', model: 'iPhone 14', storage: '512GB' },
@@ -80,6 +96,7 @@ const MODEL_NUMBER_MAP: Record<string, { brand: string; model: string; storage?:
   'MQ1H3LL/A': { brand: 'Apple', model: 'iPhone 14 Pro', storage: '512GB' },
   'MQ923LL/A': { brand: 'Apple', model: 'iPhone 14 Pro Max', storage: '128GB' },
   'MQAF3LL/A': { brand: 'Apple', model: 'iPhone 14 Pro Max', storage: '256GB' },
+  // iPhone 15 series
   'MTXN3LL/A': { brand: 'Apple', model: 'iPhone 15', storage: '128GB' },
   'MTXR3LL/A': { brand: 'Apple', model: 'iPhone 15', storage: '256GB' },
   'MTXT3LL/A': { brand: 'Apple', model: 'iPhone 15', storage: '512GB' },
@@ -117,14 +134,15 @@ function resolveModelNumber(mn: string): { brand: string; model: string; storage
   return MODEL_NUMBER_MAP[mn.trim().toUpperCase()] || null
 }
 
-// ── Tier 1: PriceCharting ─────────────────────────────────────────
+// ── Tier 1: PriceCharting API ─────────────────────────────────────
+// Free public API, no key required. Returns used ("loose") prices
+// in cents. Covers most major consumer phones reliably.
 
-async function pricechartingLookup(query: string): Promise<{
-  ebay_avg: number; swappa_avg: number; median: number; source_note: string
-} | null> {
+async function pricechartingLookup(query: string): Promise<PricingResult | null> {
   try {
     const encoded = encodeURIComponent(query)
-    // Try with phone type first, then without
+
+    // Try phone category first for faster, more accurate match
     let products: any[] = []
     for (const url of [
       `https://www.pricecharting.com/api/products?q=${encoded}&type=phone`,
@@ -132,41 +150,39 @@ async function pricechartingLookup(query: string): Promise<{
     ]) {
       const res = await fetch(url, {
         headers: { Accept: 'application/json', 'User-Agent': BROWSER_UA },
-        signal: AbortSignal.timeout(6000),
+        signal: AbortSignal.timeout(7000),
       })
-      if (!res.ok) continue
+      if (!res.ok) { console.log('[lookup] PriceCharting search →', res.status); continue }
       const data = await res.json()
       products = data?.products || []
       if (products.length) break
     }
 
-    if (!products.length) return null
+    if (!products.length) { console.log('[lookup] PriceCharting: no products found'); return null }
 
     const best = products[0]
-    console.log('[lookup] PriceCharting match:', best['product-name'])
+    console.log('[lookup] PriceCharting match:', best['product-name'], `(id=${best.id})`)
 
     const detailRes = await fetch(`https://www.pricecharting.com/api/product?id=${best.id}`, {
       headers: { Accept: 'application/json', 'User-Agent': BROWSER_UA },
-      signal: AbortSignal.timeout(6000),
+      signal: AbortSignal.timeout(7000),
     })
     if (!detailRes.ok) return null
     const detail = await detailRes.json()
 
-    // Prices are in cents
-    const usedPrice = typeof detail['loose-price'] === 'number' && detail['loose-price'] > 0
-      ? detail['loose-price'] / 100
-      : typeof detail['complete-price'] === 'number' && detail['complete-price'] > 0
-        ? detail['complete-price'] / 100
-        : 0
+    // Prices are in cents; prefer loose (used without box), fall back to complete
+    const cents = (detail['loose-price'] > 0 ? detail['loose-price'] : detail['complete-price']) ?? 0
+    const usedPrice = typeof cents === 'number' && cents > 0 ? Math.round(cents) / 100 : 0
 
-    if (usedPrice < 5) return null
+    if (usedPrice < 5) { console.log('[lookup] PriceCharting: price too low, skipping'); return null }
 
-    console.log('[lookup] PriceCharting price:', usedPrice)
+    console.log('[lookup] PriceCharting price: $' + usedPrice)
     return {
       ebay_avg:    usedPrice,
       swappa_avg:  0,
       median:      usedPrice,
-      source_note: `PriceCharting: ${best['product-name']}`,
+      source_note: `PriceCharting · ${best['product-name']}`,
+      tier:        'pricecharting',
     }
   } catch (err: any) {
     console.log('[lookup] PriceCharting error:', err.message)
@@ -174,136 +190,91 @@ async function pricechartingLookup(query: string): Promise<{
   }
 }
 
-// ── Tier 2: Swappa scrape ─────────────────────────────────────────
+// ── Tier 2: Gemini training data fallback ─────────────────────────
+// Only called when PriceCharting has no match.
+// Uses training data only — no web grounding, no search tool.
+// thinkingBudget: 0 disables the reasoning preamble so we get
+// a clean JSON response without needing to parse around it.
 
-async function swappaLookup(query: string): Promise<{
-  ebay_avg: number; swappa_avg: number; median: number; source_note: string
-} | null> {
+function getGeminiKey(): string {
+  return (
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_AI_API_KEY ||
+    (useRuntimeConfig().geminiApiKey as string) ||
+    ''
+  )
+}
+
+async function geminiTrainingFallback(query: string): Promise<PricingResult | null> {
+  const apiKey = getGeminiKey()
+  if (!apiKey) {
+    console.log('[lookup] No Gemini key — skipping Tier 2')
+    return null
+  }
+
+  const prompt = `What is the typical used resale value (USD) for: ${query}
+
+Return ONLY a raw JSON object with no markdown, no code fences, no explanation:
+{"ebay_avg":<number>,"swappa_avg":<number>,"median":<number>,"source_note":"<one short sentence>"}
+
+Rules:
+- All values must be plain numbers (no $ symbol, no strings)
+- median should reflect realistic street price for a used device in good condition
+- If you genuinely have no data, return {"ebay_avg":0,"swappa_avg":0,"median":0,"source_note":"unknown"}`
+
   try {
-    const encoded = encodeURIComponent(query)
-    const url = `https://swappa.com/listing/search?q=${encoded}`
-    const html = await fetchHtml(url, { Referer: 'https://swappa.com/' })
-    if (!html) return null
-
-    const prices: number[] = []
-
-    // Try JSON-LD structured data first
-    for (const m of html.matchAll(/<script[^>]+type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi)) {
-      try {
-        const obj = JSON.parse(m[1])
-        const items: any[] = obj['@graph'] || (Array.isArray(obj) ? obj : [obj])
-        for (const item of items) {
-          const price = item?.offers?.price ?? item?.price
-          const v = typeof price === 'number' ? price : parseFloat(price)
-          if (v >= 5 && v <= 10000) prices.push(v)
-        }
-      } catch {}
+    const url  = `${GEMINI_BASE}/${GEMINI_MODEL}:generateContent?key=${apiKey}`
+    const body = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature:     0.1,
+        maxOutputTokens: 256,
+        // Disable thinking so we get a clean JSON response immediately
+        thinkingConfig: { thinkingBudget: 0 },
+      },
     }
 
-    // Fallback: data-price attributes and price spans
-    if (prices.length < 2) {
-      for (const m of html.matchAll(/data-price="([\d.]+)"/g)) {
-        const v = parseFloat(m[1])
-        if (v >= 5 && v <= 10000) prices.push(v)
-      }
-      for (const m of html.matchAll(/class="[^"]*price[^"]*"[^>]*>\s*\$?([\d,]+(?:\.\d{1,2})?)/gi)) {
-        const v = parseFloat(m[1].replace(/,/g, ''))
-        if (v >= 5 && v <= 10000) prices.push(v)
-      }
+    const res = await fetch(url, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body),
+      signal:  AbortSignal.timeout(12000),
+    })
+
+    const rawBody = await res.text()
+
+    if (!res.ok) {
+      let msg = rawBody.slice(0, 200)
+      try { msg = JSON.parse(rawBody)?.error?.message || msg } catch {}
+      console.log('[lookup] Gemini error:', res.status, msg)
+      return null
     }
 
-    console.log('[lookup] Swappa prices:', prices.slice(0, 8))
-    if (prices.length < 2) return null
+    const text = JSON.parse(rawBody)?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+    if (!text) { console.log('[lookup] Gemini: empty response'); return null }
 
-    const trimmed = trimOutliers(prices)
-    if (!trimmed.length) return null
+    console.log('[lookup] Gemini raw:', text.slice(0, 120))
+
+    const p = extractJson(text)
+    if (typeof p.median !== 'number' || p.median <= 0) {
+      console.log('[lookup] Gemini: median missing or zero')
+      return null
+    }
 
     return {
-      ebay_avg:    0,
-      swappa_avg:  avg(trimmed),
-      median:      calcMedian(trimmed),
-      source_note: `Swappa: ${trimmed.length} listings`,
+      ebay_avg:    typeof p.ebay_avg   === 'number' ? p.ebay_avg   : p.median,
+      swappa_avg:  typeof p.swappa_avg === 'number' ? p.swappa_avg : 0,
+      median:      p.median,
+      source_note: typeof p.source_note === 'string' ? p.source_note : 'Gemini estimate',
+      tier:        'gemini-training',
     }
   } catch (err: any) {
-    console.log('[lookup] Swappa error:', err.message)
+    console.log('[lookup] Gemini fallback error:', err.message)
     return null
   }
 }
 
-// ── Tier 3: eBay sold listings scrape ────────────────────────────
-
-async function ebayLookup(query: string): Promise<{
-  ebay_avg: number; swappa_avg: number; median: number; source_note: string
-} | null> {
-  try {
-    const encoded = encodeURIComponent(query)
-    // LH_ItemCondition=3000 = Used
-    const url = `https://www.ebay.com/sch/i.html?_nkw=${encoded}&LH_Sold=1&LH_Complete=1&_sop=13&rt=nc&LH_ItemCondition=3000`
-    const html = await fetchHtml(url)
-    if (!html) return null
-
-    const prices: number[] = []
-
-    for (const m of html.matchAll(/class="[^"]*s-item__price[^"]*"[^>]*>\s*\$?([\d,]+\.?\d*)/g)) {
-      const v = parseFloat(m[1].replace(/,/g, ''))
-      if (v >= 5 && v <= 10000) prices.push(v)
-    }
-
-    // Wider fallback if sparse
-    if (prices.length < 3) {
-      for (const m of html.matchAll(/\$\s*([\d,]+(?:\.\d{1,2})?)/g)) {
-        const v = parseFloat(m[1].replace(/,/g, ''))
-        if (v >= 5 && v <= 10000) prices.push(v)
-      }
-    }
-
-    console.log('[lookup] eBay prices:', prices.slice(0, 8))
-    if (prices.length < 2) return null
-
-    const trimmed = trimOutliers(prices)
-    if (!trimmed.length) return null
-
-    return {
-      ebay_avg:    avg(trimmed),
-      swappa_avg:  0,
-      median:      calcMedian(trimmed),
-      source_note: `eBay sold: ${trimmed.length} listings`,
-    }
-  } catch (err: any) {
-    console.log('[lookup] eBay error:', err.message)
-    return null
-  }
-}
-
-// ── Merge results from all sources ───────────────────────────────
-
-function mergeResults(results: Array<{ ebay_avg: number; swappa_avg: number; median: number; source_note: string } | null>) {
-  const valid = results.filter(Boolean) as Array<{ ebay_avg: number; swappa_avg: number; median: number; source_note: string }>
-  if (!valid.length) return null
-
-  const ebayResults   = valid.filter(r => r.ebay_avg > 0)
-  const swappaResults = valid.filter(r => r.swappa_avg > 0)
-  const allMedians    = valid.map(r => r.median).filter(v => v > 0)
-
-  const ebay_avg   = ebayResults.length   ? avg(ebayResults.map(r => r.ebay_avg))     : 0
-  const swappa_avg = swappaResults.length ? avg(swappaResults.map(r => r.swappa_avg)) : 0
-  const med        = allMedians.length    ? calcMedian(allMedians)                     : 0
-
-  if (med === 0) return null
-
-  const sourceCount = valid.length
-  const sources = valid.map(r => r.source_note).join(' · ')
-
-  return {
-    ebay_avg,
-    swappa_avg,
-    median:      Math.round(med * 100) / 100,
-    source_note: sources,
-    tier:        sourceCount >= 2 ? 'multi-source' : 'single-source',
-  }
-}
-
-// ── IMEI.info ─────────────────────────────────────────────────────
+// ── IMEI resolution ───────────────────────────────────────────────
 
 async function lookupImei(imei: string): Promise<{ brand: string; model: string; storage?: string } | null> {
   try {
@@ -335,7 +306,7 @@ export default defineEventHandler(async (event) => {
     let resolvedStorage = (body.storage || '').trim()
     let lookupMethod    = 'name'
 
-    // 1. IMEI resolution
+    // ── Step 1: IMEI resolution ──────────────────────────────────
     if (body.imei) {
       const digits = body.imei.replace(/\D/g, '')
       if (isValidImei(digits)) {
@@ -349,7 +320,7 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    // 2. Model number resolution (static map, no AI)
+    // ── Step 2: Model number resolution ─────────────────────────
     if (lookupMethod !== 'imei' && body.model_number?.trim()) {
       const r = resolveModelNumber(body.model_number.trim())
       if (r) {
@@ -361,29 +332,47 @@ export default defineEventHandler(async (event) => {
     }
 
     if (!resolvedBrand && !resolvedModel) {
-      return { ok: false, error: 'Please enter a brand and model, IMEI, or model number.', lookup_method: 'manual' }
+      return {
+        ok: false,
+        error: 'Please enter a brand and model, IMEI, or model number.',
+        lookup_method: 'manual',
+      }
     }
 
     const priceQuery = [resolvedBrand, resolvedModel, resolvedStorage].filter(Boolean).join(' ')
-    console.log('[lookup] Querying all tiers in parallel:', priceQuery)
+    console.log('[lookup] Query:', priceQuery)
 
-    // All three tiers run simultaneously
-    const [pcResult, swappaResult, ebayResult] = await Promise.all([
-      pricechartingLookup(priceQuery),
-      swappaLookup(priceQuery),
-      ebayLookup(priceQuery),
-    ])
+    // ── Step 3: Check cache ──────────────────────────────────────
+    const cached = cacheGet(priceQuery)
+    if (cached) {
+      return {
+        ok:               true,
+        resolved_brand:   resolvedBrand   || undefined,
+        resolved_model:   resolvedModel   || undefined,
+        resolved_storage: resolvedStorage || undefined,
+        ebay_avg:         cached.ebay_avg,
+        swappa_avg:       cached.swappa_avg,
+        median:           cached.median,
+        source_note:      cached.source_note + ' (cached)',
+        lookup_method:    lookupMethod,
+      }
+    }
 
-    console.log('[lookup] Results — PC:', pcResult?.median ?? 'null', '| Swappa:', swappaResult?.median ?? 'null', '| eBay:', ebayResult?.median ?? 'null')
+    // ── Step 4: Tier 1 — PriceCharting ──────────────────────────
+    let pricing = await pricechartingLookup(priceQuery)
 
-    const pricing = mergeResults([pcResult, swappaResult, ebayResult])
+    // ── Step 5: Tier 2 — Gemini fallback (only if PC missed) ────
+    if (!pricing) {
+      console.log('[lookup] PriceCharting miss — trying Gemini training fallback')
+      pricing = await geminiTrainingFallback(priceQuery)
+    }
 
-    console.log(`[lookup] Done in ${Date.now() - t0}ms | merged median=$${pricing?.median ?? 'none'}`)
+    console.log(`[lookup] Done in ${Date.now() - t0}ms | tier=${pricing?.tier ?? 'none'} median=$${pricing?.median ?? 'none'}`)
 
     if (!pricing) {
       return {
-        ok: false,
-        error: `No pricing data found for "${priceQuery}". Enter the market price manually.`,
+        ok:               false,
+        error:            `No pricing data found for "${priceQuery}". Enter the market price manually.`,
         lookup_method:    lookupMethod,
         resolved_brand:   resolvedBrand   || undefined,
         resolved_model:   resolvedModel   || undefined,
@@ -391,9 +380,12 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    const tierLabel = pricing.tier === 'multi-source'
-      ? `${[pcResult && 'PriceCharting', swappaResult && 'Swappa', ebayResult && 'eBay'].filter(Boolean).join(' + ')} (live)`
-      : 'live market data'
+    // Cache the successful result for 6 hours
+    cacheSet(priceQuery, pricing)
+
+    const tierLabel = pricing.tier === 'pricecharting'   ? 'PriceCharting (live)'
+                    : pricing.tier === 'gemini-training' ? 'Gemini estimate'
+                    : 'market data'
 
     return {
       ok:               true,
