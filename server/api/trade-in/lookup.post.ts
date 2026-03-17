@@ -15,7 +15,7 @@
  */
 
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
-const GEMINI_MODEL = 'gemini-2.5-flash'
+const GEMINI_MODEL = 'gemini-2.5-flash-preview-04-17'
 
 // ── Helpers ───────────────────────────────────────────────────────
 
@@ -131,7 +131,7 @@ async function callGemini(prompt: string, useSearch: boolean): Promise<string> {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: { temperature: 0.1, maxOutputTokens: 512 },
   }
-  if (useSearch) body.tools = [{ google_search: {} }]
+  if (useSearch) body.tools = [{ googleSearch: {} }]
 
   const res     = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
   const rawBody = await res.text()
