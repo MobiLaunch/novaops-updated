@@ -1,5 +1,1 @@
-<template>
-  <div class="flex items-center p-5 pt-2 gap-3 border-t border-divider" v-bind="$attrs">
-    <slot />
-  </div>
-</template>
+<template><div class="flex items-center p-6 pt-0"><slot/></div></template>

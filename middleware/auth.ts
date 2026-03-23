@@ -1,5 +1,9 @@
 // middleware/auth.ts
 export default defineNuxtRouteMiddleware(async (to) => {
+  // SSR has no access to localStorage or client-side Supabase session.
+  // Prevent hydration mismatches and server crashes by bypassing.
+  if (import.meta.server) return
+
   const { $supabase } = useNuxtApp()
 
   // Pages that never require auth

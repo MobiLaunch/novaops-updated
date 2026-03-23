@@ -1,5 +1,1 @@
-<template>
-  <tr class="group transition-colors hover:bg-primary/5 border-b border-border/40 last:border-none" v-bind="$attrs">
-    <slot />
-  </tr>
-</template>
+<template><tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"><slot/></tr></template>

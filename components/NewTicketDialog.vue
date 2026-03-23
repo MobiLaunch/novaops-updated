@@ -1,6 +1,6 @@
 <template>
-  <Dialog v-model:open="isOpen">
-    <DialogContent class="w-full max-w-[96vw] sm:max-w-3xl max-h-[90dvh] overflow-y-auto">
+  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="dialog-title" @click.self="isOpen = false">
+    <div class="bg-background rounded-2xl shadow-xl w-full max-w-[96vw] sm:max-w-3xl max-h-[90dvh] overflow-y-auto relative animate-in zoom-in-95 duration-200" @click.stop>
       <!-- M3 Dialog Header -->
       <div class="flex items-center gap-4 px-7 pt-7 pb-5 border-b border-border/50">
         <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md"
@@ -227,14 +227,11 @@
             </div>
             <div class="space-y-2">
               <label class="hui-dialog-label">Priority</label>
-              <Select v-model="ticketData.priority">
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                </SelectContent>
-              </Select>
+              <select v-model="ticketData.priority" aria-label="Priority" class="flex h-11 w-full items-center justify-between rounded-xl border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background disabled:cursor-not-allowed disabled:opacity-50">
+                <option value="low">Low</option>
+                <option value="normal">Normal</option>
+                <option value="high">High</option>
+              </select>
             </div>
           </div>
 
@@ -338,12 +335,12 @@
           {{ creating ? 'Saving…' : 'Create Ticket' }}
         </button>
       </div>
-    </DialogContent>
-  </Dialog>
+    </div>
+  </div>
 
   <!-- ══ Device Catalog Manager ══════════════════════════════════════ -->
-  <Dialog v-model:open="showDeviceMgr">
-    <DialogContent class="w-full max-w-[96vw] sm:max-w-2xl max-h-[90dvh] overflow-hidden flex flex-col">
+  <div v-if="showDeviceMgr" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="mgr-title" @click.self="showDeviceMgr = false">
+    <div class="bg-background rounded-2xl shadow-xl w-full max-w-[96vw] sm:max-w-2xl max-h-[90dvh] overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-200" @click.stop>
       <!-- Header -->
       <div class="flex items-center gap-3 px-6 pt-6 pb-4 border-b border-border/50 flex-shrink-0">
         <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed)">
@@ -466,14 +463,12 @@
           style="background: hsl(var(--muted)); color: hsl(var(--foreground))"
           @click="showDeviceMgr = false; fetchBrands()">Done</button>
       </div>
-    </DialogContent>
-  </Dialog>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ChevronLeft, ChevronRight, Search, Zap, Droplets, Volume2, Wifi, Battery, Eye, Wrench, Check, Camera, X, Plus, Settings, Cpu } from 'lucide-vue-next'
-import { Dialog, DialogContent } from '~/components/ui/dialog'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '~/components/ui/select'
 import SignaturePad from '~/components/SignaturePad.vue'
 import CustomerSelect from '~/components/CustomerSelect.vue'
 

@@ -1,12 +1,1 @@
-<template>
-  <Teleport to="body">
-    <div class="hui-modal-backdrop" @click.self="$emit('close')">
-      <div class="hui-modal hui-modal-md" v-bind="$attrs">
-        <slot />
-      </div>
-    </div>
-  </Teleport>
-</template>
-<script setup lang="ts">
-defineEmits(['close'])
-</script>
+<template><div v-if="state?.open?.value" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" @click.self="state.close()"><div class="bg-background rounded-2xl p-6 w-full max-w-lg shadow-lg relative"><slot/></div></div></template><script setup>import { inject } from 'vue'; const state = inject('dialogState', { open: { value: true }, close: () => {} });</script>

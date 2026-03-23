@@ -1,1 +1,1 @@
-<template><tbody v-bind="$attrs"><slot /></tbody></template>
+<template><tbody class="[&_tr:last-child]:border-0"><slot/></tbody></template>

@@ -1,1 +1,1 @@
-<template><thead class="sticky top-0 z-10" v-bind="$attrs"><slot /></thead></template>
+<template><thead class="[&_tr]:border-b"><slot/></thead></template>

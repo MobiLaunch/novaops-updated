@@ -1,3 +1,1 @@
-<template>
-  <h2 class="hui-modal-title" v-bind="$attrs"><slot /></h2>
-</template>
+<template><h2 class="text-lg font-semibold leading-none tracking-tight"><slot/></h2></template>

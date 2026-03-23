@@ -122,3 +122,10 @@ export interface Analytics {
   customerLifetime: Record<string, number>
   avgRepairTime: number
 }
+
+
+export interface HouseCall { id: number | string; profile_id?: string; customerId: number; description?: string; address?: string; date?: string; time?: string; status?: string; notes?: string; }
+
+export interface VendorRepair { id: number | string; profile_id?: string; customerId: number; device?: string; issue?: string; vendor?: string; ticketRef?: string; trackingNumber?: string; status?: string; sentDate?: string | null; estReturn?: string | null; notes?: string; }
+
+export interface ServiceItem { id: number | string; profile_id?: string; name: string; category?: string; description?: string; price: number; estimated_minutes?: number; duration?: number; active?: boolean; }
