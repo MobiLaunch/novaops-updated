@@ -3,8 +3,8 @@
     <DialogContent class="w-full max-w-[96vw] sm:max-w-3xl max-h-[90dvh] overflow-y-auto">
       <!-- M3 Dialog Header -->
       <div class="flex items-center gap-4 px-7 pt-7 pb-5 border-b border-border/50">
-        <div class="w-11 h-11 rounded-[22px] flex items-center justify-center flex-shrink-0 shadow-md"
-          style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 4px 16px #6366f140">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md"
+          style="background: linear-gradient(135deg, #5b5ef4, #8b5cf6); box-shadow: 0 4px 16px #5b5ef440">
           <Wrench class="w-5 h-5 text-white" />
         </div>
         <div>
@@ -16,7 +16,7 @@
           <div v-for="i in totalSteps" :key="i"
             class="h-1.5 rounded-full transition-all duration-500"
             :class="i <= displayStep ? 'w-6' : 'w-3'"
-            :style="i <= displayStep ? 'background: #6366f1' : 'background: hsl(var(--border))'"
+            :style="i <= displayStep ? 'background: #5b5ef4' : 'background: hsl(var(--border))'"
           />
         </div>
       </div>
@@ -59,7 +59,7 @@
             <input v-model="customBrand" placeholder="e.g. Motorola, OnePlus, Lenovo…" class="m3-dialog-input" @keyup.enter="confirmOtherBrand" />
             <button
               class="w-full h-11 rounded-full text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
-              :style="customBrand ? 'background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 4px 16px #6366f140' : 'background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); cursor: not-allowed'"
+              :style="customBrand ? 'background: linear-gradient(135deg, #5b5ef4, #8b5cf6); box-shadow: 0 4px 16px #5b5ef440' : 'background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); cursor: not-allowed'"
               :disabled="!customBrand"
               @click="confirmOtherBrand"
             >
@@ -78,7 +78,7 @@
           </div>
           <!-- Custom brand: show manual category + model entry -->
           <div v-if="isOtherBrand" class="space-y-4">
-            <div class="rounded-[20px] p-4 flex items-center gap-3" style="background: #6366f110; outline: 1.5px solid #6366f128; outline-offset: 0">
+            <div class="rounded-xl p-4 flex items-center gap-3" style="background: #5b5ef410; outline: 1.5px solid #5b5ef428; outline-offset: 0">
               <span class="text-2xl">✏️</span>
               <div class="text-sm">
                 <p class="font-black">Custom Device Entry</p>
@@ -177,8 +177,8 @@
               @click="selectIssue(issue.name)"
             >
               <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-[16px] flex items-center justify-center flex-shrink-0 mt-0.5"
-                  :style="selectedIssue === issue.name ? 'background: #6366f120; color: #6366f1' : 'background: hsl(var(--muted)); color: hsl(var(--muted-foreground))'">
+                <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+                  :style="selectedIssue === issue.name ? 'background: #5b5ef420; color: #5b5ef4' : 'background: hsl(var(--muted)); color: hsl(var(--muted-foreground))'">
                   <component :is="issue.icon" class="w-4 h-4" />
                 </div>
                 <div>
@@ -204,9 +204,9 @@
           </div>
 
           <!-- Summary pill -->
-          <div class="rounded-[20px] p-4 flex items-center gap-3" style="background: #6366f110; outline: 1.5px solid #6366f128; outline-offset: 0">
-            <div class="w-10 h-10 rounded-[18px] flex items-center justify-center flex-shrink-0" style="background: #6366f120">
-              <Wrench class="w-5 h-5" style="color: #6366f1" />
+          <div class="rounded-xl p-4 flex items-center gap-3" style="background: #5b5ef410; outline: 1.5px solid #5b5ef428; outline-offset: 0">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: #5b5ef420">
+              <Wrench class="w-5 h-5" style="color: #5b5ef4" />
             </div>
             <div class="text-sm">
               <p class="font-black">{{ selectedBrand }} {{ selectedModel || customModel }}</p>
@@ -265,10 +265,10 @@
                 @change="handlePhotoSelect"
               />
               <div v-if="photoAttachments.length === 0" class="flex flex-col items-center gap-2 py-4">
-                <div class="w-10 h-10 rounded-[18px] flex items-center justify-center" style="background: #6366f115">
-                  <Camera class="w-5 h-5" style="color: #6366f1" />
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: #5b5ef415">
+                  <Camera class="w-5 h-5" style="color: #5b5ef4" />
                 </div>
-                <p class="text-sm font-bold text-muted-foreground">Drop photos here or <span style="color: #6366f1">click to browse</span></p>
+                <p class="text-sm font-bold text-muted-foreground">Drop photos here or <span style="color: #5b5ef4">click to browse</span></p>
                 <p class="text-xs text-muted-foreground/60 font-medium">JPG, PNG, HEIC up to 10 MB each</p>
               </div>
               <div v-else class="grid grid-cols-3 gap-2 p-1" @click.stop>
@@ -276,8 +276,8 @@
                   v-for="(photo, idx) in photoAttachments" :key="idx"
                   class="photo-thumb group relative"
                 >
-                  <img :src="photo.preview" :alt="photo.file.name" class="w-full h-20 object-cover rounded-[14px]" />
-                  <div class="absolute inset-0 rounded-[14px] bg-black/0 group-hover:bg-black/20 transition-all duration-200" />
+                  <img :src="photo.preview" :alt="photo.file.name" class="w-full h-20 object-cover rounded-xl" />
+                  <div class="absolute inset-0 rounded-xl bg-black/0 group-hover:bg-black/20 transition-all duration-200" />
                   <button
                     class="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-black/80"
                     @click.stop="removePhoto(idx)"
@@ -291,11 +291,11 @@
                 <!-- Add more button (if under limit) -->
                 <button
                   v-if="photoAttachments.length < 6"
-                  class="h-20 rounded-[14px] border-2 border-dashed flex items-center justify-center transition-all hover:scale-[1.02]"
-                  style="border-color: #6366f140; background: #6366f108"
+                  class="h-20 rounded-xl border-2 border-dashed flex items-center justify-center transition-all hover:scale-[1.02]"
+                  style="border-color: #5b5ef440; background: #5b5ef408"
                   @click.stop="triggerPhotoInput"
                 >
-                  <Plus class="w-5 h-5" style="color: #6366f1" />
+                  <Plus class="w-5 h-5" style="color: #5b5ef4" />
                 </button>
               </div>
             </div>
@@ -324,15 +324,15 @@
           @click="handleCancel">Cancel</button>
         <button v-if="currentStep < 5"
           class="flex-1 h-12 rounded-full text-sm font-black text-white flex items-center justify-center gap-2 transition-all hover:scale-[1.04] hover:-translate-y-0.5 active:scale-95"
-          style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 4px 16px #6366f140"
+          style="background: linear-gradient(135deg, #5b5ef4, #8b5cf6); box-shadow: 0 4px 16px #5b5ef440"
           :disabled="!canProceed"
-          :style="!canProceed ? 'opacity: 0.5; cursor: not-allowed' : 'background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 4px 16px #6366f140'"
+          :style="!canProceed ? 'opacity: 0.5; cursor: not-allowed' : 'background: linear-gradient(135deg, #5b5ef4, #8b5cf6); box-shadow: 0 4px 16px #5b5ef440'"
           @click="nextStep">
           Next <ChevronRight class="w-4 h-4" />
         </button>
         <button v-else
           class="flex-1 h-12 rounded-full text-sm font-black text-white flex items-center justify-center gap-2 transition-all hover:scale-[1.04] hover:-translate-y-0.5 active:scale-95"
-          :style="canCreate ? 'background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 4px 16px #6366f140' : 'background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); cursor: not-allowed'"
+          :style="canCreate ? 'background: linear-gradient(135deg, #5b5ef4, #8b5cf6); box-shadow: 0 4px 16px #5b5ef440' : 'background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); cursor: not-allowed'"
           :disabled="!canCreate || creating"
           @click="createTicket">
           {{ creating ? 'Saving…' : 'Create Ticket' }}
@@ -346,7 +346,7 @@
     <DialogContent class="w-full max-w-[96vw] sm:max-w-2xl max-h-[90dvh] overflow-hidden flex flex-col">
       <!-- Header -->
       <div class="flex items-center gap-3 px-6 pt-6 pb-4 border-b border-border/50 flex-shrink-0">
-        <div class="w-10 h-10 rounded-[20px] flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed)">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed)">
           <Cpu class="w-5 h-5 text-white" />
         </div>
         <div class="flex-1">
@@ -376,7 +376,7 @@
           <p class="text-xs text-muted-foreground">Tip: paste any image URL or a Simple Icons slug like <code class="text-xs bg-muted px-1 py-0.5 rounded">fairphone</code> for the icon, or just leave it blank.</p>
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
             <div v-for="b in catalogBrands" :key="b.id"
-              class="flex items-center gap-2.5 p-3 rounded-[14px] group"
+              class="flex items-center gap-2.5 p-3 rounded-xl group"
               style="background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.5); outline-offset: 0">
               <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden bg-muted/60">
                 <img v-if="b.icon_url && b.icon_url.startsWith('http')" :src="b.icon_url" class="w-5 h-5 object-contain" />
@@ -406,14 +406,14 @@
               <Plus class="w-4 h-4" /> Add
             </button>
           </div>
-          <div v-if="showEmojiPicker" class="flex flex-wrap gap-1 p-3 rounded-[16px] border border-border/60 bg-muted/30">
+          <div v-if="showEmojiPicker" class="flex flex-wrap gap-1 p-3 rounded-xl border border-border/60 bg-muted/30">
             <button v-for="e in categoryEmojis" :key="e" class="w-9 h-9 rounded-lg hover:bg-muted flex items-center justify-center text-xl transition-all hover:scale-110"
               :class="newCatEmoji === e ? 'bg-purple-100 outline outline-2 outline-purple-400' : ''"
               @click="newCatEmoji = e; showEmojiPicker = false">{{ e }}</button>
           </div>
           <div class="space-y-2">
             <div v-for="c in catalogCategories" :key="c.id"
-              class="flex items-center gap-3 p-3 rounded-[14px] group"
+              class="flex items-center gap-3 p-3 rounded-xl group"
               style="background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.5); outline-offset: 0">
               <span class="text-xl w-7 text-center flex-shrink-0">{{ c.emoji || '📦' }}</span>
               <span class="text-sm font-bold flex-1">{{ c.name }}</span>
@@ -908,8 +908,8 @@ const resetForm = () => {
   transition: all 0.2s ease;
 }
 .m3-dialog-input:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px #6366f118;
+  border-color: #5b5ef4;
+  box-shadow: 0 0 0 3px #5b5ef418;
   background: hsl(var(--background));
 }
 
@@ -927,8 +927,8 @@ const resetForm = () => {
   transition: all 0.2s ease;
 }
 .m3-dialog-textarea:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px #6366f118;
+  border-color: #5b5ef4;
+  box-shadow: 0 0 0 3px #5b5ef418;
   background: hsl(var(--background));
 }
 
@@ -949,12 +949,12 @@ const resetForm = () => {
 .m3-step-chip:active { transform: scale(0.97); }
 
 .m3-step-chip--active {
-  background: #6366f114 !important;
-  outline: 2px solid #6366f150 !important;
-  color: #6366f1;
+  background: #5b5ef414 !important;
+  outline: 2px solid #5b5ef450 !important;
+  color: #5b5ef4;
 }
 .m3-step-chip--active:hover {
-  background: #6366f120 !important;
+  background: #5b5ef420 !important;
 }
 
 .m3-back-btn {
@@ -985,9 +985,9 @@ const resetForm = () => {
 }
 .photo-dropzone:hover,
 .photo-dropzone--drag {
-  border-color: #6366f1;
-  background: #6366f108;
-  box-shadow: 0 0 0 3px #6366f115;
+  border-color: #5b5ef4;
+  background: #5b5ef408;
+  box-shadow: 0 0 0 3px #5b5ef415;
 }
 .photo-dropzone--has-files {
   cursor: default;

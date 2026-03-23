@@ -223,7 +223,7 @@
         <div class="progress-track">
           <div
             class="progress-fill"
-            :style="`width:${progressPct}%;background:${currentSlideObj?.config?.accentColor || '#6366f1'}`"
+            :style="`width:${progressPct}%;background:${currentSlideObj?.config?.accentColor || '#5b5ef4'}`"
           />
         </div>
         <div class="bottom-inner">
@@ -335,7 +335,7 @@ const queueStatuses = computed(() => [
 
 function statusColor(s: string) {
   return { 'Open': '#3b82f6', 'In Progress': '#f59e0b', 'Waiting for Parts': '#f97316',
-           'Completed': '#10b981', 'Delivered': '#64748b' }[s] || '#6366f1'
+           'Completed': '#10b981', 'Delivered': '#64748b' }[s] || '#5b5ef4'
 }
 
 function formatCurrency(n: number) {
@@ -519,10 +519,10 @@ onUnmounted(() => {
   animation: pairPulse 3s ease-in-out infinite;
 }
 .pair-orb-ring--2 { inset: -16px; border-color: rgba(99,102,241,0.15); animation-delay: 1.5s; }
-.pair-icon { width: 48px; height: 48px; color: #6366f1; }
+.pair-icon { width: 48px; height: 48px; color: #5b5ef4; }
 .pair-title {
   font-size: 36px; font-weight: 900; letter-spacing: -0.02em;
-  background: linear-gradient(135deg, #fff, #6366f1);
+  background: linear-gradient(135deg, #fff, #5b5ef4);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
 .pair-sub { font-size: 16px; color: rgba(255,255,255,0.45); font-weight: 500; }
@@ -531,7 +531,7 @@ onUnmounted(() => {
   background: rgba(99,102,241,0.12); border: 2px solid rgba(99,102,241,0.3);
   text-align: center;
 }
-.pair-code-label { font-size: 10px; font-weight: 800; letter-spacing: 0.2em; color: #6366f1; margin-bottom: 4px; }
+.pair-code-label { font-size: 10px; font-weight: 800; letter-spacing: 0.2em; color: #5b5ef4; margin-bottom: 4px; }
 .pair-code { font-size: 32px; font-weight: 900; font-family: monospace; letter-spacing: 0.1em; }
 .pair-status {
   display: flex; align-items: center; gap: 8px;
@@ -565,7 +565,7 @@ onUnmounted(() => {
 .top-bar-left { display: flex; align-items: center; gap: 10px; }
 .top-bar-logo {
   width: 32px; height: 32px; border-radius: 10px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #5b5ef4, #8b5cf6);
   display: flex; align-items: center; justify-content: center;
 }
 .top-bar-name { font-size: 14px; font-weight: 800; letter-spacing: -0.01em; }
@@ -614,7 +614,7 @@ onUnmounted(() => {
 
 /* ── Sidebar Cards (Glass) ─────────────────────────────────────── */
 .sb-card {
-  border-radius: 24px;
+  border-radius: 18px;
   background: rgba(255,255,255,0.04);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255,255,255,0.08);
@@ -710,7 +710,7 @@ onUnmounted(() => {
 .mod {
   flex: 1; display: flex; flex-direction: column;
   background: rgba(255,255,255,0.03);
-  border-radius: 28px;
+  border-radius: 20px;
   border: 1px solid rgba(255,255,255,0.06);
   backdrop-filter: blur(12px);
   overflow: hidden;

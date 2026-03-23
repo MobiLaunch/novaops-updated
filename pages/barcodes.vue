@@ -4,7 +4,7 @@
     <!-- Header -->
     <div class="flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg"
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
           style="background: linear-gradient(135deg, #06b6d4, #0891b2); box-shadow: 0 6px 28px #06b6d450">
           <ScanLine class="w-6 h-6 text-white" />
         </div>
@@ -24,9 +24,9 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
       <!-- Generate Panel -->
-      <div v-if="mode === 'Generate'" class="rounded-[32px] p-7 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+      <div v-if="mode === 'Generate'" class="rounded-2xl p-7 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
         <div class="flex items-center gap-3 mb-6">
-          <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #06b6d420">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #06b6d420">
             <Barcode class="w-4 h-4" style="color: #06b6d4" />
           </div>
           <h3 class="text-sm font-black">Generate Barcode</h3>
@@ -51,7 +51,7 @@
           </div>
 
           <!-- Live barcode preview -->
-          <div v-if="barcodeValue" class="rounded-[24px] p-6 flex flex-col items-center gap-4" style="background: white; outline: 2px solid #06b6d420; outline-offset: 0">
+          <div v-if="barcodeValue" class="rounded-xl p-6 flex flex-col items-center gap-4" style="background: white; outline: 2px solid #06b6d420; outline-offset: 0">
             <div v-show="barcodeFormat === 'QR'">
               <canvas ref="qrCanvas" class="rounded-[12px]" />
             </div>
@@ -68,7 +68,7 @@
             </div>
           </div>
 
-          <div v-if="!barcodeValue" class="rounded-[24px] p-8 flex flex-col items-center gap-2 text-muted-foreground" style="background: hsl(var(--muted)/0.2); outline: 2px dashed hsl(var(--border)/0.4); outline-offset: 0">
+          <div v-if="!barcodeValue" class="rounded-xl p-8 flex flex-col items-center gap-2 text-muted-foreground" style="background: hsl(var(--muted)/0.2); outline: 2px dashed hsl(var(--border)/0.4); outline-offset: 0">
             <Barcode class="w-8 h-8 opacity-30" />
             <p class="text-xs font-bold">Enter a value above to preview your barcode</p>
           </div>
@@ -76,9 +76,9 @@
       </div>
 
       <!-- Scan Panel -->
-      <div v-if="mode === 'Scan'" class="rounded-[32px] p-7 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+      <div v-if="mode === 'Scan'" class="rounded-2xl p-7 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
         <div class="flex items-center gap-3 mb-6">
-          <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #06b6d420">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #06b6d420">
             <ScanLine class="w-4 h-4" style="color: #06b6d4" />
           </div>
           <h3 class="text-sm font-black">Scan / Lookup</h3>
@@ -91,10 +91,10 @@
           <button class="w-full h-12 rounded-full text-sm font-black text-white transition-all hover:scale-[1.02] active:scale-95" style="background: linear-gradient(135deg, #06b6d4, #0891b2)" @click="lookupScan">
             Lookup Item
           </button>
-          <div v-if="scanResult" class="rounded-[24px] p-5 flex flex-col gap-2"
+          <div v-if="scanResult" class="rounded-xl p-5 flex flex-col gap-2"
             :style="scanResult.found ? 'background: #10b98114; outline: 2px solid #10b98128; outline-offset: 0' : 'background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0'">
             <div v-if="scanResult.found" class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: #10b98120">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: #10b98120">
                 <Package class="w-5 h-5" style="color: #10b981" />
               </div>
               <div>
@@ -108,10 +108,10 @@
       </div>
 
       <!-- Inventory Items — click to auto-populate generator -->
-      <div class="rounded-[32px] p-7 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+      <div class="rounded-2xl p-7 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
         <div class="flex items-center justify-between mb-6">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #8b5cf620">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #8b5cf620">
               <Package class="w-4 h-4" style="color: #8b5cf6" />
             </div>
             <h3 class="text-sm font-black">Inventory Items</h3>
@@ -120,9 +120,9 @@
         </div>
         <div class="space-y-1.5 max-h-96 overflow-y-auto">
           <div v-for="item in inventory" :key="item.id"
-            class="flex items-center gap-3 px-4 py-3 rounded-[20px] hover:bg-muted/20 transition-all cursor-pointer group"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted/20 transition-all cursor-pointer group"
             @click="selectInventoryItem(item)">
-            <div class="w-9 h-9 rounded-[18px] flex items-center justify-center flex-shrink-0" style="background: #8b5cf618">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background: #8b5cf618">
               <Package class="w-4 h-4" style="color: #8b5cf6" />
             </div>
             <div class="flex-1 min-w-0">
@@ -142,10 +142,10 @@
     </div>
 
     <!-- Batch generator -->
-    <div class="rounded-[28px] p-6 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+    <div class="rounded-2xl p-6 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #06b6d420">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #06b6d420">
             <Layers class="w-4 h-4" style="color: #06b6d4" />
           </div>
           <h3 class="text-sm font-black">Batch Print — Inventory Labels</h3>
@@ -159,7 +159,7 @@
       </div>
       <div class="flex flex-wrap gap-2">
         <button v-for="item in inventory" :key="item.id"
-          class="flex items-center gap-2 px-3 py-2 rounded-[14px] text-xs font-bold transition-all hover:scale-[1.02]"
+          class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all hover:scale-[1.02]"
           :style="selectedItems.includes(item.id)
             ? 'background: #06b6d424; color: #06b6d4; outline: 1.5px solid #06b6d440; outline-offset:0'
             : 'background: hsl(var(--muted)/0.5); color: hsl(var(--muted-foreground))'"

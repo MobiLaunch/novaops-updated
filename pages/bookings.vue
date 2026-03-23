@@ -5,8 +5,8 @@
     <div class="flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-4">
         <div
-          class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg"
-          style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); box-shadow: 0 4px 20px #6366f150"
+          class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
+          style="background: linear-gradient(135deg, #5b5ef4 0%, #4f46e5 100%); box-shadow: 0 4px 20px #5b5ef450"
         >
           <ClipboardList class="w-6 h-6 text-white" />
         </div>
@@ -44,11 +44,11 @@
     </div>
 
     <!-- ── Tab Bar ─────────────────────────────────────────────── -->
-    <div class="flex gap-1.5 p-1.5 rounded-[20px] self-start" style="background: hsl(var(--muted)/0.6)">
+    <div class="flex gap-1.5 p-1.5 rounded-xl self-start" style="background: hsl(var(--muted)/0.6)">
       <button
         v-for="tab in tabs"
         :key="tab.id"
-        class="flex items-center gap-2 px-5 py-2.5 rounded-[16px] text-sm font-bold transition-all"
+        class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all"
         :style="activeTab === tab.id
           ? `background: ${tab.color}; color: white; box-shadow: 0 4px 12px ${tab.color}50`
           : 'color: hsl(var(--muted-foreground))'"
@@ -71,10 +71,10 @@
 
       <!-- KPI Row -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div v-for="stat in ticketStats" :key="stat.label" class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3"
+        <div v-for="stat in ticketStats" :key="stat.label" class="m3-kpi rounded-2xl p-5 flex flex-col gap-3"
           :style="`background: ${stat.color}14; outline: 2px solid ${stat.color}28; outline-offset: 0`">
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" :style="`background: ${stat.color}24`">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center" :style="`background: ${stat.color}24`">
               <component :is="stat.icon" class="w-5 h-5" :style="`color: ${stat.color}`" />
             </div>
           </div>
@@ -132,8 +132,8 @@
             </div>
           </div>
         </div>
-        <div v-if="filteredTickets.length === 0" class="rounded-[32px] py-20 flex flex-col items-center gap-4 bg-card" style="outline: 2px solid hsl(var(--border)/0.6)">
-          <div class="w-20 h-20 rounded-[32px] flex items-center justify-center" style="background: #f59e0b14">
+        <div v-if="filteredTickets.length === 0" class="rounded-2xl py-20 flex flex-col items-center gap-4 bg-card" style="outline: 2px solid hsl(var(--border)/0.6)">
+          <div class="w-20 h-20 rounded-2xl flex items-center justify-center" style="background: #f59e0b14">
             <Inbox class="w-10 h-10" style="color: #f59e0b; opacity: 0.5" />
           </div>
           <div class="text-center">
@@ -154,33 +154,33 @@
 
       <!-- KPI Row -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #10b98114; outline: 2px solid #10b98128; outline-offset: 0">
+        <div class="m3-kpi rounded-2xl p-5 flex flex-col gap-3" style="background: #10b98114; outline: 2px solid #10b98128; outline-offset: 0">
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #10b98124"><MapPin class="w-5 h-5" style="color: #10b981" /></div>
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #10b98124"><MapPin class="w-5 h-5" style="color: #10b981" /></div>
             <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #10b98120; color: #10b981">TOTAL</span>
           </div>
           <div><p class="text-xs font-semibold text-muted-foreground">All Calls</p><p class="text-2xl font-black" style="color: #10b981">{{ housecalls.length }}</p></div>
         </div>
-        <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #3b82f614; outline: 2px solid #3b82f628; outline-offset: 0">
+        <div class="m3-kpi rounded-2xl p-5 flex flex-col gap-3" style="background: #3b82f614; outline: 2px solid #3b82f628; outline-offset: 0">
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #3b82f624"><Clock class="w-5 h-5" style="color: #3b82f6" /></div>
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #3b82f624"><Clock class="w-5 h-5" style="color: #3b82f6" /></div>
             <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #3b82f620; color: #3b82f6">SCHED</span>
           </div>
           <div><p class="text-xs font-semibold text-muted-foreground">Scheduled</p><p class="text-2xl font-black" style="color: #3b82f6">{{ countHousecallByStatus('Scheduled') }}</p></div>
         </div>
-        <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #f59e0b14; outline: 2px solid #f59e0b28; outline-offset: 0">
+        <div class="m3-kpi rounded-2xl p-5 flex flex-col gap-3" style="background: #f59e0b14; outline: 2px solid #f59e0b28; outline-offset: 0">
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #f59e0b24"><Wrench class="w-5 h-5" style="color: #f59e0b" /></div>
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #f59e0b24"><Wrench class="w-5 h-5" style="color: #f59e0b" /></div>
             <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #f59e0b20; color: #f59e0b">ACTIVE</span>
           </div>
           <div><p class="text-xs font-semibold text-muted-foreground">In Progress</p><p class="text-2xl font-black" style="color: #f59e0b">{{ countHousecallByStatus('In Progress') }}</p></div>
         </div>
-        <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #6366f114; outline: 2px solid #6366f128; outline-offset: 0">
+        <div class="m3-kpi rounded-2xl p-5 flex flex-col gap-3" style="background: #5b5ef414; outline: 2px solid #5b5ef428; outline-offset: 0">
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #6366f124"><CheckCircle class="w-5 h-5" style="color: #6366f1" /></div>
-            <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #6366f120; color: #6366f1">DONE</span>
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #5b5ef424"><CheckCircle class="w-5 h-5" style="color: #5b5ef4" /></div>
+            <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #5b5ef420; color: #5b5ef4">DONE</span>
           </div>
-          <div><p class="text-xs font-semibold text-muted-foreground">Completed</p><p class="text-2xl font-black" style="color: #6366f1">{{ countHousecallByStatus('Completed') }}</p></div>
+          <div><p class="text-xs font-semibold text-muted-foreground">Completed</p><p class="text-2xl font-black" style="color: #5b5ef4">{{ countHousecallByStatus('Completed') }}</p></div>
         </div>
       </div>
 
@@ -195,11 +195,11 @@
       <!-- House Call Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div v-for="call in filteredHousecalls" :key="call.id"
-          class="m3-card rounded-[28px] p-5 flex flex-col gap-3 bg-card cursor-pointer"
-          style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0"
+          class="m3-card rounded-2xl p-5 flex flex-col gap-3 bg-card cursor-pointer"
+          style="border: 1px solid hsl(var(--border)/0.7)"
           @click="viewHousecall(call)">
           <div class="flex items-start justify-between">
-            <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #10b98120"><MapPin class="w-5 h-5" style="color: #10b981" /></div>
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #10b98120"><MapPin class="w-5 h-5" style="color: #10b981" /></div>
             <span class="text-[10px] font-black px-2.5 py-1 rounded-full" :style="callStatusStyle(call.status)">{{ call.status }}</span>
           </div>
           <div>
@@ -221,8 +221,8 @@
             </button>
           </div>
         </div>
-        <div v-if="filteredHousecalls.length === 0" class="col-span-full rounded-[32px] py-16 flex flex-col items-center gap-4 bg-card" style="outline: 2px solid hsl(var(--border)/0.6)">
-          <div class="w-16 h-16 rounded-[28px] flex items-center justify-center" style="background: #10b98114"><MapPin class="w-8 h-8" style="color: #10b981; opacity: 0.5" /></div>
+        <div v-if="filteredHousecalls.length === 0" class="col-span-full rounded-2xl py-16 flex flex-col items-center gap-4 bg-card" style="outline: 2px solid hsl(var(--border)/0.6)">
+          <div class="w-16 h-16 rounded-2xl flex items-center justify-center" style="background: #10b98114"><MapPin class="w-8 h-8" style="color: #10b981; opacity: 0.5" /></div>
           <div class="text-center">
             <p class="font-black">No house calls {{ housecallFilter !== 'All' ? `with status "${housecallFilter}"` : 'scheduled' }}</p>
             <p class="text-xs text-muted-foreground font-medium mt-1">{{ housecallFilter === 'All' ? 'Schedule your first on-site visit' : 'Try a different filter' }}</p>
@@ -239,10 +239,10 @@
 
       <!-- KPI Row -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div v-for="stat in vendorStats" :key="stat.label" class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3"
+        <div v-for="stat in vendorStats" :key="stat.label" class="m3-kpi rounded-2xl p-5 flex flex-col gap-3"
           :style="`background: ${stat.color}14; outline: 2px solid ${stat.color}28; outline-offset: 0`">
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" :style="`background: ${stat.color}24`">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center" :style="`background: ${stat.color}24`">
               <component :is="stat.icon" class="w-5 h-5" :style="`color: ${stat.color}`" />
             </div>
           </div>
@@ -270,14 +270,14 @@
       <!-- Vendor Repair Cards -->
       <div class="space-y-4">
         <div v-for="repair in filteredVendorRepairs" :key="repair.id"
-          class="m3-vendor-card rounded-[24px] overflow-hidden cursor-pointer"
-          style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0"
+          class="m3-vendor-card rounded-xl overflow-hidden cursor-pointer"
+          style="border: 1px solid hsl(var(--border)/0.7)"
           @click="openVendorRepair(repair)">
           <!-- Header strip -->
           <div class="px-6 pt-5 pb-4 flex items-start justify-between" :style="`background: ${vendorStatusColor(repair.status)}12`">
             <div class="flex items-start gap-4">
               <!-- Vendor icon -->
-              <div class="w-11 h-11 rounded-[20px] flex items-center justify-center flex-shrink-0" style="background: #8b5cf624">
+              <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style="background: #8b5cf624">
                 <Building2 class="w-5 h-5" style="color: #8b5cf6" />
               </div>
               <div class="space-y-1">
@@ -332,8 +332,8 @@
           </div>
         </div>
 
-        <div v-if="filteredVendorRepairs.length === 0" class="rounded-[32px] py-20 flex flex-col items-center gap-4 bg-card" style="outline: 2px solid hsl(var(--border)/0.6)">
-          <div class="w-20 h-20 rounded-[32px] flex items-center justify-center" style="background: #8b5cf614">
+        <div v-if="filteredVendorRepairs.length === 0" class="rounded-2xl py-20 flex flex-col items-center gap-4 bg-card" style="outline: 2px solid hsl(var(--border)/0.6)">
+          <div class="w-20 h-20 rounded-2xl flex items-center justify-center" style="background: #8b5cf614">
             <Building2 class="w-10 h-10" style="color: #8b5cf6; opacity: 0.5" />
           </div>
           <div class="text-center">
@@ -360,7 +360,7 @@
       <DialogContent class="w-full max-w-[96vw] sm:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <!-- Fixed header -->
         <div class="flex items-center gap-3 px-4 sm:px-7 pt-4 sm:pt-7 pb-4 flex-shrink-0 border-b border-border/40">
-          <div class="w-10 h-10 rounded-[20px] flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #10b981, #059669)">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #10b981, #059669)">
             <MapPin class="w-5 h-5 text-white" />
           </div>
           <div>
@@ -384,7 +384,7 @@
                     <Navigation class="w-4 h-4" style="color: #3b82f6" />
                   </button>
                   <!-- Autocomplete Dropdown — inside relative wrapper so it doesn't shift layout -->
-                  <div v-if="showSuggestions && addressSuggestions.length > 0" class="absolute z-50 left-0 right-0 top-full mt-1 bg-card border-2 border-border/60 rounded-[16px] shadow-xl overflow-hidden max-h-48 overflow-y-auto" style="outline: 2px solid hsl(var(--border)/0.4)">
+                  <div v-if="showSuggestions && addressSuggestions.length > 0" class="absolute z-50 left-0 right-0 top-full mt-1 bg-card border-2 border-border/60 rounded-xl shadow-xl overflow-hidden max-h-48 overflow-y-auto" style="outline: 2px solid hsl(var(--border)/0.4)">
                     <div v-for="sug in addressSuggestions" :key="sug.place_id" class="px-4 py-3 hover:bg-muted/50 cursor-pointer border-b border-border/20 last:border-0 text-xs font-medium transition-colors" @click="selectSuggestion(sug)">
                       {{ sug.display_name }}
                     </div>
@@ -402,7 +402,7 @@
                   <option>Scheduled</option><option>In Progress</option><option>Completed</option><option>Cancelled</option>
                 </select>
               </div>
-              <div class="rounded-[18px] p-4 flex items-center justify-between" style="background: #10b98114; outline: 2px solid #10b98128; outline-offset: 0">
+              <div class="rounded-xl p-4 flex items-center justify-between" style="background: #10b98114; outline: 2px solid #10b98128; outline-offset: 0">
                 <span class="text-xs font-black text-muted-foreground uppercase tracking-widest">Call Estimate</span>
                 <span class="text-lg font-black" style="color: #10b981">${{ housecallEstimate.toFixed(2) }}</span>
               </div>
@@ -412,7 +412,7 @@
             <div class="flex flex-col gap-4">
               <div class="space-y-2">
                 <label class="m3-label flex items-center gap-1.5"><Navigation class="w-3 h-3" style="color: #3b82f6" /> Location Preview</label>
-                <div class="rounded-[20px] overflow-hidden" style="height: 180px; outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+                <div class="rounded-xl overflow-hidden" style="height: 180px; border: 1px solid hsl(var(--border)/0.7)">
                   <iframe v-if="mapsUrl" :src="mapsUrl" width="100%" height="100%" style="border:0" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" />
                   <div v-else class="w-full h-full flex flex-col items-center justify-center gap-2" style="background: hsl(var(--muted)/0.3)">
                     <MapPin class="w-8 h-8 text-muted-foreground opacity-40" />
@@ -421,7 +421,7 @@
                 </div>
               </div>
 
-              <div class="rounded-[20px] p-4 flex flex-col gap-3" style="background: hsl(var(--muted)/0.3); outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+              <div class="rounded-xl p-4 flex flex-col gap-3" style="background: hsl(var(--muted)/0.3); border: 1px solid hsl(var(--border)/0.7)">
                 <p class="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                   <Calculator class="w-3 h-3" /> Job Calculator
                 </p>
@@ -489,7 +489,7 @@
       <DialogContent class="w-full max-w-[96vw] sm:max-w-lg">
         <div class="flex flex-col gap-5 p-4 sm:p-7">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed)">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed)">
               <Building2 class="w-5 h-5 text-white" />
             </div>
             <div>
@@ -893,7 +893,7 @@ const vendorStatusColor = (status: string) => ({
   'In Repair':              '#f59e0b',
   'Shipped Back':           '#06b6d4',
   'Received':               '#10b981',
-  'Returned to Customer':   '#6366f1',
+  'Returned to Customer':   '#5b5ef4',
   'Cancelled':              '#ef4444',
 }[status] || '#64748b')
 
@@ -944,7 +944,7 @@ const saveVendorRepair = async () => {
 
 .m3-ticket-card {
   transition: transform 0.4s cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow 0.3s ease;
-  border-radius: 24px;
+  border-radius: 18px;
   overflow: hidden;
   outline: 2px solid hsl(var(--border)/0.6);
   outline-offset: 0;

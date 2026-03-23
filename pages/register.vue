@@ -4,14 +4,14 @@
     <!-- Background glows -->
     <div class="absolute inset-0 pointer-events-none overflow-hidden">
       <div class="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full opacity-10 blur-3xl" style="background: radial-gradient(circle, #8b5cf6, transparent)" />
-      <div class="absolute -bottom-20 -left-20 w-80 h-80 rounded-full opacity-10 blur-3xl" style="background: radial-gradient(circle, #6366f1, transparent)" />
+      <div class="absolute -bottom-20 -left-20 w-80 h-80 rounded-full opacity-10 blur-3xl" style="background: radial-gradient(circle, #5b5ef4, transparent)" />
     </div>
 
     <div class="relative w-full max-w-2xl flex flex-col gap-6" style="animation: registerEnter 0.5s cubic-bezier(0.34,1.3,0.64,1) both">
 
       <!-- Logo & Title -->
       <div class="flex flex-col items-center gap-4">
-        <div class="w-20 h-20 rounded-[32px] flex items-center justify-center shadow-2xl" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); box-shadow: 0 8px 40px #8b5cf660">
+        <div class="w-20 h-20 rounded-2xl flex items-center justify-center shadow-2xl" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); box-shadow: 0 8px 40px #8b5cf660">
           <Zap class="w-9 h-9 text-white" />
         </div>
         <div class="text-center">
@@ -36,7 +36,7 @@
       </div>
 
       <!-- Error Banner -->
-      <div v-if="globalError" class="flex items-center gap-3 p-4 rounded-[20px]" style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0">
+      <div v-if="globalError" class="flex items-center gap-3 p-4 rounded-xl" style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0">
         <AlertCircle class="w-5 h-5 flex-shrink-0" style="color: #ef4444" />
         <p class="text-sm font-semibold" style="color: #ef4444">{{ globalError }}</p>
       </div>
@@ -271,7 +271,7 @@
         <!-- ── STEP 5: Legal Documents ── -->
         <div class="step-card" :class="{ 'step-card-active': currentStep === 5, 'step-card-done': completedSteps.has(5) }">
           <div class="step-card-header" @click="goToStep(5)">
-            <div class="step-card-icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5)">
+            <div class="step-card-icon" style="background: linear-gradient(135deg, #5b5ef4, #4f46e5)">
               <FileText class="w-4 h-4 text-white" />
             </div>
             <div class="flex-1">
@@ -280,7 +280,7 @@
             </div>
             <div v-if="completedSteps.has(5)" class="done-badge">✓ Done</div>
             <span v-else-if="currentStep !== 5" class="skip-badge">Optional</span>
-            <ChevronUp v-else class="w-4 h-4" style="color: #6366f1" />
+            <ChevronUp v-else class="w-4 h-4" style="color: #5b5ef4" />
           </div>
           <div v-if="currentStep === 5" class="step-card-body">
             <div class="space-y-3">
@@ -288,7 +288,7 @@
               <!-- Repair Liability Waiver -->
               <div class="doc-section">
                 <div class="doc-section-header">
-                  <ShieldAlert class="w-4 h-4" style="color: #6366f1" />
+                  <ShieldAlert class="w-4 h-4" style="color: #5b5ef4" />
                   <p class="text-xs font-black flex-1">Repair Liability Waiver</p>
                   <span class="doc-badge">Auto-generated</span>
                 </div>
@@ -305,7 +305,7 @@
               <!-- Device Trade-In -->
               <div class="doc-section">
                 <div class="doc-section-header">
-                  <Smartphone class="w-4 h-4" style="color: #6366f1" />
+                  <Smartphone class="w-4 h-4" style="color: #5b5ef4" />
                   <p class="text-xs font-black flex-1">Device Trade-In Form</p>
                   <span class="doc-badge">Included</span>
                 </div>
@@ -328,7 +328,7 @@
               <!-- Warranty Repair Request -->
               <div class="doc-section">
                 <div class="doc-section-header">
-                  <BadgeCheck class="w-4 h-4" style="color: #6366f1" />
+                  <BadgeCheck class="w-4 h-4" style="color: #5b5ef4" />
                   <p class="text-xs font-black flex-1">Warranty Repair Request</p>
                   <span class="doc-badge">Included</span>
                 </div>
@@ -351,7 +351,7 @@
               <!-- Service Terms -->
               <div class="doc-section">
                 <div class="doc-section-header">
-                  <ScrollText class="w-4 h-4" style="color: #6366f1" />
+                  <ScrollText class="w-4 h-4" style="color: #5b5ef4" />
                   <p class="text-xs font-black flex-1">Service Terms & Conditions</p>
                   <span class="doc-badge">Auto-generated</span>
                 </div>
@@ -376,7 +376,7 @@
       </div>
 
       <!-- Final Submit CTA -->
-      <div class="rounded-[28px] p-6 flex flex-col gap-4 shadow-xl" style="background: hsl(var(--card)); outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+      <div class="rounded-2xl p-6 flex flex-col gap-4 shadow-xl" style="background: hsl(var(--card)); border: 1px solid hsl(var(--border)/0.7)">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-black">Ready to launch?</p>
@@ -571,7 +571,7 @@ const handleRegister = async () => {
 .import-zone-ready { border-color:#f59e0b;border-style:solid;background:#f59e0b08; }
 .doc-section { padding:14px;border-radius:18px;background:hsl(var(--muted)/0.3);display:flex;flex-direction:column;gap:10px;outline:1.5px solid hsl(var(--border)/0.5);outline-offset:0; }
 .doc-section-header { display:flex;align-items:center;gap:8px; }
-.doc-badge { font-size:9px;font-weight:800;letter-spacing:0.08em;color:#6366f1;background:#6366f118;padding:2px 8px;border-radius:20px;text-transform:uppercase; }
+.doc-badge { font-size:9px;font-weight:800;letter-spacing:0.08em;color:#5b5ef4;background:#5b5ef418;padding:2px 8px;border-radius:20px;text-transform:uppercase; }
 .checkbox-input { width:16px;height:16px;border-radius:5px;accent-color:#8b5cf6;cursor:pointer; }
 .m3-jelly-btn { transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.3s ease; }
 .m3-jelly-btn:hover:not(:disabled) { transform:scale(1.03) translateY(-2px);box-shadow:0 8px 32px #8b5cf660 !important; }

@@ -27,7 +27,7 @@
               <!-- Panel header -->
               <div class="notif-panel-header">
                 <div class="flex items-center gap-2">
-                  <div class="w-7 h-7 rounded-[14px] flex items-center justify-center" style="background:#f59e0b20">
+                  <div class="w-7 h-7 rounded-xl flex items-center justify-center" style="background:#f59e0b20">
                     <Bell class="w-3.5 h-3.5" style="color:#f59e0b" />
                   </div>
                   <span class="text-sm font-black">Notifications</span>
@@ -82,7 +82,7 @@
     </div>
 
     <!-- ── Gmail Connection Banner ────────────────────────────────── -->
-    <div v-if="!gmailConnected" class="rounded-[20px] p-4 flex items-center justify-between flex-wrap gap-3"
+    <div v-if="!gmailConnected" class="rounded-xl p-4 flex items-center justify-between flex-wrap gap-3"
       style="background:linear-gradient(135deg,#ea443514,#4285f414);outline:2px solid #4285f428;outline-offset:0">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:#4285f424">
@@ -98,7 +98,7 @@
         Connect Gmail
       </button>
     </div>
-    <div v-else class="rounded-[20px] p-3 px-5 flex items-center gap-3 flex-wrap"
+    <div v-else class="rounded-xl p-3 px-5 flex items-center gap-3 flex-wrap"
       style="background:#10b98114;outline:2px solid #10b98128;outline-offset:0">
       <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style="background:#10b98124">
         <Check class="w-4 h-4" style="color:#10b981" />
@@ -122,10 +122,10 @@
     <!-- ── Stats Row ──────────────────────────────────────────────── -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
       <div v-for="stat in msgStats" :key="stat.label"
-        class="rounded-[24px] p-4 flex flex-col gap-2"
+        class="rounded-xl p-4 flex flex-col gap-2"
         :style="`background:${stat.color}14;outline:2px solid ${stat.color}28;outline-offset:0`">
         <div class="flex items-center justify-between">
-          <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" :style="`background:${stat.color}24`">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" :style="`background:${stat.color}24`">
             <component :is="stat.icon" class="w-4.5 h-4.5" :style="`color:${stat.color}`" />
           </div>
         </div>
@@ -189,7 +189,7 @@
           </div>
 
           <div v-if="filteredThreads.length === 0" class="flex flex-col items-center gap-3 py-12 px-4 text-center">
-            <div class="w-12 h-12 rounded-[20px] flex items-center justify-center" style="background:#ec489914">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:#ec489914">
               <MessageCircle class="w-6 h-6" style="color:#ec4899;opacity:0.5" />
             </div>
             <p class="font-black text-sm">No threads found</p>
@@ -237,7 +237,7 @@
             <!-- Ticket context banner -->
             <div v-if="selectedThread.ticketId" class="msg-ticket-banner">
               <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-[14px] flex items-center justify-center" style="background:#f59e0b20">
+                <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:#f59e0b20">
                   <TicketCheck class="w-4 h-4" style="color:#f59e0b" />
                 </div>
                 <div>
@@ -292,7 +292,7 @@
             <!-- Subject (email only) -->
             <input v-if="replyChannel === 'email'" v-model="replySubject"
               placeholder="Subject…"
-              class="w-full h-9 px-4 rounded-[14px] text-sm font-medium mb-2"
+              class="w-full h-9 px-4 rounded-xl text-sm font-medium mb-2"
               style="background:hsl(var(--muted)/0.4);border:1.5px solid hsl(var(--border)/0.6);outline:none" />
 
             <div class="flex gap-3 items-end">
@@ -324,7 +324,7 @@
         <!-- Empty state -->
         <template v-else>
           <div class="flex-1 flex flex-col items-center justify-center gap-4 p-8 text-center">
-            <div class="w-20 h-20 rounded-[32px] flex items-center justify-center" style="background:#ec489914">
+            <div class="w-20 h-20 rounded-2xl flex items-center justify-center" style="background:#ec489914">
               <MessageCircle class="w-10 h-10" style="color:#ec4899;opacity:0.4" />
             </div>
             <h3 class="text-lg font-black">No conversation selected</h3>
@@ -344,7 +344,7 @@
       <DialogContent class="max-w-lg">
         <div class="flex flex-col gap-5 p-7">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center"
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center"
               style="background:linear-gradient(135deg,#ec4899,#db2777)">
               <Pencil class="w-5 h-5 text-white" />
             </div>
@@ -427,7 +427,7 @@
           <h2 class="text-base font-black">Message Templates</h2>
           <div class="space-y-2 max-h-80 overflow-y-auto">
             <button v-for="tmpl in emailTemplates" :key="tmpl.name"
-              class="w-full text-left p-4 rounded-[20px] transition-all hover:scale-[1.01]"
+              class="w-full text-left p-4 rounded-xl transition-all hover:scale-[1.01]"
               style="background:hsl(var(--muted)/0.4);outline:1.5px solid hsl(var(--border)/0.5);outline-offset:0"
               @click="replyBody = tmpl.body; templateOpen = false">
               <p class="text-sm font-black mb-1">{{ tmpl.name }}</p>
@@ -1163,7 +1163,7 @@ onMounted(async () => {
   top: calc(100% + 10px);
   right: 0;
   width: 360px;
-  border-radius: 24px;
+  border-radius: 18px;
   background: hsl(var(--popover));
   border: 1.5px solid hsl(var(--border)/0.7);
   box-shadow: 0 20px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.08);

@@ -6,7 +6,7 @@
 
     <!-- M3 Expressive background blobs: fixed to cover entire window -->
     <div style="position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0">
-      <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-20 blur-3xl" style="background: radial-gradient(circle, #6366f1, transparent)" />
+      <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-20 blur-3xl" style="background: radial-gradient(circle, #5b5ef4, transparent)" />
       <div class="absolute -bottom-32 -right-32 w-96 h-96 rounded-full opacity-15 blur-3xl" style="background: radial-gradient(circle, #a855f7, transparent)" />
       <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-5 blur-3xl" style="background: radial-gradient(circle, #06b6d4, transparent)" />
     </div>
@@ -77,12 +77,12 @@
       </div>
 
       <!-- Card -->
-      <div class="rounded-[32px] bg-card p-7 flex flex-col gap-5 shadow-xl" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+      <div class="rounded-2xl bg-card p-7 flex flex-col gap-5 shadow-xl" style="border: 1px solid hsl(var(--border)/0.7)">
 
         <!-- Error alert -->
         <div
           v-if="error"
-          class="flex items-center gap-3 p-4 rounded-[20px]"
+          class="flex items-center gap-3 p-4 rounded-xl"
           style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0"
         >
           <AlertCircle class="w-5 h-5 flex-shrink-0" style="color: #ef4444" />
@@ -137,7 +137,7 @@
             v-model="email"
             type="email"
             placeholder="you@example.com"
-            class="w-full h-12 px-4 rounded-[20px] text-sm bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+            class="w-full h-12 px-4 rounded-xl text-sm bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all font-medium"
             :disabled="loading"
             @keyup.enter="handleLogin"
           />
@@ -150,7 +150,7 @@
             v-model="password"
             type="password"
             placeholder="••••••••"
-            class="w-full h-12 px-4 rounded-[20px] text-sm bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+            class="w-full h-12 px-4 rounded-xl text-sm bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all font-medium"
             :disabled="loading"
             @keyup.enter="handleLogin"
           />
@@ -159,7 +159,7 @@
         <!-- Sign In button -->
         <button
           class="m3-jelly-btn w-full h-14 rounded-full text-sm font-black text-white shadow-lg flex items-center justify-center gap-2.5 disabled:opacity-60 disabled:cursor-not-allowed"
-          style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); box-shadow: 0 4px 20px #6366f150"
+          style="background: linear-gradient(135deg, #5b5ef4 0%, #8b5cf6 100%); box-shadow: 0 4px 20px #5b5ef450"
           :disabled="loading"
           @click="handleLogin"
         >
@@ -190,10 +190,10 @@
 
       <!-- Supabase not-connected banner -->
       <div v-if="!$supabase && !sbConn.status.connected"
-        class="rounded-[24px] p-5 flex flex-col gap-4"
+        class="rounded-xl p-5 flex flex-col gap-4"
         style="background:#3ecf8e10;outline:2px solid #3ecf8e28;outline-offset:0;animation:loginEnter 0.55s 0.15s cubic-bezier(0.34,1.3,0.64,1) both">
         <div class="flex items-start gap-3">
-          <div class="w-8 h-8 rounded-[16px] flex items-center justify-center flex-shrink-0" style="background:#3ecf8e20">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#3ecf8e20">
             <Database class="w-4 h-4" style="color:#3ecf8e" />
           </div>
           <div class="flex-1">
@@ -226,11 +226,11 @@
     <Transition name="overlay">
       <div v-if="showSbSetup" class="fixed inset-0 z-[200] flex items-center justify-center p-4"
         style="background:rgba(0,0,0,0.6);backdrop-filter:blur(10px)" @click.self="showSbSetup = false">
-        <div class="w-full max-w-md rounded-[32px] bg-card flex flex-col shadow-2xl overflow-hidden"
+        <div class="w-full max-w-md rounded-2xl bg-card flex flex-col shadow-2xl overflow-hidden"
           style="outline:2px solid hsl(var(--border)/0.6);outline-offset:0;animation:sbModalEnter 0.35s cubic-bezier(0.34,1.3,0.64,1) both">
 
           <div class="flex items-center gap-4 px-7 pt-7 pb-5 border-b border-border/50" style="background:#3ecf8e06">
-            <div class="w-11 h-11 rounded-[22px] flex items-center justify-center flex-shrink-0 shadow-md"
+            <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md"
               style="background:linear-gradient(135deg,#3ecf8e,#1a9e6a);box-shadow:0 4px 16px #3ecf8e30">
               <Database class="w-5 h-5 text-white" />
             </div>
@@ -244,13 +244,13 @@
           </div>
 
           <div class="p-7 space-y-4">
-            <div class="rounded-[16px] p-3.5 space-y-1.5" style="background:hsl(var(--muted)/0.5)">
+            <div class="rounded-xl p-3.5 space-y-1.5" style="background:hsl(var(--muted)/0.5)">
               <p class="text-[11px] font-black text-muted-foreground uppercase tracking-widest">supabase.com/dashboard → your project → Settings → API</p>
             </div>
             <div class="space-y-2">
               <label class="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Project URL</label>
               <input v-model="sbSetupForm.url" type="url" placeholder="https://xxxxxxxxxxxx.supabase.co"
-                class="w-full h-12 px-4 rounded-[18px] text-xs font-mono border-2 outline-none transition-all"
+                class="w-full h-12 px-4 rounded-xl text-xs font-mono border-2 outline-none transition-all"
                 style="background:hsl(var(--muted)/0.5);border-color:hsl(var(--border)/0.7)"
                 @focus="($event.target as HTMLElement).style.borderColor='#3ecf8e'"
                 @blur="($event.target as HTMLElement).style.borderColor='hsl(var(--border)/0.7)'" />
@@ -258,12 +258,12 @@
             <div class="space-y-2">
               <label class="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Anon / Public Key</label>
               <input v-model="sbSetupForm.key" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…"
-                class="w-full h-12 px-4 rounded-[18px] text-xs font-mono border-2 outline-none transition-all"
+                class="w-full h-12 px-4 rounded-xl text-xs font-mono border-2 outline-none transition-all"
                 style="background:hsl(var(--muted)/0.5);border-color:hsl(var(--border)/0.7)"
                 @focus="($event.target as HTMLElement).style.borderColor='#3ecf8e'"
                 @blur="($event.target as HTMLElement).style.borderColor='hsl(var(--border)/0.7)'" />
             </div>
-            <div v-if="sbConn.status.error" class="flex items-center gap-2 p-3 rounded-[14px] text-xs font-semibold"
+            <div v-if="sbConn.status.error" class="flex items-center gap-2 p-3 rounded-xl text-xs font-semibold"
               style="background:#ef444412;color:#ef4444">
               <AlertCircle class="w-3.5 h-3.5 flex-shrink-0" />
               {{ sbConn.status.error }}
@@ -463,7 +463,7 @@ const signInWithFacebook = async () => {
 .m3-jelly-btn {
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
 }
-.m3-jelly-btn:hover:not(:disabled)  { transform: scale(1.04) translateY(-2px); box-shadow: 0 8px 32px #6366f160 !important; }
+.m3-jelly-btn:hover:not(:disabled)  { transform: scale(1.04) translateY(-2px); box-shadow: 0 8px 32px #5b5ef460 !important; }
 .m3-jelly-btn:active:not(:disabled) { transform: scale(0.92); }
 
 .m3-tonal-btn {

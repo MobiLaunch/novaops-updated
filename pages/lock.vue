@@ -3,7 +3,7 @@
 
     <!-- Background blobs -->
     <div class="absolute inset-0 pointer-events-none overflow-hidden">
-      <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full opacity-10 blur-3xl" style="background: radial-gradient(circle, #6366f1, transparent)" />
+      <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full opacity-10 blur-3xl" style="background: radial-gradient(circle, #5b5ef4, transparent)" />
       <div class="absolute bottom-0 right-0 w-72 h-72 rounded-full opacity-10 blur-3xl" style="background: radial-gradient(circle, #a855f7, transparent)" />
     </div>
 
@@ -12,8 +12,8 @@
       <!-- Header -->
       <div class="text-center flex flex-col items-center gap-4">
         <div
-          class="w-20 h-20 rounded-[32px] flex items-center justify-center shadow-xl"
-          style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); box-shadow: 0 8px 32px #6366f140"
+          class="w-20 h-20 rounded-2xl flex items-center justify-center shadow-xl"
+          style="background: linear-gradient(135deg, #5b5ef4 0%, #8b5cf6 100%); box-shadow: 0 8px 32px #5b5ef440"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="w-9 h-9" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="1.75">
             <rect x="3" y="11" width="18" height="11" rx="3" ry="3"/>
@@ -31,9 +31,9 @@
         <div
           v-for="i in 4"
           :key="i"
-          class="w-16 h-16 rounded-[24px] flex items-center justify-center text-2xl font-black select-none transition-all duration-200"
+          class="w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-black select-none transition-all duration-200"
           :style="pin.length >= i
-            ? `background: #6366f124; outline: 2.5px solid #6366f170; outline-offset: 0; color: #6366f1; transform: scale(1.08)`
+            ? `background: #5b5ef424; outline: 2.5px solid #5b5ef470; outline-offset: 0; color: #5b5ef4; transform: scale(1.08)`
             : `outline: 2px solid hsl(var(--border)/0.7); outline-offset: 0; color: transparent`"
         >●</div>
       </div>
@@ -52,14 +52,14 @@
         <button
           v-for="num in [1,2,3,4,5,6,7,8,9]"
           :key="num"
-          class="m3-numkey h-16 rounded-[24px] text-xl font-black select-none bg-card"
-          style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0"
+          class="m3-numkey h-16 rounded-xl text-xl font-black select-none bg-card"
+          style="border: 1px solid hsl(var(--border)/0.7)"
           @click="addDigit(num)"
         >{{ num }}</button>
 
         <!-- Clear -->
         <button
-          class="m3-numkey h-16 rounded-[24px] select-none flex items-center justify-center"
+          class="m3-numkey h-16 rounded-xl select-none flex items-center justify-center"
           style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0"
           @click="clearPin"
         >
@@ -70,15 +70,15 @@
 
         <!-- Zero -->
         <button
-          class="m3-numkey h-16 rounded-[24px] text-xl font-black select-none bg-card"
-          style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0"
+          class="m3-numkey h-16 rounded-xl text-xl font-black select-none bg-card"
+          style="border: 1px solid hsl(var(--border)/0.7)"
           @click="addDigit(0)"
         >0</button>
 
         <!-- Backspace -->
         <button
-          class="m3-numkey h-16 rounded-[24px] select-none flex items-center justify-center"
-          style="background: hsl(var(--muted)/0.6); outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0"
+          class="m3-numkey h-16 rounded-xl select-none flex items-center justify-center"
+          style="background: hsl(var(--muted)/0.6); border: 1px solid hsl(var(--border)/0.7)"
           @click="backspace"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

@@ -448,7 +448,7 @@ const ticketMode         = ref<{ ticketId: number; amount: number } | null>(null
 // ── Payment method config ──────────────────────────────────────────
 const paymentMethods = [
   { id: 'Cash',     label: 'Cash',     icon: Banknote,   color: '#10b981' },
-  { id: 'Card',     label: 'Card',     icon: CreditCard, color: '#6366f1' },
+  { id: 'Card',     label: 'Card',     icon: CreditCard, color: '#5b5ef4' },
   { id: 'Afterpay', label: 'Afterpay', icon: Wallet,     color: '#06b6d4' },
   { id: 'Other',    label: 'Other',    icon: Wallet,     color: '#64748b' },
 ]
@@ -1247,7 +1247,7 @@ onUnmounted(() => {
 .kp-btn {
   height: 56px; border-radius: 20px; font-size: 18px; font-weight: 800;
   background: hsl(var(--card)); color: hsl(var(--foreground));
-  outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0;
+  border: 1px solid hsl(var(--border)/0.7);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -1273,7 +1273,7 @@ onUnmounted(() => {
 .add-custom-btn:not(:disabled):active { transform: scale(0.96); }
 .add-custom-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 @media (max-width: 1023px) {
-  .kp-btn { height: 64px; border-radius: 24px; font-size: 20px; }
+  .kp-btn { height: 64px; border-radius: 18px; font-size: 20px; }
   .add-custom-btn { height: 54px; border-radius: 18px; font-size: 15px; }
 }
 
@@ -1349,9 +1349,9 @@ onUnmounted(() => {
 }
 .pm-tile:hover { color: hsl(var(--foreground)); transform: scale(1.02); }
 .pm-tile.active {
-  background: color-mix(in srgb, var(--accent, #6366f1) 12%, hsl(var(--card)));
-  color: var(--accent, #6366f1);
-  border-color: color-mix(in srgb, var(--accent, #6366f1) 35%, transparent);
+  background: color-mix(in srgb, var(--accent, #5b5ef4) 12%, hsl(var(--card)));
+  color: var(--accent, #5b5ef4);
+  border-color: color-mix(in srgb, var(--accent, #5b5ef4) 35%, transparent);
   transform: scale(1.03);
 }
 
@@ -1388,7 +1388,7 @@ onUnmounted(() => {
 }
 .spin-ring {
   width: 18px; height: 18px;
-  border: 2px solid hsl(var(--border)); border-top-color: #6366f1;
+  border: 2px solid hsl(var(--border)); border-top-color: #5b5ef4;
   border-radius: 50%; animation: spin 0.65s linear infinite;
 }
 
@@ -1467,7 +1467,7 @@ onUnmounted(() => {
   display: flex; align-items: center; justify-content: center; z-index: 100;
 }
 .modal-card {
-  background: hsl(var(--card)); border-radius: 28px;
+  background: hsl(var(--card)); border-radius: 20px;
   padding: 36px 30px; width: 308px;
   display: flex; flex-direction: column; align-items: center; gap: 10px;
   box-shadow: 0 24px 64px rgba(0,0,0,0.35);

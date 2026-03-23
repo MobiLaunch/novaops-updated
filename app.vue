@@ -25,7 +25,7 @@ useHead({
     { rel: 'shortcut icon',    type: 'image/x-icon',  href: '/icon.ico' },
   ],
   meta: [
-    { name: 'theme-color', content: '#0f172a' },
+    { name: 'theme-color', content: '#5b5ef4' },
   ],
 })
 </script>

@@ -4,7 +4,7 @@
 
       <!-- M3 Dialog Header -->
       <div class="flex items-center gap-4 px-7 pt-7 pb-5 border-b border-border/50">
-        <div class="w-11 h-11 rounded-[22px] flex items-center justify-center flex-shrink-0 shadow-md"
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md"
           style="background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4px 16px #3b82f640">
           <component :is="customer ? Pencil : UserPlus" class="w-5 h-5 text-white" />
         </div>

@@ -1,7 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+/* ──────────────────────────────────────────────────────────────
+   NovaOps — Premium macOS Design System
+   Inspired by macOS Ventura/Sonoma: translucency, depth, bold color
+   ────────────────────────────────────────────────────────────── */
 
-/* Google Sans fallback - Nunito is a strong visual match */
-@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -9,326 +12,250 @@
 
 @layer base {
   :root {
-    /* ── Lighter, Crisp, Premium Light Mode ── */
-    --background: 210 40% 98%;      /* Very soft, cool tinted white background */
-    --foreground: 222 47% 11%;      /* Sharp, dark slate text */
-
-    --card: 0 0% 100%;              /* Pure white cards */
-    --card-foreground: 222 47% 11%;
-
+    --background: 220 22% 96%;
+    --foreground: 224 40% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 40% 8%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-
-    --primary: 245 80% 58%;         /* Vibrant indigo */
-    --primary-foreground: 0 0% 100%;/* White text on primary buttons */
-
-    --secondary: 210 40% 96%;       /* Very soft blue-gray for secondary surfaces */
-    --secondary-foreground: 222 47% 11%;
-
-    --muted: 210 40% 95.1%;         /* Slightly darker for muted borders/fills */
-    --muted-foreground: 215 16% 47%;/* Gray text for secondary text */
-
-    --accent: 245 80% 95%;          /* Tinted indigo for active states */
-    --accent-foreground: 245 80% 45%;
-
-    --destructive: 0 84% 60%;       /* Red */
+    --popover-foreground: 224 40% 8%;
+    --primary: 248 90% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 16% 93%;
+    --secondary-foreground: 224 40% 8%;
+    --muted: 220 18% 92%;
+    --muted-foreground: 220 14% 50%;
+    --accent: 248 85% 95%;
+    --accent-foreground: 248 90% 50%;
+    --destructive: 4 86% 58%;
     --destructive-foreground: 0 0% 100%;
+    --border: 220 20% 88%;
+    --input: 220 20% 88%;
+    --ring: 248 90% 60%;
+    --radius: 0.75rem;
 
-    --border: 214.3 31.8% 91.4%;    /* Soft, airy borders */
-    --input: 214.3 31.8% 91.4%;
-    --ring: 245 80% 58%;            /* Focus rings */
+    --glass-bg: rgba(255, 255, 255, 0.72);
+    --glass-border: rgba(255, 255, 255, 0.9);
+    --glass-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 1px 0 rgba(255,255,255,0.8) inset;
+    --sidebar-bg: rgba(248, 248, 252, 0.88);
+    --sidebar-border: rgba(0,0,0,0.07);
 
-    --radius: 0.6rem;
+    --nova-indigo: #5b5ef4;
+    --nova-violet: #8b5cf6;
+    --nova-pink: #ec4899;
+    --nova-cyan: #06b6d4;
+    --nova-emerald: #10b981;
+    --nova-amber: #f59e0b;
+    --nova-red: #ef4444;
+    --nova-blue: #3b82f6;
+    --nova-slate: #64748b;
 
-    /* ── Scrollbar tokens (light) ── */
-    --sb-size:       5px;
-    --sb-track:      hsl(210 40% 96%);
-    --sb-thumb:      hsl(215 16% 76%);
-    --sb-thumb-hover:hsl(245 80% 62%);
-    --sb-radius:     99px;
-    --sb-glow:       rgba(99, 102, 241, 0.25);
+    --sb-size: 5px;
+    --sb-track: hsl(220 18% 94%);
+    --sb-thumb: hsl(220 14% 78%);
+    --sb-thumb-hover: #5b5ef4;
+    --sb-radius: 99px;
+    --sb-glow: rgba(91,94,244,0.2);
   }
 
   .dark {
-    /* ── Softer, More Legible Dark Mode ── */
-    --background: 224 30% 6%;       /* Deeper, more saturated ink blue/black */
-    --foreground: 210 40% 98%;      /* Crisp white text */
-
-    --card: 224 28% 10%;            /* Slightly elevated card bg */
-    --card-foreground: 210 40% 98%;
-
-    --popover: 224 28% 10%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 245 80% 65%;         /* Brighter indigo for dark mode contrast */
+    --background: 228 28% 7%;
+    --foreground: 220 20% 95%;
+    --card: 228 26% 11%;
+    --card-foreground: 220 20% 95%;
+    --popover: 228 26% 11%;
+    --popover-foreground: 220 20% 95%;
+    --primary: 248 85% 67%;
     --primary-foreground: 0 0% 100%;
+    --secondary: 228 22% 16%;
+    --secondary-foreground: 220 20% 90%;
+    --muted: 228 22% 15%;
+    --muted-foreground: 220 16% 58%;
+    --accent: 248 55% 20%;
+    --accent-foreground: 248 85% 78%;
+    --destructive: 4 72% 48%;
+    --destructive-foreground: 220 20% 95%;
+    --border: 228 22% 18%;
+    --input: 228 22% 18%;
+    --ring: 248 85% 67%;
 
-    --secondary: 224 25% 15%;       /* Softer secondary background */
-    --secondary-foreground: 210 40% 98%;
+    --glass-bg: rgba(20,22,36,0.75);
+    --glass-border: rgba(255,255,255,0.06);
+    --glass-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.04) inset;
+    --sidebar-bg: rgba(16,18,28,0.92);
+    --sidebar-border: rgba(255,255,255,0.05);
 
-    --muted: 224 25% 14%;           /* Softer muted backgrounds */
-    --muted-foreground: 215 20% 65%;/* Brighter muted text for readability */
-
-    --accent: 245 60% 18%;          /* Deep indigo accent */
-    --accent-foreground: 245 80% 75%;
-
-    --destructive: 0 62% 45%;       /* Slightly muted red */
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 224 25% 16%;          /* Higher contrast borders */
-    --input: 224 25% 16%;
-    --ring: 245 80% 65%;
-
-    /* ── Scrollbar tokens (dark) ── */
-    --sb-track:      hsl(224 28% 8%);
-    --sb-thumb:      hsl(224 25% 22%);
-    --sb-thumb-hover:hsl(245 70% 62%);
-    --sb-glow:       rgba(99, 102, 241, 0.4);
+    --sb-track: hsl(228 26% 9%);
+    --sb-thumb: hsl(228 22% 22%);
+    --sb-thumb-hover: #7c7ff7;
+    --sb-glow: rgba(124,127,247,0.35);
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
+  * { box-sizing: border-box; }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Google Sans', 'Nunito', sans-serif;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Google Sans', 'Nunito', sans-serif;
+  h1,h2,h3,h4,h5,h6 {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
+  code, pre, kbd { font-family: 'JetBrains Mono', 'SF Mono', monospace; }
 }
 
-/* ────────────────────────────────────────────────────────────────
-   Custom scrollbars — matches the app's dark-navy / indigo palette.
-
-   Strategy:
-   • Firefox  → scrollbar-width + scrollbar-color (two-value shorthand)
-   • Chromium → ::-webkit-scrollbar-* pseudo-elements
-   • Both targets share the same CSS-variable tokens so theme switching
-     (light ↔ dark) is automatic.
-
-   The thumb fades in from transparent when the container is scrollable
-   and lights up with a soft indigo glow on hover — same language as the
-   menu bar dropdowns and the DriverSetupDialog panel.
-   ──────────────────────────────────────────────────────────────── */
-
-/* ── Firefox ── */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--sb-thumb) var(--sb-track);
-}
-
-/* ── Chromium / WebKit ── */
-
-/* Track */
-::-webkit-scrollbar {
-  width:  var(--sb-size);
-  height: var(--sb-size);   /* horizontal scrollbars */
-}
-
-::-webkit-scrollbar-track {
-  background:    var(--sb-track);
-  border-radius: var(--sb-radius);
-  /* Subtle inner shadow so the track reads as a recessed channel */
-  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.08);
-}
-
-::-webkit-scrollbar-corner {
-  background: var(--sb-track);
-}
-
-/* Thumb — base state */
+/* ── Scrollbars ─────────────────────────────────────────────────── */
+* { scrollbar-width: thin; scrollbar-color: var(--sb-thumb) var(--sb-track); }
+::-webkit-scrollbar { width: var(--sb-size); height: var(--sb-size); }
+::-webkit-scrollbar-track { background: var(--sb-track); border-radius: var(--sb-radius); }
 ::-webkit-scrollbar-thumb {
-  background:    var(--sb-thumb);
-  border-radius: var(--sb-radius);
-  /* 1 px transparent border creates a gap between thumb and track edges,
-     making the thumb appear to float in the channel */
-  border: 1px solid transparent;
-  background-clip: padding-box;
-  transition: background 0.2s ease, box-shadow 0.2s ease;
+  background: var(--sb-thumb); border-radius: var(--sb-radius);
+  border: 1px solid transparent; background-clip: padding-box;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--sb-thumb-hover); background-clip: padding-box; box-shadow: 0 0 6px var(--sb-glow); }
+::-webkit-scrollbar-thumb:active { background: hsl(248 85% 55%); background-clip: padding-box; }
+aside ::-webkit-scrollbar { width: 3px; }
+aside ::-webkit-scrollbar-track { background: transparent; }
+aside ::-webkit-scrollbar-thumb { background: hsl(var(--border) / 0.5); border-radius: 99px; border: none; }
+aside nav { scrollbar-width: thin; scrollbar-color: hsl(var(--border) / 0.4) transparent; }
+
+/* ── Nova Design Utilities ──────────────────────────────────────── */
+.nova-mesh-bg {
+  background-color: hsl(var(--background));
+  background-image:
+    radial-gradient(at 15% 15%, rgba(91,94,244,0.09) 0px, transparent 55%),
+    radial-gradient(at 85% 10%, rgba(139,92,246,0.07) 0px, transparent 55%),
+    radial-gradient(at 50% 85%, rgba(6,182,212,0.05) 0px, transparent 55%);
+}
+.dark .nova-mesh-bg {
+  background-image:
+    radial-gradient(at 15% 15%, rgba(91,94,244,0.14) 0px, transparent 55%),
+    radial-gradient(at 85% 10%, rgba(139,92,246,0.1) 0px, transparent 55%),
+    radial-gradient(at 50% 85%, rgba(6,182,212,0.07) 0px, transparent 55%);
 }
 
-/* Thumb — hover: brightens to the primary indigo and adds a soft glow */
-::-webkit-scrollbar-thumb:hover {
-  background:    var(--sb-thumb-hover);
-  background-clip: padding-box;
-  box-shadow: 0 0 6px var(--sb-glow);
+.mac-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
-/* Thumb — active (dragging): slightly more saturated */
-::-webkit-scrollbar-thumb:active {
-  background: hsl(245 80% 55%);
-  background-clip: padding-box;
-  box-shadow: 0 0 10px var(--sb-glow);
+.mac-sidebar {
+  background: var(--sidebar-bg);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border-right: 1px solid var(--sidebar-border);
 }
 
-/* ── Scrollbars inside dark panels (DriverSetupDialog, modals, etc.)
-   These panels set their own dark backgrounds independent of .dark,
-   so we target them directly to ensure the scrollbar always matches. ── */
-
-/* DriverSetupDialog tool list + any panel with the dark bg */
-.dsd-tool-list,
-[style*="background: #090e1a"],
-[style*="background:#090e1a"],
-[style*="background: #0d1421"],
-[style*="background:#0d1421"] {
-  scrollbar-color: #1e3049 #090e1a;
+/* Dock-aware body — no left padding, bottom space for dock */
+.dock-layout-main {
+  padding-left: 0 !important;
+  padding-bottom: 96px;
 }
 
-.dsd-tool-list::-webkit-scrollbar-track,
-[style*="background: #090e1a"]::-webkit-scrollbar-track,
-[style*="background:#090e1a"]::-webkit-scrollbar-track,
-[style*="background: #0d1421"]::-webkit-scrollbar-track,
-[style*="background:#0d1421"]::-webkit-scrollbar-track {
-  background: #090e1a;
+.nova-gradient-text {
+  background: linear-gradient(135deg, var(--nova-indigo) 0%, var(--nova-violet) 50%, var(--nova-pink) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
 
-.dsd-tool-list::-webkit-scrollbar-thumb,
-[style*="background: #090e1a"]::-webkit-scrollbar-thumb,
-[style*="background:#090e1a"]::-webkit-scrollbar-thumb,
-[style*="background: #0d1421"]::-webkit-scrollbar-thumb,
-[style*="background:#0d1421"]::-webkit-scrollbar-thumb {
-  background: #1e3049;
-  border: 1px solid transparent;
-  background-clip: padding-box;
+.nova-card {
+  background: hsl(var(--card));
+  border-radius: 16px;
+  border: 1px solid hsl(var(--border) / 0.7);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.03);
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s;
 }
+.nova-card:hover { transform: translateY(-2px) scale(1.005); box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
 
-.dsd-tool-list::-webkit-scrollbar-thumb:hover,
-[style*="background: #090e1a"]::-webkit-scrollbar-thumb:hover,
-[style*="background:#090e1a"]::-webkit-scrollbar-thumb:hover,
-[style*="background: #0d1421"]::-webkit-scrollbar-thumb:hover,
-[style*="background:#0d1421"]::-webkit-scrollbar-thumb:hover {
-  background: #4ade80;
-  background-clip: padding-box;
-  box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+.nova-kpi {
+  position: relative; overflow: hidden; border-radius: 18px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border) / 0.7);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s;
+  cursor: pointer;
 }
+.nova-kpi::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; opacity: 0;
+  transition: opacity 0.3s;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 60%);
+  pointer-events: none;
+}
+.nova-kpi:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+.nova-kpi:hover::before { opacity: 1; }
+.nova-kpi:active { transform: scale(0.97); }
 
-/* ── Rail nav override: ultra-slim, nearly invisible at rest ── */
-/* The sidebar rail is only 76px wide — keep its scrollbar razor thin */
-aside ::-webkit-scrollbar {
-  width: 3px;
+.nova-btn-primary {
+  background: linear-gradient(135deg, var(--nova-indigo), var(--nova-violet));
+  color: white; font-weight: 700; font-size: 13px;
+  border-radius: 999px; padding: 10px 20px; border: none; cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s;
+  box-shadow: 0 4px 16px rgba(91,94,244,0.3); font-family: 'Outfit', sans-serif;
 }
+.nova-btn-primary:hover { transform: scale(1.05) translateY(-1px); box-shadow: 0 8px 24px rgba(91,94,244,0.4); }
+.nova-btn-primary:active { transform: scale(0.94); }
 
-aside ::-webkit-scrollbar-track {
-  background: transparent;
+.nova-input {
+  width: 100%; height: 44px; padding: 0 16px; border-radius: 12px;
+  font-size: 14px; font-weight: 500; font-family: 'Outfit', sans-serif;
+  background: hsl(var(--muted) / 0.5); border: 1.5px solid hsl(var(--border));
+  color: hsl(var(--foreground)); outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
+.nova-input:focus { border-color: var(--nova-indigo); background: hsl(var(--card)); box-shadow: 0 0 0 3px rgba(91,94,244,0.12); }
+textarea.nova-input, select.nova-input { height: auto; min-height: 44px; padding-top: 11px; padding-bottom: 11px; }
 
-aside ::-webkit-scrollbar-thumb {
-  background: hsl(var(--border) / 0.5);
-  border-radius: 99px;
-  border: none;
-}
+/* Back-compat aliases */
+.m3-input { all: unset; display: block; width: 100%; height: 44px; padding: 0 16px; border-radius: 12px; font-size: 14px; font-weight: 500; font-family: 'Outfit', sans-serif; background: hsl(var(--muted) / 0.5); border: 1.5px solid hsl(var(--border)); color: hsl(var(--foreground)); outline: none; transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; box-sizing: border-box; }
+.m3-input:focus { border-color: var(--nova-indigo); background: hsl(var(--card)); box-shadow: 0 0 0 3px rgba(91,94,244,0.12); }
+textarea.m3-input, select.m3-input { height: auto; min-height: 44px; padding-top: 11px; padding-bottom: 11px; }
 
-aside ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary) / 0.6);
-  box-shadow: 0 0 4px hsl(var(--primary) / 0.4);
-}
+.m3-label { display: block; font-size: 11px; font-weight: 700; color: hsl(var(--muted-foreground)); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; font-family: 'Outfit', sans-serif; }
 
-/* Firefox equivalent for sidebar */
-aside nav {
-  scrollbar-width: thin;
-  scrollbar-color: hsl(var(--border) / 0.4) transparent;
-}
+.m3-btn-tonal { background: hsl(var(--muted) / 0.7); border: 1.5px solid hsl(var(--border) / 0.8); border-radius: 999px; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+.m3-btn-tonal:hover { transform: scale(1.04); }
+.m3-btn-tonal:active { transform: scale(0.94); }
 
-/* ── Global M3 UI utilities (repair-shop consistent forms & cards) ── */
-.m3-label {
-  display: block;
-  font-size: 10px;
-  font-weight: 800;
-  color: hsl(var(--muted-foreground));
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  margin-bottom: 0.5rem;
-}
+.m3-btn-primary { background: linear-gradient(135deg, var(--nova-indigo), var(--nova-violet)); color: white; font-weight: 700; border-radius: 999px; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s; box-shadow: 0 4px 16px rgba(91,94,244,0.3); }
+.m3-btn-primary:hover { transform: scale(1.05) translateY(-1px); box-shadow: 0 8px 24px rgba(91,94,244,0.4); }
+.m3-btn-primary:active { transform: scale(0.94); }
 
-.m3-input {
-  width: 100%;
-  height: 48px;
-  padding: 0 20px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
-  background: hsl(var(--muted) / 0.5);
-  border: 2px solid hsl(var(--border) / 0.7);
-  color: hsl(var(--foreground));
-  outline: none;
-  transition: all 0.2s ease;
-}
+.m3-kpi, .m3-card, .m3-stat-card { position: relative; overflow: hidden; border-radius: 18px; background: hsl(var(--card)); border: 1px solid hsl(var(--border) / 0.7); box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s; cursor: pointer; }
+.m3-kpi:hover, .m3-card:hover, .m3-stat-card:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+.m3-kpi:active, .m3-card:active, .m3-stat-card:active { transform: scale(0.97); }
 
-.m3-input:focus {
-  border-color: hsl(var(--primary) / 0.8);
-  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.15);
-}
+.nova-section-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: hsl(var(--muted-foreground)); margin-bottom: 12px; }
+.nova-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
 
-textarea.m3-input,
-select.m3-input {
-  height: auto;
-  min-height: 48px;
-  padding-top: 12px;
-  padding-bottom: 12px;
-}
+.nova-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.nova-table th { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: hsl(var(--muted-foreground)); padding: 10px 16px; border-bottom: 1.5px solid hsl(var(--border)); text-align: left; white-space: nowrap; }
+.nova-table td { font-size: 13px; font-weight: 500; padding: 12px 16px; border-bottom: 1px solid hsl(var(--border) / 0.5); color: hsl(var(--foreground)); transition: background 0.15s; }
+.nova-table tr:hover td { background: hsl(var(--muted) / 0.35); }
+.nova-table tr:last-child td { border-bottom: none; }
 
-.m3-btn-tonal {
-  background: hsl(var(--muted) / 0.7);
-  outline: 2px solid hsl(var(--border) / 0.6);
-  outline-offset: 0;
-  border-radius: 999px;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
+.nova-mono { font-family: 'JetBrains Mono', 'SF Mono', monospace; font-feature-settings: "tnum" 1; }
 
-.m3-btn-tonal:hover {
-  transform: scale(1.04);
-}
+.nova-fab { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, var(--nova-indigo), var(--nova-violet)); box-shadow: 0 6px 20px rgba(91,94,244,0.35); display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; border: none; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s; font-family: 'Outfit', sans-serif; }
+.nova-fab:hover { transform: scale(1.1) translateY(-2px); box-shadow: 0 10px 28px rgba(91,94,244,0.5); }
+.nova-fab:active { transform: scale(0.9); }
 
-.m3-btn-tonal:active {
-  transform: scale(0.94);
-}
+/* ── Animations ─────────────────────────────────────────────────── */
+@keyframes pageEnter { 0% { transform: translateY(10px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+.m3-page-enter { animation: pageEnter 0.3s cubic-bezier(0.25,0.46,0.45,0.94) both; }
 
-.m3-btn-primary {
-  background: linear-gradient(135deg, hsl(var(--primary)), hsl(262 83% 58%));
-  color: white;
-  font-weight: 700;
-  border-radius: 999px;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
-}
+@keyframes elasticBar { 0% { left: -35%; width: 35%; } 40% { left: 15%; width: 70%; } 70% { left: 65%; width: 40%; } 100% { left: 110%; width: 35%; } }
+.m3-elastic-bar { animation: elasticBar 1.8s cubic-bezier(0.4,0,0.2,1) infinite; }
 
-.m3-btn-primary:hover {
-  transform: scale(1.05) translateY(-2px);
-  box-shadow: 0 8px 28px hsl(var(--primary) / 0.35);
-}
+@keyframes m3BounceIn { 0% { transform: scale(0.88) translateY(6px); opacity: 0; } 65% { transform: scale(1.03) translateY(-1px); opacity: 1; } 100% { transform: scale(1) translateY(0); } }
 
-.m3-btn-primary:active {
-  transform: scale(0.92);
-}
+@keyframes spinSlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.animate-spin-slow { animation: spinSlow 4s linear infinite; }
 
-.m3-kpi {
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
-}
-
-.m3-kpi:hover {
-  transform: scale(1.04) translateY(-3px);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
-}
-
-.m3-kpi:active {
-  transform: scale(0.96);
-}
-
-.m3-card,
-.m3-stat-card {
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
-}
-
-.m3-card:hover,
-.m3-stat-card:hover {
-  transform: scale(1.03) translateY(-3px);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
-}
-
-.m3-card:active,
-.m3-stat-card:active {
-  transform: scale(0.96);
-}
+.electron-app { padding-top: 40px; }

@@ -18,7 +18,7 @@
         v-model="searchText" 
         @focus="showDropdown = true" 
         placeholder="Search customers..." 
-        class="w-full h-11 pl-11 pr-20 rounded-[20px] text-sm font-medium bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-indigo-400/50 transition-all" 
+        class="w-full h-11 pl-11 pr-20 rounded-xl text-sm font-medium bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-indigo-400/50 transition-all" 
       />
       <button 
         type="button"
@@ -48,19 +48,19 @@
     </div>
 
     <!-- New Customer Form -->
-    <div v-if="isNewCustomer" class="mt-2 p-5 rounded-[20px] bg-muted/20 border-2 border-border/50 space-y-3 relative group transition-all">
+    <div v-if="isNewCustomer" class="mt-2 p-5 rounded-xl bg-muted/20 border-2 border-border/50 space-y-3 relative group transition-all">
       <div class="flex items-center justify-between mb-1">
         <span class="text-xs font-black uppercase tracking-widest text-indigo-500">Create New Customer</span>
         <button type="button" class="text-[10px] font-bold text-muted-foreground hover:text-foreground bg-muted px-2 py-1 rounded-md" @click.prevent="cancelNewCustomer">CANCEL</button>
       </div>
-      <input v-model="newCustomerForm.name" placeholder="Full Name *" class="w-full h-11 px-4 rounded-[16px] text-sm font-medium bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-indigo-400/50 transition-all" />
-      <input v-model="newCustomerForm.email" placeholder="Email Address" type="email" class="w-full h-11 px-4 rounded-[16px] text-sm font-medium bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-indigo-400/50 transition-all" />
-      <input v-model="newCustomerForm.phone" placeholder="Phone Number" type="tel" class="w-full h-11 px-4 rounded-[16px] text-sm font-medium bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-indigo-400/50 transition-all" />
+      <input v-model="newCustomerForm.name" placeholder="Full Name *" class="w-full h-11 px-4 rounded-xl text-sm font-medium bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-indigo-400/50 transition-all" />
+      <input v-model="newCustomerForm.email" placeholder="Email Address" type="email" class="w-full h-11 px-4 rounded-xl text-sm font-medium bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-indigo-400/50 transition-all" />
+      <input v-model="newCustomerForm.phone" placeholder="Phone Number" type="tel" class="w-full h-11 px-4 rounded-xl text-sm font-medium bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-indigo-400/50 transition-all" />
       
       <button 
         type="button"
-        class="w-full h-11 mt-2 rounded-[16px] text-sm font-bold text-white flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-        style="background: linear-gradient(135deg, #6366f1, #8b5cf6);"
+        class="w-full h-11 mt-2 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+        style="background: linear-gradient(135deg, #5b5ef4, #8b5cf6);"
         :disabled="!newCustomerForm.name || isSaving"
         @click.prevent="saveNewCustomer"
       >

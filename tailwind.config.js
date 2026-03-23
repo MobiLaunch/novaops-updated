@@ -58,7 +58,8 @@ module.exports = {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        sans: ['Google Sans', 'Nunito', 'sans-serif'],
+        sans: ['Outfit', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'sans-serif'],
+        mono: ['JetBrains Mono', 'SF Mono', 'monospace'],
       },
       keyframes: {
         'accordion-down': {

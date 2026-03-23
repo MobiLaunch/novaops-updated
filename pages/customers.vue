@@ -4,7 +4,7 @@
     <!-- ── Page Header ─────────────────────────────────────────── -->
     <div class="flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg"
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
           style="background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4px 20px #3b82f650">
           <Users class="w-6 h-6 text-white" />
         </div>
@@ -22,9 +22,9 @@
 
     <!-- ── Stat Cards ───────────────────────────────────────────── -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <div class="m3-stat-card rounded-[28px] p-5 flex flex-col gap-3" style="background:#3b82f614;outline:2px solid #3b82f628;outline-offset:0">
+      <div class="m3-stat-card rounded-2xl p-5 flex flex-col gap-3" style="background:#3b82f614;outline:2px solid #3b82f628;outline-offset:0">
         <div class="flex items-center justify-between">
-          <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background:#3b82f624"><Users class="w-5 h-5" style="color:#3b82f6" /></div>
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:#3b82f624"><Users class="w-5 h-5" style="color:#3b82f6" /></div>
           <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background:#3b82f620;color:#3b82f6">TOTAL</span>
         </div>
         <div>
@@ -32,9 +32,9 @@
           <p class="text-2xl font-black" style="color:#3b82f6">{{ customers.length }}</p>
         </div>
       </div>
-      <div class="m3-stat-card rounded-[28px] p-5 flex flex-col gap-3" style="background:#10b98114;outline:2px solid #10b98128;outline-offset:0">
+      <div class="m3-stat-card rounded-2xl p-5 flex flex-col gap-3" style="background:#10b98114;outline:2px solid #10b98128;outline-offset:0">
         <div class="flex items-center justify-between">
-          <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background:#10b98124"><DollarSign class="w-5 h-5" style="color:#10b981" /></div>
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:#10b98124"><DollarSign class="w-5 h-5" style="color:#10b981" /></div>
           <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background:#10b98120;color:#10b981">REVENUE</span>
         </div>
         <div>
@@ -42,9 +42,9 @@
           <p class="text-2xl font-black" style="color:#10b981">{{ formatCurrency(totalRevenue) }}</p>
         </div>
       </div>
-      <div class="m3-stat-card rounded-[28px] p-5 flex flex-col gap-3" style="background:#f59e0b14;outline:2px solid #f59e0b28;outline-offset:0">
+      <div class="m3-stat-card rounded-2xl p-5 flex flex-col gap-3" style="background:#f59e0b14;outline:2px solid #f59e0b28;outline-offset:0">
         <div class="flex items-center justify-between">
-          <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background:#f59e0b24"><TicketCheck class="w-5 h-5" style="color:#f59e0b" /></div>
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:#f59e0b24"><TicketCheck class="w-5 h-5" style="color:#f59e0b" /></div>
           <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background:#f59e0b20;color:#f59e0b">TICKETS</span>
         </div>
         <div>
@@ -52,14 +52,14 @@
           <p class="text-2xl font-black" style="color:#f59e0b">{{ tickets.length }}</p>
         </div>
       </div>
-      <div class="m3-stat-card rounded-[28px] p-5 flex flex-col gap-3" style="background:#6366f114;outline:2px solid #6366f128;outline-offset:0">
+      <div class="m3-stat-card rounded-2xl p-5 flex flex-col gap-3" style="background:#5b5ef414;outline:2px solid #5b5ef428;outline-offset:0">
         <div class="flex items-center justify-between">
-          <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background:#6366f124"><TrendingUp class="w-5 h-5" style="color:#6366f1" /></div>
-          <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background:#6366f120;color:#6366f1">AVG</span>
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:#5b5ef424"><TrendingUp class="w-5 h-5" style="color:#5b5ef4" /></div>
+          <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background:#5b5ef420;color:#5b5ef4">AVG</span>
         </div>
         <div>
           <p class="text-xs font-semibold text-muted-foreground">Avg Per Customer</p>
-          <p class="text-2xl font-black" style="color:#6366f1">{{ formatCurrency(avgRevenue) }}</p>
+          <p class="text-2xl font-black" style="color:#5b5ef4">{{ formatCurrency(avgRevenue) }}</p>
         </div>
       </div>
     </div>
@@ -77,7 +77,7 @@
     <!-- ── Customer Cards Grid ────────────────────────────────── -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       <div v-for="c in filteredCustomers" :key="c.id"
-        class="m3-customer-card rounded-[28px] p-5 flex flex-col gap-4 bg-card cursor-pointer"
+        class="m3-customer-card rounded-2xl p-5 flex flex-col gap-4 bg-card cursor-pointer"
         style="outline:2px solid hsl(var(--border)/0.6);outline-offset:0"
         @click="openDetail(c)">
         <!-- Avatar + actions -->
@@ -87,7 +87,7 @@
             {{ c.name?.substring(0,2).toUpperCase() || '??' }}
           </div>
           <div class="flex gap-1">
-            <button class="w-8 h-8 rounded-[16px] flex items-center justify-center transition-all hover:scale-110 active:scale-90 hover:bg-red-50 dark:hover:bg-red-950/30"
+            <button class="w-8 h-8 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-90 hover:bg-red-50 dark:hover:bg-red-950/30"
               @click.stop="deleteCustomer(c)">
               <Trash2 class="w-3.5 h-3.5 text-muted-foreground" />
             </button>
@@ -112,9 +112,9 @@
       </div>
 
       <!-- Empty state -->
-      <div v-if="filteredCustomers.length === 0" class="col-span-full rounded-[32px] py-20 flex flex-col items-center gap-4 bg-card"
+      <div v-if="filteredCustomers.length === 0" class="col-span-full rounded-2xl py-20 flex flex-col items-center gap-4 bg-card"
         style="outline:2px solid hsl(var(--border)/0.6);outline-offset:0">
-        <div class="w-20 h-20 rounded-[32px] flex items-center justify-center" style="background:#3b82f614">
+        <div class="w-20 h-20 rounded-2xl flex items-center justify-center" style="background:#3b82f614">
           <Users class="w-10 h-10" style="color:#3b82f6;opacity:0.5" />
         </div>
         <div class="text-center">
@@ -134,7 +134,7 @@
       <DialogContent class="max-w-md">
         <div class="flex flex-col gap-5 p-7">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">
               <UserPlus class="w-5 h-5 text-white" />
             </div>
             <div>
@@ -164,7 +164,7 @@
       <DialogContent class="w-full max-w-[96vw] sm:max-w-lg">
         <div v-if="selected" class="flex flex-col gap-5 p-7">
           <div class="flex items-center gap-4">
-            <div class="w-16 h-16 rounded-[28px] flex items-center justify-center font-black text-xl flex-shrink-0"
+            <div class="w-16 h-16 rounded-2xl flex items-center justify-center font-black text-xl flex-shrink-0"
               style="background:linear-gradient(135deg,#3b82f620,#2563eb20);color:#3b82f6">
               {{ selected.name?.substring(0,2).toUpperCase() || '??' }}
             </div>
@@ -178,15 +178,15 @@
             </div>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="p-3 rounded-[20px]" style="background:hsl(var(--muted)/0.4)">
+            <div class="p-3 rounded-xl" style="background:hsl(var(--muted)/0.4)">
               <p class="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Phone</p>
               <p class="text-sm font-bold">{{ selected.phone || '—' }}</p>
             </div>
-            <div class="p-3 rounded-[20px]" style="background:hsl(var(--muted)/0.4)">
+            <div class="p-3 rounded-xl" style="background:hsl(var(--muted)/0.4)">
               <p class="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Email</p>
               <p class="text-sm font-bold truncate">{{ selected.email || '—' }}</p>
             </div>
-            <div v-if="selected.notes" class="col-span-2 p-3 rounded-[20px]" style="background:hsl(var(--muted)/0.4)">
+            <div v-if="selected.notes" class="col-span-2 p-3 rounded-xl" style="background:hsl(var(--muted)/0.4)">
               <p class="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Notes</p>
               <p class="text-sm font-medium">{{ selected.notes }}</p>
             </div>
@@ -197,8 +197,8 @@
             </p>
             <div class="space-y-2 max-h-52 overflow-y-auto">
               <div v-for="t in custTicketList(selected.id)" :key="t.id"
-                class="flex items-center gap-3 px-3 py-2.5 rounded-[18px]" style="background:hsl(var(--muted)/0.4)">
-                <div class="w-8 h-8 rounded-[16px] flex items-center justify-center flex-shrink-0" style="background:#f59e0b20">
+                class="flex items-center gap-3 px-3 py-2.5 rounded-xl" style="background:hsl(var(--muted)/0.4)">
+                <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#f59e0b20">
                   <TicketCheck class="w-4 h-4" style="color:#f59e0b" />
                 </div>
                 <div class="flex-1 min-w-0">

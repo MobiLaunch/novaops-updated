@@ -4,7 +4,7 @@
     <!-- ── Page Header ─────────────────────────────────────────── -->
     <div class="flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg"
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
           style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);box-shadow:0 4px 20px #8b5cf650">
           <Package class="w-6 h-6 text-white" />
         </div>
@@ -31,10 +31,10 @@
     <!-- ── Stat Cards ───────────────────────────────────────────── -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <div v-for="stat in stats" :key="stat.label"
-        class="m3-stat-card rounded-[28px] p-5 flex flex-col gap-3"
+        class="m3-stat-card rounded-2xl p-5 flex flex-col gap-3"
         :style="`background:${stat.color}12;outline:2px solid ${stat.color}28;outline-offset:0`">
         <div class="flex items-center justify-between">
-          <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" :style="`background:${stat.color}24`">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" :style="`background:${stat.color}24`">
             <component :is="stat.icon" class="w-5 h-5" :style="`color:${stat.color}`" />
           </div>
           <span class="text-[10px] font-black px-2 py-1 rounded-full" :style="`background:${stat.color}20;color:${stat.color}`">{{ stat.badge }}</span>
@@ -79,11 +79,11 @@
     <!-- ── Grid ─────────────────────────────────────────────────── -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       <div v-for="item in filtered" :key="item.id"
-        class="m3-item-card rounded-[28px] p-5 flex flex-col gap-4 cursor-pointer bg-card"
+        class="m3-item-card rounded-2xl p-5 flex flex-col gap-4 cursor-pointer bg-card"
         style="outline:2px solid hsl(var(--border)/0.6);outline-offset:0"
         @click="openEdit(item)">
         <div class="flex items-start justify-between">
-          <div class="w-12 h-12 rounded-[22px] flex items-center justify-center"
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center"
             :style="item.itemType === 'service' ? 'background:linear-gradient(135deg,#22d3ee18,#0891b218)' : 'background:linear-gradient(135deg,#8b5cf620,#7c3aed20)'">
             <component :is="item.itemType === 'service' ? Wrench : Package" class="w-6 h-6"
               :style="item.itemType === 'service' ? 'color:#22d3ee' : 'color:#8b5cf6'" />
@@ -127,9 +127,9 @@
         </div>
       </div>
 
-      <div v-if="filtered.length===0" class="col-span-full rounded-[32px] py-20 flex flex-col items-center gap-4 bg-card"
+      <div v-if="filtered.length===0" class="col-span-full rounded-2xl py-20 flex flex-col items-center gap-4 bg-card"
         style="outline:2px solid hsl(var(--border)/0.6);outline-offset:0">
-        <div class="w-20 h-20 rounded-[32px] flex items-center justify-center" style="background:#8b5cf614">
+        <div class="w-20 h-20 rounded-2xl flex items-center justify-center" style="background:#8b5cf614">
           <Package class="w-10 h-10" style="color:#8b5cf6;opacity:0.5" />
         </div>
         <div class="text-center">
@@ -144,7 +144,7 @@
       <DialogContent class="w-full max-w-[96vw] sm:max-w-md">
         <div class="flex flex-col gap-5 p-7">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center"
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center"
               :style="form.itemType === 'service' ? 'background:linear-gradient(135deg,#22d3ee,#0891b2)' : 'background:linear-gradient(135deg,#8b5cf6,#7c3aed)'">
               <component :is="form.itemType === 'service' ? Wrench : Package" class="w-5 h-5 text-white" />
             </div>
@@ -155,9 +155,9 @@
           </div>
 
           <!-- Item type toggle -->
-          <div class="flex gap-2 p-1 rounded-[20px]" style="background:hsl(var(--muted)/0.4)">
+          <div class="flex gap-2 p-1 rounded-xl" style="background:hsl(var(--muted)/0.4)">
             <button v-for="t in ['product', 'service']" :key="t"
-              class="flex-1 h-10 rounded-[16px] text-xs font-black capitalize transition-all"
+              class="flex-1 h-10 rounded-xl text-xs font-black capitalize transition-all"
               :style="form.itemType === t
                 ? 'background:white;color:#8b5cf6;box-shadow:0 2px 8px rgba(0,0,0,0.08)'
                 : 'color:hsl(var(--muted-foreground))'"
@@ -283,7 +283,7 @@ const stats = computed(() => {
   const services = allItems.value.filter((i: any) => i.itemType === 'service')
   return [
     { label: 'Total Items',  value: allItems.value.length,  color: '#8b5cf6', badge: 'TOTAL',    icon: Package },
-    { label: 'Products',     value: products.length,         color: '#6366f1', badge: 'PRODUCTS', icon: Package },
+    { label: 'Products',     value: products.length,         color: '#5b5ef4', badge: 'PRODUCTS', icon: Package },
     { label: 'Services',     value: services.length,         color: '#22d3ee', badge: 'SERVICES', icon: Wrench  },
     { label: 'Low Stock',    value: products.filter((i: any) => i.stock <= (i.low||5)).length, color: '#f59e0b', badge: 'ALERT', icon: AlertTriangle },
   ]

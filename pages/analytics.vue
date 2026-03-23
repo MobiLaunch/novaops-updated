@@ -5,7 +5,7 @@
     <div class="flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-4">
         <div
-          class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg"
+          class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
           style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 20px #10b98150"
         >
           <BarChart3 class="w-6 h-6 text-white" />
@@ -55,12 +55,12 @@
 
       <!-- Profit/Loss Hero Banner -->
       <div
-        class="m3-hero rounded-[32px] p-8 flex items-center justify-between overflow-hidden relative"
+        class="m3-hero rounded-2xl p-8 flex items-center justify-between overflow-hidden relative"
         :style="netProfit >= 0
           ? 'background: linear-gradient(135deg, #10b981 0%, #059669 60%, #047857 100%)'
           : 'background: linear-gradient(135deg, #ef4444 0%, #dc2626 60%, #b91c1c 100%)'"
       >
-        <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-[32px]">
+        <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
           <div class="absolute -top-20 -right-20 w-64 h-64 rounded-full opacity-20 blur-3xl bg-white" />
           <div class="absolute -bottom-10 -left-10 w-40 h-40 rounded-full opacity-15 blur-2xl bg-white" />
         </div>
@@ -88,9 +88,9 @@
 
       <!-- KPI Row -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #10b98114; outline: 2px solid #10b98128; outline-offset: 0">
+        <div class="m3-kpi rounded-2xl p-5 flex flex-col gap-3" style="background: #10b98114; outline: 2px solid #10b98128; outline-offset: 0">
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #10b98124"><DollarSign class="w-5 h-5" style="color: #10b981" /></div>
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #10b98124"><DollarSign class="w-5 h-5" style="color: #10b981" /></div>
             <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #10b98120; color: #10b981">REVENUE</span>
           </div>
           <div>
@@ -99,9 +99,9 @@
             <p class="text-[10px] text-muted-foreground font-semibold mt-0.5">{{ completedCount }} paid tickets</p>
           </div>
         </div>
-        <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0">
+        <div class="m3-kpi rounded-2xl p-5 flex flex-col gap-3" style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0">
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #ef444424"><TrendingDown class="w-5 h-5" style="color: #ef4444" /></div>
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #ef444424"><TrendingDown class="w-5 h-5" style="color: #ef4444" /></div>
             <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #ef444420; color: #ef4444">COSTS</span>
           </div>
           <div>
@@ -110,9 +110,9 @@
             <p class="text-[10px] text-muted-foreground font-semibold mt-0.5">Parts + overhead</p>
           </div>
         </div>
-        <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #f59e0b14; outline: 2px solid #f59e0b28; outline-offset: 0">
+        <div class="m3-kpi rounded-2xl p-5 flex flex-col gap-3" style="background: #f59e0b14; outline: 2px solid #f59e0b28; outline-offset: 0">
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #f59e0b24"><Receipt class="w-5 h-5" style="color: #f59e0b" /></div>
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #f59e0b24"><Receipt class="w-5 h-5" style="color: #f59e0b" /></div>
             <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #f59e0b20; color: #f59e0b">TAX</span>
           </div>
           <div>
@@ -121,14 +121,14 @@
             <p class="text-[10px] text-muted-foreground font-semibold mt-0.5">{{ taxRate }}% rate applied</p>
           </div>
         </div>
-        <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #6366f114; outline: 2px solid #6366f128; outline-offset: 0">
+        <div class="m3-kpi rounded-2xl p-5 flex flex-col gap-3" style="background: #5b5ef414; outline: 2px solid #5b5ef428; outline-offset: 0">
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #6366f124"><Target class="w-5 h-5" style="color: #6366f1" /></div>
-            <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #6366f120; color: #6366f1">AVG</span>
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #5b5ef424"><Target class="w-5 h-5" style="color: #5b5ef4" /></div>
+            <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #5b5ef420; color: #5b5ef4">AVG</span>
           </div>
           <div>
             <p class="text-xs font-semibold text-muted-foreground">Avg Ticket Value</p>
-            <p class="text-2xl font-black" style="color: #6366f1">{{ formatCurrency(avgTicketValue) }}</p>
+            <p class="text-2xl font-black" style="color: #5b5ef4">{{ formatCurrency(avgTicketValue) }}</p>
             <p class="text-[10px] text-muted-foreground font-semibold mt-0.5">Per completed job</p>
           </div>
         </div>
@@ -137,16 +137,16 @@
       <!-- Revenue + Cost Side-by-Side -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <!-- Revenue breakdown & chart -->
-        <div class="lg:col-span-2 rounded-[28px] p-6 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+        <div class="lg:col-span-2 rounded-2xl p-6 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
           <div class="flex items-center gap-3 mb-5">
-            <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #10b98120">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #10b98120">
               <BarChart3 class="w-4 h-4" style="color: #10b981" />
             </div>
             <h3 class="text-sm font-black">Revenue Breakdown</h3>
           </div>
           <div class="space-y-3 mb-6">
             <div v-for="source in revenueSources" :key="source.label" class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-[16px] flex items-center justify-center flex-shrink-0" :style="`background: ${source.color}20`">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" :style="`background: ${source.color}20`">
                 <component :is="source.icon" class="w-4 h-4" :style="`color: ${source.color}`" />
               </div>
               <div class="flex-1">
@@ -178,15 +178,15 @@
 
         <!-- Cost breakdown + Tax -->
         <div class="space-y-4">
-          <div class="rounded-[28px] p-6 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+          <div class="rounded-2xl p-6 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
             <div class="flex items-center gap-3 mb-4">
-              <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #ef444420">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #ef444420">
                 <CreditCard class="w-4 h-4" style="color: #ef4444" />
               </div>
               <h3 class="text-sm font-black">Cost Breakdown</h3>
             </div>
             <div class="space-y-2">
-              <div v-for="exp in expenseItems" :key="exp.label" class="flex items-center justify-between py-2.5 px-3 rounded-[16px]" style="background: hsl(var(--muted)/0.2)">
+              <div v-for="exp in expenseItems" :key="exp.label" class="flex items-center justify-between py-2.5 px-3 rounded-xl" style="background: hsl(var(--muted)/0.2)">
                 <div class="flex items-center gap-2.5">
                   <div class="w-7 h-7 rounded-[12px] flex items-center justify-center" :style="`background: ${exp.color}20`">
                     <component :is="exp.icon" class="w-3.5 h-3.5" :style="`color: ${exp.color}`" />
@@ -201,9 +201,9 @@
               <span class="text-sm font-black" style="color: #ef4444">{{ formatCurrency(totalExpenses) }}</span>
             </div>
           </div>
-          <div class="rounded-[28px] p-5 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+          <div class="rounded-2xl p-5 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
             <div class="flex items-center gap-3 mb-3">
-              <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #f59e0b20">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #f59e0b20">
                 <Receipt class="w-4 h-4" style="color: #f59e0b" />
               </div>
               <h3 class="text-sm font-black">Tax Summary</h3>
@@ -229,10 +229,10 @@
 
     <!-- ── EXPENSE LOG TAB ──────────────────────────────────────── -->
     <template v-if="activeTab === 'expenses'">
-      <div class="rounded-[28px] bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+      <div class="rounded-2xl bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
         <div class="flex items-center justify-between px-6 py-5 border-b border-border/60">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #8b5cf620">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #8b5cf620">
               <ClipboardList class="w-4 h-4" style="color: #8b5cf6" />
             </div>
             <h3 class="text-sm font-black">Expense Log</h3>
@@ -247,7 +247,7 @@
         </div>
         <div class="p-4">
           <div v-if="expenses.length === 0" class="py-12 flex flex-col items-center gap-3 text-muted-foreground">
-            <div class="w-16 h-16 rounded-[28px] flex items-center justify-center" style="background: #8b5cf614">
+            <div class="w-16 h-16 rounded-2xl flex items-center justify-center" style="background: #8b5cf614">
               <ClipboardList class="w-8 h-8" style="color: #8b5cf6; opacity: 0.5" />
             </div>
             <p class="text-sm font-bold">No expenses logged yet</p>
@@ -257,9 +257,9 @@
             <div
               v-for="exp in expenses"
               :key="exp.id"
-              class="flex items-center gap-3 px-4 py-3 rounded-[20px] hover:bg-muted/20 transition-all group"
+              class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted/20 transition-all group"
             >
-              <div class="w-10 h-10 rounded-[20px] flex items-center justify-center flex-shrink-0" :style="`background: ${expenseCategoryColor(exp.category)}18`">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" :style="`background: ${expenseCategoryColor(exp.category)}18`">
                 <component :is="expenseCategoryIcon(exp.category)" class="w-5 h-5" :style="`color: ${expenseCategoryColor(exp.category)}`" />
               </div>
               <div class="flex-1 min-w-0">
@@ -270,7 +270,7 @@
                 </div>
               </div>
               <span class="text-sm font-black" style="color: #ef4444">{{ formatCurrency(exp.amount) }}</span>
-              <button class="w-8 h-8 rounded-[14px] flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all" @click="deleteExpense(exp.id)">
+              <button class="w-8 h-8 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all" @click="deleteExpense(exp.id)">
                 <Trash2 class="w-3.5 h-3.5" style="color: #ef4444" />
               </button>
             </div>
@@ -282,9 +282,9 @@
     <!-- ── PERFORMANCE TAB ──────────────────────────────────────── -->
     <template v-if="activeTab === 'performance'">
       <div class="grid gap-3 grid-cols-2 md:grid-cols-4">
-        <div v-for="kpi in kpiCards" :key="kpi.label" class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" :style="`background: ${kpi.color}12; outline: 2px solid ${kpi.color}28; outline-offset: 0`">
+        <div v-for="kpi in kpiCards" :key="kpi.label" class="m3-kpi rounded-2xl p-5 flex flex-col gap-3" :style="`background: ${kpi.color}12; outline: 2px solid ${kpi.color}28; outline-offset: 0`">
           <div class="flex items-start justify-between">
-            <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" :style="`background: ${kpi.color}24`">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center" :style="`background: ${kpi.color}24`">
               <component :is="kpi.icon" class="w-5 h-5" :style="`color: ${kpi.color}`" />
             </div>
             <span v-if="kpi.change" class="text-[10px] font-black px-2 py-1 rounded-full" :style="`background: ${kpi.changePositive ? '#10b98120' : '#ef444420'}; color: ${kpi.changePositive ? '#10b981' : '#ef4444'}`">
@@ -301,9 +301,9 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <!-- Ticket status breakdown -->
-        <div class="rounded-[28px] p-6 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+        <div class="rounded-2xl p-6 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
           <div class="flex items-center gap-3 mb-5">
-            <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #f9731620">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #f9731620">
               <PieChart class="w-4 h-4" style="color: #f97316" />
             </div>
             <h3 class="text-sm font-black">Ticket Status Breakdown</h3>
@@ -324,15 +324,15 @@
           </div>
         </div>
         <!-- Top customers -->
-        <div class="rounded-[28px] p-6 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+        <div class="rounded-2xl p-6 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
           <div class="flex items-center gap-3 mb-5">
-            <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #3b82f620">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #3b82f620">
               <Users class="w-4 h-4" style="color: #3b82f6" />
             </div>
             <h3 class="text-sm font-black">Top Customers by Revenue</h3>
           </div>
           <div class="space-y-3">
-            <div v-for="(cust, i) in topCustomers" :key="cust.name" class="flex items-center gap-3 py-2.5 px-3 rounded-[16px]" style="background: hsl(var(--muted)/0.2)">
+            <div v-for="(cust, i) in topCustomers" :key="cust.name" class="flex items-center gap-3 py-2.5 px-3 rounded-xl" style="background: hsl(var(--muted)/0.2)">
               <span class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black" style="background: #3b82f620; color: #3b82f6">{{ i + 1 }}</span>
               <span class="flex-1 text-xs font-bold truncate">{{ cust.name }}</span>
               <span class="text-xs font-black" style="color: #10b981">{{ formatCurrency(cust.revenue) }}</span>
@@ -347,9 +347,9 @@
     <!-- ── SQUARE TAB ────────────────────────────────────────────── -->
     <template v-if="activeTab === 'square'">
       <!-- Not configured banner -->
-      <div v-if="!square.isConfigured.value" class="rounded-[28px] p-10 text-center bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
-        <div class="w-16 h-16 rounded-[28px] flex items-center justify-center mx-auto mb-4" style="background: #6366f114">
-          <CreditCard class="w-8 h-8" style="color: #6366f1; opacity: 0.5" />
+      <div v-if="!square.isConfigured.value" class="rounded-2xl p-10 text-center bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
+        <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background: #5b5ef414">
+          <CreditCard class="w-8 h-8" style="color: #5b5ef4; opacity: 0.5" />
         </div>
         <p class="text-sm font-black mb-1">Square Not Connected</p>
         <p class="text-xs text-muted-foreground font-medium">Add your Square Access Token and Location ID in Settings to import financial data.</p>
@@ -358,16 +358,16 @@
       <template v-else>
         <!-- Loading -->
         <div v-if="square.isLoading.value" class="flex items-center justify-center py-16">
-          <div class="animate-spin w-8 h-8 border-4 border-muted border-t-[#6366f1] rounded-full" />
+          <div class="animate-spin w-8 h-8 border-4 border-muted border-t-[#5b5ef4] rounded-full" />
           <span class="ml-3 text-sm font-bold text-muted-foreground">Loading Square data…</span>
         </div>
 
         <template v-else>
           <!-- KPI Row -->
           <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
-            <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #10b98114; outline: 2px solid #10b98128; outline-offset: 0">
+            <div class="m3-kpi rounded-2xl p-5 flex flex-col gap-3" style="background: #10b98114; outline: 2px solid #10b98128; outline-offset: 0">
               <div class="flex items-center justify-between">
-                <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #10b98124"><DollarSign class="w-5 h-5" style="color: #10b981" /></div>
+                <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #10b98124"><DollarSign class="w-5 h-5" style="color: #10b981" /></div>
                 <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #10b98120; color: #10b981">REVENUE</span>
               </div>
               <div>
@@ -376,9 +376,9 @@
                 <p class="text-[10px] text-muted-foreground font-semibold mt-0.5">{{ square.payments.value.length }} payments</p>
               </div>
             </div>
-            <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0">
+            <div class="m3-kpi rounded-2xl p-5 flex flex-col gap-3" style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0">
               <div class="flex items-center justify-between">
-                <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #ef444424"><TrendingDown class="w-5 h-5" style="color: #ef4444" /></div>
+                <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #ef444424"><TrendingDown class="w-5 h-5" style="color: #ef4444" /></div>
                 <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #ef444420; color: #ef4444">FEES</span>
               </div>
               <div>
@@ -387,20 +387,20 @@
                 <p class="text-[10px] text-muted-foreground font-semibold mt-0.5">Deducted by Square</p>
               </div>
             </div>
-            <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #6366f114; outline: 2px solid #6366f128; outline-offset: 0">
+            <div class="m3-kpi rounded-2xl p-5 flex flex-col gap-3" style="background: #5b5ef414; outline: 2px solid #5b5ef428; outline-offset: 0">
               <div class="flex items-center justify-between">
-                <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #6366f124"><Target class="w-5 h-5" style="color: #6366f1" /></div>
-                <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #6366f120; color: #6366f1">NET</span>
+                <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #5b5ef424"><Target class="w-5 h-5" style="color: #5b5ef4" /></div>
+                <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #5b5ef420; color: #5b5ef4">NET</span>
               </div>
               <div>
                 <p class="text-xs font-semibold text-muted-foreground">Net Revenue</p>
-                <p class="text-2xl font-black" style="color: #6366f1">{{ formatCurrency(square.netRevenue.value) }}</p>
+                <p class="text-2xl font-black" style="color: #5b5ef4">{{ formatCurrency(square.netRevenue.value) }}</p>
                 <p class="text-[10px] text-muted-foreground font-semibold mt-0.5">After fees</p>
               </div>
             </div>
-            <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #f59e0b14; outline: 2px solid #f59e0b28; outline-offset: 0">
+            <div class="m3-kpi rounded-2xl p-5 flex flex-col gap-3" style="background: #f59e0b14; outline: 2px solid #f59e0b28; outline-offset: 0">
               <div class="flex items-center justify-between">
-                <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #f59e0b24"><Receipt class="w-5 h-5" style="color: #f59e0b" /></div>
+                <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #f59e0b24"><Receipt class="w-5 h-5" style="color: #f59e0b" /></div>
                 <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #f59e0b20; color: #f59e0b">TIPS</span>
               </div>
               <div>
@@ -409,9 +409,9 @@
                 <p class="text-[10px] text-muted-foreground font-semibold mt-0.5">From customers</p>
               </div>
             </div>
-            <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #06b6d414; outline: 2px solid #06b6d428; outline-offset: 0">
+            <div class="m3-kpi rounded-2xl p-5 flex flex-col gap-3" style="background: #06b6d414; outline: 2px solid #06b6d428; outline-offset: 0">
               <div class="flex items-center justify-between">
-                <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #06b6d424"><Truck class="w-5 h-5" style="color: #06b6d4" /></div>
+                <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #06b6d424"><Truck class="w-5 h-5" style="color: #06b6d4" /></div>
                 <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #06b6d420; color: #06b6d4">DEPOSITS</span>
               </div>
               <div>
@@ -425,9 +425,9 @@
           <!-- Payments + Payouts side by side -->
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
             <!-- Recent Payments -->
-            <div class="lg:col-span-2 rounded-[28px] bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+            <div class="lg:col-span-2 rounded-2xl bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
               <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60">
-                <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #10b98120">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #10b98120">
                   <DollarSign class="w-4 h-4" style="color: #10b981" />
                 </div>
                 <h3 class="text-sm font-black flex-1">Recent Payments</h3>
@@ -435,8 +435,8 @@
               </div>
               <div class="p-3 max-h-[420px] overflow-y-auto">
                 <div v-if="square.payments.value.length === 0" class="py-12 text-center text-xs text-muted-foreground font-medium">No payments found for this period</div>
-                <div v-for="p in square.payments.value" :key="p.id" class="flex items-center gap-3 px-3 py-2.5 rounded-[16px] hover:bg-muted/20 transition-all">
-                  <div class="w-9 h-9 rounded-[16px] flex items-center justify-center flex-shrink-0" :style="`background: ${p.status === 'COMPLETED' ? '#10b981' : '#f59e0b'}18`">
+                <div v-for="p in square.payments.value" :key="p.id" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/20 transition-all">
+                  <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" :style="`background: ${p.status === 'COMPLETED' ? '#10b981' : '#f59e0b'}18`">
                     <CreditCard class="w-4 h-4" :style="`color: ${p.status === 'COMPLETED' ? '#10b981' : '#f59e0b'}`" />
                   </div>
                   <div class="flex-1 min-w-0">
@@ -455,17 +455,17 @@
             </div>
 
             <!-- Payouts -->
-            <div class="rounded-[28px] bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+            <div class="rounded-2xl bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
               <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60">
-                <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #06b6d420">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #06b6d420">
                   <Truck class="w-4 h-4" style="color: #06b6d4" />
                 </div>
                 <h3 class="text-sm font-black flex-1">Bank Deposits</h3>
               </div>
               <div class="p-3 max-h-[420px] overflow-y-auto">
                 <div v-if="square.payouts.value.length === 0" class="py-12 text-center text-xs text-muted-foreground font-medium">No payouts found</div>
-                <div v-for="p in square.payouts.value" :key="p.id" class="flex items-center gap-3 px-3 py-3 rounded-[16px] hover:bg-muted/20 transition-all">
-                  <div class="w-9 h-9 rounded-[16px] flex items-center justify-center flex-shrink-0" :style="`background: ${p.status === 'PAID' ? '#06b6d4' : '#f59e0b'}18`">
+                <div v-for="p in square.payouts.value" :key="p.id" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-muted/20 transition-all">
+                  <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" :style="`background: ${p.status === 'PAID' ? '#06b6d4' : '#f59e0b'}18`">
                     <Truck class="w-4 h-4" :style="`color: ${p.status === 'PAID' ? '#06b6d4' : '#f59e0b'}`" />
                   </div>
                   <div class="flex-1 min-w-0">
@@ -479,9 +479,9 @@
           </div>
 
           <!-- Square Customers -->
-          <div class="rounded-[28px] bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+          <div class="rounded-2xl bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
             <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60">
-              <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #8b5cf620">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #8b5cf620">
                 <Users class="w-4 h-4" style="color: #8b5cf6" />
               </div>
               <h3 class="text-sm font-black flex-1">Square Customers</h3>
@@ -490,7 +490,7 @@
             <div class="p-3 max-h-[320px] overflow-y-auto">
               <div v-if="square.sqCustomers.value.length === 0" class="py-10 text-center text-xs text-muted-foreground">No customers found in Square</div>
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                <div v-for="c in square.sqCustomers.value" :key="c.id" class="flex items-center gap-3 px-3 py-2.5 rounded-[16px] hover:bg-muted/20 transition-all">
+                <div v-for="c in square.sqCustomers.value" :key="c.id" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/20 transition-all">
                   <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style="background: #8b5cf618; color: #8b5cf6; font-size: 11px; font-weight: 800;">{{ c.name?.charAt(0) || '?' }}</div>
                   <div class="min-w-0">
                     <p class="text-xs font-bold truncate">{{ c.name }}</p>
@@ -509,7 +509,7 @@
       <DialogContent class="max-w-md">
         <div class="flex flex-col gap-5 p-7">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed)">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed)">
               <Plus class="w-5 h-5 text-white" />
             </div>
             <div>
@@ -537,7 +537,7 @@
               <button
                 v-for="cat in expenseCategories"
                 :key="cat.label"
-                class="px-3 py-2 rounded-[16px] text-xs font-bold text-center transition-all hover:scale-105 active:scale-95"
+                class="px-3 py-2 rounded-xl text-xs font-bold text-center transition-all hover:scale-105 active:scale-95"
                 :style="expenseForm.category === cat.label
                   ? `background: ${cat.color}24; color: ${cat.color}; outline: 2px solid ${cat.color}50; outline-offset: 0`
                   : 'background: hsl(var(--muted)/0.5); color: hsl(var(--muted-foreground))'"
@@ -639,7 +639,7 @@ const posRevenue = computed(() => filteredTickets.value.filter(t => t.posOrder).
 const revenueSources = computed(() => {
   const max = Math.max(totalRevenue.value, 1)
   return [
-    { label: 'Repair Tickets', value: repairRevenue.value, pct: (repairRevenue.value / max) * 100, color: '#6366f1', colorDark: '#4f46e5', icon: Wrench },
+    { label: 'Repair Tickets', value: repairRevenue.value, pct: (repairRevenue.value / max) * 100, color: '#5b5ef4', colorDark: '#4f46e5', icon: Wrench },
     { label: 'POS / Retail', value: posRevenue.value, pct: (posRevenue.value / max) * 100, color: '#ec4899', colorDark: '#db2777', icon: ShoppingCart },
     { label: 'Parts & Addons', value: partsCost.value, pct: (partsCost.value / max) * 100, color: '#f97316', colorDark: '#ea580c', icon: Package },
   ].filter(s => s.value > 0)

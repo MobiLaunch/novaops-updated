@@ -4,8 +4,8 @@
     <!-- ── Page Header ─────────────────────────────────────────── -->
     <div class="flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-4">
-        <div class="w-14 h-14 rounded-[28px] flex items-center justify-center shadow-xl"
-          style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); box-shadow: 0 6px 28px #6366f150">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl"
+          style="background: linear-gradient(135deg, #5b5ef4 0%, #8b5cf6 100%); box-shadow: 0 6px 28px #5b5ef450">
           <CalendarDays class="w-7 h-7 text-white" />
         </div>
         <div>
@@ -22,7 +22,7 @@
           <button v-for="v in views" :key="v.key"
             class="px-4 py-2 rounded-full text-xs font-black transition-all"
             :style="calView === v.key
-              ? 'background: hsl(var(--card)); color: #6366f1; box-shadow: 0 2px 8px rgba(0,0,0,0.12)'
+              ? 'background: hsl(var(--card)); color: #5b5ef4; box-shadow: 0 2px 8px rgba(0,0,0,0.12)'
               : 'color: hsl(var(--muted-foreground))'"
             @click="calView = v.key">{{ v.label }}</button>
         </div>
@@ -50,8 +50,8 @@
         </button>
       </div>
 
-      <div class="rounded-[32px] overflow-hidden bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
-        <div class="grid grid-cols-7 border-b border-border/60" style="background: #6366f108">
+      <div class="rounded-2xl overflow-hidden bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
+        <div class="grid grid-cols-7 border-b border-border/60" style="background: #5b5ef408">
           <div v-for="d in ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']" :key="d"
             class="py-3 text-center text-xs font-black text-muted-foreground uppercase tracking-widest">{{ d }}</div>
         </div>
@@ -59,9 +59,9 @@
           <div v-for="(day, idx) in calendarDays" :key="idx"
             class="min-h-[90px] p-2 border-b border-r border-border/20 last:border-r-0"
             :class="{ 'opacity-40': !day.currentMonth }"
-            :style="day.isToday ? 'background: #6366f10d' : ''">
+            :style="day.isToday ? 'background: #5b5ef40d' : ''">
             <div class="w-7 h-7 flex items-center justify-center rounded-full mb-1 text-xs font-black"
-              :style="day.isToday ? 'background: #6366f1; color: white' : ''">
+              :style="day.isToday ? 'background: #5b5ef4; color: white' : ''">
               {{ day.day }}
             </div>
             <div class="space-y-0.5">
@@ -94,12 +94,12 @@
         </button>
       </div>
 
-      <div class="rounded-[32px] overflow-hidden bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
-        <div class="grid grid-cols-7 border-b border-border/60" style="background: #6366f108">
+      <div class="rounded-2xl overflow-hidden bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
+        <div class="grid grid-cols-7 border-b border-border/60" style="background: #5b5ef408">
           <div v-for="day in weekDays" :key="day.date" class="py-3 text-center">
             <p class="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{{ day.dow }}</p>
             <div class="w-8 h-8 flex items-center justify-center rounded-full mx-auto mt-1 text-sm font-black"
-              :style="day.isToday ? 'background:#6366f1;color:white' : ''">
+              :style="day.isToday ? 'background:#5b5ef4;color:white' : ''">
               {{ day.dayNum }}
             </div>
           </div>
@@ -107,7 +107,7 @@
         <div class="grid grid-cols-7 min-h-[220px]">
           <div v-for="day in weekDays" :key="day.date"
             class="p-2 border-r border-border/20 last:border-r-0 space-y-1"
-            :style="day.isToday ? 'background: #6366f108' : ''">
+            :style="day.isToday ? 'background: #5b5ef408' : ''">
             <div v-for="event in getDayEvents(day.date)" :key="event._id"
               class="text-[10px] font-bold px-2 py-1.5 rounded-[10px]"
               :style="`background: ${eColor(event)}18; color: ${eColor(event)}; outline: 1.5px solid ${eColor(event)}30; outline-offset: 0`">
@@ -138,7 +138,7 @@
         <div v-for="group in agendaGroups" :key="group.date">
           <div class="flex items-center gap-3 mb-2">
             <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0"
-              :style="group.date === today ? 'background:#6366f1;color:white' : 'background:hsl(var(--muted)/0.5);color:hsl(var(--muted-foreground))'">
+              :style="group.date === today ? 'background:#5b5ef4;color:white' : 'background:hsl(var(--muted)/0.5);color:hsl(var(--muted-foreground))'">
               {{ new Date(group.date + 'T00:00:00').getDate() }}
             </div>
             <span class="text-xs font-black uppercase tracking-widest text-muted-foreground">
@@ -148,9 +148,9 @@
           </div>
           <div class="space-y-2 pl-12">
             <div v-for="event in group.events" :key="event._id"
-              class="m3-row flex items-center gap-3 px-4 py-3 rounded-[20px]"
+              class="m3-row flex items-center gap-3 px-4 py-3 rounded-xl"
               :style="`background: ${eColor(event)}10; outline: 1.5px solid ${eColor(event)}25; outline-offset: 0`">
-              <div class="w-10 h-10 rounded-[20px] flex items-center justify-center flex-shrink-0"
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                 :style="`background: ${eColor(event)}22`">
                 <component :is="eIcon(event)" class="w-5 h-5" :style="`color: ${eColor(event)}`" />
               </div>
@@ -168,8 +168,8 @@
         </div>
       </div>
       <div v-else class="flex flex-col items-center gap-3 py-20">
-        <div class="w-16 h-16 rounded-[28px] flex items-center justify-center" style="background:#6366f114">
-          <CalendarDays class="w-8 h-8" style="color:#6366f1;opacity:0.4" />
+        <div class="w-16 h-16 rounded-2xl flex items-center justify-center" style="background:#5b5ef414">
+          <CalendarDays class="w-8 h-8" style="color:#5b5ef4;opacity:0.4" />
         </div>
         <p class="text-sm font-bold text-muted-foreground">No events this month</p>
       </div>

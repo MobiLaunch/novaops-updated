@@ -5,7 +5,7 @@
     <div class="flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-4">
         <div
-          class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg"
+          class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
           style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); box-shadow: 0 6px 28px #8b5cf650"
         >
           <Upload class="w-6 h-6 text-white" />
@@ -32,9 +32,9 @@
 
     <!-- ── Import Section ─────────────────────────────────────── -->
     <div v-if="activeTab === 'Import'" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
-      <div v-for="type in importTypes" :key="type.label" class="rounded-[32px] p-7 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+      <div v-for="type in importTypes" :key="type.label" class="rounded-2xl p-7 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
         <div class="flex items-center gap-3 mb-5">
-          <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" :style="`background: ${type.color}20`">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center" :style="`background: ${type.color}20`">
             <component :is="type.icon" class="w-5 h-5" :style="`color: ${type.color}`" />
           </div>
           <div>
@@ -45,7 +45,7 @@
 
         <!-- Drop zone -->
         <div
-          class="rounded-[24px] border-2 border-dashed p-8 flex flex-col items-center gap-4 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.98]"
+          class="rounded-xl border-2 border-dashed p-8 flex flex-col items-center gap-4 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.98]"
           :style="`border-color: ${type.color}40; background: ${type.color}06`"
           @dragover.prevent
           @drop.prevent="handleDrop($event, type.key)"
@@ -65,7 +65,7 @@
         <input :ref="el => fileInputs[type.key] = el as HTMLInputElement" type="file" accept=".csv,.json" class="hidden" @change="handleFileUpload($event, type.key)" />
 
         <!-- Result -->
-        <div v-if="importResults[type.key]" class="mt-4 p-4 rounded-[20px]" :style="importResults[type.key].startsWith('✅') ? `background: ${type.color}14; outline: 2px solid ${type.color}28; outline-offset: 0` : 'background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0'">
+        <div v-if="importResults[type.key]" class="mt-4 p-4 rounded-xl" :style="importResults[type.key].startsWith('✅') ? `background: ${type.color}14; outline: 2px solid ${type.color}28; outline-offset: 0` : 'background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0'">
           <p class="text-sm font-black" :style="importResults[type.key].startsWith('✅') ? `color: ${type.color}` : 'color: #ef4444'">{{ importResults[type.key] }}</p>
         </div>
 
@@ -82,9 +82,9 @@
 
     <!-- ── Export Section ─────────────────────────────────────── -->
     <div v-if="activeTab === 'Export'" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
-      <div v-for="type in importTypes" :key="type.label" class="rounded-[32px] p-7 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+      <div v-for="type in importTypes" :key="type.label" class="rounded-2xl p-7 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
         <div class="flex items-center gap-3 mb-5">
-          <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" :style="`background: ${type.color}20`">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center" :style="`background: ${type.color}20`">
             <component :is="type.icon" class="w-5 h-5" :style="`color: ${type.color}`" />
           </div>
           <div>
@@ -93,8 +93,8 @@
           </div>
         </div>
 
-        <div class="rounded-[24px] p-5 flex flex-col items-center gap-4 mb-4" :style="`background: ${type.color}08; outline: 2px solid ${type.color}18; outline-offset: 0`">
-          <div class="w-12 h-12 rounded-[22px] flex items-center justify-center" :style="`background: ${type.color}20`">
+        <div class="rounded-xl p-5 flex flex-col items-center gap-4 mb-4" :style="`background: ${type.color}08; outline: 2px solid ${type.color}18; outline-offset: 0`">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center" :style="`background: ${type.color}20`">
             <Download class="w-6 h-6" :style="`color: ${type.color}`" />
           </div>
           <div class="text-center">
@@ -123,10 +123,10 @@
     </div>
 
     <!-- ── Import History ─────────────────────────────────────── -->
-    <div v-if="importLog.length > 0" class="rounded-[28px] p-6 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+    <div v-if="importLog.length > 0" class="rounded-2xl p-6 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #8b5cf620">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #8b5cf620">
             <Clock class="w-4 h-4" style="color: #8b5cf6" />
           </div>
           <h3 class="text-sm font-black">Import History</h3>
@@ -137,10 +137,10 @@
         <div
           v-for="log in importLog"
           :key="log.id"
-          class="flex items-center gap-3 px-4 py-3 rounded-[20px]"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl"
           style="background: hsl(var(--muted)/0.4)"
         >
-          <div class="w-8 h-8 rounded-[16px] flex items-center justify-center flex-shrink-0" style="background: #10b98120">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style="background: #10b98120">
             <CheckCircle class="w-4 h-4" style="color: #10b981" />
           </div>
           <div class="flex-1 min-w-0">

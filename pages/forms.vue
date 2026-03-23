@@ -4,7 +4,7 @@
     <!-- Header -->
     <div class="flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg"
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
           style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 6px 28px #10b98150">
           <FileText class="w-6 h-6 text-white" />
         </div>
@@ -18,8 +18,8 @@
     <!-- Template picker (shown when no form is active) -->
     <div v-if="!activeForm" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div v-for="template in formTemplates" :key="template.label"
-        class="m3-card rounded-[28px] p-6 flex flex-col gap-4 bg-card cursor-pointer"
-        style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0"
+        class="m3-card rounded-2xl p-6 flex flex-col gap-4 bg-card cursor-pointer"
+        style="border: 1px solid hsl(var(--border)/0.7)"
         @click="openForm(template)">
         <div class="w-14 h-14 rounded-[26px] flex items-center justify-center" :style="`background: ${template.color}18`">
           <component :is="template.icon" class="w-7 h-7" :style="`color: ${template.color}`" />
@@ -45,13 +45,13 @@
     <div v-if="activeForm" class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
       <!-- Left: Form Builder -->
-      <div class="rounded-[32px] p-7 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+      <div class="rounded-2xl p-7 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
         <div class="flex items-center justify-between mb-6">
           <div class="flex items-center gap-3">
             <button class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-muted/60 transition-all" @click="activeForm = null">
               <ChevronLeft class="w-4 h-4" />
             </button>
-            <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" :style="`background: ${activeForm.color}20`">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center" :style="`background: ${activeForm.color}20`">
               <component :is="activeForm.icon" class="w-4 h-4" :style="`color: ${activeForm.color}`" />
             </div>
             <h3 class="text-base font-black">{{ activeForm.label }}</h3>
@@ -60,7 +60,7 @@
 
         <div class="space-y-5">
           <!-- Business info (auto-filled from settings) -->
-          <div class="rounded-[20px] px-4 py-3 flex items-center gap-3 text-xs" style="background: hsl(var(--muted)/0.4)">
+          <div class="rounded-xl px-4 py-3 flex items-center gap-3 text-xs" style="background: hsl(var(--muted)/0.4)">
             <Building class="w-4 h-4 text-muted-foreground flex-shrink-0" />
             <div class="min-w-0">
               <p class="font-black truncate">{{ settings.businessName || 'Your Business' }}</p>
@@ -138,7 +138,7 @@
       </div>
 
       <!-- Right: Live Preview -->
-      <div class="rounded-[32px] overflow-hidden bg-white dark:bg-zinc-900" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+      <div class="rounded-2xl overflow-hidden bg-white dark:bg-zinc-900" style="border: 1px solid hsl(var(--border)/0.7)">
         <div class="px-5 py-3 border-b border-border/40 flex items-center gap-2" style="background: hsl(var(--muted)/0.3)">
           <Eye class="w-4 h-4 text-muted-foreground" />
           <span class="text-xs font-black text-muted-foreground uppercase tracking-widest">Live Preview</span>
@@ -231,10 +231,10 @@
     </div>
 
     <!-- Invoice History -->
-    <div v-if="invoiceHistory.length > 0" class="rounded-[32px] p-6 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+    <div v-if="invoiceHistory.length > 0" class="rounded-2xl p-6 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
       <div class="flex items-center justify-between mb-5">
         <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #10b98120">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #10b98120">
             <Clock class="w-4 h-4" style="color: #10b981" />
           </div>
           <h3 class="text-sm font-black">Recent Documents</h3>
@@ -243,9 +243,9 @@
       </div>
       <div class="space-y-2">
         <div v-for="inv in invoiceHistory" :key="inv.id"
-          class="flex items-center gap-3 px-4 py-3 rounded-[20px] hover:bg-muted/20 transition-all"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted/20 transition-all"
           style="outline: 1.5px solid hsl(var(--border)/0.4); outline-offset: 0">
-          <div class="w-9 h-9 rounded-[18px] flex items-center justify-center flex-shrink-0" style="background: #10b98118">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background: #10b98118">
             <Receipt class="w-4 h-4" style="color: #10b981" />
           </div>
           <div class="flex-1 min-w-0">
