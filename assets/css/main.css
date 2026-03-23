@@ -580,8 +580,7 @@ select.hui-input { padding-right: 40px; }
 
 /* Elastic loading bar */
 .m3-elastic-bar { @apply hui-loading-bar; }
-</CSSEOF
-echo "done"
+
 /* ── Login/auth page animations ─────────────────────────────────── */
 @keyframes loginEnter {
   from { transform: translateY(24px) scale(0.96); opacity: 0; }
@@ -630,8 +629,10 @@ echo "done"
 .step-card-active { border-color: hsl(var(--primary)/0.4); box-shadow: 0 0 0 3px hsl(var(--primary)/0.08); }
 .step-card-done   { border-color: hsl(142 71% 45% / 0.3); }
 
+/* FIX 1: added missing semicolon after align-items: center */
 .step-card-header {
-  display: flex; align-items: center
+  display: flex;
+  align-items: center;
   padding: 16px 20px;
   gap: 12px;
   cursor: pointer;
@@ -887,8 +888,13 @@ echo "done"
   background: hsl(var(--muted)/0.6); border-radius: var(--hui-radius-xl);
 }
 @media (min-width: 1024px) { .mob-tabs { display: none; } }
+
+/* FIX 2: added missing semicolon after justify-content: center */
 .mob-tab {
-  flex: 1; display: flex; align-items: center; justify-content: center
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 6px; padding: 8px 12px;
   border-radius: var(--hui-radius-lg);
   font-size: 13px; font-weight: 600;
@@ -1008,8 +1014,6 @@ echo "done"
   transition: var(--hui-transition);
 }
 .hui-row:hover { background: hsl(var(--muted)/0.4); }
-
-/* Vendor card - already mapped to hui-card overflow-hidden */
 
 /* ── HeroUI Toggle Switch ─────────────────────────────────────── */
 .hui-toggle {
