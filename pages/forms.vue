@@ -4,7 +4,7 @@
     <!-- Header -->
     <div class="flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"
           style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 6px 28px #10b98150">
           <FileText class="w-6 h-6 text-white" />
         </div>
@@ -18,10 +18,9 @@
     <!-- Template picker (shown when no form is active) -->
     <div v-if="!activeForm" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div v-for="template in formTemplates" :key="template.label"
-        class="m3-card rounded-2xl p-6 flex flex-col gap-4 bg-card cursor-pointer"
-        style="border: 1px solid hsl(var(--border)/0.7)"
+        class="hui-card rounded-2xl p-6 flex flex-col gap-4 bg-content1 cursor-pointer"
         @click="openForm(template)">
-        <div class="w-14 h-14 rounded-[26px] flex items-center justify-center" :style="`background: ${template.color}18`">
+        <div class="w-14 h-14 rounded-3xl flex items-center justify-center" :style="`background: ${template.color}18`">
           <component :is="template.icon" class="w-7 h-7" :style="`color: ${template.color}`" />
         </div>
         <div>
@@ -45,7 +44,7 @@
     <div v-if="activeForm" class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
       <!-- Left: Form Builder -->
-      <div class="rounded-2xl p-7 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
+      <div class="rounded-3xl p-7 bg-content1">
         <div class="flex items-center justify-between mb-6">
           <div class="flex items-center gap-3">
             <button class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-muted/60 transition-all" @click="activeForm = null">
@@ -70,39 +69,39 @@
 
           <div class="grid grid-cols-2 gap-3">
             <div class="space-y-2">
-              <label class="m3-label">Customer</label>
+              <label class="hui-label">Customer</label>
               <CustomerSelect v-model="form.customerId" @update:modelValue="onCustomerChange" />
             </div>
             <div class="space-y-2">
-              <label class="m3-label">Linked Ticket</label>
-              <select v-model="form.ticketId" class="m3-input" @change="onTicketChange">
+              <label class="hui-label">Linked Ticket</label>
+              <select v-model="form.ticketId" class="hui-input" @change="onTicketChange">
                 <option :value="null">None</option>
                 <option v-for="t in tickets" :key="t.id" :value="t.id">#{{ t.id }} — {{ t.device }}</option>
               </select>
             </div>
             <div class="space-y-2">
-              <label class="m3-label">Date</label>
-              <input v-model="form.date" type="date" class="m3-input" />
+              <label class="hui-label">Date</label>
+              <input v-model="form.date" type="date" class="hui-input" />
             </div>
             <div v-if="activeForm.label !== 'Service Agreement'" class="space-y-2">
-              <label class="m3-label">Due Date</label>
-              <input v-model="form.dueDate" type="date" class="m3-input" />
+              <label class="hui-label">Due Date</label>
+              <input v-model="form.dueDate" type="date" class="hui-input" />
             </div>
           </div>
 
           <!-- Line Items (not for Service Agreement) -->
           <div v-if="activeForm.label !== 'Service Agreement'">
             <div class="flex items-center justify-between mb-3">
-              <label class="m3-label">Line Items</label>
+              <label class="hui-label">Line Items</label>
               <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-105" style="background: #10b98118; color: #10b981" @click="addLineItem">
                 <Plus class="w-3 h-3" /> Add Item
               </button>
             </div>
             <div class="space-y-2">
               <div v-for="(item, i) in form.lineItems" :key="i" class="flex items-center gap-2">
-                <input v-model="item.description" placeholder="Description" class="m3-input flex-1" />
-                <input v-model.number="item.qty" type="number" min="1" placeholder="Qty" class="m3-input" style="width:68px" />
-                <input v-model.number="item.price" type="number" min="0" step="0.01" placeholder="Price" class="m3-input" style="width:96px" />
+                <input v-model="item.description" placeholder="Description" class="hui-input flex-1" />
+                <input v-model.number="item.qty" type="number" min="1" placeholder="Qty" class="hui-input" style="width:68px" />
+                <input v-model.number="item.price" type="number" min="0" step="0.01" placeholder="Price" class="hui-input" style="width:96px" />
                 <button class="w-9 h-9 flex-shrink-0 rounded-full flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-950/30 transition-all" @click="removeLineItem(i)">
                   <Trash2 class="w-3.5 h-3.5 text-muted-foreground" />
                 </button>
@@ -117,13 +116,13 @@
           </div>
 
           <div class="space-y-2">
-            <label class="m3-label">Notes / Terms</label>
-            <textarea v-model="form.notes" placeholder="Additional notes, payment terms, warranty info…" rows="2" class="m3-input resize-none" style="height:auto;padding-top:12px;padding-bottom:12px" />
+            <label class="hui-label">Notes / Terms</label>
+            <textarea v-model="form.notes" placeholder="Additional notes, payment terms, warranty info…" rows="2" class="hui-input resize-none" style="height:auto;padding-top:12px;padding-bottom:12px" />
           </div>
 
           <div v-if="activeForm.label === 'Service Agreement'" class="space-y-2">
-            <label class="m3-label">Authorization Statement</label>
-            <textarea v-model="form.authStatement" rows="3" class="m3-input resize-none" style="height:auto;padding-top:12px;padding-bottom:12px"
+            <label class="hui-label">Authorization Statement</label>
+            <textarea v-model="form.authStatement" rows="3" class="hui-input resize-none" style="height:auto;padding-top:12px;padding-bottom:12px"
               placeholder="I authorize the above repair shop to perform diagnostics and repairs on my device. I understand that..." />
           </div>
 
@@ -138,7 +137,7 @@
       </div>
 
       <!-- Right: Live Preview -->
-      <div class="rounded-2xl overflow-hidden bg-white dark:bg-zinc-900" style="border: 1px solid hsl(var(--border)/0.7)">
+      <div class="rounded-3xl overflow-hidden bg-white dark:bg-zinc-900">
         <div class="px-5 py-3 border-b border-border/40 flex items-center gap-2" style="background: hsl(var(--muted)/0.3)">
           <Eye class="w-4 h-4 text-muted-foreground" />
           <span class="text-xs font-black text-muted-foreground uppercase tracking-widest">Live Preview</span>
@@ -231,7 +230,7 @@
     </div>
 
     <!-- Invoice History -->
-    <div v-if="invoiceHistory.length > 0" class="rounded-2xl p-6 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
+    <div v-if="invoiceHistory.length > 0" class="rounded-3xl p-6 bg-content1">
       <div class="flex items-center justify-between mb-5">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #10b98120">
@@ -366,7 +365,7 @@ function buildHtml(data: any) {
     : ticket ? `<tr><td style="padding:8px 0">Repair — ${ticket.device}</td><td style="text-align:center">1</td><td style="text-align:right">${business.currency || '$'}${(ticket.price || 0).toFixed(2)}</td><td style="text-align:right;font-weight:700">${business.currency || '$'}${(ticket.price || 0).toFixed(2)}</td></tr>` : ''
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${type}</title><style>
-.m3-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
+.hui-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:system-ui,-apple-system,sans-serif;padding:48px;max-width:760px;margin:auto;color:#1a1a1a;font-size:13px}
     .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px}
@@ -455,11 +454,11 @@ const reprintInvoice = (inv: any) => {
 </script>
 
 <style scoped>
-.m3-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
-.m3-input:focus { border-color: #10b981; box-shadow: 0 0 0 3px #10b98118; }
-textarea.m3-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
-select.m3-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
-.m3-card { transition: transform 0.35s cubic-bezier(0.34,1.5,0.64,1), box-shadow 0.3s ease; }
-.m3-card:hover  { transform: scale(1.025) translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
-.m3-card:active { transform: scale(0.97); }
+.hui-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
+.hui-input:focus { border-color: #10b981; box-shadow: 0 0 0 3px #10b98118; }
+textarea.hui-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
+select.hui-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
+.hui-card { transition: transform 0.35s cubic-bezier(0.34,1.5,0.64,1), box-shadow 0.3s ease; }
+.hui-card:hover  { transform: scale(1.025) translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
+.hui-card:active { transform: scale(0.97); }
 </style>

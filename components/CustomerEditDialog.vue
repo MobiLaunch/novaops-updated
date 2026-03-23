@@ -4,7 +4,7 @@
 
       <!-- M3 Dialog Header -->
       <div class="flex items-center gap-4 px-7 pt-7 pb-5 border-b border-border/50">
-        <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md"
+        <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md"
           style="background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4px 16px #3b82f640">
           <component :is="customer ? Pencil : UserPlus" class="w-5 h-5 text-white" />
         </div>
@@ -20,28 +20,28 @@
 
         <div class="grid grid-cols-2 gap-4">
           <div class="col-span-2 space-y-2">
-            <label class="m3-label">Full Name *</label>
-            <input v-model="form.name" placeholder="Jane Smith" class="m3-input" />
+            <label class="hui-label">Full Name *</label>
+            <input v-model="form.name" placeholder="Jane Smith" class="hui-input" />
           </div>
           <div class="space-y-2">
-            <label class="m3-label">Phone</label>
-            <input v-model="form.phone" placeholder="(555) 123-4567" class="m3-input" />
+            <label class="hui-label">Phone</label>
+            <input v-model="form.phone" placeholder="(555) 123-4567" class="hui-input" />
           </div>
           <div class="space-y-2">
-            <label class="m3-label">Email</label>
-            <input v-model="form.email" type="email" placeholder="jane@email.com" class="m3-input" />
+            <label class="hui-label">Email</label>
+            <input v-model="form.email" type="email" placeholder="jane@email.com" class="hui-input" />
           </div>
           <div class="space-y-2">
-            <label class="m3-label">Driver's License</label>
-            <input v-model="form.driversLicense" placeholder="Optional" class="m3-input" />
+            <label class="hui-label">Driver's License</label>
+            <input v-model="form.driversLicense" placeholder="Optional" class="hui-input" />
           </div>
           <div class="space-y-2">
-            <label class="m3-label">Address</label>
-            <input v-model="form.address" placeholder="Street, City, State ZIP" class="m3-input" />
+            <label class="hui-label">Address</label>
+            <input v-model="form.address" placeholder="Street, City, State ZIP" class="hui-input" />
           </div>
           <div class="col-span-2 space-y-2">
-            <label class="m3-label">Notes</label>
-            <textarea v-model="form.notes" rows="2" placeholder="Additional information…" class="m3-textarea" />
+            <label class="hui-label">Notes</label>
+            <textarea v-model="form.notes" rows="2" placeholder="Additional information…" class="hui-textarea" />
           </div>
         </div>
 
@@ -121,7 +121,7 @@ const close = () => emit('update:open', false)
 </script>
 
 <style scoped>
-.m3-label {
+.hui-label {
   display: block;
   font-size: 10px;
   font-weight: 800;
@@ -130,7 +130,7 @@ const close = () => emit('update:open', false)
   letter-spacing: 0.12em;
   margin-bottom: 0.5rem;
 }
-.m3-input {
+.hui-input {
   width: 100%;
   height: 48px;
   padding: 0 20px;
@@ -143,8 +143,8 @@ const close = () => emit('update:open', false)
   outline: none;
   transition: all 0.2s ease;
 }
-.m3-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px #3b82f618; background: hsl(var(--background)); }
-.m3-textarea {
+.hui-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px #3b82f618; background: hsl(var(--background)); }
+.hui-input {
   width: 100%;
   padding: 14px 20px;
   border-radius: 20px;
@@ -158,5 +158,5 @@ const close = () => emit('update:open', false)
   transition: all 0.2s ease;
   height: auto;
 }
-.m3-textarea:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px #3b82f618; background: hsl(var(--background)); }
+.hui-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px #3b82f618; background: hsl(var(--background)); }
 </style>

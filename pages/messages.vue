@@ -122,7 +122,7 @@
     <!-- ── Stats Row ──────────────────────────────────────────────── -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
       <div v-for="stat in msgStats" :key="stat.label"
-        class="rounded-xl p-4 flex flex-col gap-2"
+        class="rounded-2xl p-4 flex flex-col gap-2"
         :style="`background:${stat.color}14;outline:2px solid ${stat.color}28;outline-offset:0`">
         <div class="flex items-center justify-between">
           <div class="w-9 h-9 rounded-xl flex items-center justify-center" :style="`background:${stat.color}24`">
@@ -146,10 +146,7 @@
           <div class="relative mb-3">
             <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             <input v-model="threadSearch" placeholder="Search messages…"
-              class="w-full h-10 pl-10 pr-4 rounded-full text-sm font-medium"
-              style="background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.6);outline:none"
-              @focus="e => e.target.style.borderColor='#ec4899'"
-              @blur="e => e.target.style.borderColor='hsl(var(--border)/0.6)'" />
+              class="w-full h-10 pl-10 pr-4 rounded-full text-sm font-medium" />
           </div>
           <div class="flex gap-1.5 flex-wrap">
             <button v-for="f in threadFilters" :key="f"
@@ -282,7 +279,7 @@
               <div class="flex gap-2 ml-auto flex-wrap">
                 <button v-for="qr in quickReplies" :key="qr"
                   class="px-3 py-1.5 rounded-full text-xs font-semibold transition-all hover:scale-105"
-                  style="background:hsl(var(--muted)/0.5);border:1.5px solid hsl(var(--border)/0.6)"
+                  
                   @click="replyBody = qr">
                   {{ qr.substring(0, 28) }}{{ qr.length > 28 ? '…' : '' }}
                 </button>
@@ -293,7 +290,7 @@
             <input v-if="replyChannel === 'email'" v-model="replySubject"
               placeholder="Subject…"
               class="w-full h-9 px-4 rounded-xl text-sm font-medium mb-2"
-              style="background:hsl(var(--muted)/0.4);border:1.5px solid hsl(var(--border)/0.6);outline:none" />
+               />
 
             <div class="flex gap-3 items-end">
               <div class="flex-1 relative">
@@ -324,7 +321,7 @@
         <!-- Empty state -->
         <template v-else>
           <div class="flex-1 flex flex-col items-center justify-center gap-4 p-8 text-center">
-            <div class="w-20 h-20 rounded-2xl flex items-center justify-center" style="background:#ec489914">
+            <div class="w-20 h-20 rounded-3xl flex items-center justify-center" style="background:#ec489914">
               <MessageCircle class="w-10 h-10" style="color:#ec4899;opacity:0.4" />
             </div>
             <h3 class="text-lg font-black">No conversation selected</h3>
@@ -357,14 +354,14 @@
           <!-- To / Channel -->
           <div class="grid grid-cols-2 gap-3">
             <div class="space-y-2">
-              <label class="m3-label">To</label>
+              <label class="hui-label">To</label>
               <CustomerSelect v-model="compose.customerId" />
             </div>
             <div class="space-y-2">
-              <label class="m3-label">Via</label>
+              <label class="hui-label">Via</label>
               <div class="flex gap-1.5 mt-1">
                 <button v-for="ch in ['email', 'sms', 'chat']" :key="ch"
-                  class="flex-1 py-2 rounded-[12px] text-xs font-black capitalize transition-all"
+                  class="flex-1 py-2 rounded-xl text-xs font-black capitalize transition-all"
                   :style="compose.channel === ch
                     ? `background:${channelColor(ch)};color:white;box-shadow:0 4px 12px ${channelColor(ch)}40`
                     : 'background:hsl(var(--muted)/0.5);color:hsl(var(--muted-foreground))'"
@@ -375,7 +372,7 @@
 
           <!-- Ticket link (optional) -->
           <div class="space-y-2">
-            <label class="m3-label">Link to Ticket (optional)</label>
+            <label class="hui-label">Link to Ticket (optional)</label>
             <select v-model="compose.ticketId" class="compose-select">
               <option value="">No ticket</option>
               <option v-for="t in customerTickets" :key="t.id" :value="t.id">
@@ -386,17 +383,17 @@
 
           <!-- Subject (email) -->
           <div v-if="compose.channel === 'email'" class="space-y-2">
-            <label class="m3-label">Subject</label>
+            <label class="hui-label">Subject</label>
             <input v-model="compose.subject" placeholder="Repair status update…" class="compose-input" />
           </div>
 
           <!-- Body -->
           <div class="space-y-2">
             <div class="flex items-center justify-between">
-              <label class="m3-label">Message</label>
+              <label class="hui-label">Message</label>
               <div class="flex gap-1.5">
                 <button v-for="tmpl in emailTemplates.slice(0,3)" :key="tmpl.name"
-                  class="text-[10px] font-bold px-2 py-1 rounded-[8px] transition-all hover:scale-105"
+                  class="text-[10px] font-bold px-2 py-1 rounded-lg transition-all hover:scale-105"
                   style="background:hsl(var(--muted)/0.5);color:hsl(var(--muted-foreground))"
                   @click="applyTemplate(tmpl)">{{ tmpl.name }}</button>
               </div>
@@ -1163,7 +1160,7 @@ onMounted(async () => {
   top: calc(100% + 10px);
   right: 0;
   width: 360px;
-  border-radius: 18px;
+  border-radius: 24px;
   background: hsl(var(--popover));
   border: 1.5px solid hsl(var(--border)/0.7);
   box-shadow: 0 20px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.08);
@@ -1279,7 +1276,7 @@ onMounted(async () => {
 .msg-send-btn:not(:disabled):hover { transform:scale(1.1); }
 .msg-send-btn:disabled { opacity:0.4;cursor:not-allowed; }
 
-.m3-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
+.hui-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
 .compose-select { width:100%;height:44px;padding:0 12px;border-radius:18px;font-size:13px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);outline:none;transition:border 0.2s;color:hsl(var(--foreground)); }
 .compose-select:focus { border-color:#ec4899; }
 .compose-input { width:100%;height:44px;padding:0 16px;border-radius:18px;font-size:13px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);outline:none;transition:border 0.2s;color:hsl(var(--foreground)); }

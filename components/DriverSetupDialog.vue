@@ -69,7 +69,7 @@
                   <path d="M6 10l2.8 2.8L14 7.5" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <svg v-else-if="tool.status === 'checking' || tool.status === 'installing'" class="dsd-spin" viewBox="0 0 20 20" fill="none" width="20" height="20">
-                  <circle cx="10" cy="10" r="8" :stroke="tool.status === 'installing' ? '#f59e0b' : '#5b5ef4'" stroke-width="2.5" stroke-dasharray="32 20" stroke-linecap="round"/>
+                  <circle cx="10" cy="10" r="8" :stroke="tool.status === 'installing' ? '#f59e0b' : '#6366f1'" stroke-width="2.5" stroke-dasharray="32 20" stroke-linecap="round"/>
                 </svg>
                 <svg v-else-if="tool.status === 'failed'" viewBox="0 0 20 20" fill="none" width="20" height="20">
                   <circle cx="10" cy="10" r="9" fill="#ef444418" stroke="#ef4444" stroke-width="1.5"/>
@@ -437,7 +437,7 @@ watch(() => props.modelValue, async (open) => {
 }
 .dsd-panel {
   width: min(580px, 100%); max-height: 88vh;
-  background: #090e1a; border: 1px solid #1e3049; border-radius: 20px;
+  background: #090e1a; border: 1px solid #1e3049; border-radius: 28px;
   display: flex; flex-direction: column; overflow: hidden;
   box-shadow: 0 40px 120px rgba(0,0,0,0.75), 0 0 0 1px #4ade8010;
 }
@@ -500,7 +500,7 @@ watch(() => props.modelValue, async (open) => {
 }
 .badge-installed  { background: #10b98118; color: #4ade80; }
 .badge-missing    { background: #f59e0b15; color: #fbbf24; }
-.badge-checking   { background: #5b5ef415; color: #818cf8; }
+.badge-checking   { background: #6366f115; color: #818cf8; }
 .badge-installing { background: #f59e0b15; color: #fbbf24; }
 .badge-failed     { background: #ef444418; color: #f87171; }
 .badge-idle       { background: #1e293b;   color: #475569; }

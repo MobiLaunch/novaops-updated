@@ -6,7 +6,7 @@
 
     <!-- M3 Expressive background blobs: fixed to cover entire window -->
     <div style="position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0">
-      <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-20 blur-3xl" style="background: radial-gradient(circle, #5b5ef4, transparent)" />
+      <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-20 blur-3xl" style="background: radial-gradient(circle, #6366f1, transparent)" />
       <div class="absolute -bottom-32 -right-32 w-96 h-96 rounded-full opacity-15 blur-3xl" style="background: radial-gradient(circle, #a855f7, transparent)" />
       <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-5 blur-3xl" style="background: radial-gradient(circle, #06b6d4, transparent)" />
     </div>
@@ -77,7 +77,7 @@
       </div>
 
       <!-- Card -->
-      <div class="rounded-2xl bg-card p-7 flex flex-col gap-5 shadow-xl" style="border: 1px solid hsl(var(--border)/0.7)">
+      <div class="rounded-3xl bg-content1 p-7 flex flex-col gap-5 shadow-xl">
 
         <!-- Error alert -->
         <div
@@ -132,12 +132,12 @@
 
         <!-- Email -->
         <div class="space-y-2">
-          <label class="m3-label">Email</label>
+          <label class="hui-label">Email</label>
           <input
             v-model="email"
             type="email"
             placeholder="you@example.com"
-            class="w-full h-12 px-4 rounded-xl text-sm bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+            class="w-full h-12 px-4 rounded-xl text-sm bg-muted/50 border-2 border-divider focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all font-medium"
             :disabled="loading"
             @keyup.enter="handleLogin"
           />
@@ -145,12 +145,12 @@
 
         <!-- Password -->
         <div class="space-y-2">
-          <label class="m3-label">Password</label>
+          <label class="hui-label">Password</label>
           <input
             v-model="password"
             type="password"
             placeholder="••••••••"
-            class="w-full h-12 px-4 rounded-xl text-sm bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+            class="w-full h-12 px-4 rounded-xl text-sm bg-muted/50 border-2 border-divider focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all font-medium"
             :disabled="loading"
             @keyup.enter="handleLogin"
           />
@@ -158,8 +158,8 @@
 
         <!-- Sign In button -->
         <button
-          class="m3-jelly-btn w-full h-14 rounded-full text-sm font-black text-white shadow-lg flex items-center justify-center gap-2.5 disabled:opacity-60 disabled:cursor-not-allowed"
-          style="background: linear-gradient(135deg, #5b5ef4 0%, #8b5cf6 100%); box-shadow: 0 4px 20px #5b5ef450"
+          class="hui-btn hui-btn-solid-primary hui-btn-lg w-full h-14 rounded-full text-sm font-black text-white shadow-lg flex items-center justify-center gap-2.5 disabled:opacity-60 disabled:cursor-not-allowed"
+          style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); box-shadow: 0 4px 20px #6366f150"
           :disabled="loading"
           @click="handleLogin"
         >
@@ -177,7 +177,7 @@
 
         <!-- Register -->
         <NuxtLink to="/register">
-          <button class="m3-tonal-btn w-full h-12 rounded-full text-sm font-bold transition-all" style="background: hsl(var(--muted)); color: hsl(var(--foreground))">
+          <button class="hui-btn hui-btn-light hui-btn-md w-full h-12 rounded-full text-sm font-bold transition-all" style="background: hsl(var(--muted)); color: hsl(var(--foreground))">
             Create an account
           </button>
         </NuxtLink>
@@ -190,10 +190,10 @@
 
       <!-- Supabase not-connected banner -->
       <div v-if="!$supabase && !sbConn.status.connected"
-        class="rounded-xl p-5 flex flex-col gap-4"
+        class="rounded-2xl p-5 flex flex-col gap-4"
         style="background:#3ecf8e10;outline:2px solid #3ecf8e28;outline-offset:0;animation:loginEnter 0.55s 0.15s cubic-bezier(0.34,1.3,0.64,1) both">
         <div class="flex items-start gap-3">
-          <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#3ecf8e20">
+          <div class="w-8 h-8 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:#3ecf8e20">
             <Database class="w-4 h-4" style="color:#3ecf8e" />
           </div>
           <div class="flex-1">
@@ -226,7 +226,7 @@
     <Transition name="overlay">
       <div v-if="showSbSetup" class="fixed inset-0 z-[200] flex items-center justify-center p-4"
         style="background:rgba(0,0,0,0.6);backdrop-filter:blur(10px)" @click.self="showSbSetup = false">
-        <div class="w-full max-w-md rounded-2xl bg-card flex flex-col shadow-2xl overflow-hidden"
+        <div class="w-full max-w-md rounded-3xl bg-content1 flex flex-col shadow-2xl overflow-hidden"
           style="outline:2px solid hsl(var(--border)/0.6);outline-offset:0;animation:sbModalEnter 0.35s cubic-bezier(0.34,1.3,0.64,1) both">
 
           <div class="flex items-center gap-4 px-7 pt-7 pb-5 border-b border-border/50" style="background:#3ecf8e06">
@@ -244,24 +244,20 @@
           </div>
 
           <div class="p-7 space-y-4">
-            <div class="rounded-xl p-3.5 space-y-1.5" style="background:hsl(var(--muted)/0.5)">
+            <div class="rounded-2xl p-3.5 space-y-1.5" style="background:hsl(var(--muted)/0.5)">
               <p class="text-[11px] font-black text-muted-foreground uppercase tracking-widest">supabase.com/dashboard → your project → Settings → API</p>
             </div>
             <div class="space-y-2">
               <label class="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Project URL</label>
               <input v-model="sbSetupForm.url" type="url" placeholder="https://xxxxxxxxxxxx.supabase.co"
                 class="w-full h-12 px-4 rounded-xl text-xs font-mono border-2 outline-none transition-all"
-                style="background:hsl(var(--muted)/0.5);border-color:hsl(var(--border)/0.7)"
-                @focus="($event.target as HTMLElement).style.borderColor='#3ecf8e'"
-                @blur="($event.target as HTMLElement).style.borderColor='hsl(var(--border)/0.7)'" />
+                style="background:hsl(var(--muted)/0.5);border-color:hsl(var(--border)/0.7)" />
             </div>
             <div class="space-y-2">
               <label class="block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Anon / Public Key</label>
               <input v-model="sbSetupForm.key" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…"
                 class="w-full h-12 px-4 rounded-xl text-xs font-mono border-2 outline-none transition-all"
-                style="background:hsl(var(--muted)/0.5);border-color:hsl(var(--border)/0.7)"
-                @focus="($event.target as HTMLElement).style.borderColor='#3ecf8e'"
-                @blur="($event.target as HTMLElement).style.borderColor='hsl(var(--border)/0.7)'" />
+                style="background:hsl(var(--muted)/0.5);border-color:hsl(var(--border)/0.7)" />
             </div>
             <div v-if="sbConn.status.error" class="flex items-center gap-2 p-3 rounded-xl text-xs font-semibold"
               style="background:#ef444412;color:#ef4444">
@@ -444,7 +440,7 @@ const signInWithFacebook = async () => {
 </script>
 
 <style scoped>
-.m3-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
+.hui-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
 @keyframes loginEnter {
   0%   { transform: scale(0.94) translateY(20px); opacity: 0; }
   65%  { transform: scale(1.02) translateY(-4px); opacity: 1; }
@@ -460,17 +456,17 @@ const signInWithFacebook = async () => {
   100% { transform: scale(1) rotate(0deg); }
 }
 
-.m3-jelly-btn {
+.hui-btn hui-btn-solid-primary hui-btn-lg {
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
 }
-.m3-jelly-btn:hover:not(:disabled)  { transform: scale(1.04) translateY(-2px); box-shadow: 0 8px 32px #5b5ef460 !important; }
-.m3-jelly-btn:active:not(:disabled) { transform: scale(0.92); }
+.hui-btn hui-btn-solid-primary hui-btn-lg:hover:not(:disabled)  { transform: scale(1.04) translateY(-2px); box-shadow: 0 8px 32px #6366f160 !important; }
+.hui-btn hui-btn-solid-primary hui-btn-lg:active:not(:disabled) { transform: scale(0.92); }
 
-.m3-tonal-btn {
+.hui-btn hui-btn-light hui-btn-md {
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.m3-tonal-btn:hover  { transform: scale(1.03); }
-.m3-tonal-btn:active { transform: scale(0.95); }
+.hui-btn hui-btn-light hui-btn-md:hover  { transform: scale(1.03); }
+.hui-btn hui-btn-light hui-btn-md:active { transform: scale(0.95); }
 
 .social-btn {
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease;

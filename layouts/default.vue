@@ -1,216 +1,155 @@
 <template>
-  <div :class="{ 'electron-app': isElectron }" class="nova-mesh-bg" style="min-height:100vh;position:relative;">
+  <div class="min-h-screen bg-background flex">
 
-    <!-- ── Mobile overlay ────────────────────────────────────────── -->
+    <!-- ── Mobile Overlay ─────────────────────────────────────────── -->
     <Transition name="overlay">
-      <div v-if="mobileMenuOpen" class="fixed inset-0 z-50 lg:hidden" @click="mobileMenuOpen = false">
-        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div
+        v-if="mobileMenuOpen"
+        class="fixed inset-0 z-50 lg:hidden"
+        @click="mobileMenuOpen = false"
+      >
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" />
       </div>
     </Transition>
 
-    <!-- ── Mobile drawer sidebar ─────────────────────────────────── -->
-    <Transition name="mobile-slide">
-      <aside v-if="mobileMenuOpen" class="fixed inset-y-0 left-0 z-50 flex lg:hidden" style="width:300px">
-        <div class="w-full h-full mac-sidebar flex flex-col shadow-2xl">
-          <MobileNav
+    <!-- ── Mobile Full Sidebar ────────────────────────────────────── -->
+    <Transition name="sidebar">
+      <aside
+        v-if="mobileMenuOpen"
+        class="fixed left-0 top-0 z-50 h-screen flex lg:hidden shadow-2xl"
+      >
+        <div class="w-[96px] h-full bg-content1 border-r border-divider flex flex-col items-center py-3 gap-1 flex-shrink-0 mob-rail">
+          <RailContent
             :navigation="navigation"
             :user-initials="userInitials"
-            :user-email="userEmail"
-            :settings="settings"
+            :active-drawer="activeDrawer"
             :current-theme="currentTheme"
+            :upcoming-items="upcomingItems"
+            :is-mobile="true"
+            @set-drawer="setDrawer"
             @navigate="mobileMenuOpen = false"
             @set-theme="handleSetTheme"
             @export="handleExport"
           />
         </div>
+        <Transition name="drawer">
+          <div
+            v-if="activeDrawer"
+            class="w-72 h-full bg-content1 border-r border-divider flex flex-col"
+          >
+            <DrawerContent
+              :drawer="activeDrawer"
+              :navigation="navigation"
+              :user-email="userEmail"
+              :settings="settings"
+              @navigate="mobileMenuOpen = false; activeDrawer = null"
+              @close="activeDrawer = null"
+            />
+          </div>
+        </Transition>
       </aside>
     </Transition>
 
-    <!-- ── Slide-up Panel (drawer from dock) ─────────────────────── -->
-    <Transition name="panel-up">
-      <div
-        v-if="activePanel && !mobileMenuOpen"
-        class="fixed z-40 hidden lg:flex"
-        :style="panelStyle"
+    <!-- ── Desktop Rail ───────────────────────────────────────────── -->
+    <aside
+      class="hidden lg:flex fixed left-0 z-40 w-[76px] bg-content1 border-r border-divider flex-col items-center py-3 gap-1"
+      style="top:0;height:100vh"
+    >
+      <RailContent
+        :navigation="navigation"
+        :user-initials="userInitials"
+        :active-drawer="activeDrawer"
+        :current-theme="currentTheme"
+        :upcoming-items="upcomingItems"
+        @set-drawer="setDrawer"
+        @navigate="() => {}"
+        @set-theme="handleSetTheme"
+        @export="handleExport"
+      />
+    </aside>
+
+    <!-- ── Desktop Drawer ─────────────────────────────────────────── -->
+    <Transition name="drawer">
+      <aside
+        v-if="activeDrawer && !mobileMenuOpen"
+        class="hidden lg:flex fixed left-[76px] z-30 w-64 bg-content1 border-r border-divider flex-col shadow-[var(--hui-shadow-xl)]"
+        style="top:0;height:100vh"
       >
-        <div class="mac-glass rounded-2xl shadow-2xl overflow-hidden flex flex-col" style="width:300px;max-height:520px;">
-          <DrawerContent
-            :drawer="activePanel"
-            :navigation="navigation"
-            :user-email="userEmail"
-            :settings="settings"
-            @navigate="activePanel = null"
-            @close="activePanel = null"
-          />
-        </div>
-      </div>
+        <DrawerContent
+          :drawer="activeDrawer"
+          :navigation="navigation"
+          :user-email="userEmail"
+          :settings="settings"
+          @navigate="activeDrawer = null"
+          @close="activeDrawer = null"
+        />
+      </aside>
     </Transition>
 
-    <!-- click-outside to close panel -->
     <Transition name="overlay">
       <div
-        v-if="activePanel && !mobileMenuOpen"
-        class="fixed inset-0 z-30 hidden lg:block"
-        @click="activePanel = null"
+        v-if="activeDrawer && !mobileMenuOpen"
+        class="hidden lg:block fixed inset-0 z-20"
+        @click="activeDrawer = null"
       />
     </Transition>
 
-    <!-- ── Main content ───────────────────────────────────────────── -->
-    <div class="flex flex-col min-h-screen" :style="mainPaddingStyle">
-
+    <!-- ── Main ───────────────────────────────────────────────────── -->
+    <div
+      class="flex flex-col min-h-screen w-full transition-[padding-left] duration-200 ease-out"
+      :class="activeDrawer && !mobileMenuOpen ? 'lg:pl-[340px]' : 'lg:pl-[76px]'"
+    >
       <!-- Mobile top bar -->
-      <header class="sticky top-0 z-30 flex items-center gap-3 lg:hidden mac-glass border-b border-white/20 px-4" style="height:52px">
+      <header class="sticky top-0 z-30 flex items-center gap-3 border-b border-divider bg-content1/90 backdrop-blur-xl px-4 h-14 lg:hidden">
         <button
-          class="h-9 w-9 flex items-center justify-center rounded-xl hover:bg-black/5 transition-all active:scale-90"
+          class="h-10 w-10 flex items-center justify-center rounded-2xl hover:bg-muted/60 transition-all duration-200 hover:scale-105 active:scale-95 -ml-1"
           @click="mobileMenuOpen = true"
         >
-          <Menu class="h-5 w-5 text-foreground" />
+          <Menu class="h-5 w-5" />
         </button>
         <div class="flex items-center gap-2.5 flex-1 min-w-0">
-          <div v-if="currentPageNav" class="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0" :style="`background: ${currentPageNav.color}22`">
+          <div
+            v-if="currentPageNav"
+            class="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
+            :style="`background: ${currentPageNav.color}20`"
+          >
             <component :is="currentPageNav.icon" class="w-4 h-4" :style="`color: ${currentPageNav.color}`" />
           </div>
-          <span class="text-sm font-bold tracking-tight truncate">{{ currentPageTitle }}</span>
+          <span class="text-sm font-bold truncate">{{ currentPageTitle }}</span>
         </div>
       </header>
 
       <!-- Page Content -->
-      <main class="flex-1 p-4 sm:p-6 pb-28 lg:pb-8">
+      <main class="flex-1 p-4 sm:p-6 pb-8 sm:pb-6">
+        <!-- Loading spinner: only shown on data-heavy pages, never on settings/config pages -->
         <div v-if="appStore.isLoading && !noLoadingGate" class="flex items-center justify-center py-32">
           <div class="flex flex-col items-center gap-4">
-            <div class="w-10 h-10 rounded-2xl flex items-center justify-center" style="background:linear-gradient(135deg,#5b5ef4,#8b5cf6)">
-              <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <!-- M3 Expressive elastic progress bar -->
+            <div class="hui-loading-bar-wrap relative">
+              <div class="hui-loading-bar" style="background: linear-gradient(90deg, #6366f1, #8b5cf6)" />
             </div>
-            <div class="w-48 h-1.5 rounded-full overflow-hidden relative" style="background:hsl(var(--muted))">
-              <div class="absolute top-0 h-full rounded-full m3-elastic-bar" style="background:linear-gradient(90deg,#5b5ef4,#8b5cf6)" />
-            </div>
-            <p class="text-xs text-muted-foreground font-semibold tracking-wide">Loading your workspace…</p>
+            <p class="text-xs text-muted-foreground font-medium">Loading your data…</p>
           </div>
         </div>
-        <div v-else class="m3-page-enter"><slot /></div>
+        <div v-else class="hui-page-enter">
+          <slot />
+        </div>
       </main>
     </div>
-
-    <!-- ══════════════════════════════════════════════════════════
-         macOS DOCK  —  bottom-anchored, floating glass pill
-         ═════════════════════════════════════════════════════════ -->
-    <div
-      ref="dockWrapRef"
-      class="dock-wrap hidden lg:flex"
-      @mousemove="onDockMouseMove"
-      @mouseleave="onDockMouseLeave"
-    >
-      <div class="dock-pill mac-glass">
-
-        <!-- Brand logo (non-nav) -->
-        <div class="dock-brand">
-          <div class="dock-brand-inner">
-            <span>N</span>
-          </div>
-          <div class="dock-brand-dot" />
-        </div>
-
-        <div class="dock-divider" />
-
-        <!-- Core nav items -->
-        <template v-for="(item, idx) in coreNav" :key="item.path">
-          <DockItem
-            :item="item"
-            :scale="dockScales[idx]"
-            :is-active="currentPath === item.path"
-            :is-bouncing="bouncingItem === item.path"
-            @click="handleNavClick(item)"
-          />
-        </template>
-
-        <div class="dock-divider" />
-
-        <!-- Quick Add FAB -->
-        <div
-          class="dock-item-wrap"
-          :style="{ '--s': dockScales[coreNav.length] }"
-          @click="togglePanel('quick')"
-        >
-          <div class="dock-tooltip">Quick Actions</div>
-          <div
-            class="dock-icon dock-fab"
-            :class="{ 'dock-fab-open': activePanel === 'quick' }"
-          >
-            <Plus class="dock-icon-svg" :style="activePanel === 'quick' ? 'transform:rotate(45deg)' : ''" />
-          </div>
-          <div class="dock-dot" style="background: #ec4899; opacity: 1" />
-        </div>
-
-        <!-- Tools -->
-        <div
-          class="dock-item-wrap"
-          :style="{ '--s': dockScales[coreNav.length + 1] }"
-          @click="togglePanel('tools')"
-        >
-          <div class="dock-tooltip">Tools</div>
-          <div class="dock-icon dock-icon-muted" :class="{ 'dock-icon-active-tools': activePanel === 'tools' }">
-            <Grid3x3 class="dock-icon-svg" />
-          </div>
-          <div v-if="activePanel === 'tools'" class="dock-dot" style="background:#64748b;opacity:1" />
-        </div>
-
-        <div class="dock-divider" />
-
-        <!-- Theme toggle -->
-        <div
-          class="dock-item-wrap"
-          :style="{ '--s': dockScales[coreNav.length + 2] }"
-          @click="cycleTheme"
-        >
-          <div class="dock-tooltip">{{ themeLabel }}</div>
-          <div class="dock-icon dock-icon-muted">
-            <component :is="themeIcon" class="dock-icon-svg" />
-          </div>
-        </div>
-
-        <!-- Settings -->
-        <div
-          class="dock-item-wrap"
-          :style="{ '--s': dockScales[coreNav.length + 3] }"
-          @click="handleNavClick({ path: '/settings', color: '#64748b' })"
-        >
-          <div class="dock-tooltip">Settings</div>
-          <div class="dock-icon dock-icon-muted" :class="{ 'dock-icon-active-settings': currentPath === '/settings' }">
-            <Settings class="dock-icon-svg" />
-          </div>
-          <div v-if="currentPath === '/settings'" class="dock-dot" style="background:#64748b" />
-        </div>
-
-        <!-- Avatar -->
-        <div
-          class="dock-item-wrap"
-          :style="{ '--s': dockScales[coreNav.length + 4] }"
-          @click="navigateTo('/settings')"
-        >
-          <div class="dock-tooltip">{{ userEmail || 'Account' }}</div>
-          <div class="dock-avatar">{{ userInitials }}</div>
-        </div>
-
-      </div>
-    </div>
-    <!-- end dock -->
-
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  ref, computed, watch, onMounted, onUnmounted, defineComponent, h, resolveComponent,
-} from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, defineComponent, h, resolveComponent } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAppStore } from '~/stores/app'
 import {
   LayoutDashboard, TicketCheck, Users, Package, CalendarDays, ShoppingCart,
-  ClipboardList, FileText, Settings, Menu, X, MapPin,
-  ScanLine, Upload, Plus, Monitor, Moon, Sun,
-  TicketPlus, UserPlus, Tag, Barcode,
-  MessageCircle, Tv, BarChart3, ArrowLeftRight, Grid3x3,
-  ChevronRight,
+  ClipboardList,
+  FileText, Settings as SettingsIcon, Menu, X, MapPin, Wrench, ScanLine, Upload,
+  Globe, Plus, Monitor, Moon, Sun, Download, ChevronRight,
+  TicketPlus, UserPlus, Tag, Barcode, Clock, AlertCircle,
+  MessageCircle, Tv, BarChart3, ArrowLeftRight,
 } from 'lucide-vue-next'
 import { useScreenLock } from '~/composables/useScreenLock'
 
@@ -218,75 +157,114 @@ const appStore = useAppStore()
 const { tickets, appointments } = storeToRefs(appStore)
 const settings = computed(() => appStore.settings ?? { businessName: '', email: '' })
 const route = useRoute()
-const currentPath = computed(() => route.path)
 
-// ── Loading gate ────────────────────────────────────────────────
-const NO_LOADING_GATE = ['/settings','/barcodes','/tradein','/forms','/import','/display','/analytics','/messages']
-const noLoadingGate = computed(() => NO_LOADING_GATE.includes(route.path))
+const upcomingItems = computed(() => {
+  const now = new Date()
+  const todayStr = now.toISOString().split('T')[0]
 
-// ── Screen lock ─────────────────────────────────────────────────
+  const appts = (appointments.value || [])
+    .filter(a => a.status === 'scheduled' && a.date >= todayStr)
+    .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
+    .slice(0, 4)
+    .map(a => ({
+      id: a.id,
+      label: a.title || a.description || 'Appointment',
+      sub: formatApptTime(a.date, a.time),
+      color: '#06b6d4',
+      icon: CalendarDays,
+    }))
+
+  const openTickets = (tickets.value || [])
+    .filter(t => t.status === 'Open' || t.status === 'In Progress')
+    .sort((a, b) => (b.id || 0) - (a.id || 0))
+    .slice(0, 3)
+    .map(t => ({
+      id: t.id,
+      label: `#${t.id} ${t.device || ''}`.trim(),
+      sub: t.status,
+      color: t.status === 'In Progress' ? '#f59e0b' : '#6366f1',
+      icon: TicketCheck,
+    }))
+
+  return [...appts, ...openTickets]
+})
+
+function formatApptTime(date: string, time: string) {
+  try {
+    const d = new Date(`${date}T${time || '00:00'}`)
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' · ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  } catch { return date }
+}
+
+const mobileMenuOpen = ref(false)
+const activeDrawer = ref<string | null>(null)
+// Prevent hydration mismatch by using an empty string on SSR
+const currentTheme = ref<string>('light')
+const hasHydrated = ref(false)
+
+// Pages that should never be blocked by the data-loading spinner.
+// These have their own data loads and must be accessible even when
+// the main store hasn't finished initializing yet.
+const NO_LOADING_GATE_PATHS = [
+  '/settings', '/barcodes', '/tradein',
+  '/forms', '/import', '/display', '/analytics', '/messages',
+]
+const noLoadingGate = computed(() => NO_LOADING_GATE_PATHS.includes(route.path))
+
 const { checkLockStatus, setupActivityListeners, cleanup } = useScreenLock()
 
-const isElectron = ref(false)
-const mobileMenuOpen = ref(false)
-const activePanel = ref<string | null>(null)
-const currentTheme = ref('light')
-
 onMounted(() => {
-  isElectron.value = !!(window as any).electronAPI?.isElectron
+  hasHydrated.value = true
   appStore.setupAuthListener()
   checkLockStatus()
   setupActivityListeners()
   currentTheme.value = localStorage.getItem('theme') || 'light'
-  window.addEventListener('keydown', onKeydown)
 })
-onUnmounted(() => { cleanup(); window.removeEventListener('keydown', onKeydown) })
+onUnmounted(() => cleanup())
 
-// ── User ────────────────────────────────────────────────────────
-const userEmail = computed(() => appStore.user?.email || settings.value.email || '')
+const userEmail = computed(() => {
+  return appStore.user?.email || settings.value.email || ''
+})
+
 const userInitials = computed(() => {
-  const e = userEmail.value
-  if (e) {
-    const p = e.split('@')[0].split('.')
-    return (p.length >= 2 ? p[0][0] + p[1][0] : e.substring(0,2)).toUpperCase()
+  const email = userEmail.value
+  if (email) {
+    const parts = email.split('@')[0].split('.')
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
+    return email.substring(0, 2).toUpperCase()
   }
   return 'UN'
 })
 
-// ── Navigation ──────────────────────────────────────────────────
 const navigation = [
-  { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, color: '#5b5ef4', badge: null,                                group: 'core' },
-  { name: 'Bookings',  path: '/bookings',  icon: ClipboardList,   color: '#5b5ef4', badge: { label:'New', color:'#f59e0b' },   group: 'core' },
-  { name: 'Customers', path: '/customers', icon: Users,           color: '#3b82f6', badge: null,                                group: 'core' },
-  { name: 'Inventory', path: '/inventory', icon: Package,         color: '#8b5cf6', badge: null,                                group: 'core' },
-  { name: 'Calendar',  path: '/calendar',  icon: CalendarDays,    color: '#06b6d4', badge: null,                                group: 'core' },
-  { name: 'POS',       path: '/pos',       icon: ShoppingCart,    color: '#ec4899', badge: { label:'Live', color:'#10b981' },  group: 'core' },
-  { name: 'Trade-In',  path: '/tradein',   icon: ArrowLeftRight,  color: '#f59e0b', badge: null,                                group: 'core' },
-  { name: 'Analytics', path: '/analytics', icon: BarChart3,       color: '#10b981', badge: null,                                group: 'tools' },
-  { name: 'Messages',  path: '/messages',  icon: MessageCircle,   color: '#ec4899', badge: null,                                group: 'tools' },
-  { name: 'Display',   path: '/display',   icon: Tv,              color: '#06b6d4', badge: null,                                group: 'tools' },
-  { name: 'Barcodes',  path: '/barcodes',  icon: ScanLine,        color: '#06b6d4', badge: null,                                group: 'tools' },
-  { name: 'Import',    path: '/import',    icon: Upload,          color: '#8b5cf6', badge: null,                                group: 'tools' },
-  { name: 'Forms',     path: '/forms',     icon: FileText,        color: '#10b981', badge: null,                                group: 'tools' },
+  { name: 'Dashboard',   path: '/dashboard',        icon: LayoutDashboard, color: '#6366f1', badge: null,                         group: 'core' },
+  { name: 'Bookings',    path: '/bookings',          icon: ClipboardList,   color: '#6366f1', badge: { label: 'New',    color: '#f59e0b' }, group: 'core' },
+  { name: 'Customers',   path: '/customers',         icon: Users,           color: '#3b82f6', badge: null,                         group: 'core' },
+  { name: 'Inventory',   path: '/inventory',         icon: Package,         color: '#8b5cf6', badge: null,                         group: 'core' },
+  { name: 'Calendar',    path: '/calendar',          icon: CalendarDays,    color: '#06b6d4', badge: null,                         group: 'core' },
+  { name: 'POS',         path: '/pos',               icon: ShoppingCart,    color: '#ec4899', badge: { label: 'Live',   color: '#10b981' }, group: 'core' },
+  { name: 'Trade-In',    path: '/tradein',           icon: ArrowLeftRight,  color: '#f59e0b', badge: null,                         group: 'core', isModal: false },
+  { name: 'Analytics',   path: '/analytics',         icon: BarChart3,       color: '#10b981', badge: null,                         group: 'tools' },
+  { name: 'Messages',    path: '/messages',          icon: MessageCircle,   color: '#ec4899', badge: null,                         group: 'tools' },
+  { name: 'Display',     path: '/display',           icon: Tv,              color: '#06b6d4', badge: null,                         group: 'tools' },
+  { name: 'Barcodes',    path: '/barcodes',          icon: ScanLine,        color: '#06b6d4', badge: null,                         group: 'tools' },
+  { name: 'Import',      path: '/import',            icon: Upload,          color: '#8b5cf6', badge: null,                         group: 'tools' },
+  { name: 'Forms',       path: '/forms',             icon: FileText,        color: '#10b981', badge: null,                         group: 'tools' },
+  { name: 'Settings',    path: '/settings',          icon: SettingsIcon,    color: '#64748b', badge: null,                         group: 'bottom' },
 ]
-const coreNav = computed(() => navigation.filter(n => n.group === 'core'))
 
-const currentPageNav = computed(() => navigation.find(i => i.path === route.path))
-const currentPageTitle = computed(() => currentPageNav.value?.name || 'NovaOps')
+const currentPageNav = computed(() => navigation.find(item => item.path === route.path))
+const currentPageTitle = computed(() => currentPageNav.value?.name || 'Dashboard')
 
 watch(() => route.path, () => { mobileMenuOpen.value = false })
 
-// ── Theme ───────────────────────────────────────────────────────
-const themeLabel = computed(() => ({ light: 'Light Mode', dark: 'Dark Mode', system: 'System' }[currentTheme.value] || 'Light Mode'))
-const themeIcon  = computed(() => ({ light: Sun, dark: Moon, system: Monitor }[currentTheme.value] || Sun))
-
-function cycleTheme() {
-  const next = currentTheme.value === 'light' ? 'dark' : currentTheme.value === 'dark' ? 'system' : 'light'
-  handleSetTheme(next)
+function setDrawer(name: string | null) {
+  activeDrawer.value = activeDrawer.value === name ? null : name
 }
+
 function handleSetTheme(theme: string) {
   currentTheme.value = theme
-  localStorage.setItem('theme', theme)
+  if (typeof localStorage !== 'undefined') localStorage.setItem('theme', theme)
   const root = document.documentElement
   if (theme === 'dark') root.classList.add('dark')
   else if (theme === 'light') root.classList.remove('dark')
@@ -302,64 +280,6 @@ function handleExport() {
   URL.revokeObjectURL(url)
 }
 
-// ── Panel (slide-up drawer) ────────────────────────────────────
-function togglePanel(name: string) {
-  activePanel.value = activePanel.value === name ? null : name
-}
-
-// Position the panel above the dock item that opened it
-const panelStyle = computed(() => {
-  return 'bottom: 90px; left: 50%; transform: translateX(-150px);'
-})
-
-// ── Bounce on click ─────────────────────────────────────────────
-const bouncingItem = ref<string | null>(null)
-function handleNavClick(item: { path: string; color?: string }) {
-  bouncingItem.value = item.path
-  setTimeout(() => { bouncingItem.value = null }, 600)
-  navigateTo(item.path)
-}
-
-// ── Dock Magnification ──────────────────────────────────────────
-const dockWrapRef = ref<HTMLElement | null>(null)
-const TOTAL_DOCK_ITEMS = computed(() => coreNav.value.length + 5) // +FAB+Tools+Theme+Settings+Avatar
-const dockScales = ref<number[]>(Array(20).fill(1))
-
-const ICON_SIZE    = 52   // px, base
-const ICON_GAP     = 8    // px between icons
-const MAG_RANGE    = 140  // px — radius of magnification effect
-const MAX_SCALE    = 1.75 // maximum magnification
-const MID_SCALE    = 1.35 // neighbour magnification
-
-function onDockMouseMove(e: MouseEvent) {
-  if (!dockWrapRef.value) return
-  const items = dockWrapRef.value.querySelectorAll<HTMLElement>('.dock-item-wrap, .dock-brand')
-  const scales: number[] = []
-  items.forEach((el) => {
-    const rect = el.getBoundingClientRect()
-    const centerX = rect.left + rect.width / 2
-    const dist = Math.abs(e.clientX - centerX)
-    if (dist < MAG_RANGE) {
-      const t = 1 - dist / MAG_RANGE
-      // Smooth cubic ease-out
-      const ease = t * t * (3 - 2 * t)
-      scales.push(1 + (MAX_SCALE - 1) * ease)
-    } else {
-      scales.push(1)
-    }
-  })
-  dockScales.value = scales
-}
-
-function onDockMouseLeave() {
-  // Spring back to 1 — CSS transition handles the animation
-  dockScales.value = Array(20).fill(1)
-}
-
-// ── Main content padding (dock is at bottom, not left) ─────────
-const mainPaddingStyle = computed(() => 'padding-bottom: 0')
-
-// ── Keyboard shortcuts ─────────────────────────────────────────
 function onKeydown(e: KeyboardEvent) {
   if (!e.metaKey && !e.ctrlKey) return
   const map: Record<string, string> = {
@@ -370,529 +290,576 @@ function onKeydown(e: KeyboardEvent) {
   const path = map[e.key.toLowerCase()]
   if (path) { e.preventDefault(); navigateTo(path) }
 }
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
-// ── Upcoming items (for panel) ─────────────────────────────────
-const upcomingItems = computed(() => {
-  const now = new Date()
-  const todayStr = now.toISOString().split('T')[0]
-  return [
-    ...(appointments.value || [])
-      .filter((a: any) => a.status === 'scheduled' && a.date >= todayStr)
-      .sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time))
-      .slice(0, 4)
-      .map((a: any) => ({ id: a.id, label: a.title || 'Appointment', sub: a.date, color: '#06b6d4', icon: CalendarDays })),
-    ...(tickets.value || [])
-      .filter((t: any) => t.status === 'Open' || t.status === 'In Progress')
-      .sort((a: any, b: any) => (b.id || 0) - (a.id || 0))
-      .slice(0, 3)
-      .map((t: any) => ({ id: t.id, label: `#${t.id} ${t.device || ''}`.trim(), sub: t.status, color: t.status === 'In Progress' ? '#f59e0b' : '#5b5ef4', icon: TicketCheck })),
-  ]
-})
-
-// ══════════════════════════════════════════════════════════════
-// DockItem — individual icon with magnification + bounce + tooltip
-// ══════════════════════════════════════════════════════════════
-const DockItem = defineComponent({
-  name: 'DockItem',
+// ── Rail Component ────────────────────────────────────────────────
+const RailContent = defineComponent({
+  name: 'RailContent',
   props: {
-    item:       { type: Object as () => typeof navigation[0], required: true },
-    scale:      { type: Number, default: 1 },
-    isActive:   { type: Boolean, default: false },
-    isBouncing: { type: Boolean, default: false },
+    navigation:     { type: Array as () => typeof navigation, required: true },
+    userInitials:   { type: String, required: true },
+    activeDrawer:   { type: String as () => string | null, default: null },
+    currentTheme:   { type: String, required: true },
+    upcomingItems:  { type: Array as () => typeof upcomingItems.value, default: () => [] },
+    isMobile:       { type: Boolean, default: false },
   },
-  emits: ['click'],
+  emits: ['set-drawer', 'navigate', 'set-theme', 'export'],
   setup(props, { emit }) {
-    return () => h('div', {
-      class: 'dock-item-wrap',
-      style: { '--s': props.scale },
-      onClick: () => emit('click'),
-    }, [
-      // Tooltip
-      h('div', { class: 'dock-tooltip' }, props.item.name),
+    const route = useRoute()
+    const NuxtLink = resolveComponent('NuxtLink')
+    const upcomingOpen = ref(false)
 
-      // Icon shell
-      h('div', {
-        class: [
-          'dock-icon',
-          props.isActive ? 'dock-icon-active' : 'dock-icon-inactive',
-          props.isBouncing ? 'dock-bounce' : '',
-        ].join(' '),
-        style: props.isActive ? `--ic: ${props.item.color}` : '',
-      }, [
-        h(props.item.icon, {
-          class: 'dock-icon-svg',
-          style: props.isActive ? `color: ${props.item.color}` : '',
-        }),
-        // Badge dot
-        props.item.badge ? h('div', {
-          class: 'dock-badge-dot',
-          style: `background: ${props.item.badge.color}`,
-        }) : null,
+    const coreNav = computed(() => props.navigation.filter(n => n.group === 'core'))
+
+    function onClickOutside(e: MouseEvent) {
+      if (!(e.target as HTMLElement).closest('[data-upcoming]')) upcomingOpen.value = false
+    }
+    onMounted(() => document.addEventListener('mousedown', onClickOutside))
+    onUnmounted(() => document.removeEventListener('mousedown', onClickOutside))
+
+    function isActive(path: string) { return route.path === path }
+
+    function railItem(item: typeof navigation[0]) {
+      const m = props.isMobile
+      const active = isActive(item.path)
+
+      const inner = () => [
+        h('div', {
+          class: [
+            `${m ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-2xl flex items-center justify-center transition-all duration-300 relative`,
+            active ? 'shadow-md' : 'hover:bg-muted/60',
+          ].join(' '),
+          style: active ? `background: ${item.color}28; transform: scale(1.05)` : '',
+        }, [
+          h(item.icon, {
+            class: `${m ? 'w-6 h-6' : 'w-5 h-5'} transition-all duration-200`,
+            style: active ? `color: ${item.color}` : 'color: hsl(var(--muted-foreground))',
+          }),
+          item.badge ? h('span', {
+            class: 'absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-card',
+            style: `background: ${item.badge.color}`,
+          }) : null,
+        ]),
+        h('span', {
+          class: `${m ? 'text-[11px]' : 'text-[10px]'} font-semibold leading-none transition-all duration-200`,
+          style: active ? `color: ${item.color}` : 'color: hsl(var(--muted-foreground))',
+        }, item.name),
+      ]
+
+      return h(NuxtLink, {
+        key: item.path,
+        to: item.path,
+        class: 'flex flex-col items-center gap-1.5 w-full px-1.5 group',
+        style: 'text-decoration: none',
+        onClick: () => emit('navigate'),
+      }, inner)
+    }
+
+    return () => h('div', { class: 'flex flex-col items-center h-full w-full gap-0' }, [
+
+      // More button (FAB) — opens the upcoming + quick-add drawer
+      h('div', { class: 'flex flex-col items-center w-full px-2 pt-3 pb-3 flex-shrink-0' }, [
+        h('button', {
+          class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-2xl flex items-center justify-center transition-all duration-200 active:scale-[0.92] hover:scale-[1.04]`,
+          style: props.activeDrawer === 'more'
+            ? 'background: #ec489918; border: 2px solid #ec489940'
+            : 'background: linear-gradient(145deg, #f9a8d4, #ec4899); box-shadow: 0 2px 8px #ec489945; border: 2px solid transparent',
+          title: 'More',
+          onClick: () => emit('set-drawer', 'more'),
+        }, [
+          h(Plus, {
+            class: `${props.isMobile ? 'w-6 h-6' : 'w-5 h-5'} transition-all duration-200`,
+            style: props.activeDrawer === 'more'
+              ? 'color: #ec4899; transform: rotate(45deg)'
+              : 'color: white',
+          }),
+        ]),
+        h('span', {
+          class: `${props.isMobile ? 'text-[11px]' : 'text-[10px]'} font-semibold leading-none mt-1`,
+          style: props.activeDrawer === 'more' ? 'color: #ec4899' : 'color: hsl(var(--muted-foreground))',
+        }, 'More'),
       ]),
 
-      // Running dot
-      props.isActive
-        ? h('div', { class: 'dock-dot', style: `background: ${props.item.color}` })
-        : null,
+      // Core nav
+      h('nav', { class: 'flex-1 flex flex-col items-center w-full gap-0.5 overflow-y-auto overflow-x-hidden py-1',  }, [
+        ...coreNav.value.map(item => railItem(item)),
+        h('div', { class: 'w-8 h-px my-2 flex-shrink-0', style: 'background: hsl(var(--border)/0.6)' }),
+        h('button', {
+          class: 'flex flex-col items-center gap-1.5 w-full px-1.5 group',
+          onClick: () => emit('set-drawer', 'tools'),
+        }, [
+          h('div', {
+            class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-2xl flex items-center justify-center transition-all duration-300`,
+            style: props.activeDrawer === 'tools'
+              ? 'background: #64748b28; transform: scale(1.05)'
+              : '',
+          }, [
+            h(ChevronRight, {
+              class: 'w-4 h-4 transition-all duration-300',
+              style: [
+                props.activeDrawer === 'tools' ? 'color: #64748b' : 'color: hsl(var(--muted-foreground))',
+                props.activeDrawer === 'tools' ? 'transform: rotate(180deg)' : '',
+              ].join('; '),
+            }),
+          ]),
+          h('span', {
+            class: `${props.isMobile ? 'text-[11px]' : 'text-[10px]'} font-semibold leading-none`,
+            style: props.activeDrawer === 'tools' ? 'color: #64748b' : 'color: hsl(var(--muted-foreground))',
+          }, 'Tools'),
+        ]),
+      ]),
+
+      // Bottom utilities
+      h('div', { class: 'flex flex-col items-center gap-0.5 pt-2 border-t border-border/60 w-full flex-shrink-0 pb-1' }, [
+
+        // Upcoming
+        h('div', { class: 'flex flex-col items-center gap-1 w-full px-1 relative', 'data-upcoming': '' }, [
+          h('button', {
+            class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-2xl flex items-center justify-center transition-all duration-300 relative`,
+            style: upcomingOpen.value ? 'background: #06b6d428; transform: scale(1.05)' : '',
+            onClick: () => { upcomingOpen.value = !upcomingOpen.value },
+          }, [
+            h(CalendarDays, { class: `${props.isMobile ? 'w-5 h-5' : 'w-4 h-4'} transition-colors`, style: upcomingOpen.value ? 'color: #06b6d4' : 'color: hsl(var(--muted-foreground))' }),
+            props.upcomingItems.length > 0
+              ? h('span', {
+                  class: 'absolute -top-0.5 -right-1 min-w-[15px] h-[15px] rounded-full text-white text-[9px] font-bold flex items-center justify-center px-0.5 border-2 border-card',
+                  style: 'background: #06b6d4',
+                }, String(props.upcomingItems.length))
+              : null,
+          ]),
+          h('span', { class: `${props.isMobile ? 'text-[11px]' : 'text-[10px]'} font-semibold leading-none`, style: upcomingOpen.value ? 'color: #06b6d4' : 'color: hsl(var(--muted-foreground))' }, 'Soon'),
+
+          upcomingOpen.value ? h('div', {
+            class: 'absolute bottom-0 left-[calc(100%+8px)] w-68 bg-popover border border-border/60 rounded-3xl shadow-2xl overflow-hidden z-50',
+            style: 'animation: m3BounceIn 0.35s cubic-bezier(0.34,1.56,0.64,1); width: 272px',
+          }, [
+            h('div', { class: 'flex items-center justify-between px-4 py-3.5 border-b border-border/60' }, [
+              h('div', { class: 'flex items-center gap-2.5' }, [
+                h('div', { class: 'w-7 h-7 rounded-2xl flex items-center justify-center', style: 'background: #06b6d420' }, [
+                  h(CalendarDays, { class: 'w-3.5 h-3.5', style: 'color: #06b6d4' }),
+                ]),
+                h('span', { class: 'text-sm font-bold' }, 'Upcoming'),
+              ]),
+              h('button', {
+                class: 'w-7 h-7 rounded-xl flex items-center justify-center hover:bg-muted/60 text-muted-foreground transition-all hover:scale-110 active:scale-90',
+                onClick: () => { upcomingOpen.value = false },
+              }, [h(X, { class: 'w-3.5 h-3.5' })]),
+            ]),
+            props.upcomingItems.length === 0
+              ? h('div', { class: 'px-4 py-8 text-center' }, [h('p', { class: 'text-xs text-muted-foreground' }, 'Nothing coming up')])
+              : h('div', { class: 'py-2 max-h-72 overflow-y-auto' },
+                  props.upcomingItems.map(item =>
+                    h('div', { key: item.id, class: 'flex items-center gap-3 px-4 py-2.5 hover:bg-muted/40 transition-colors' }, [
+                      h('div', { class: 'w-8 h-8 rounded-2xl flex items-center justify-center flex-shrink-0', style: `background: ${item.color}18` }, [
+                        h(item.icon, { class: 'w-4 h-4', style: `color: ${item.color}` }),
+                      ]),
+                      h('div', { class: 'flex-1 min-w-0' }, [
+                        h('p', { class: 'text-xs font-semibold text-foreground truncate' }, item.label),
+                        h('p', { class: 'text-[10px] text-muted-foreground truncate' }, item.sub),
+                      ]),
+                    ])
+                  )
+                ),
+            h('div', { class: 'border-t border-border/60' }, [
+              h('button', {
+                class: 'w-full text-xs font-semibold py-3 hover:bg-muted/40 transition-colors text-center',
+                style: 'color: #06b6d4',
+                onClick: () => { navigateTo('/calendar'); upcomingOpen.value = false },
+              }, 'Open Calendar →'),
+            ]),
+          ]) : null,
+        ]),
+
+        // Theme toggle
+        h('button', {
+          class: 'flex flex-col items-center gap-1 w-full px-1 group',
+          onClick: () => {
+            const next = props.currentTheme === 'light' ? 'dark' : props.currentTheme === 'dark' ? 'system' : 'light'
+            emit('set-theme', next)
+          },
+        }, [
+          h('div', { class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-2xl flex items-center justify-center hover:bg-muted/60 transition-all duration-200 hover:scale-105 active:scale-90` }, [
+            h(props.currentTheme === 'dark' ? Moon : props.currentTheme === 'light' ? Sun : Monitor, { class: `${props.isMobile ? 'w-5 h-5' : 'w-4 h-4'} text-muted-foreground` }),
+          ]),
+          h('span', { class: `${props.isMobile ? 'text-[11px]' : 'text-[10px]'} text-muted-foreground font-semibold leading-none` },
+            props.currentTheme === 'dark' ? 'Dark' : props.currentTheme === 'light' ? 'Light' : 'Auto'),
+        ]),
+
+        // Settings shortcut
+        h('div', { class: 'flex flex-col items-center gap-1 w-full px-1' }, [
+          h('button', {
+            class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-2xl flex items-center justify-center transition-all duration-300 hover:bg-muted/60 hover:scale-105 active:scale-90`,
+            style: isActive('/settings') ? 'background: #64748b28; transform: scale(1.05)' : '',
+            title: 'Settings',
+            onClick: () => { navigateTo('/settings'); emit('navigate') },
+          }, [
+            h(SettingsIcon, {
+              class: `${props.isMobile ? 'w-5 h-5' : 'w-4 h-4'} transition-colors`,
+              style: isActive('/settings') ? 'color: #64748b' : 'color: hsl(var(--muted-foreground))',
+            }),
+          ]),
+          h('span', {
+            class: `${props.isMobile ? 'text-[11px]' : 'text-[10px]'} font-semibold leading-none`,
+            style: isActive('/settings') ? 'color: #64748b' : 'color: hsl(var(--muted-foreground))',
+          }, 'Settings'),
+        ]),
+
+        // User avatar
+        h('button', {
+          class: 'flex flex-col items-center gap-1 w-full px-1 group mt-1',
+          onClick: () => navigateTo('/settings'),
+          title: 'Account & Settings',
+        }, [
+          h('div', {
+            class: `${props.isMobile ? 'w-12 h-12' : 'w-9 h-9'} rounded-full flex items-center justify-center text-white shadow-md transition-all duration-300 group-hover:scale-110 group-active:scale-90`,
+            style: 'background: linear-gradient(135deg, #6366f1, #8b5cf6)',
+          }, [
+            h('span', { class: `${props.isMobile ? 'text-sm' : 'text-xs'} font-bold` }, props.userInitials),
+          ]),
+        ]),
+      ]),
     ])
   },
 })
 
-// ══════════════════════════════════════════════════════════════
-// DrawerContent — panel that slides up from the dock
-// ══════════════════════════════════════════════════════════════
+// ── Drawer Component ──────────────────────────────────────────────
 const DrawerContent = defineComponent({
   name: 'DrawerContent',
   props: {
-    drawer:     { type: String, required: true },
-    navigation: { type: Array as () => typeof navigation, required: true },
-    userEmail:  { type: String, required: true },
-    settings:   { type: Object, required: true },
+    drawer:      { type: String, required: true },
+    navigation:  { type: Array as () => typeof navigation, required: true },
+    userEmail:   { type: String, required: true },
+    settings:    { type: Object, required: true },
   },
   emits: ['navigate', 'close'],
   setup(props, { emit }) {
     const NuxtLink = resolveComponent('NuxtLink')
+    const route = useRoute()
+
     const toolsNav = computed(() => props.navigation.filter(n => n.group === 'tools'))
 
+    const navLinkClass = 'flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold transition-all duration-200 text-muted-foreground hover:bg-muted/60 hover:text-foreground hover:scale-[1.01] active:scale-[0.98]'
+    const activeClass  = '!bg-primary/10 !text-primary'
+
     const quickItems = [
-      { label: 'New Ticket',   icon: TicketPlus,   color: '#f59e0b', path: '/bookings',  kbd: '⌘T' },
-      { label: 'House Call',   icon: MapPin,        color: '#10b981', path: '/bookings',  kbd: '⌘H' },
-      { label: 'New Customer', icon: UserPlus,      color: '#3b82f6', path: '/customers', kbd: '⌘U' },
-      { label: 'Open Register',icon: ShoppingCart,  color: '#ec4899', path: '/pos',       kbd: '⌘R' },
-      { label: 'New Invoice',  icon: Tag,           color: '#10b981', path: '/forms',     kbd: '⌘I' },
-      { label: 'Scan Barcode', icon: Barcode,       color: '#06b6d4', path: '/barcodes',  kbd: '⌘B' },
+      { type: 'ticket',    label: 'New Ticket',     icon: TicketPlus,   color: '#f59e0b', path: '/bookings',   kbd: '⌘T' },
+      { type: 'housecall', label: 'House Call',      icon: MapPin,       color: '#10b981', path: '/bookings',  kbd: '⌘H' },
+      { type: 'customer',  label: 'New Customer',    icon: UserPlus,     color: '#3b82f6', path: '/customers', kbd: '⌘U' },
+      { type: 'register',  label: 'Open Register',   icon: ShoppingCart, color: '#ec4899', path: '/pos',       kbd: '⌘R' },
+      { type: 'invoice',   label: 'New Invoice',     icon: Tag,          color: '#10b981', path: '/forms',     kbd: '⌘I' },
+      { type: 'scan',      label: 'Scan Barcode',    icon: Barcode,      color: '#06b6d4', path: '/barcodes',  kbd: '⌘B' },
     ]
 
     return () => {
-      const headerBar = (title: string, icon: any, color: string) =>
-        h('div', {
-          class: 'flex items-center justify-between px-4 py-3 border-b flex-shrink-0',
-          style: 'border-color: hsl(var(--border)/0.5)',
-        }, [
-          h('div', { class: 'flex items-center gap-2.5' }, [
-            h('div', {
-              class: 'w-7 h-7 rounded-xl flex items-center justify-center',
-              style: `background: ${color}20`,
-            }, [h(icon, { class: 'w-3.5 h-3.5', style: `color: ${color}` })]),
-            h('h2', { class: 'text-sm font-bold tracking-tight' }, title),
-          ]),
-          h('button', {
-            class: 'w-6 h-6 rounded-lg flex items-center justify-center hover:bg-muted/60 text-muted-foreground transition-all hover:scale-110 active:scale-90',
-            onClick: () => emit('close'),
-          }, [h(X, { class: 'w-3 h-3' })]),
-        ])
 
-      if (props.drawer === 'quick') {
+      if (props.drawer === 'more') {
+        const now = new Date()
+        const todayStr = now.toISOString().split('T')[0]
+        const { appointments, tickets, customers } = storeToRefs(useAppStore())
+
+        // Build rich upcoming appointments list
+        const upcomingAppts = (appointments.value || [])
+          .filter((a: any) => a.status === 'scheduled' && a.date >= todayStr)
+          .sort((a: any, b: any) => (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')))
+          .slice(0, 6)
+
+        // Build open tickets list
+        const openTickets = (tickets.value || [])
+          .filter((t: any) => t.status === 'Open' || t.status === 'In Progress')
+          .sort((a: any, b: any) => (b.id || 0) - (a.id || 0))
+          .slice(0, 4)
+
+        function getCustomerName(customerId: any) {
+          const c = (customers.value || []).find((c: any) => c.id == customerId)
+          return c?.name || 'Unknown'
+        }
+
+        function apptTime(date: string, time: string) {
+          try {
+            const d = new Date(`${date}T${time || '00:00'}`)
+            const isToday = date === todayStr
+            const isTomorrow = date === new Date(now.getTime() + 86400000).toISOString().split('T')[0]
+            const dayLabel = isToday ? 'Today' : isTomorrow ? 'Tomorrow' : d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
+            const timeLabel = time ? ' · ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''
+            return dayLabel + timeLabel
+          } catch { return date }
+        }
+
+        function minutesUntil(date: string, time: string) {
+          try {
+            const d = new Date(`${date}T${time || '00:00'}`)
+            return Math.round((d.getTime() - now.getTime()) / 60000)
+          } catch { return Infinity }
+        }
+
+        function urgencyStyle(mins: number) {
+          if (mins < 30)  return { dot: '#ef4444', label: mins <= 0 ? 'Now' : `${mins}m`,  bg: '#ef444415' }
+          if (mins < 120) return { dot: '#f59e0b', label: `${mins}m`,  bg: '#f59e0b12' }
+          if (mins < 1440) return { dot: '#06b6d4', label: `${Math.round(mins/60)}h`, bg: '#06b6d410' }
+          return { dot: '#8b5cf6', label: `${Math.round(mins/1440)}d`, bg: '#8b5cf610' }
+        }
+
+        function ticketStatusColor(status: string) {
+          return ({ 'Open': '#6366f1', 'In Progress': '#f59e0b', 'Waiting for Parts': '#ef4444', 'Completed': '#10b981' } as any)[status] || '#64748b'
+        }
+
+        const hasUpcoming = upcomingAppts.length > 0 || openTickets.length > 0
+
         return h('div', { class: 'flex flex-col h-full overflow-hidden' }, [
-          headerBar('Quick Actions', Plus, '#5b5ef4'),
-          h('div', { class: 'flex-1 overflow-y-auto p-3' }, [
-            h('div', { class: 'space-y-0.5' },
-              quickItems.map((item) =>
+
+          // ── Header
+          h('div', { class: 'flex items-center justify-between px-4 py-4 border-b border-border/60 flex-shrink-0' }, [
+            h('div', { class: 'flex items-center gap-2.5' }, [
+              h('div', { class: 'w-8 h-8 rounded-2xl flex items-center justify-center', style: 'background: linear-gradient(135deg, #6366f1, #8b5cf6)' }, [
+                h(CalendarDays, { class: 'w-4 h-4 text-white' }),
+              ]),
+              h('h2', { class: 'text-sm font-bold' }, 'More'),
+            ]),
+            h('button', {
+              class: 'w-8 h-8 rounded-2xl flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90 text-muted-foreground',
+              onClick: () => emit('close'),
+            }, [h(X, { class: 'w-4 h-4' })]),
+          ]),
+
+          // ── Scrollable body
+          h('div', { class: 'flex-1 overflow-y-auto' }, [
+
+            // ── Upcoming Appointments section
+            h('div', { class: 'px-3 pt-3 pb-1' }, [
+              h('div', { class: 'flex items-center justify-between mb-2 px-1' }, [
+                h('p', { class: 'text-[10px] font-black uppercase tracking-widest text-muted-foreground' }, 'Upcoming'),
                 h('button', {
-                  key: item.label,
-                  class: 'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-all text-left group hover:scale-[1.01] active:scale-[0.97]',
-                  onClick: () => { navigateTo(item.path); emit('navigate') },
-                }, [
-                  h('div', {
-                    class: 'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all group-hover:scale-110',
-                    style: `background: ${item.color}18`,
-                  }, [h(item.icon, { class: 'w-4 h-4', style: `color: ${item.color}` })]),
-                  h('p', { class: 'text-sm font-semibold flex-1' }, item.label),
-                  h('kbd', {
-                    class: 'text-[10px] font-mono text-muted-foreground/50 px-1.5 py-0.5 rounded-md',
-                    style: 'background: hsl(var(--muted)/0.6)',
-                  }, item.kbd),
-                ])
-              )
-            ),
+                  class: 'text-[10px] font-bold px-2.5 py-1 rounded-full transition-all hover:scale-105',
+                  style: 'color: #06b6d4; background: #06b6d412',
+                  onClick: () => { navigateTo('/calendar'); emit('navigate') },
+                }, 'Calendar →'),
+              ]),
+
+              upcomingAppts.length === 0
+                ? h('div', { class: 'flex items-center gap-3 px-3 py-4 rounded-2xl text-muted-foreground', style: 'background: hsl(var(--muted)/0.3)' }, [
+                    h(CalendarDays, { class: 'w-4 h-4 opacity-40' }),
+                    h('p', { class: 'text-xs font-medium' }, 'No appointments scheduled'),
+                  ])
+                : h('div', { class: 'space-y-1.5' },
+                    upcomingAppts.map((a: any) => {
+                      const mins = minutesUntil(a.date, a.time)
+                      const urg = urgencyStyle(mins)
+                      return h('div', {
+                        key: a.id,
+                        class: 'flex items-start gap-3 px-3 py-3 rounded-2xl cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.98] group',
+                        style: `background: ${urg.bg}; outline: 1.5px solid ${urg.dot}20; outline-offset: 0`,
+                        onClick: () => { navigateTo('/calendar'); emit('navigate') },
+                      }, [
+                        h('div', {
+                          class: 'w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0',
+                          style: `background: ${urg.dot}22`,
+                        }, [
+                          h(CalendarDays, { class: 'w-4 h-4', style: `color: ${urg.dot}` }),
+                        ]),
+                        h('div', { class: 'flex-1 min-w-0' }, [
+                          h('p', { class: 'text-xs font-black truncate text-foreground' }, a.title || a.description || 'Appointment'),
+                          h('p', { class: 'text-[10px] text-muted-foreground font-medium mt-0.5 truncate' }, getCustomerName(a.customerId)),
+                          h('p', { class: 'text-[10px] font-semibold mt-0.5', style: `color: ${urg.dot}` }, apptTime(a.date, a.time)),
+                        ]),
+                        h('span', {
+                          class: 'text-[9px] font-black px-2 py-1 rounded-full flex-shrink-0',
+                          style: `background: ${urg.dot}20; color: ${urg.dot}`,
+                        }, urg.label),
+                      ])
+                    })
+                  ),
+            ]),
+
+            // ── Open Tickets section
+            h('div', { class: 'px-3 pt-3 pb-1' }, [
+              h('div', { class: 'flex items-center justify-between mb-2 px-1' }, [
+                h('p', { class: 'text-[10px] font-black uppercase tracking-widest text-muted-foreground' }, 'Open Tickets'),
+                h('button', {
+                  class: 'text-[10px] font-bold px-2.5 py-1 rounded-full transition-all hover:scale-105',
+                  style: 'color: #6366f1; background: #6366f112',
+                  onClick: () => { navigateTo('/bookings'); emit('navigate') },
+                }, 'Bookings →'),
+              ]),
+
+              openTickets.length === 0
+                ? h('div', { class: 'flex items-center gap-3 px-3 py-4 rounded-2xl text-muted-foreground', style: 'background: hsl(var(--muted)/0.3)' }, [
+                    h(TicketCheck, { class: 'w-4 h-4 opacity-40' }),
+                    h('p', { class: 'text-xs font-medium' }, 'No open tickets'),
+                  ])
+                : h('div', { class: 'space-y-1.5' },
+                    openTickets.map((t: any) => {
+                      const sc = ticketStatusColor(t.status)
+                      return h('div', {
+                        key: t.id,
+                        class: 'flex items-start gap-3 px-3 py-3 rounded-2xl cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.98]',
+                        style: `background: ${sc}10; outline: 1.5px solid ${sc}20; outline-offset: 0`,
+                        onClick: () => { navigateTo('/bookings'); emit('navigate') },
+                      }, [
+                        h('div', {
+                          class: 'w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0',
+                          style: `background: ${sc}22`,
+                        }, [
+                          h(TicketCheck, { class: 'w-4 h-4', style: `color: ${sc}` }),
+                        ]),
+                        h('div', { class: 'flex-1 min-w-0' }, [
+                          h('div', { class: 'flex items-center gap-1.5' }, [
+                            h('span', { class: 'text-[10px] font-black', style: `color: ${sc}` }, `#${t.id}`),
+                            h('p', { class: 'text-xs font-bold truncate text-foreground' }, `${t.device || ''} ${t.deviceModel || ''}`.trim() || 'Device'),
+                          ]),
+                          h('p', { class: 'text-[10px] text-muted-foreground font-medium mt-0.5 truncate' }, getCustomerName(t.customerId)),
+                          t.issue ? h('p', { class: 'text-[10px] text-muted-foreground truncate mt-0.5' }, t.issue) : null,
+                        ]),
+                        h('span', {
+                          class: 'text-[9px] font-black px-2 py-1 rounded-full flex-shrink-0',
+                          style: `background: ${sc}20; color: ${sc}`,
+                        }, t.status === 'In Progress' ? 'Active' : 'Open'),
+                      ])
+                    })
+                  ),
+            ]),
+
+            // Spacer before Quick Add
+            h('div', { class: 'mx-3 my-3 h-px', style: 'background: hsl(var(--border)/0.6)' }),
+
+            // ── Quick Actions section
+            h('div', { class: 'px-3 pb-3' }, [
+              h('p', { class: 'text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 mb-2' }, 'Quick Actions'),
+              h('div', { class: 'space-y-1' },
+                quickItems.map((item: any) =>
+                  h('button', {
+                    key: item.type,
+                    class: 'w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-muted/60 transition-all text-left group hover:scale-[1.01] active:scale-[0.97]',
+                    onClick: () => { navigateTo(item.path); emit('navigate') },
+                  }, [
+                    h('div', {
+                      class: 'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110',
+                      style: `background: ${item.color}20`,
+                    }, [
+                      h(item.icon, { class: 'w-4 h-4', style: `color: ${item.color}` }),
+                    ]),
+                    h('p', { class: 'text-sm font-semibold text-foreground flex-1' }, item.label),
+                    h('kbd', {
+                      class: 'text-[10px] text-muted-foreground/60 font-mono rounded-lg flex-shrink-0 px-2 py-1',
+                      style: 'background: hsl(var(--muted)/0.6)',
+                    }, item.kbd),
+                  ])
+                )
+              ),
+            ]),
           ]),
         ])
       }
 
       if (props.drawer === 'tools') {
-        return h('div', { class: 'flex flex-col h-full overflow-hidden' }, [
-          headerBar('Tools', Grid3x3, '#64748b'),
+        return h('div', { class: 'flex flex-col h-full' }, [
+          h('div', { class: 'flex items-center justify-between px-4 py-4 border-b border-border/60 flex-shrink-0' }, [
+            h('div', { class: 'flex items-center gap-2.5' }, [
+              h('div', { class: 'w-8 h-8 rounded-2xl flex items-center justify-center', style: 'background: #64748b22' }, [
+                h(ChevronRight, { class: 'w-4 h-4', style: 'color: #64748b' }),
+              ]),
+              h('h2', { class: 'text-sm font-bold' }, 'Tools'),
+            ]),
+            h('button', {
+              class: 'w-8 h-8 rounded-2xl flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90 text-muted-foreground',
+              onClick: () => emit('close'),
+            }, [h(X, { class: 'w-4 h-4' })]),
+          ]),
           h('nav', { class: 'flex-1 p-3 space-y-0.5 overflow-y-auto' },
             toolsNav.value.map((item: any) =>
               h(NuxtLink, {
-                key: item.path, to: item.path,
-                class: 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:scale-[1.01] active:scale-[0.97]',
+                key: item.path,
+                to: item.path,
+                class: navLinkClass,
+                activeClass,
                 onClick: () => emit('navigate'),
               }, () => [
                 h('div', {
-                  class: 'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0',
-                  style: `background: ${item.color}18`,
-                }, [h(item.icon, { class: 'w-4 h-4', style: `color: ${item.color}` })]),
-                h('span', { class: 'flex-1' }, item.name),
+                  class: 'w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0',
+                  style: `background: ${item.color}20`,
+                }, [
+                  h(item.icon, { class: 'w-4 h-4', style: `color: ${item.color}` }),
+                ]),
+                h('span', { class: 'flex-1 truncate' }, item.name),
                 item.badge ? h('span', {
-                  class: 'text-[9px] font-bold px-2 py-0.5 rounded-full',
-                  style: `background: ${item.badge.color}18; color: ${item.badge.color}`,
+                  class: 'text-[9px] font-bold px-2 py-1 rounded-full flex-shrink-0 border',
+                  style: `background: ${item.badge.color}18; color: ${item.badge.color}; border-color: ${item.badge.color}35`,
                 }, item.badge.label) : null,
               ])
             )
           ),
-          h('div', {
-            class: 'p-3 border-t',
-            style: 'border-color: hsl(var(--border)/0.5)',
-          }, [
+          h('div', { class: 'p-3 border-t border-border/60 flex-shrink-0 space-y-1' }, [
+            h(NuxtLink, {
+              to: '/settings',
+              class: navLinkClass,
+              activeClass,
+              onClick: () => emit('navigate'),
+            }, () => [
+              h('div', { class: 'w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0', style: 'background: #64748b18' }, [
+                h(SettingsIcon, { class: 'w-4 h-4', style: 'color: #64748b' }),
+              ]),
+              h('span', { class: 'flex-1 truncate' }, 'Settings'),
+            ]),
             h('div', {
-              class: 'flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer hover:bg-muted/40 transition-all',
+              class: 'mt-1 px-3 py-2.5 rounded-2xl flex items-center gap-3 cursor-pointer hover:bg-muted/50 transition-all hover:scale-[1.01] active:scale-[0.97]',
               style: 'background: hsl(var(--muted)/0.3)',
               onClick: () => navigateTo('/settings'),
             }, [
               h('div', {
-                class: 'w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0',
-                style: 'background: linear-gradient(135deg, #5b5ef4, #8b5cf6)',
-              }, [h('span', {}, props.userEmail.substring(0,2).toUpperCase())]),
-              h('div', { class: 'min-w-0 flex-1' }, [
+                class: 'w-8 h-8 rounded-full flex items-center justify-center text-white shadow-md flex-shrink-0',
+                style: 'background: linear-gradient(135deg, #6366f1, #8b5cf6)',
+              }, [h('span', { class: 'text-xs font-bold' }, props.userEmail.substring(0,2).toUpperCase())]),
+              h('div', { class: 'flex-1 min-w-0' }, [
                 h('p', { class: 'text-xs font-bold truncate' }, props.userEmail),
-                h('p', { class: 'text-[10px] text-muted-foreground truncate' }, (props.settings as any).businessName || 'NovaOps'),
+                h('p', { class: 'text-[10px] text-muted-foreground truncate' }, props.settings.businessName || 'NovaOps'),
               ]),
             ]),
           ]),
         ])
       }
 
-      return h('div')
+      return h('div', {})
     }
-  },
-})
-
-// ══════════════════════════════════════════════════════════════
-// MobileNav — full sidebar for mobile
-// ══════════════════════════════════════════════════════════════
-const MobileNav = defineComponent({
-  name: 'MobileNav',
-  props: {
-    navigation:  { type: Array as () => typeof navigation, required: true },
-    userInitials:{ type: String, required: true },
-    userEmail:   { type: String, required: true },
-    settings:    { type: Object, required: true },
-    currentTheme:{ type: String, required: true },
-  },
-  emits: ['navigate', 'set-theme', 'export'],
-  setup(props, { emit }) {
-    const NuxtLink = resolveComponent('NuxtLink')
-    const route = useRoute()
-    return () => h('div', { class: 'flex flex-col h-full' }, [
-      h('div', {
-        class: 'flex items-center gap-3 px-5 py-4 border-b',
-        style: 'border-color: hsl(var(--border)/0.5)',
-      }, [
-        h('div', {
-          class: 'w-9 h-9 rounded-xl flex items-center justify-center',
-          style: 'background: linear-gradient(135deg, #5b5ef4, #8b5cf6)',
-        }, [h('span', { class: 'text-white font-black text-sm' }, 'N')]),
-        h('div', [
-          h('p', { class: 'text-sm font-bold' }, 'NovaOps'),
-          h('p', { class: 'text-xs text-muted-foreground' }, (props.settings as any).businessName || 'Repair Shop'),
-        ]),
-      ]),
-      h('nav', { class: 'flex-1 p-3 space-y-0.5 overflow-y-auto' },
-        props.navigation.map((item: any) =>
-          h(NuxtLink, {
-            key: item.path, to: item.path,
-            class: [
-              'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all',
-              route.path === item.path
-                ? 'text-foreground'
-                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
-            ].join(' '),
-            style: route.path === item.path ? `background: ${item.color}12` : '',
-            onClick: () => emit('navigate'),
-          }, () => [
-            h('div', {
-              class: 'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0',
-              style: `background: ${item.color}18`,
-            }, [h(item.icon, { class: 'w-4 h-4', style: `color: ${item.color}` })]),
-            h('span', { class: 'flex-1' }, item.name),
-            item.badge ? h('span', {
-              class: 'text-[9px] font-bold px-2 py-0.5 rounded-full',
-              style: `background: ${item.badge.color}18; color: ${item.badge.color}`,
-            }, item.badge.label) : null,
-          ])
-        )
-      ),
-      h('div', {
-        class: 'p-4 border-t',
-        style: 'border-color: hsl(var(--border)/0.5)',
-      }, [
-        h('div', { class: 'flex items-center gap-3' }, [
-          h('div', {
-            class: 'w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold',
-            style: 'background: linear-gradient(135deg, #5b5ef4, #8b5cf6)',
-          }, [h('span', {}, props.userInitials)]),
-          h('div', { class: 'flex-1 min-w-0' }, [
-            h('p', { class: 'text-sm font-bold truncate' }, props.userEmail || 'User'),
-            h('p', { class: 'text-xs text-muted-foreground' }, 'NovaOps Account'),
-          ]),
-        ]),
-      ]),
-    ])
   },
 })
 </script>
 
-<style>
-/* ══════════════════════════════════════════════════════════════
-   macOS DOCK styles
-   ══════════════════════════════════════════════════════════════ */
+<style scoped>
+/* ── Spring sidebar ───────────────────────────────────────────── */
+.sidebar-enter-active { transition: transform 0.35s cubic-bezier(0.34,1.3,0.64,1); }
+.sidebar-leave-active { transition: transform 0.18s ease-in; }
+.sidebar-enter-from, .sidebar-leave-to { transform: translateX(-100%); }
 
-/* Wrap — centered at bottom */
-.dock-wrap {
-  position: fixed;
-  bottom: 16px;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  justify-content: center;
-  align-items: flex-end;
-  pointer-events: none;
-}
+/* ── Drawer spring ────────────────────────────────────────────── */
+.drawer-enter-active { transition: transform 0.3s cubic-bezier(0.34,1.3,0.64,1), opacity 0.2s ease; }
+.drawer-leave-active { transition: transform 0.15s ease-in, opacity 0.15s ease; }
+.drawer-enter-from   { transform: translateX(-100%); opacity: 0; }
+.drawer-leave-to     { transform: translateX(-100%); opacity: 0; }
 
-/* Floating glass pill */
-.dock-pill {
-  display: flex;
-  align-items: flex-end;
-  gap: 4px;
-  padding: 8px 12px;
-  border-radius: 22px;
-  pointer-events: all;
-  /* Extra Dock-specific shadow depth */
-  box-shadow:
-    0 8px 32px rgba(0,0,0,0.18),
-    0 2px 8px rgba(0,0,0,0.12),
-    0 0 0 0.5px rgba(255,255,255,0.6) inset,
-    0 1px 0 rgba(255,255,255,0.8) inset;
-  background: rgba(255,255,255,0.72);
-  backdrop-filter: blur(28px) saturate(200%);
-  -webkit-backdrop-filter: blur(28px) saturate(200%);
-  border: 1px solid rgba(255,255,255,0.85);
-}
-.dark .dock-pill {
-  background: rgba(24,26,40,0.82);
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow:
-    0 8px 32px rgba(0,0,0,0.5),
-    0 2px 8px rgba(0,0,0,0.35),
-    0 0 0 0.5px rgba(255,255,255,0.05) inset;
-}
+/* ── Overlay ──────────────────────────────────────────────────── */
+.overlay-enter-active, .overlay-leave-active { transition: opacity 0.2s ease; }
+.overlay-enter-from, .overlay-leave-to       { opacity: 0; }
 
-/* ── Dock item wrapper ── */
-.dock-item-wrap {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  cursor: pointer;
-  /* Scale is driven by JS via --s custom property */
-  transform: scale(var(--s, 1));
-  transform-origin: bottom center;
-  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
-  /* Reserve space so pill doesn't resize */
-  width: 56px;
+/* ── Elastic progress bar ─────────────────────────────────────── */
+@keyframes elasticBar {
+  0%   { left: -35%; width: 35%; }
+  40%  { left: 15%; width: 70%; }
+  70%  { left: 65%; width: 40%; }
+  100% { left: 110%; width: 35%; }
 }
+.hui-loading-bar { animation: elasticBar 1.8s cubic-bezier(0.4,0,0.2,1) infinite; }
 
-/* ── Tooltip (label above icon) ── */
-.dock-tooltip {
-  position: absolute;
-  bottom: calc(100% + 14px);
-  left: 50%;
-  transform: translateX(-50%) scale(calc(1 / var(--s, 1)));
-  background: rgba(0,0,0,0.75);
-  color: white;
-  font-family: 'Outfit', sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 8px;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.12s ease, transform 0.12s ease;
-  backdrop-filter: blur(8px);
-  z-index: 100;
+/* ── Page enter — smooth crossfade + gentle lift, no overshoot ── */
+@keyframes pageEnter {
+  0%   { transform: translateY(8px); opacity: 0; }
+  100% { transform: translateY(0);   opacity: 1; }
 }
-.dark .dock-tooltip { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.08); }
-.dock-item-wrap:hover .dock-tooltip { opacity: 1; }
+.hui-page-enter { animation: pageEnter 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
 
-/* ── Icon shell ── */
-.dock-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition:
-    background 0.15s ease,
-    box-shadow 0.2s ease;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.dock-icon-inactive {
-  background: rgba(0,0,0,0.05);
-}
-.dark .dock-icon-inactive { background: rgba(255,255,255,0.06); }
-.dock-item-wrap:hover .dock-icon-inactive {
-  background: rgba(0,0,0,0.08);
-}
-.dark .dock-item-wrap:hover .dock-icon-inactive { background: rgba(255,255,255,0.1); }
-
-.dock-icon-active {
-  background: linear-gradient(145deg, color-mix(in srgb, var(--ic) 18%, white), color-mix(in srgb, var(--ic) 10%, white));
-  box-shadow: 0 2px 10px color-mix(in srgb, var(--ic) 30%, transparent);
-}
-.dark .dock-icon-active {
-  background: linear-gradient(145deg, color-mix(in srgb, var(--ic) 28%, transparent), color-mix(in srgb, var(--ic) 16%, transparent));
-}
-
-/* Muted utility icons (theme, settings) */
-.dock-icon-muted {
-  background: rgba(0,0,0,0.04);
-}
-.dark .dock-icon-muted { background: rgba(255,255,255,0.05); }
-.dock-item-wrap:hover .dock-icon-muted { background: rgba(0,0,0,0.08); }
-.dark .dock-item-wrap:hover .dock-icon-muted { background: rgba(255,255,255,0.1); }
-.dock-icon-active-settings { background: rgba(100,116,139,0.15) !important; }
-.dock-icon-active-tools    { background: rgba(100,116,139,0.15) !important; }
-
-/* SVG icon size */
-.dock-icon-svg {
-  width: 22px;
-  height: 22px;
-  color: hsl(var(--muted-foreground));
-  transition: color 0.15s;
-  flex-shrink: 0;
-}
-
-/* FAB — pink gradient */
-.dock-fab {
-  background: linear-gradient(135deg, #f9a8d4, #ec4899) !important;
-  box-shadow: 0 4px 14px rgba(236,72,153,0.4) !important;
-  transition: box-shadow 0.2s, background 0.2s !important;
-}
-.dock-fab-open {
-  background: rgba(236,72,153,0.12) !important;
-  box-shadow: 0 0 0 2px rgba(236,72,153,0.35) !important;
-}
-.dock-fab .dock-icon-svg { color: white !important; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); }
-.dock-fab-open .dock-icon-svg { color: #ec4899 !important; }
-
-/* Badge dot (notification) */
-.dock-badge-dot {
-  position: absolute;
-  top: 6px; right: 6px;
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  border: 2px solid hsl(var(--card));
-}
-
-/* Running indicator dot */
-.dock-dot {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  box-shadow: 0 0 4px currentColor;
-}
-
-/* ── Divider ── */
-.dock-divider {
-  width: 1px;
-  height: 36px;
-  background: rgba(0,0,0,0.1);
-  border-radius: 1px;
-  margin: 0 2px;
-  align-self: center;
-  flex-shrink: 0;
-}
-.dark .dock-divider { background: rgba(255,255,255,0.08); }
-
-/* ── Brand logo ── */
-.dock-brand {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  width: 56px;
-  flex-shrink: 0;
-  cursor: default;
-}
-.dock-brand-inner {
-  width: 50px; height: 50px; border-radius: 14px;
-  background: linear-gradient(135deg, #5b5ef4, #8b5cf6);
-  box-shadow: 0 4px 14px rgba(91,94,244,0.38);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 900; font-size: 20px; color: white;
-  letter-radius: -0.5px;
-}
-.dock-brand-dot {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: #5b5ef4; box-shadow: 0 0 4px #5b5ef4;
-}
-
-/* ── Avatar ── */
-.dock-avatar {
-  width: 50px; height: 50px; border-radius: 50%;
-  background: linear-gradient(135deg, #5b5ef4, #8b5cf6);
-  box-shadow: 0 3px 10px rgba(91,94,244,0.35);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Outfit', sans-serif;
-  font-size: 16px; font-weight: 700; color: white;
-  flex-shrink: 0;
-  transition: box-shadow 0.2s;
-}
-.dock-item-wrap:hover .dock-avatar {
-  box-shadow: 0 6px 20px rgba(91,94,244,0.5);
-}
-
-/* ── Bounce animation (click) ── */
-@keyframes dockBounce {
-  0%   { transform: translateY(0); }
-  25%  { transform: translateY(-18px); }
-  50%  { transform: translateY(-6px); }
-  68%  { transform: translateY(-12px); }
-  84%  { transform: translateY(-3px); }
-  100% { transform: translateY(0); }
-}
-.dock-bounce {
-  animation: dockBounce 0.55s cubic-bezier(0.36,0.07,0.19,0.97);
-}
-
-/* ── Slide-up panel ── */
-.panel-up-enter-active {
-  transition: transform 0.32s cubic-bezier(0.34,1.4,0.64,1), opacity 0.2s ease;
-}
-.panel-up-leave-active {
-  transition: transform 0.18s ease-in, opacity 0.16s ease;
-}
-.panel-up-enter-from {
-  transform: translateY(20px) translateX(-150px);
-  opacity: 0;
-}
-.panel-up-leave-to {
-  transform: translateY(14px) translateX(-150px);
-  opacity: 0;
-}
-
-/* ── Mobile sidebar ── */
-.mobile-slide-enter-active { transition: transform 0.3s cubic-bezier(0.34,1.3,0.64,1); }
-.mobile-slide-leave-active { transition: transform 0.16s ease-in; }
-.mobile-slide-enter-from,
-.mobile-slide-leave-to     { transform: translateX(-100%); }
-
-/* ── Overlay ── */
-.overlay-enter-active, .overlay-leave-active { transition: opacity 0.18s ease; }
-.overlay-enter-from,   .overlay-leave-to     { opacity: 0; }
-
-/* ── Main content respects dock height ── */
-main {
-  padding-bottom: 96px !important; /* dock + breathing room */
-}
-@media (max-width: 1023px) {
-  main { padding-bottom: 2rem !important; }
+/* ── Popout spring ────────────────────────────────────────────── */
+@keyframes m3BounceIn {
+  0%   { transform: scale(0.88) translateY(6px); opacity: 0; }
+  65%  { transform: scale(1.04) translateY(-1px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); }
 }
 </style>

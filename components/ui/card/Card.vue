@@ -1,18 +1,44 @@
-<script setup lang="ts">
-import { cn } from '~/lib/utils'
-
-interface CardProps {
-  class?: string
-}
-
-defineOptions({ name: 'Card' })
-
-const props = withDefaults(defineProps<CardProps>(), { class: '' })
-</script>
-
 <template>
-  <!-- M3 Card — rounded-[28px] to match the app's card language -->
-  <div :class="cn('rounded-[28px] border border-border/60 bg-card text-card-foreground', props.class)">
+  <div :class="cardClass" v-bind="$attrs">
     <slot />
   </div>
 </template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+const props = withDefaults(defineProps<{
+  shadow?: 'none' | 'sm' | 'md' | 'lg'
+  radius?: 'none' | 'sm' | 'md' | 'lg'
+  isPressable?: boolean
+  isHoverable?: boolean
+  isBlurred?: boolean
+  fullWidth?: boolean
+}>(), {
+  shadow: 'sm',
+  radius: 'lg',
+  isPressable: false,
+  isHoverable: false,
+  isBlurred: false,
+  fullWidth: false,
+})
+const cardClass = computed(() => {
+  const base = 'hui-card'
+  const radii: Record<string, string> = {
+    none: '!rounded-none',
+    sm:   '!rounded-xl',
+    md:   '!rounded-2xl',
+    lg:   '!rounded-3xl',
+  }
+  const shadows: Record<string, string> = {
+    none: 'shadow-none',
+    sm:   '',
+    md:   '!shadow-[var(--hui-shadow-md)]',
+    lg:   '!shadow-[var(--hui-shadow-lg)]',
+  }
+  return [base, radii[props.radius], shadows[props.shadow],
+    props.isPressable || props.isHoverable ? 'hui-card-hover cursor-pointer' : '',
+    props.isBlurred ? 'backdrop-blur-md bg-background/70' : '',
+    props.fullWidth ? 'w-full' : '',
+  ].join(' ')
+})
+</script>

@@ -5,8 +5,8 @@
     <div class="flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-4">
         <div
-          class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
-          style="background: linear-gradient(135deg, #5b5ef4 0%, #4f46e5 100%); box-shadow: 0 4px 20px #5b5ef450"
+          class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"
+          style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); box-shadow: 0 4px 20px #6366f150"
         >
           <ClipboardList class="w-6 h-6 text-white" />
         </div>
@@ -19,7 +19,7 @@
       <!-- Dynamic action button per tab -->
       <button
         v-if="activeTab === 'tickets'"
-        class="m3-fab flex items-center gap-2 h-11 px-5 rounded-full text-sm font-black text-white"
+        class="hui-fab flex items-center gap-2 h-11 px-5 rounded-full text-sm font-black text-white"
         style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 16px #f59e0b40"
         @click="newTicketOpen = true"
       >
@@ -27,7 +27,7 @@
       </button>
       <button
         v-else-if="activeTab === 'housecalls'"
-        class="m3-fab flex items-center gap-2 h-11 px-5 rounded-full text-sm font-black text-white"
+        class="hui-fab flex items-center gap-2 h-11 px-5 rounded-full text-sm font-black text-white"
         style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 16px #10b98140"
         @click="openNewHousecall"
       >
@@ -35,7 +35,7 @@
       </button>
       <button
         v-else-if="activeTab === 'thirdparty'"
-        class="m3-fab flex items-center gap-2 h-11 px-5 rounded-full text-sm font-black text-white"
+        class="hui-fab flex items-center gap-2 h-11 px-5 rounded-full text-sm font-black text-white"
         style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); box-shadow: 0 4px 16px #8b5cf640"
         @click="openNewVendorRepair"
       >
@@ -48,7 +48,7 @@
       <button
         v-for="tab in tabs"
         :key="tab.id"
-        class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all"
+        class="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all"
         :style="activeTab === tab.id
           ? `background: ${tab.color}; color: white; box-shadow: 0 4px 12px ${tab.color}50`
           : 'color: hsl(var(--muted-foreground))'"
@@ -71,10 +71,10 @@
 
       <!-- KPI Row -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div v-for="stat in ticketStats" :key="stat.label" class="m3-kpi rounded-2xl p-5 flex flex-col gap-3"
+        <div v-for="stat in ticketStats" :key="stat.label" class="hui-stat-card rounded-2xl p-5 flex flex-col gap-3"
           :style="`background: ${stat.color}14; outline: 2px solid ${stat.color}28; outline-offset: 0`">
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-xl flex items-center justify-center" :style="`background: ${stat.color}24`">
+            <div class="w-11 h-11 rounded-2xl flex items-center justify-center" :style="`background: ${stat.color}24`">
               <component :is="stat.icon" class="w-5 h-5" :style="`color: ${stat.color}`" />
             </div>
           </div>
@@ -90,7 +90,7 @@
         <div class="relative flex-1 min-w-[160px] max-w-sm">
           <Search class="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <input v-model="ticketSearch" placeholder="Search tickets…"
-            class="w-full h-12 pl-11 pr-4 rounded-full text-sm bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-amber-400/50 focus:ring-2 focus:ring-amber-400/20 transition-all font-medium" />
+            class="w-full h-12 pl-11 pr-4 rounded-full text-sm bg-muted/50 border-2 border-divider focus:outline-none focus:border-amber-400/50 focus:ring-2 focus:ring-amber-400/20 transition-all font-medium" />
         </div>
         <div class="flex gap-2 flex-wrap">
           <button v-for="s in [null, ...statusList]" :key="s ?? 'all'"
@@ -104,7 +104,7 @@
 
       <!-- Ticket List -->
       <div class="space-y-4">
-        <div v-for="ticket in filteredTickets" :key="ticket.id" class="m3-ticket-card cursor-pointer" @click="openTicket(ticket)">
+        <div v-for="ticket in filteredTickets" :key="ticket.id" class="hui-ticket-card cursor-pointer" @click="openTicket(ticket)">
           <div class="px-6 pt-5 pb-4 rounded-t-[24px] flex items-start justify-between" :style="`background: ${ticketStatusColor(ticket.status)}14`">
             <div class="space-y-1">
               <div class="flex items-center gap-2.5">
@@ -119,10 +119,10 @@
             </div>
             <span class="text-xs font-black px-3 py-1.5 rounded-full flex-shrink-0 ml-4" :style="`background: ${ticketStatusColor(ticket.status)}24; color: ${ticketStatusColor(ticket.status)}`">{{ ticket.status }}</span>
           </div>
-          <div class="m3-tear-line relative flex items-center px-4 py-0" :style="`background: ${ticketStatusColor(ticket.status)}08`">
-            <div class="m3-scallop-left" style="background: hsl(var(--background))" />
+          <div class="hui-tear-line relative flex items-center px-4 py-0" :style="`background: ${ticketStatusColor(ticket.status)}08`">
+            <div class="hui-scallop-left" style="background: hsl(var(--background))" />
             <div class="flex-1 border-t-2 border-dashed mx-6" :style="`border-color: ${ticketStatusColor(ticket.status)}40`" />
-            <div class="m3-scallop-right" style="background: hsl(var(--background))" />
+            <div class="hui-scallop-right" style="background: hsl(var(--background))" />
           </div>
           <div class="px-6 py-4 rounded-b-[24px] flex items-center justify-between" :style="`background: ${ticketStatusColor(ticket.status)}08`">
             <p class="text-sm text-muted-foreground font-medium line-clamp-1 flex-1">{{ ticket.issue }}</p>
@@ -132,8 +132,8 @@
             </div>
           </div>
         </div>
-        <div v-if="filteredTickets.length === 0" class="rounded-2xl py-20 flex flex-col items-center gap-4 bg-card" style="outline: 2px solid hsl(var(--border)/0.6)">
-          <div class="w-20 h-20 rounded-2xl flex items-center justify-center" style="background: #f59e0b14">
+        <div v-if="filteredTickets.length === 0" class="rounded-3xl py-20 flex flex-col items-center gap-4 bg-content1" style="outline: 2px solid hsl(var(--border)/0.6)">
+          <div class="w-20 h-20 rounded-3xl flex items-center justify-center" style="background: #f59e0b14">
             <Inbox class="w-10 h-10" style="color: #f59e0b; opacity: 0.5" />
           </div>
           <div class="text-center">
@@ -154,33 +154,33 @@
 
       <!-- KPI Row -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div class="m3-kpi rounded-2xl p-5 flex flex-col gap-3" style="background: #10b98114; outline: 2px solid #10b98128; outline-offset: 0">
+        <div class="hui-stat-card rounded-2xl p-5 flex flex-col gap-3" style="background: #10b98114; outline: 2px solid #10b98128; outline-offset: 0">
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #10b98124"><MapPin class="w-5 h-5" style="color: #10b981" /></div>
+            <div class="w-11 h-11 rounded-2xl flex items-center justify-center" style="background: #10b98124"><MapPin class="w-5 h-5" style="color: #10b981" /></div>
             <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #10b98120; color: #10b981">TOTAL</span>
           </div>
           <div><p class="text-xs font-semibold text-muted-foreground">All Calls</p><p class="text-2xl font-black" style="color: #10b981">{{ housecalls.length }}</p></div>
         </div>
-        <div class="m3-kpi rounded-2xl p-5 flex flex-col gap-3" style="background: #3b82f614; outline: 2px solid #3b82f628; outline-offset: 0">
+        <div class="hui-stat-card rounded-2xl p-5 flex flex-col gap-3" style="background: #3b82f614; outline: 2px solid #3b82f628; outline-offset: 0">
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #3b82f624"><Clock class="w-5 h-5" style="color: #3b82f6" /></div>
+            <div class="w-11 h-11 rounded-2xl flex items-center justify-center" style="background: #3b82f624"><Clock class="w-5 h-5" style="color: #3b82f6" /></div>
             <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #3b82f620; color: #3b82f6">SCHED</span>
           </div>
           <div><p class="text-xs font-semibold text-muted-foreground">Scheduled</p><p class="text-2xl font-black" style="color: #3b82f6">{{ countHousecallByStatus('Scheduled') }}</p></div>
         </div>
-        <div class="m3-kpi rounded-2xl p-5 flex flex-col gap-3" style="background: #f59e0b14; outline: 2px solid #f59e0b28; outline-offset: 0">
+        <div class="hui-stat-card rounded-2xl p-5 flex flex-col gap-3" style="background: #f59e0b14; outline: 2px solid #f59e0b28; outline-offset: 0">
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #f59e0b24"><Wrench class="w-5 h-5" style="color: #f59e0b" /></div>
+            <div class="w-11 h-11 rounded-2xl flex items-center justify-center" style="background: #f59e0b24"><Wrench class="w-5 h-5" style="color: #f59e0b" /></div>
             <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #f59e0b20; color: #f59e0b">ACTIVE</span>
           </div>
           <div><p class="text-xs font-semibold text-muted-foreground">In Progress</p><p class="text-2xl font-black" style="color: #f59e0b">{{ countHousecallByStatus('In Progress') }}</p></div>
         </div>
-        <div class="m3-kpi rounded-2xl p-5 flex flex-col gap-3" style="background: #5b5ef414; outline: 2px solid #5b5ef428; outline-offset: 0">
+        <div class="hui-stat-card rounded-2xl p-5 flex flex-col gap-3" style="background: #6366f114; outline: 2px solid #6366f128; outline-offset: 0">
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #5b5ef424"><CheckCircle class="w-5 h-5" style="color: #5b5ef4" /></div>
-            <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #5b5ef420; color: #5b5ef4">DONE</span>
+            <div class="w-11 h-11 rounded-2xl flex items-center justify-center" style="background: #6366f124"><CheckCircle class="w-5 h-5" style="color: #6366f1" /></div>
+            <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #6366f120; color: #6366f1">DONE</span>
           </div>
-          <div><p class="text-xs font-semibold text-muted-foreground">Completed</p><p class="text-2xl font-black" style="color: #5b5ef4">{{ countHousecallByStatus('Completed') }}</p></div>
+          <div><p class="text-xs font-semibold text-muted-foreground">Completed</p><p class="text-2xl font-black" style="color: #6366f1">{{ countHousecallByStatus('Completed') }}</p></div>
         </div>
       </div>
 
@@ -195,11 +195,10 @@
       <!-- House Call Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div v-for="call in filteredHousecalls" :key="call.id"
-          class="m3-card rounded-2xl p-5 flex flex-col gap-3 bg-card cursor-pointer"
-          style="border: 1px solid hsl(var(--border)/0.7)"
+          class="hui-card rounded-2xl p-5 flex flex-col gap-3 bg-content1 cursor-pointer"
           @click="viewHousecall(call)">
           <div class="flex items-start justify-between">
-            <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background: #10b98120"><MapPin class="w-5 h-5" style="color: #10b981" /></div>
+            <div class="w-11 h-11 rounded-2xl flex items-center justify-center" style="background: #10b98120"><MapPin class="w-5 h-5" style="color: #10b981" /></div>
             <span class="text-[10px] font-black px-2.5 py-1 rounded-full" :style="callStatusStyle(call.status)">{{ call.status }}</span>
           </div>
           <div>
@@ -210,7 +209,7 @@
           <div v-if="call.address && call.address.length > 5 && getOsmCardUrl(call.address)" class="w-full h-24 rounded-xl overflow-hidden bg-muted mt-1 pointer-events-none" style="outline: 1px solid hsl(var(--border)/0.5); outline-offset: 0; background: hsl(var(--muted)/0.3)">
             <iframe :src="getOsmCardUrl(call.address)" class="w-full h-full" style="border:0" />
           </div>
-          <p class="text-xs text-muted-foreground font-medium line-clamp-2 border-t border-border/60 pt-2 mt-2">{{ call.issue }}</p>
+          <p class="text-xs text-muted-foreground font-medium line-clamp-2 border-t border-divider pt-2 mt-2">{{ call.issue }}</p>
           <div class="flex items-center gap-2 pt-1">
             <button v-if="call.status !== 'Completed'"
               class="flex-1 h-8 rounded-full text-xs font-bold transition-all hover:scale-[1.02] active:scale-95"
@@ -221,7 +220,7 @@
             </button>
           </div>
         </div>
-        <div v-if="filteredHousecalls.length === 0" class="col-span-full rounded-2xl py-16 flex flex-col items-center gap-4 bg-card" style="outline: 2px solid hsl(var(--border)/0.6)">
+        <div v-if="filteredHousecalls.length === 0" class="col-span-full rounded-3xl py-16 flex flex-col items-center gap-4 bg-content1" style="outline: 2px solid hsl(var(--border)/0.6)">
           <div class="w-16 h-16 rounded-2xl flex items-center justify-center" style="background: #10b98114"><MapPin class="w-8 h-8" style="color: #10b981; opacity: 0.5" /></div>
           <div class="text-center">
             <p class="font-black">No house calls {{ housecallFilter !== 'All' ? `with status "${housecallFilter}"` : 'scheduled' }}</p>
@@ -239,10 +238,10 @@
 
       <!-- KPI Row -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div v-for="stat in vendorStats" :key="stat.label" class="m3-kpi rounded-2xl p-5 flex flex-col gap-3"
+        <div v-for="stat in vendorStats" :key="stat.label" class="hui-stat-card rounded-2xl p-5 flex flex-col gap-3"
           :style="`background: ${stat.color}14; outline: 2px solid ${stat.color}28; outline-offset: 0`">
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-xl flex items-center justify-center" :style="`background: ${stat.color}24`">
+            <div class="w-11 h-11 rounded-2xl flex items-center justify-center" :style="`background: ${stat.color}24`">
               <component :is="stat.icon" class="w-5 h-5" :style="`color: ${stat.color}`" />
             </div>
           </div>
@@ -255,7 +254,7 @@
         <div class="relative flex-1 min-w-[160px] max-w-sm">
           <Search class="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <input v-model="vendorSearch" placeholder="Search vendor repairs…"
-            class="w-full h-12 pl-11 pr-4 rounded-full text-sm bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-violet-400/50 focus:ring-2 focus:ring-violet-400/20 transition-all font-medium" />
+            class="w-full h-12 pl-11 pr-4 rounded-full text-sm bg-muted/50 border-2 border-divider focus:outline-none focus:border-violet-400/50 focus:ring-2 focus:ring-violet-400/20 transition-all font-medium" />
         </div>
         <div class="flex gap-2 flex-wrap">
           <button v-for="s in [null, ...vendorStatusList]" :key="s ?? 'all'"
@@ -270,8 +269,7 @@
       <!-- Vendor Repair Cards -->
       <div class="space-y-4">
         <div v-for="repair in filteredVendorRepairs" :key="repair.id"
-          class="m3-vendor-card rounded-xl overflow-hidden cursor-pointer"
-          style="border: 1px solid hsl(var(--border)/0.7)"
+          class="hui-card overflow-hidden rounded-2xl overflow-hidden cursor-pointer"
           @click="openVendorRepair(repair)">
           <!-- Header strip -->
           <div class="px-6 pt-5 pb-4 flex items-start justify-between" :style="`background: ${vendorStatusColor(repair.status)}12`">
@@ -332,8 +330,8 @@
           </div>
         </div>
 
-        <div v-if="filteredVendorRepairs.length === 0" class="rounded-2xl py-20 flex flex-col items-center gap-4 bg-card" style="outline: 2px solid hsl(var(--border)/0.6)">
-          <div class="w-20 h-20 rounded-2xl flex items-center justify-center" style="background: #8b5cf614">
+        <div v-if="filteredVendorRepairs.length === 0" class="rounded-3xl py-20 flex flex-col items-center gap-4 bg-content1" style="outline: 2px solid hsl(var(--border)/0.6)">
+          <div class="w-20 h-20 rounded-3xl flex items-center justify-center" style="background: #8b5cf614">
             <Building2 class="w-10 h-10" style="color: #8b5cf6; opacity: 0.5" />
           </div>
           <div class="text-center">
@@ -374,17 +372,17 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <!-- LEFT: Form -->
             <div class="flex flex-col gap-4">
-              <div class="space-y-2"><label class="m3-label">Customer</label><CustomerSelect v-model="housecallForm.customerId" /></div>
+              <div class="space-y-2"><label class="hui-label">Customer</label><CustomerSelect v-model="housecallForm.customerId" /></div>
               <div class="space-y-2">
-                <label class="m3-label">Address</label>
+                <label class="hui-label">Address</label>
                 <div class="relative">
-                  <input ref="addressInputRef" v-model="housecallForm.address" placeholder="123 Main St, City, State" class="m3-input pr-12" @input="onAddressInput" @focus="showSuggestions = addressSuggestions.length > 0" />
+                  <input ref="addressInputRef" v-model="housecallForm.address" placeholder="123 Main St, City, State" class="hui-input pr-12" @input="onAddressInput" @focus="showSuggestions = addressSuggestions.length > 0" />
                   <button class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center hover:scale-110 active:scale-90 transition-all"
                     style="background: #3b82f620" title="Open in Maps" @click="openMaps">
                     <Navigation class="w-4 h-4" style="color: #3b82f6" />
                   </button>
                   <!-- Autocomplete Dropdown — inside relative wrapper so it doesn't shift layout -->
-                  <div v-if="showSuggestions && addressSuggestions.length > 0" class="absolute z-50 left-0 right-0 top-full mt-1 bg-card border-2 border-border/60 rounded-xl shadow-xl overflow-hidden max-h-48 overflow-y-auto" style="outline: 2px solid hsl(var(--border)/0.4)">
+                  <div v-if="showSuggestions && addressSuggestions.length > 0" class="absolute z-50 left-0 right-0 top-full mt-1 bg-content1 border-2 border-divider rounded-2xl shadow-xl overflow-hidden max-h-48 overflow-y-auto" style="outline: 2px solid hsl(var(--border)/0.4)">
                     <div v-for="sug in addressSuggestions" :key="sug.place_id" class="px-4 py-3 hover:bg-muted/50 cursor-pointer border-b border-border/20 last:border-0 text-xs font-medium transition-colors" @click="selectSuggestion(sug)">
                       {{ sug.display_name }}
                     </div>
@@ -392,13 +390,13 @@
                 </div>
               </div>
               <div class="grid grid-cols-2 gap-3">
-                <div class="space-y-2"><label class="m3-label">Date</label><input v-model="housecallForm.date" type="date" class="m3-input" /></div>
-                <div class="space-y-2"><label class="m3-label">Time</label><input v-model="housecallForm.time" type="time" class="m3-input" /></div>
+                <div class="space-y-2"><label class="hui-label">Date</label><input v-model="housecallForm.date" type="date" class="hui-input" /></div>
+                <div class="space-y-2"><label class="hui-label">Time</label><input v-model="housecallForm.time" type="time" class="hui-input" /></div>
               </div>
-              <div class="space-y-2"><label class="m3-label">Issue / Description</label><textarea v-model="housecallForm.issue" placeholder="Describe the repair needed…" rows="3" class="m3-input resize-none" style="height: auto; padding-top: 12px" /></div>
+              <div class="space-y-2"><label class="hui-label">Issue / Description</label><textarea v-model="housecallForm.issue" placeholder="Describe the repair needed…" rows="3" class="hui-input resize-none" style="height: auto; padding-top: 12px" /></div>
               <div v-if="editingHousecall" class="space-y-2">
-                <label class="m3-label">Status</label>
-                <select v-model="housecallForm.status" class="m3-input">
+                <label class="hui-label">Status</label>
+                <select v-model="housecallForm.status" class="hui-input">
                   <option>Scheduled</option><option>In Progress</option><option>Completed</option><option>Cancelled</option>
                 </select>
               </div>
@@ -411,8 +409,8 @@
             <!-- RIGHT: Map + Calculator -->
             <div class="flex flex-col gap-4">
               <div class="space-y-2">
-                <label class="m3-label flex items-center gap-1.5"><Navigation class="w-3 h-3" style="color: #3b82f6" /> Location Preview</label>
-                <div class="rounded-xl overflow-hidden" style="height: 180px; border: 1px solid hsl(var(--border)/0.7)">
+                <label class="hui-label flex items-center gap-1.5"><Navigation class="w-3 h-3" style="color: #3b82f6" /> Location Preview</label>
+                <div class="rounded-xl overflow-hidden" style="height: 180px; outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
                   <iframe v-if="mapsUrl" :src="mapsUrl" width="100%" height="100%" style="border:0" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" />
                   <div v-else class="w-full h-full flex flex-col items-center justify-center gap-2" style="background: hsl(var(--muted)/0.3)">
                     <MapPin class="w-8 h-8 text-muted-foreground opacity-40" />
@@ -421,7 +419,7 @@
                 </div>
               </div>
 
-              <div class="rounded-xl p-4 flex flex-col gap-3" style="background: hsl(var(--muted)/0.3); border: 1px solid hsl(var(--border)/0.7)">
+              <div class="rounded-xl p-4 flex flex-col gap-3" style="background: hsl(var(--muted)/0.3); outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
                 <p class="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                   <Calculator class="w-3 h-3" /> Job Calculator
                 </p>
@@ -429,25 +427,25 @@
                   <div>
                     <label class="text-[9px] font-black text-muted-foreground uppercase tracking-wider block mb-1">Labor ($)</label>
                     <input v-model.number="calc.labor" type="number" min="0" step="0.01" placeholder="0.00"
-                      class="w-full h-9 px-3 rounded-[12px] text-xs font-bold bg-background border-2 border-border/60 outline-none focus:border-emerald-400/50 transition-all" />
+                      class="w-full h-9 px-3 rounded-xl text-xs font-bold bg-background border-2 border-divider outline-none focus:border-emerald-400/50 transition-all" />
                   </div>
                   <div>
                     <label class="text-[9px] font-black text-muted-foreground uppercase tracking-wider block mb-1">Parts ($)</label>
                     <input v-model.number="calc.parts" type="number" min="0" step="0.01" placeholder="0.00"
-                      class="w-full h-9 px-3 rounded-[12px] text-xs font-bold bg-background border-2 border-border/60 outline-none focus:border-emerald-400/50 transition-all" />
+                      class="w-full h-9 px-3 rounded-xl text-xs font-bold bg-background border-2 border-divider outline-none focus:border-emerald-400/50 transition-all" />
                   </div>
                   <div>
                     <label class="text-[9px] font-black text-muted-foreground uppercase tracking-wider block mb-1">Travel ($)</label>
                     <input v-model.number="calc.travel" type="number" min="0" step="0.01" placeholder="0.00"
-                      class="w-full h-9 px-3 rounded-[12px] text-xs font-bold bg-background border-2 border-border/60 outline-none focus:border-emerald-400/50 transition-all" />
+                      class="w-full h-9 px-3 rounded-xl text-xs font-bold bg-background border-2 border-divider outline-none focus:border-emerald-400/50 transition-all" />
                   </div>
                   <div>
                     <label class="text-[9px] font-black text-muted-foreground uppercase tracking-wider block mb-1">Tax (%)</label>
                     <input v-model.number="calc.taxRate" type="number" min="0" max="100" step="0.1" placeholder="0"
-                      class="w-full h-9 px-3 rounded-[12px] text-xs font-bold bg-background border-2 border-border/60 outline-none focus:border-emerald-400/50 transition-all" />
+                      class="w-full h-9 px-3 rounded-xl text-xs font-bold bg-background border-2 border-divider outline-none focus:border-emerald-400/50 transition-all" />
                   </div>
                 </div>
-                <div class="border-t border-border/60 pt-2 space-y-1">
+                <div class="border-t border-divider pt-2 space-y-1">
                   <div class="flex justify-between text-xs font-semibold text-muted-foreground">
                     <span>Subtotal</span><span>${{ calcSubtotal.toFixed(2) }}</span>
                   </div>
@@ -500,32 +498,32 @@
 
           <!-- Customer + Device -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="space-y-2 sm:col-span-2"><label class="m3-label">Customer</label><CustomerSelect v-model="vendorForm.customerId" /></div>
-            <div class="space-y-2"><label class="m3-label">Device</label><input v-model="vendorForm.device" placeholder="e.g. iPhone 15 Pro" class="m3-input" /></div>
-            <div class="space-y-2"><label class="m3-label">Issue</label><input v-model="vendorForm.issue" placeholder="e.g. Cracked screen" class="m3-input" /></div>
+            <div class="space-y-2 sm:col-span-2"><label class="hui-label">Customer</label><CustomerSelect v-model="vendorForm.customerId" /></div>
+            <div class="space-y-2"><label class="hui-label">Device</label><input v-model="vendorForm.device" placeholder="e.g. iPhone 15 Pro" class="hui-input" /></div>
+            <div class="space-y-2"><label class="hui-label">Issue</label><input v-model="vendorForm.issue" placeholder="e.g. Cracked screen" class="hui-input" /></div>
           </div>
 
           <!-- Vendor + Ticket ref -->
           <div class="grid grid-cols-2 gap-3">
             <div class="space-y-2">
-              <label class="m3-label">Vendor / Repair Center</label>
-              <input v-model="vendorForm.vendor" placeholder="e.g. iFixit Pro, uBreakiFix" class="m3-input" />
+              <label class="hui-label">Vendor / Repair Center</label>
+              <input v-model="vendorForm.vendor" placeholder="e.g. iFixit Pro, uBreakiFix" class="hui-input" />
             </div>
             <div class="space-y-2">
-              <label class="m3-label">Associated Ticket #</label>
-              <input v-model="vendorForm.ticketRef" placeholder="Optional ticket ID" class="m3-input" />
+              <label class="hui-label">Associated Ticket #</label>
+              <input v-model="vendorForm.ticketRef" placeholder="Optional ticket ID" class="hui-input" />
             </div>
           </div>
 
           <!-- Tracking + Status -->
           <div class="grid grid-cols-2 gap-3">
             <div class="space-y-2">
-              <label class="m3-label">Tracking Number</label>
-              <input v-model="vendorForm.trackingNumber" placeholder="e.g. 1Z999AA1…" class="m3-input" />
+              <label class="hui-label">Tracking Number</label>
+              <input v-model="vendorForm.trackingNumber" placeholder="e.g. 1Z999AA1…" class="hui-input" />
             </div>
             <div class="space-y-2">
-              <label class="m3-label">Status</label>
-              <select v-model="vendorForm.status" class="m3-input">
+              <label class="hui-label">Status</label>
+              <select v-model="vendorForm.status" class="hui-input">
                 <option>Preparing to Ship</option>
                 <option>Shipped to Vendor</option>
                 <option>In Repair</option>
@@ -539,14 +537,14 @@
 
           <!-- Dates -->
           <div class="grid grid-cols-2 gap-3">
-            <div class="space-y-2"><label class="m3-label">Date Sent</label><input v-model="vendorForm.sentDate" type="date" class="m3-input" /></div>
-            <div class="space-y-2"><label class="m3-label">Est. Return Date</label><input v-model="vendorForm.estReturn" type="date" class="m3-input" /></div>
+            <div class="space-y-2"><label class="hui-label">Date Sent</label><input v-model="vendorForm.sentDate" type="date" class="hui-input" /></div>
+            <div class="space-y-2"><label class="hui-label">Est. Return Date</label><input v-model="vendorForm.estReturn" type="date" class="hui-input" /></div>
           </div>
 
           <!-- Notes -->
           <div class="space-y-2">
-            <label class="m3-label">Notes</label>
-            <textarea v-model="vendorForm.notes" placeholder="Special instructions, warranty info, etc." rows="3" class="m3-input resize-none" style="height: auto; padding-top: 12px" />
+            <label class="hui-label">Notes</label>
+            <textarea v-model="vendorForm.notes" placeholder="Special instructions, warranty info, etc." rows="3" class="hui-input resize-none" style="height: auto; padding-top: 12px" />
           </div>
 
           <div class="flex gap-3">
@@ -893,7 +891,7 @@ const vendorStatusColor = (status: string) => ({
   'In Repair':              '#f59e0b',
   'Shipped Back':           '#06b6d4',
   'Received':               '#10b981',
-  'Returned to Customer':   '#5b5ef4',
+  'Returned to Customer':   '#6366f1',
   'Cancelled':              '#ef4444',
 }[status] || '#64748b')
 
@@ -924,47 +922,47 @@ const saveVendorRepair = async () => {
 </script>
 
 <style scoped>
-.m3-fab {
+.hui-fab {
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
 }
-.m3-fab:hover  { transform: scale(1.05) translateY(-2px); }
-.m3-fab:active { transform: scale(0.92); }
+.hui-fab:hover  { transform: scale(1.05) translateY(-2px); }
+.hui-fab:active { transform: scale(0.92); }
 
-.m3-kpi {
+.hui-stat-card {
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
 }
-.m3-kpi:hover  { transform: scale(1.04) translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.1); }
-.m3-kpi:active { transform: scale(0.96); }
+.hui-stat-card:hover  { transform: scale(1.04) translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.1); }
+.hui-stat-card:active { transform: scale(0.96); }
 
-.m3-card {
+.hui-card {
   transition: transform 0.4s cubic-bezier(0.34, 1.5, 0.64, 1), box-shadow 0.3s ease;
 }
-.m3-card:hover  { transform: scale(1.03) translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
-.m3-card:active { transform: scale(0.96); }
+.hui-card:hover  { transform: scale(1.03) translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
+.hui-card:active { transform: scale(0.96); }
 
-.m3-ticket-card {
+.hui-ticket-card {
   transition: transform 0.4s cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow 0.3s ease;
-  border-radius: 18px;
+  border-radius: 24px;
   overflow: hidden;
   outline: 2px solid hsl(var(--border)/0.6);
   outline-offset: 0;
 }
-.m3-ticket-card:hover  { transform: scale(1.01) translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
-.m3-ticket-card:active { transform: scale(0.98); }
+.hui-ticket-card:hover  { transform: scale(1.01) translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
+.hui-ticket-card:active { transform: scale(0.98); }
 
-.m3-vendor-card {
+.hui-vendor-card {
   transition: transform 0.4s cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow 0.3s ease;
 }
-.m3-vendor-card:hover  { transform: scale(1.01) translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
-.m3-vendor-card:active { transform: scale(0.98); }
+.hui-vendor-card:hover  { transform: scale(1.01) translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
+.hui-vendor-card:active { transform: scale(0.98); }
 
-.m3-tear-line {
+.hui-tear-line {
   height: 20px;
   position: relative;
   overflow: visible;
 }
-.m3-scallop-left,
-.m3-scallop-right {
+.hui-scallop-left,
+.hui-scallop-right {
   position: absolute;
   width: 24px;
   height: 24px;
@@ -973,10 +971,10 @@ const saveVendorRepair = async () => {
   transform: translateY(-50%);
   z-index: 2;
 }
-.m3-scallop-left  { left: -12px; }
-.m3-scallop-right { right: -12px; }
+.hui-scallop-left  { left: -12px; }
+.hui-scallop-right { right: -12px; }
 
-.m3-label { display: block; font-size: 10px; font-weight: 800; color: hsl(var(--muted-foreground)); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.5rem; }
-.m3-input { width: 100%; height: 48px; padding: 0 20px; border-radius: 20px; font-size: 14px; font-weight: 500; background: hsl(var(--muted)/0.5); border: 2px solid hsl(var(--border)/0.7); color: hsl(var(--foreground)); outline: none; transition: all 0.2s ease; }
-.m3-input:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px #8b5cf618; }
+.hui-label { display: block; font-size: 10px; font-weight: 800; color: hsl(var(--muted-foreground)); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.5rem; }
+.hui-input { width: 100%; height: 48px; padding: 0 20px; border-radius: 20px; font-size: 14px; font-weight: 500; background: hsl(var(--muted)/0.5); border: 2px solid hsl(var(--border)/0.7); color: hsl(var(--foreground)); outline: none; transition: all 0.2s ease; }
+.hui-input:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px #8b5cf618; }
 </style>

@@ -1,0 +1,19 @@
+# Deps
+node_modules/
+
+# Build
+.output/
+.nuxt/
+dist/
+nuxi_error.log
+
+# Vercel
+.vercel
+
+# Env
+.env
+.env*.local
+
+# OS
+.DS_Store
+Thumbs.db

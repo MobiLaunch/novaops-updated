@@ -5,7 +5,7 @@
       <!-- Header -->
       <div class="flex-shrink-0 px-6 pt-6 pb-4 border-b border-border/50">
         <div class="flex items-center gap-3">
-          <div class="w-11 h-11 rounded-xl flex items-center justify-center shadow-md flex-shrink-0"
+          <div class="w-11 h-11 rounded-2xl flex items-center justify-center shadow-md flex-shrink-0"
             style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 16px #f59e0b40">
             <ArrowLeftRight class="w-5 h-5 text-white" />
           </div>
@@ -64,7 +64,7 @@
           </div>
 
           <!-- IMEI / Model Number -->
-          <div class="rounded-xl p-4 space-y-3" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.5); outline-offset: 0">
+          <div class="rounded-2xl p-4 space-y-3" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.5); outline-offset: 0">
             <div class="flex items-center gap-2">
               <Fingerprint class="w-4 h-4 text-muted-foreground" />
               <p class="text-xs font-black">Device Identifiers <span class="font-normal text-muted-foreground">(improves lookup accuracy)</span></p>
@@ -219,9 +219,9 @@
                 <label class="wi-label">Device Age</label>
                 <div class="grid grid-cols-3 gap-1.5">
                   <button v-for="a in ageOptions" :key="a.value"
-                    class="py-2 px-1 rounded-[12px] text-[11px] font-bold transition-all text-center"
+                    class="py-2 px-1 rounded-xl text-[11px] font-bold transition-all text-center"
                     :style="form.age_years === a.value
-                      ? 'background: #5b5ef420; color: #5b5ef4; outline: 1.5px solid #5b5ef450; outline-offset: 0'
+                      ? 'background: #6366f120; color: #6366f1; outline: 1.5px solid #6366f150; outline-offset: 0'
                       : 'background: hsl(var(--muted)/0.4); color: hsl(var(--muted-foreground))'"
                     @click="form.age_years = a.value">
                     {{ a.label }}
@@ -271,7 +271,7 @@
               <label class="wi-label">Accessories Included</label>
               <div class="space-y-1.5">
                 <button v-for="acc in accessoryOptions" :key="acc.value"
-                  class="w-full flex items-center gap-2.5 p-2.5 rounded-[12px] text-xs font-bold transition-all"
+                  class="w-full flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-bold transition-all"
                   :style="form.accessories.includes(acc.value)
                     ? 'background: #10b98118; outline: 1.5px solid #10b98140; color: #10b981; outline-offset: 0'
                     : 'background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.4); outline-offset: 0'"
@@ -322,7 +322,7 @@
           <p class="step-hint">Review the calculated offer and adjust before presenting to the customer.</p>
 
           <!-- Pricing breakdown card -->
-          <div class="rounded-xl overflow-hidden" style="border: 1px solid hsl(var(--border)/0.7)">
+          <div class="rounded-2xl overflow-hidden">
             <div class="px-5 py-4" style="background: linear-gradient(135deg, #f59e0b0a, #d9770608)">
               <p class="text-xs font-black uppercase tracking-widest" style="color: #f59e0b">Valuation Summary</p>
               <p class="text-sm text-muted-foreground mt-0.5 font-medium">{{ form.brand }} {{ form.model }} {{ form.storage }}</p>
@@ -382,9 +382,9 @@
 
           <!-- Estimated resale & profit -->
           <div class="grid grid-cols-3 gap-3">
-            <div class="p-4 rounded-xl text-center" style="background: #5b5ef40c; outline: 1.5px solid #5b5ef428; outline-offset: 0">
+            <div class="p-4 rounded-xl text-center" style="background: #6366f10c; outline: 1.5px solid #6366f128; outline-offset: 0">
               <p class="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Est. Resale</p>
-              <p class="text-lg font-black" style="color: #5b5ef4">{{ currency }}{{ estimatedResale.toFixed(2) }}</p>
+              <p class="text-lg font-black" style="color: #6366f1">{{ currency }}{{ estimatedResale.toFixed(2) }}</p>
             </div>
             <div class="p-4 rounded-xl text-center" :style="estimatedProfit >= 0 ? 'background: #10b9810c; outline: 1.5px solid #10b98128; outline-offset: 0' : 'background: #ef44440c; outline: 1.5px solid #ef444428; outline-offset: 0'">
               <p class="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Est. Profit</p>
@@ -488,14 +488,14 @@ const storageOptions = ['16GB', '32GB', '64GB', '128GB', '256GB', '512GB', '1TB'
 
 const conditionGrades = [
   { value: 'Excellent', label: 'Excellent', emoji: '⭐', desc: 'Like new, minimal use', color: '#10b981' },
-  { value: 'Good',      label: 'Good',      emoji: '✅', desc: 'Normal wear, fully functional', color: '#5b5ef4' },
+  { value: 'Good',      label: 'Good',      emoji: '✅', desc: 'Normal wear, fully functional', color: '#6366f1' },
   { value: 'Fair',      label: 'Fair',      emoji: '🔶', desc: 'Visible wear, works fine', color: '#f59e0b' },
   { value: 'Poor',      label: 'Poor',      emoji: '🔴', desc: 'Heavy damage or issues', color: '#ef4444' },
 ]
 
 const screenConditions = [
   { value: 'Perfect',         label: 'Perfect',          emoji: '✨', desc: 'No scratches or damage', color: '#10b981' },
-  { value: 'Minor Scratches', label: 'Minor Scratches',  emoji: '🔍', desc: 'Light marks, visible in light', color: '#5b5ef4' },
+  { value: 'Minor Scratches', label: 'Minor Scratches',  emoji: '🔍', desc: 'Light marks, visible in light', color: '#6366f1' },
   { value: 'Cracked',         label: 'Cracked',          emoji: '💔', desc: 'Cracked but touchscreen works', color: '#f59e0b' },
   { value: 'Shattered',       label: 'Shattered',        emoji: '💥', desc: 'Severely broken, touch issues', color: '#ef4444' },
 ]

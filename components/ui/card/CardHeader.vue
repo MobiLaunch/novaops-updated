@@ -1,12 +1,5 @@
-<script setup lang="ts">
-import { cn } from '~/lib/utils'
-
-defineOptions({ name: 'CardHeader' })
-const props = withDefaults(defineProps<{ class?: string }>(), { class: '' })
-</script>
-
 <template>
-  <div :class="cn('flex flex-col space-y-1.5 p-6', props.class)">
+  <div class="flex items-start gap-3 p-5 pb-0" v-bind="$attrs">
     <slot />
   </div>
 </template>

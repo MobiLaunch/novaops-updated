@@ -1,37 +1,46 @@
-<script setup lang="ts">
-import type { HTMLAttributes } from 'vue'
-import { useVModel } from '@vueuse/core'
-import { cn } from '~/lib/utils'
-
-const props = defineProps<{
-  defaultValue?: string | number
-  modelValue?: string | number
-  class?: HTMLAttributes['class']
-}>()
-
-const emits = defineEmits<{
-  'update:modelValue': [value: string | number]
-}>()
-
-const modelValue = useVModel(props, 'modelValue', emits, {
-  passive: true,
-  defaultValue: props.defaultValue,
-})
-</script>
-
 <template>
   <input
-    v-model="modelValue"
-    :class="cn(
-      // M3 input — pill shape, muted fill, crisp focus ring
-      'flex h-12 w-full rounded-[20px] border-2 border-border/70 bg-muted/50 px-5 py-2',
-      'text-sm font-medium text-foreground',
-      'placeholder:text-muted-foreground/60',
-      'transition-all duration-200',
-      'focus-visible:outline-none focus-visible:border-primary/60 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:bg-background',
-      'file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground',
-      'disabled:cursor-not-allowed disabled:opacity-50',
-      props.class,
-    )"
-  >
+    v-bind="$attrs"
+    :class="inputClass"
+    :value="modelValue"
+    @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+  />
 </template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+
+const props = withDefaults(defineProps<{
+  modelValue?: string | number
+  variant?: 'flat' | 'bordered' | 'faded' | 'underlined'
+  color?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
+  size?: 'sm' | 'md' | 'lg'
+  radius?: 'sm' | 'md' | 'lg' | 'full' | 'none'
+  disabled?: boolean
+}>(), {
+  variant: 'bordered',
+  color: 'default',
+  size: 'md',
+  radius: 'lg',
+  disabled: false,
+})
+
+defineEmits(['update:modelValue'])
+
+const inputClass = computed(() => {
+  const base = 'hui-input w-full font-medium transition-all outline-none font-[inherit]'
+  const sizes: Record<string, string> = {
+    sm: 'h-9 text-xs px-3',
+    md: 'h-11 text-sm px-4',
+    lg: 'h-14 text-base px-5',
+  }
+  const radii: Record<string, string> = {
+    none: 'rounded-none',
+    sm:   'rounded-lg',
+    md:   'rounded-xl',
+    lg:   'rounded-2xl',
+    full: 'rounded-full',
+  }
+  return [base, sizes[props.size], radii[props.radius]].join(' ')
+})
+</script>

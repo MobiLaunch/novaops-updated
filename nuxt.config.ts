@@ -149,12 +149,15 @@ export default defineNuxtConfig({
     buildAssetsDir: 'assets',
     head: {
       link: [
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap' },
         { rel: 'icon',             type: 'image/x-icon', href: '/icon.ico' },
         { rel: 'icon',             type: 'image/png',    href: '/icon-192.png', sizes: '192x192' },
         { rel: 'apple-touch-icon',                       href: '/icon-192.png' },
       ],
       meta: [
-        { name: 'theme-color', content: '#5b5ef4' },
+        { name: 'theme-color', content: '#0f172a' },
       ],
     },
   },

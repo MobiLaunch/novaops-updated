@@ -34,7 +34,7 @@
       <div v-if="openMenu === 'navigate'" class="menu-dropdown">
         <div class="menu-section-label">Core</div>
         <button class="menu-item" @click="go('/dashboard')">
-          <LayoutDashboard class="w-3.5 h-3.5" style="color:#5b5ef4" />
+          <LayoutDashboard class="w-3.5 h-3.5" style="color:#6366f1" />
           Dashboard
         </button>
         <button class="menu-item" @click="go('/bookings')">

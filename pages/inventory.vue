@@ -4,7 +4,7 @@
     <!-- ── Page Header ─────────────────────────────────────────── -->
     <div class="flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"
           style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);box-shadow:0 4px 20px #8b5cf650">
           <Package class="w-6 h-6 text-white" />
         </div>
@@ -14,13 +14,13 @@
         </div>
       </div>
       <div class="flex gap-3">
-        <button class="m3-btn-tonal flex items-center gap-2 h-10 px-5 rounded-full text-sm font-bold" @click="handleBatchPrint" title="Print barcodes for all currently filtered items">
+        <button class="hui-btn hui-btn-light hui-btn-md flex items-center gap-2 h-10 px-5 rounded-full text-sm font-bold" @click="handleBatchPrint" title="Print barcodes for all currently filtered items">
           <Printer class="w-4 h-4" /> Print Labels
         </button>
-        <button class="m3-btn-tonal flex items-center gap-2 h-10 px-5 rounded-full text-sm font-bold" @click="checkLowStock">
+        <button class="hui-btn hui-btn-light hui-btn-md flex items-center gap-2 h-10 px-5 rounded-full text-sm font-bold" @click="checkLowStock">
           <AlertTriangle class="w-4 h-4" /> Low Stock
         </button>
-        <button class="m3-fab flex items-center gap-2.5 h-10 px-5 rounded-full text-sm font-black text-white"
+        <button class="hui-fab flex items-center gap-2.5 h-10 px-5 rounded-full text-sm font-black text-white"
           style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);box-shadow:0 4px 20px #8b5cf650"
           @click="openNew">
           <Plus class="w-5 h-5" /> Add Item
@@ -31,7 +31,7 @@
     <!-- ── Stat Cards ───────────────────────────────────────────── -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <div v-for="stat in stats" :key="stat.label"
-        class="m3-stat-card rounded-2xl p-5 flex flex-col gap-3"
+        class="hui-stat-card rounded-2xl p-5 flex flex-col gap-3"
         :style="`background:${stat.color}12;outline:2px solid ${stat.color}28;outline-offset:0`">
         <div class="flex items-center justify-between">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center" :style="`background:${stat.color}24`">
@@ -52,9 +52,7 @@
         <Search class="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
         <input v-model="q" placeholder="Search by name, SKU, or category…"
           class="w-full h-12 pl-11 pr-4 rounded-full text-sm font-medium transition-all"
-          style="background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.6);outline:none"
-          @focus="($event.target as HTMLElement).style.cssText+=';border-color:#8b5cf6;box-shadow:0 0 0 3px #8b5cf618'"
-          @blur="($event.target as HTMLElement).style.borderColor='hsl(var(--border)/0.6)'" />
+           />
       </div>
       <!-- Type toggle -->
       <div class="flex gap-2">
@@ -79,11 +77,11 @@
     <!-- ── Grid ─────────────────────────────────────────────────── -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       <div v-for="item in filtered" :key="item.id"
-        class="m3-item-card rounded-2xl p-5 flex flex-col gap-4 cursor-pointer bg-card"
+        class="hui-card hui-card-hover rounded-2xl p-5 flex flex-col gap-4 cursor-pointer bg-content1"
         style="outline:2px solid hsl(var(--border)/0.6);outline-offset:0"
         @click="openEdit(item)">
         <div class="flex items-start justify-between">
-          <div class="w-12 h-12 rounded-xl flex items-center justify-center"
+          <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
             :style="item.itemType === 'service' ? 'background:linear-gradient(135deg,#22d3ee18,#0891b218)' : 'background:linear-gradient(135deg,#8b5cf620,#7c3aed20)'">
             <component :is="item.itemType === 'service' ? Wrench : Package" class="w-6 h-6"
               :style="item.itemType === 'service' ? 'color:#22d3ee' : 'color:#8b5cf6'" />
@@ -127,9 +125,9 @@
         </div>
       </div>
 
-      <div v-if="filtered.length===0" class="col-span-full rounded-2xl py-20 flex flex-col items-center gap-4 bg-card"
+      <div v-if="filtered.length===0" class="col-span-full rounded-3xl py-20 flex flex-col items-center gap-4 bg-content1"
         style="outline:2px solid hsl(var(--border)/0.6);outline-offset:0">
-        <div class="w-20 h-20 rounded-2xl flex items-center justify-center" style="background:#8b5cf614">
+        <div class="w-20 h-20 rounded-3xl flex items-center justify-center" style="background:#8b5cf614">
           <Package class="w-10 h-10" style="color:#8b5cf6;opacity:0.5" />
         </div>
         <div class="text-center">
@@ -157,7 +155,7 @@
           <!-- Item type toggle -->
           <div class="flex gap-2 p-1 rounded-xl" style="background:hsl(var(--muted)/0.4)">
             <button v-for="t in ['product', 'service']" :key="t"
-              class="flex-1 h-10 rounded-xl text-xs font-black capitalize transition-all"
+              class="flex-1 h-10 rounded-2xl text-xs font-black capitalize transition-all"
               :style="form.itemType === t
                 ? 'background:white;color:#8b5cf6;box-shadow:0 2px 8px rgba(0,0,0,0.08)'
                 : 'color:hsl(var(--muted-foreground))'"
@@ -168,34 +166,34 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="col-span-2 space-y-2">
-              <label class="m3-label">Name</label>
-              <input v-model="form.name" :placeholder="form.itemType === 'service' ? 'Screen Replacement Labor' : 'Screen Replacement'" class="m3-input" />
+              <label class="hui-label">Name</label>
+              <input v-model="form.name" :placeholder="form.itemType === 'service' ? 'Screen Replacement Labor' : 'Screen Replacement'" class="hui-input" />
             </div>
 
             <!-- Product fields -->
             <template v-if="form.itemType === 'product'">
-              <div class="space-y-2"><label class="m3-label">SKU</label><input v-model="form.sku" placeholder="SKU-001" class="m3-input" /></div>
-              <div class="space-y-2"><label class="m3-label">Category</label>
-                <select v-model="form.category" class="m3-input">
+              <div class="space-y-2"><label class="hui-label">SKU</label><input v-model="form.sku" placeholder="SKU-001" class="hui-input" /></div>
+              <div class="space-y-2"><label class="hui-label">Category</label>
+                <select v-model="form.category" class="hui-input">
                   <option v-for="c in allCategories" :key="c" :value="c">{{ c }}</option>
                 </select>
               </div>
-              <div class="space-y-2"><label class="m3-label">Price</label><input v-model.number="form.price" type="number" step="0.01" placeholder="29.99" class="m3-input" /></div>
-              <div class="space-y-2"><label class="m3-label">Cost</label><input v-model.number="form.cost" type="number" step="0.01" placeholder="15.00" class="m3-input" /></div>
-              <div class="space-y-2"><label class="m3-label">Stock Qty</label><input v-model.number="form.stock" type="number" placeholder="10" class="m3-input" /></div>
-              <div class="space-y-2"><label class="m3-label">Low Stock Alert</label><input v-model.number="form.low" type="number" placeholder="5" class="m3-input" /></div>
+              <div class="space-y-2"><label class="hui-label">Price</label><input v-model.number="form.price" type="number" step="0.01" placeholder="29.99" class="hui-input" /></div>
+              <div class="space-y-2"><label class="hui-label">Cost</label><input v-model.number="form.cost" type="number" step="0.01" placeholder="15.00" class="hui-input" /></div>
+              <div class="space-y-2"><label class="hui-label">Stock Qty</label><input v-model.number="form.stock" type="number" placeholder="10" class="hui-input" /></div>
+              <div class="space-y-2"><label class="hui-label">Low Stock Alert</label><input v-model.number="form.low" type="number" placeholder="5" class="hui-input" /></div>
             </template>
 
             <!-- Service fields -->
             <template v-else>
-              <div class="space-y-2"><label class="m3-label">Price ($)</label><input v-model.number="form.price" type="number" step="0.01" placeholder="75.00" class="m3-input" /></div>
-              <div class="space-y-2"><label class="m3-label">Duration (min)</label><input v-model.number="form.estimated_minutes" type="number" placeholder="60" class="m3-input" /></div>
-              <div class="col-span-2 space-y-2"><label class="m3-label">Category</label>
-                <input v-model="form.category" placeholder="e.g. Apple Repairs, Samsung Repairs" class="m3-input" />
+              <div class="space-y-2"><label class="hui-label">Price ($)</label><input v-model.number="form.price" type="number" step="0.01" placeholder="75.00" class="hui-input" /></div>
+              <div class="space-y-2"><label class="hui-label">Duration (min)</label><input v-model.number="form.estimated_minutes" type="number" placeholder="60" class="hui-input" /></div>
+              <div class="col-span-2 space-y-2"><label class="hui-label">Category</label>
+                <input v-model="form.category" placeholder="e.g. Apple Repairs, Samsung Repairs" class="hui-input" />
               </div>
-              <div class="col-span-2 space-y-2"><label class="m3-label">Description</label>
+              <div class="col-span-2 space-y-2"><label class="hui-label">Description</label>
                 <textarea v-model="form.description" placeholder="Brief description of the service" rows="2"
-                  class="m3-input resize-none" style="height:auto;padding-top:12px" />
+                  class="hui-input resize-none" style="height:auto;padding-top:12px" />
               </div>
             </template>
           </div>
@@ -283,7 +281,7 @@ const stats = computed(() => {
   const services = allItems.value.filter((i: any) => i.itemType === 'service')
   return [
     { label: 'Total Items',  value: allItems.value.length,  color: '#8b5cf6', badge: 'TOTAL',    icon: Package },
-    { label: 'Products',     value: products.length,         color: '#5b5ef4', badge: 'PRODUCTS', icon: Package },
+    { label: 'Products',     value: products.length,         color: '#6366f1', badge: 'PRODUCTS', icon: Package },
     { label: 'Services',     value: services.length,         color: '#22d3ee', badge: 'SERVICES', icon: Wrench  },
     { label: 'Low Stock',    value: products.filter((i: any) => i.stock <= (i.low||5)).length, color: '#f59e0b', badge: 'ALERT', icon: AlertTriangle },
   ]
@@ -378,19 +376,19 @@ const handleBatchPrint = () => {
 </script>
 
 <style scoped>
-.m3-fab { transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease; }
-.m3-fab:hover  { transform: scale(1.05) translateY(-2px); }
-.m3-fab:active { transform: scale(0.92); }
-.m3-btn-tonal { background:hsl(var(--muted)/0.7);outline:2px solid hsl(var(--border)/0.6);outline-offset:0;border-radius:999px;transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1); }
-.m3-btn-tonal:hover  { transform: scale(1.04); }
-.m3-btn-tonal:active { transform: scale(0.94); }
-.m3-stat-card { transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease; }
-.m3-stat-card:hover  { transform: scale(1.03) translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.1); }
-.m3-stat-card:active { transform: scale(0.96); }
-.m3-item-card { transition: transform 0.4s cubic-bezier(0.34,1.5,0.64,1), box-shadow 0.3s ease; }
-.m3-item-card:hover  { transform: scale(1.03) translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
-.m3-item-card:active { transform: scale(0.96); }
-.m3-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
-.m3-input:focus { border-color:#8b5cf6;box-shadow:0 0 0 3px #8b5cf618; }
-.m3-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
+.hui-fab { transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease; }
+.hui-fab:hover  { transform: scale(1.05) translateY(-2px); }
+.hui-fab:active { transform: scale(0.92); }
+.hui-btn hui-btn-light hui-btn-md { background:hsl(var(--muted)/0.7);outline:2px solid hsl(var(--border)/0.6);outline-offset:0;border-radius:999px;transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+.hui-btn hui-btn-light hui-btn-md:hover  { transform: scale(1.04); }
+.hui-btn hui-btn-light hui-btn-md:active { transform: scale(0.94); }
+.hui-stat-card { transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease; }
+.hui-stat-card:hover  { transform: scale(1.03) translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.1); }
+.hui-stat-card:active { transform: scale(0.96); }
+.hui-item-card { transition: transform 0.4s cubic-bezier(0.34,1.5,0.64,1), box-shadow 0.3s ease; }
+.hui-item-card:hover  { transform: scale(1.03) translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
+.hui-item-card:active { transform: scale(0.96); }
+.hui-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
+.hui-input:focus { border-color:#8b5cf6;box-shadow:0 0 0 3px #8b5cf618; }
+.hui-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
 </style>

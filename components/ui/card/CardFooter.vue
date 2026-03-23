@@ -1,12 +1,5 @@
-<script setup lang="ts">
-import { cn } from '~/lib/utils'
-
-defineOptions({ name: 'CardFooter' })
-const props = withDefaults(defineProps<{ class?: string }>(), { class: '' })
-</script>
-
 <template>
-  <div :class="cn('flex items-center p-5 pt-0', props.class)">
+  <div class="flex items-center p-5 pt-2 gap-3 border-t border-divider" v-bind="$attrs">
     <slot />
   </div>
 </template>

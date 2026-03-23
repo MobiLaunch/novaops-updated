@@ -6,7 +6,7 @@
       <div class="flex-shrink-0 px-4 sm:px-7 pt-5 sm:pt-7 pb-4 border-b border-border/50">
         <div class="flex items-start justify-between gap-4 pr-10">
           <div class="flex items-center gap-3">
-            <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md"
+            <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md"
               :style="`background: linear-gradient(135deg, ${ticketStatusColor(ticket?.status)}, ${ticketStatusColor(ticket?.status)}dd); box-shadow: 0 4px 14px ${ticketStatusColor(ticket?.status)}40`">
               <TicketCheck class="w-5 h-5 text-white" />
             </div>
@@ -50,7 +50,7 @@
             <span
               v-if="tab.count !== undefined && tab.count > 0"
               class="text-[9px] font-black px-1.5 py-0.5 rounded-full"
-              :style="activeTab === tab.id ? 'background: #5b5ef420; color: #5b5ef4' : 'background: hsl(var(--border)); color: hsl(var(--muted-foreground))'"
+              :style="activeTab === tab.id ? 'background: #6366f120; color: #6366f1' : 'background: hsl(var(--border)); color: hsl(var(--muted-foreground))'"
             >{{ tab.count }}</span>
           </button>
         </div>
@@ -66,7 +66,7 @@
           <Card v-if="ticketCustomer" class="rounded-xl overflow-hidden">
             <CardContent class="p-0">
               <div class="flex items-center gap-3 px-4 pt-4 pb-3"
-                style="background: linear-gradient(135deg, #5b5ef408, #8b5cf608); border-bottom: 1px solid hsl(var(--border)/0.5)">
+                style="background: linear-gradient(135deg, #6366f108, #8b5cf608); border-bottom: 1px solid hsl(var(--border)/0.5)">
                 <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-black text-white select-none"
                   :style="`background: linear-gradient(135deg, ${avatarColor(ticketCustomer.name)}, ${avatarColor(ticketCustomer.name)}cc)`">
                   {{ initials(ticketCustomer.name) }}
@@ -104,11 +104,11 @@
 
           <!-- ── Edit / View toggle ── -->
           <div class="flex items-center justify-between">
-            <p class="m3-section-label mb-0">Device & Repair Details</p>
+            <p class="hui-section-label mb-0">Device & Repair Details</p>
             <button
               class="flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95"
               :style="editingInfo
-                ? 'background: #5b5ef420; color: #5b5ef4; outline: 1.5px solid #5b5ef440; outline-offset: 0'
+                ? 'background: #6366f120; color: #6366f1; outline: 1.5px solid #6366f140; outline-offset: 0'
                 : 'background: hsl(var(--muted)/0.6); color: hsl(var(--muted-foreground))'"
               @click="editingInfo = !editingInfo"
             >
@@ -121,7 +121,7 @@
           <div v-if="!editingInfo" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card class="rounded-xl">
               <CardContent class="p-5 space-y-3">
-                <p class="m3-section-label">Device</p>
+                <p class="hui-section-label">Device</p>
                 <div class="space-y-1.5 text-sm">
                   <div class="flex justify-between"><span class="text-muted-foreground">Brand</span><span class="font-medium">{{ ticket?.device }}</span></div>
                   <div class="flex justify-between"><span class="text-muted-foreground">Model</span><span class="font-medium">{{ ticket?.deviceModel || '—' }}</span></div>
@@ -135,7 +135,7 @@
             </Card>
             <Card class="rounded-xl">
               <CardContent class="p-5 space-y-3">
-                <p class="m3-section-label">Financials</p>
+                <p class="hui-section-label">Financials</p>
                 <div class="space-y-1.5 text-sm">
                   <div class="flex justify-between"><span class="text-muted-foreground">Labor</span><span class="font-medium text-blue-500">{{ formatCurrency(laborTotal) }}</span></div>
                   <div class="flex justify-between"><span class="text-muted-foreground">Parts</span><span class="font-medium text-purple-500">{{ formatCurrency(partsTotal) }}</span></div>
@@ -151,7 +151,7 @@
           </div>
           <Card v-if="!editingInfo" class="rounded-xl">
             <CardContent class="p-5 space-y-2">
-              <p class="m3-section-label">Issue Reported</p>
+              <p class="hui-section-label">Issue Reported</p>
               <p class="text-sm leading-relaxed">{{ ticket?.issue }}</p>
             </CardContent>
           </Card>
@@ -159,23 +159,23 @@
           <!-- EDIT MODE -->
           <Card v-if="editingInfo" class="rounded-xl">
             <CardContent class="p-5 space-y-4">
-              <p class="m3-section-label">Edit Device Details</p>
+              <p class="hui-section-label">Edit Device Details</p>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div class="space-y-1.5">
                   <label class="field-label">Brand / Manufacturer</label>
-                  <input v-model="localDevice" class="m3-edit-input" placeholder="Apple, Samsung…" />
+                  <input v-model="localDevice" class="hui-input" placeholder="Apple, Samsung…" />
                 </div>
                 <div class="space-y-1.5">
                   <label class="field-label">Model</label>
-                  <input v-model="localDeviceModel" class="m3-edit-input" placeholder="iPhone 15 Pro…" />
+                  <input v-model="localDeviceModel" class="hui-input" placeholder="iPhone 15 Pro…" />
                 </div>
                 <div class="space-y-1.5">
                   <label class="field-label">Serial Number</label>
-                  <input v-model="localSerialNumber" class="m3-edit-input font-mono text-xs" placeholder="Optional" />
+                  <input v-model="localSerialNumber" class="hui-input font-mono text-xs" placeholder="Optional" />
                 </div>
                 <div class="space-y-1.5">
                   <label class="field-label">Priority</label>
-                  <select v-model="localPriority" class="m3-edit-input">
+                  <select v-model="localPriority" class="hui-input">
                     <option value="low">Low</option>
                     <option value="normal">Normal</option>
                     <option value="high">High</option>
@@ -183,11 +183,11 @@
                 </div>
                 <div class="sm:col-span-2 space-y-1.5">
                   <label class="field-label">Issue / Problem Description</label>
-                  <textarea v-model="localIssue" class="m3-edit-input resize-none" rows="3" placeholder="Describe the issue…" />
+                  <textarea v-model="localIssue" class="hui-input resize-none" rows="3" placeholder="Describe the issue…" />
                 </div>
                 <div class="sm:col-span-2 space-y-1.5">
                   <label class="field-label">Device Condition Notes</label>
-                  <textarea v-model="localDeviceDescription" class="m3-edit-input resize-none" rows="2" placeholder="Color, visible damage, accessories included…" />
+                  <textarea v-model="localDeviceDescription" class="hui-input resize-none" rows="2" placeholder="Color, visible damage, accessories included…" />
                 </div>
               </div>
             </CardContent>
@@ -197,18 +197,18 @@
           <div class="grid grid-cols-2 gap-3">
             <div class="space-y-1.5">
               <label class="field-label">Warranty Days</label>
-              <input v-model.number="localWarrantyDays" type="number" min="0" placeholder="0" class="m3-edit-input" @change="saveField('warranty_days', localWarrantyDays)" />
+              <input v-model.number="localWarrantyDays" type="number" min="0" placeholder="0" class="hui-input" @change="saveField('warranty_days', localWarrantyDays)" />
             </div>
             <div class="space-y-1.5">
               <label class="field-label">Tracking Number</label>
-              <input v-model="localTracking" placeholder="Optional" class="m3-edit-input" @change="saveField('tracking', localTracking)" />
+              <input v-model="localTracking" placeholder="Optional" class="hui-input" @change="saveField('tracking', localTracking)" />
             </div>
           </div>
 
           <!-- Financials summary (always visible) -->
           <Card v-if="editingInfo" class="rounded-xl">
             <CardContent class="p-5 space-y-2">
-              <p class="m3-section-label">Financials</p>
+              <p class="hui-section-label">Financials</p>
               <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
                 <div class="flex justify-between"><span class="text-muted-foreground">Labor</span><span class="text-blue-500 font-medium">{{ formatCurrency(laborTotal) }}</span></div>
                 <div class="flex justify-between"><span class="text-muted-foreground">Parts</span><span class="text-purple-500 font-medium">{{ formatCurrency(partsTotal) }}</span></div>
@@ -221,8 +221,8 @@
 
           <!-- Signature -->
           <div v-if="ticket?.signature">
-            <p class="m3-section-label mb-2">Customer Signature</p>
-            <div class="border rounded-xl p-3 bg-muted/20">
+            <p class="hui-section-label mb-2">Customer Signature</p>
+            <div class="border rounded-2xl p-3 bg-muted/20">
               <img :src="ticket.signature" alt="Signature" class="max-h-24 w-auto" />
             </div>
           </div>
@@ -240,7 +240,7 @@
           <!-- Add service -->
           <Card class="rounded-xl">
             <CardContent class="p-5 space-y-3">
-              <p class="m3-section-label">Add Service</p>
+              <p class="hui-section-label">Add Service</p>
               <div class="flex gap-2">
                 <div class="flex-1 relative">
                   <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
@@ -286,7 +286,7 @@
             <div
               v-for="(svc, idx) in localServices"
               :key="idx"
-              class="flex items-center gap-3 px-4 py-3 rounded-xl border bg-card transition-all hover:bg-muted/30"
+              class="flex items-center gap-3 px-4 py-3 rounded-2xl border bg-content1 transition-all hover:bg-muted/30"
             >
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium">{{ svc.name }}</p>
@@ -322,13 +322,13 @@
               </button>
             </div>
 
-            <div v-if="localServices.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-xl border border-dashed">
+            <div v-if="localServices.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-2xl border border-dashed">
               No services added yet — search the catalog above
             </div>
           </div>
 
           <!-- Labor total -->
-          <div v-if="localServices.length > 0" class="flex justify-between items-center px-4 py-3 rounded-xl bg-muted/40 text-sm font-semibold">
+          <div v-if="localServices.length > 0" class="flex justify-between items-center px-4 py-3 rounded-2xl bg-muted/40 text-sm font-semibold">
             <span>Labor Total</span>
             <span class="text-emerald-600">{{ formatCurrency(laborTotal) }}</span>
           </div>
@@ -338,7 +338,7 @@
         <div v-if="activeTab === 'parts'" class="space-y-4">
           <Card class="rounded-xl">
             <CardContent class="p-5 space-y-3">
-              <p class="m3-section-label">Add Part</p>
+              <p class="hui-section-label">Add Part</p>
               <div class="flex gap-2">
                 <div class="flex-1 relative">
                   <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
@@ -376,7 +376,7 @@
             <div
               v-for="(part, idx) in localParts"
               :key="idx"
-              class="flex items-center gap-3 px-4 py-3 rounded-xl border bg-card transition-all hover:bg-muted/30"
+              class="flex items-center gap-3 px-4 py-3 rounded-2xl border bg-content1 transition-all hover:bg-muted/30"
             >
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium">{{ part.name }}</p>
@@ -399,12 +399,12 @@
                 <X class="w-4 h-4" />
               </button>
             </div>
-            <div v-if="localParts.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-xl border border-dashed">
+            <div v-if="localParts.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-2xl border border-dashed">
               No parts added yet
             </div>
           </div>
 
-          <div v-if="localParts.length > 0" class="flex justify-between items-center px-4 py-3 rounded-xl bg-muted/40 text-sm font-semibold">
+          <div v-if="localParts.length > 0" class="flex justify-between items-center px-4 py-3 rounded-2xl bg-muted/40 text-sm font-semibold">
             <span>Parts Total</span>
             <span class="text-purple-600">{{ formatCurrency(partsTotal) }}</span>
           </div>
@@ -440,7 +440,7 @@
           <!-- Add payment -->
           <Card class="rounded-xl">
             <CardContent class="p-5 space-y-3">
-              <p class="m3-section-label">Record Payment</p>
+              <p class="hui-section-label">Record Payment</p>
               <div class="grid grid-cols-2 gap-3">
                 <div class="space-y-1.5">
                   <Label class="text-xs">Amount</Label>
@@ -478,7 +478,7 @@
             <div
               v-for="(payment, idx) in localPayments"
               :key="idx"
-              class="flex items-center gap-3 px-4 py-3 rounded-xl border bg-card transition-all hover:bg-muted/30"
+              class="flex items-center gap-3 px-4 py-3 rounded-2xl border bg-content1 transition-all hover:bg-muted/30"
             >
               <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: #10b98118">
                 <DollarSign class="w-4 h-4 text-emerald-500" />
@@ -492,7 +492,7 @@
                 <X class="w-4 h-4" />
               </button>
             </div>
-            <div v-if="localPayments.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-xl border border-dashed">
+            <div v-if="localPayments.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-2xl border border-dashed">
               No payments recorded yet
             </div>
           </div>
@@ -510,7 +510,7 @@
             <div
               v-for="(note, idx) in localNotes"
               :key="idx"
-              class="px-4 py-3 rounded-xl border bg-card text-sm transition-all hover:bg-muted/30"
+              class="px-4 py-3 rounded-2xl border bg-content1 text-sm transition-all hover:bg-muted/30"
             >
               <div class="flex items-start justify-between gap-2">
                 <p class="flex-1">{{ note.text }}</p>
@@ -520,7 +520,7 @@
               </div>
               <p class="text-xs text-muted-foreground mt-1">{{ formatDate(note.date) }}</p>
             </div>
-            <div v-if="localNotes.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-xl border border-dashed">
+            <div v-if="localNotes.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-2xl border border-dashed">
               No notes yet
             </div>
           </div>
@@ -552,7 +552,7 @@
           style="outline: 2px solid hsl(var(--border)); outline-offset: 0"
           @click="isOpen = false">Close</button>
         <button class="flex items-center gap-1.5 h-11 px-6 rounded-full text-sm font-black text-white transition-all hover:scale-[1.04] hover:-translate-y-0.5 active:scale-95"
-          style="background: linear-gradient(135deg, #5b5ef4, #8b5cf6); box-shadow: 0 4px 16px #5b5ef440"
+          style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 4px 16px #6366f140"
           :disabled="saving"
           @click="saveAll">
           <Loader2 v-if="saving" class="w-3.5 h-3.5 animate-spin" />
@@ -710,7 +710,7 @@ const priorityClass = (p?: string) => {
 
 const ticketStatusColor = (status?: string) => ({
   'Open': '#3b82f6', 'In Progress': '#f59e0b', 'Waiting for Parts': '#f97316',
-  'Completed': '#10b981', 'Delivered': '#64748b', 'Closed': '#5b5ef4'
+  'Completed': '#10b981', 'Delivered': '#64748b', 'Closed': '#6366f1'
 }[status || ''] || '#64748b')
 
 const priorityColorRaw = (p?: string) => ({ low: '#64748b', normal: '#3b82f6', high: '#ef4444' }[p || ''] || '#64748b')
@@ -720,7 +720,7 @@ const initials = (name: string) =>
   (name || '?').split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
 
 const avatarColor = (name: string) => {
-  const colors = ['#5b5ef4','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6']
+  const colors = ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6']
   let hash = 0
   for (const c of (name || '')) hash = c.charCodeAt(0) + ((hash << 5) - hash)
   return colors[Math.abs(hash) % colors.length]
@@ -920,7 +920,7 @@ const saveAll = async () => {
 </script>
 
 <style scoped>
-.m3-section-label {
+.hui-section-label {
   font-size: 10px;
   font-weight: 800;
   color: hsl(var(--muted-foreground));
@@ -938,7 +938,7 @@ const saveAll = async () => {
   margin-bottom: 0.3rem;
 }
 
-.m3-edit-input {
+.hui-input {
   width: 100%;
   height: 44px;
   padding: 0 14px;
@@ -951,12 +951,12 @@ const saveAll = async () => {
   outline: none;
   transition: all 0.2s ease;
 }
-.m3-edit-input:focus {
-  border-color: #5b5ef4;
-  box-shadow: 0 0 0 3px #5b5ef415;
+.hui-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px #6366f115;
   background: hsl(var(--background));
 }
-.m3-edit-input.resize-none {
+.hui-input.resize-none {
   height: auto;
   padding-top: 10px;
   padding-bottom: 10px;
@@ -975,8 +975,8 @@ const saveAll = async () => {
   flex-shrink: 0;
 }
 .contact-action-btn:hover {
-  background: #5b5ef420;
-  color: #5b5ef4;
+  background: #6366f120;
+  color: #6366f1;
   transform: scale(1.1);
 }
 .contact-action-btn:active {

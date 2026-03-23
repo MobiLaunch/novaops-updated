@@ -158,7 +158,7 @@ interface FilePaper {
 
 const STACKS = [
   { label: 'Tickets',   color: '#fffbeb', accent: '#f59e0b', accentLight: '#fef3c7', x: 105, y: 195 },
-  { label: 'Customers', color: '#f5f3ff', accent: '#5b5ef4', accentLight: '#ede9fe', x: 250, y: 185 },
+  { label: 'Customers', color: '#f5f3ff', accent: '#6366f1', accentLight: '#ede9fe', x: 250, y: 185 },
   { label: 'Inventory', color: '#f0fdf4', accent: '#10b981', accentLight: '#d1fae5', x: 395, y: 195 },
 ]
 
@@ -490,7 +490,7 @@ onUnmounted(() => cancelAnimationFrame(raf))
 .canvas-wrap {
   position: relative;
   background: white;
-  border-radius: 20px;
+  border-radius: 32px;
   padding: 18px 18px 22px;
   box-shadow:
     0 2px 0 rgba(99,102,241,0.08),
@@ -515,7 +515,7 @@ onUnmounted(() => cancelAnimationFrame(raf))
   background: white;
   box-shadow: 0 2px 12px rgba(99,102,241,0.15);
   outline: 1px solid rgba(99,102,241,0.15);
-  font-size: 11px; font-weight: 700; color: #5b5ef4;
+  font-size: 11px; font-weight: 700; color: #6366f1;
   white-space: nowrap;
   opacity: 0; transform: translateX(-50%) translateY(6px);
   transition: opacity 0.5s ease 0.3s, transform 0.5s cubic-bezier(0.34,1.4,0.64,1) 0.3s;
@@ -590,7 +590,7 @@ onUnmounted(() => cancelAnimationFrame(raf))
 .logo-badge {
   padding: 2px 8px; border-radius: 100px;
   font-size: 9px; font-weight: 800; letter-spacing: 0.06em;
-  background: #ede9fe; color: #5b5ef4;
+  background: #ede9fe; color: #6366f1;
   text-transform: uppercase;
   outline: 1px solid #c7d2fe;
 }
@@ -610,7 +610,7 @@ onUnmounted(() => cancelAnimationFrame(raf))
 }
 .headline-line { display: block; }
 .headline-line.accent {
-  background: linear-gradient(90deg, #5b5ef4, #8b5cf6, #06b6d4);
+  background: linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;
   background-size: 200% auto;
@@ -676,7 +676,7 @@ onUnmounted(() => cancelAnimationFrame(raf))
   display: inline-flex; align-items: center; gap: 10px;
   padding: 0 34px; height: 58px; border-radius: 100px;
   border: none; cursor: pointer;
-  background: linear-gradient(135deg, #5b5ef4 0%, #8b5cf6 50%, #06b6d4 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
   background-size: 200% auto;
   box-shadow: 0 6px 24px rgba(99,102,241,0.35), 0 2px 0 rgba(255,255,255,0.2) inset;
   transition: transform 0.25s cubic-bezier(0.34,1.4,0.64,1), box-shadow 0.25s ease, background-position 0.5s ease;

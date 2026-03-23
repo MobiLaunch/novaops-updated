@@ -1,14 +1,1 @@
-<script setup lang="ts">
-import type { HTMLAttributes } from 'vue'
-import { cn } from '~/lib/utils'
-
-const props = defineProps<{
-  class?: HTMLAttributes['class']
-}>()
-</script>
-
-<template>
-  <thead :class="cn('[&_tr]:border-b', props.class)">
-    <slot />
-  </thead>
-</template>
+<template><thead class="sticky top-0 z-10" v-bind="$attrs"><slot /></thead></template>

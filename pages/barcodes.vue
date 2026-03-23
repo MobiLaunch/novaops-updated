@@ -4,7 +4,7 @@
     <!-- Header -->
     <div class="flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"
           style="background: linear-gradient(135deg, #06b6d4, #0891b2); box-shadow: 0 6px 28px #06b6d450">
           <ScanLine class="w-6 h-6 text-white" />
         </div>
@@ -24,7 +24,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
       <!-- Generate Panel -->
-      <div v-if="mode === 'Generate'" class="rounded-2xl p-7 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
+      <div v-if="mode === 'Generate'" class="rounded-3xl p-7 bg-content1">
         <div class="flex items-center gap-3 mb-6">
           <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #06b6d420">
             <Barcode class="w-4 h-4" style="color: #06b6d4" />
@@ -33,15 +33,15 @@
         </div>
         <div class="space-y-4">
           <div class="space-y-2">
-            <label class="m3-label">Content / SKU</label>
-            <input v-model="barcodeValue" placeholder="Enter SKU or item code…" class="m3-input" @input="debouncedGenerate" />
+            <label class="hui-label">Content / SKU</label>
+            <input v-model="barcodeValue" placeholder="Enter SKU or item code…" class="hui-input" @input="debouncedGenerate" />
           </div>
           <div class="space-y-2">
-            <label class="m3-label">Label (optional)</label>
-            <input v-model="barcodeLabel" placeholder="Product name or description" class="m3-input" />
+            <label class="hui-label">Label (optional)</label>
+            <input v-model="barcodeLabel" placeholder="Product name or description" class="hui-input" />
           </div>
           <div class="space-y-2">
-            <label class="m3-label">Format</label>
+            <label class="hui-label">Format</label>
             <div class="flex flex-wrap gap-2">
               <button v-for="t in barcodeFormats" :key="t.value"
                 class="px-3 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-105"
@@ -51,9 +51,9 @@
           </div>
 
           <!-- Live barcode preview -->
-          <div v-if="barcodeValue" class="rounded-xl p-6 flex flex-col items-center gap-4" style="background: white; outline: 2px solid #06b6d420; outline-offset: 0">
+          <div v-if="barcodeValue" class="rounded-2xl p-6 flex flex-col items-center gap-4" style="background: white; outline: 2px solid #06b6d420; outline-offset: 0">
             <div v-show="barcodeFormat === 'QR'">
-              <canvas ref="qrCanvas" class="rounded-[12px]" />
+              <canvas ref="qrCanvas" class="rounded-xl" />
             </div>
             <svg v-show="barcodeFormat !== 'QR'" ref="barcodeSvg" class="max-w-full" />
             <p class="text-xs font-bold text-gray-500">{{ barcodeLabel || barcodeValue }}</p>
@@ -68,7 +68,7 @@
             </div>
           </div>
 
-          <div v-if="!barcodeValue" class="rounded-xl p-8 flex flex-col items-center gap-2 text-muted-foreground" style="background: hsl(var(--muted)/0.2); outline: 2px dashed hsl(var(--border)/0.4); outline-offset: 0">
+          <div v-if="!barcodeValue" class="rounded-2xl p-8 flex flex-col items-center gap-2 text-muted-foreground" style="background: hsl(var(--muted)/0.2); outline: 2px dashed hsl(var(--border)/0.4); outline-offset: 0">
             <Barcode class="w-8 h-8 opacity-30" />
             <p class="text-xs font-bold">Enter a value above to preview your barcode</p>
           </div>
@@ -76,7 +76,7 @@
       </div>
 
       <!-- Scan Panel -->
-      <div v-if="mode === 'Scan'" class="rounded-2xl p-7 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
+      <div v-if="mode === 'Scan'" class="rounded-3xl p-7 bg-content1">
         <div class="flex items-center gap-3 mb-6">
           <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #06b6d420">
             <ScanLine class="w-4 h-4" style="color: #06b6d4" />
@@ -85,13 +85,13 @@
         </div>
         <div class="space-y-4">
           <div class="space-y-2">
-            <label class="m3-label">Scan or type SKU</label>
-            <input ref="scanInput" v-model="scanValue" placeholder="Scan barcode or enter SKU…" class="m3-input" autofocus @keyup.enter="lookupScan" />
+            <label class="hui-label">Scan or type SKU</label>
+            <input ref="scanInput" v-model="scanValue" placeholder="Scan barcode or enter SKU…" class="hui-input" autofocus @keyup.enter="lookupScan" />
           </div>
           <button class="w-full h-12 rounded-full text-sm font-black text-white transition-all hover:scale-[1.02] active:scale-95" style="background: linear-gradient(135deg, #06b6d4, #0891b2)" @click="lookupScan">
             Lookup Item
           </button>
-          <div v-if="scanResult" class="rounded-xl p-5 flex flex-col gap-2"
+          <div v-if="scanResult" class="rounded-2xl p-5 flex flex-col gap-2"
             :style="scanResult.found ? 'background: #10b98114; outline: 2px solid #10b98128; outline-offset: 0' : 'background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0'">
             <div v-if="scanResult.found" class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: #10b98120">
@@ -108,7 +108,7 @@
       </div>
 
       <!-- Inventory Items — click to auto-populate generator -->
-      <div class="rounded-2xl p-7 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
+      <div class="rounded-3xl p-7 bg-content1">
         <div class="flex items-center justify-between mb-6">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #8b5cf620">
@@ -142,7 +142,7 @@
     </div>
 
     <!-- Batch generator -->
-    <div class="rounded-2xl p-6 bg-card" style="border: 1px solid hsl(var(--border)/0.7)">
+    <div class="rounded-2xl p-6 bg-content1">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: #06b6d420">
@@ -338,6 +338,6 @@ const selectInventoryItem = (item: any) => {
 </script>
 
 <style scoped>
-.m3-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
-.m3-input:focus { border-color: #06b6d4; box-shadow: 0 0 0 3px #06b6d418; }
+.hui-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
+.hui-input:focus { border-color: #06b6d4; box-shadow: 0 0 0 3px #06b6d418; }
 </style>

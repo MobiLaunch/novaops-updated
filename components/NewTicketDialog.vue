@@ -3,8 +3,8 @@
     <DialogContent class="w-full max-w-[96vw] sm:max-w-3xl max-h-[90dvh] overflow-y-auto">
       <!-- M3 Dialog Header -->
       <div class="flex items-center gap-4 px-7 pt-7 pb-5 border-b border-border/50">
-        <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md"
-          style="background: linear-gradient(135deg, #5b5ef4, #8b5cf6); box-shadow: 0 4px 16px #5b5ef440">
+        <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md"
+          style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 4px 16px #6366f140">
           <Wrench class="w-5 h-5 text-white" />
         </div>
         <div>
@@ -16,7 +16,7 @@
           <div v-for="i in totalSteps" :key="i"
             class="h-1.5 rounded-full transition-all duration-500"
             :class="i <= displayStep ? 'w-6' : 'w-3'"
-            :style="i <= displayStep ? 'background: #5b5ef4' : 'background: hsl(var(--border))'"
+            :style="i <= displayStep ? 'background: #6366f1' : 'background: hsl(var(--border))'"
           />
         </div>
       </div>
@@ -25,14 +25,14 @@
 
         <!-- ── Step 1: Brand ─────────────────────────────── -->
         <div v-if="currentStep === 1" class="space-y-4">
-          <label class="m3-dialog-label">Select Brand</label>
+          <label class="hui-dialog-label">Select Brand</label>
           <div v-if="loadingBrands" class="flex items-center justify-center py-10">
             <div class="w-8 h-8 border-[3px] border-primary/30 border-t-primary rounded-full animate-spin" />
           </div>
           <div v-else class="grid grid-cols-2 md:grid-cols-3 gap-3">
             <button
               v-for="brand in allBrands" :key="brand"
-              class="m3-step-chip group"
+              class="hui-step-chip group"
               :class="selectedBrand === brand ? 'm3-step-chip--active' : ''"
               @click="selectBrand(brand)"
             >
@@ -43,7 +43,7 @@
             </button>
             <!-- Other brand button -->
             <button
-              class="m3-step-chip group"
+              class="hui-step-chip group"
               :class="isOtherBrand ? 'm3-step-chip--active' : ''"
               @click="selectOtherBrand"
             >
@@ -55,11 +55,11 @@
           </div>
           <!-- Custom brand input (shown when Other is selected) -->
           <div v-if="isOtherBrand" class="space-y-3 pt-2 border-t border-border/50 animate-in fade-in slide-in-from-top-2 duration-200">
-            <label class="m3-dialog-label">Enter Brand Name</label>
-            <input v-model="customBrand" placeholder="e.g. Motorola, OnePlus, Lenovo…" class="m3-dialog-input" @keyup.enter="confirmOtherBrand" />
+            <label class="hui-dialog-label">Enter Brand Name</label>
+            <input v-model="customBrand" placeholder="e.g. Motorola, OnePlus, Lenovo…" class="hui-dialog-input" @keyup.enter="confirmOtherBrand" />
             <button
               class="w-full h-11 rounded-full text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
-              :style="customBrand ? 'background: linear-gradient(135deg, #5b5ef4, #8b5cf6); box-shadow: 0 4px 16px #5b5ef440' : 'background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); cursor: not-allowed'"
+              :style="customBrand ? 'background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 4px 16px #6366f140' : 'background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); cursor: not-allowed'"
               :disabled="!customBrand"
               @click="confirmOtherBrand"
             >
@@ -71,14 +71,14 @@
         <!-- ── Step 2: Category ───────────────────────────── -->
         <div v-if="currentStep === 2" class="space-y-4">
           <div class="flex items-center gap-2">
-            <button class="m3-back-btn" @click="goBackFromStep2">
+            <button class="hui-back-btn" @click="goBackFromStep2">
               <ChevronLeft class="w-4 h-4" />
             </button>
-            <label class="m3-dialog-label mb-0">{{ selectedBrand }} — Category</label>
+            <label class="hui-dialog-label mb-0">{{ selectedBrand }} — Category</label>
           </div>
           <!-- Custom brand: show manual category + model entry -->
           <div v-if="isOtherBrand" class="space-y-4">
-            <div class="rounded-xl p-4 flex items-center gap-3" style="background: #5b5ef410; outline: 1.5px solid #5b5ef428; outline-offset: 0">
+            <div class="rounded-xl p-4 flex items-center gap-3" style="background: #6366f110; outline: 1.5px solid #6366f128; outline-offset: 0">
               <span class="text-2xl">✏️</span>
               <div class="text-sm">
                 <p class="font-black">Custom Device Entry</p>
@@ -86,11 +86,11 @@
               </div>
             </div>
             <div class="space-y-2">
-              <label class="m3-dialog-label">Device Category</label>
+              <label class="hui-dialog-label">Device Category</label>
               <div class="grid grid-cols-2 gap-2">
                 <button
                   v-for="cat in commonCategories" :key="cat.label"
-                  class="m3-step-chip"
+                  class="hui-step-chip"
                   :class="selectedCategory === cat.label ? 'm3-step-chip--active' : ''"
                   @click="selectedCategory = cat.label; customCategory = ''"
                 >
@@ -100,13 +100,13 @@
                   </div>
                 </button>
               </div>
-              <input v-model="customCategory" placeholder="Or type custom category…" class="m3-dialog-input mt-2"
+              <input v-model="customCategory" placeholder="Or type custom category…" class="hui-dialog-input mt-2"
                 @focus="selectedCategory = ''"
                 @input="selectedCategory = customCategory" />
             </div>
             <div class="space-y-2">
-              <label class="m3-dialog-label">Model / Device Name</label>
-              <input v-model="customModel" placeholder="e.g. Edge 40 Pro, Nord CE3, Tab P12…" class="m3-dialog-input" />
+              <label class="hui-dialog-label">Model / Device Name</label>
+              <input v-model="customModel" placeholder="e.g. Edge 40 Pro, Nord CE3, Tab P12…" class="hui-dialog-input" />
             </div>
           </div>
           <!-- Normal brand: category chips from DB -->
@@ -117,7 +117,7 @@
             <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <button
                 v-for="cat in categories" :key="cat"
-                class="m3-step-chip"
+                class="hui-step-chip"
                 :class="selectedCategory === cat ? 'm3-step-chip--active' : ''"
                 @click="selectCategory(cat)"
               >
@@ -130,14 +130,14 @@
         <!-- ── Step 3: Model ─────────────────────────────── -->
         <div v-if="currentStep === 3" class="space-y-4">
           <div class="flex items-center gap-2">
-            <button class="m3-back-btn" @click="currentStep = 2">
+            <button class="hui-back-btn" @click="currentStep = 2">
               <ChevronLeft class="w-4 h-4" />
             </button>
-            <label class="m3-dialog-label mb-0">Select Model</label>
+            <label class="hui-dialog-label mb-0">Select Model</label>
           </div>
           <div class="relative">
             <Search class="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <input v-model="modelSearch" placeholder="Search models…" class="m3-dialog-input pl-11" />
+            <input v-model="modelSearch" placeholder="Search models…" class="hui-dialog-input pl-11" />
           </div>
           <div v-if="loadingModels" class="flex items-center justify-center py-10">
             <div class="w-8 h-8 border-[3px] border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -145,7 +145,7 @@
           <div v-else class="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-1">
             <button
               v-for="model in filteredModels" :key="model"
-              class="m3-step-chip"
+              class="hui-step-chip"
               :class="selectedModel === model ? 'm3-step-chip--active' : ''"
               @click="selectModel(model)"
             >
@@ -156,29 +156,29 @@
             </div>
           </div>
           <div class="space-y-2 pt-2 border-t border-border/50">
-            <label class="m3-dialog-label">Or enter custom model</label>
-            <input v-model="customModel" placeholder="Enter model name…" class="m3-dialog-input" @keyup.enter="handleCustomModelEnter" />
+            <label class="hui-dialog-label">Or enter custom model</label>
+            <input v-model="customModel" placeholder="Enter model name…" class="hui-dialog-input" @keyup.enter="handleCustomModelEnter" />
           </div>
         </div>
 
         <!-- ── Step 4: Issue ─────────────────────────────── -->
         <div v-if="currentStep === 4" class="space-y-4">
           <div class="flex items-center gap-2">
-            <button class="m3-back-btn" @click="currentStep = 3">
+            <button class="hui-back-btn" @click="currentStep = 3">
               <ChevronLeft class="w-4 h-4" />
             </button>
-            <label class="m3-dialog-label mb-0">Select Issue</label>
+            <label class="hui-dialog-label mb-0">Select Issue</label>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <button
               v-for="issue in issues" :key="issue.name"
-              class="m3-step-chip text-left"
+              class="hui-step-chip text-left"
               :class="selectedIssue === issue.name ? 'm3-step-chip--active' : ''"
               @click="selectIssue(issue.name)"
             >
               <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                  :style="selectedIssue === issue.name ? 'background: #5b5ef420; color: #5b5ef4' : 'background: hsl(var(--muted)); color: hsl(var(--muted-foreground))'">
+                <div class="w-8 h-8 rounded-2xl flex items-center justify-center flex-shrink-0 mt-0.5"
+                  :style="selectedIssue === issue.name ? 'background: #6366f120; color: #6366f1' : 'background: hsl(var(--muted)); color: hsl(var(--muted-foreground))'">
                   <component :is="issue.icon" class="w-4 h-4" />
                 </div>
                 <div>
@@ -189,24 +189,24 @@
             </button>
           </div>
           <div class="space-y-2 pt-2 border-t border-border/50">
-            <label class="m3-dialog-label">Or describe custom issue</label>
-            <textarea v-model="customIssue" rows="3" placeholder="Describe the problem…" class="m3-dialog-textarea" />
+            <label class="hui-dialog-label">Or describe custom issue</label>
+            <textarea v-model="customIssue" rows="3" placeholder="Describe the problem…" class="hui-dialog-textarea" />
           </div>
         </div>
 
         <!-- ── Step 5: Details ───────────────────────────── -->
         <div v-if="currentStep === 5" class="space-y-5">
           <div class="flex items-center gap-2">
-            <button class="m3-back-btn" @click="currentStep = 4">
+            <button class="hui-back-btn" @click="currentStep = 4">
               <ChevronLeft class="w-4 h-4" />
             </button>
-            <label class="m3-dialog-label mb-0">Ticket Details</label>
+            <label class="hui-dialog-label mb-0">Ticket Details</label>
           </div>
 
           <!-- Summary pill -->
-          <div class="rounded-xl p-4 flex items-center gap-3" style="background: #5b5ef410; outline: 1.5px solid #5b5ef428; outline-offset: 0">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: #5b5ef420">
-              <Wrench class="w-5 h-5" style="color: #5b5ef4" />
+          <div class="rounded-xl p-4 flex items-center gap-3" style="background: #6366f110; outline: 1.5px solid #6366f128; outline-offset: 0">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: #6366f120">
+              <Wrench class="w-5 h-5" style="color: #6366f1" />
             </div>
             <div class="text-sm">
               <p class="font-black">{{ selectedBrand }} {{ selectedModel || customModel }}</p>
@@ -216,17 +216,17 @@
 
           <!-- Customer -->
           <div class="space-y-2">
-            <label class="m3-dialog-label">Customer *</label>
+            <label class="hui-dialog-label">Customer *</label>
             <CustomerSelect v-model="ticketData.customerId" />
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-2">
-              <label class="m3-dialog-label">Serial Number</label>
-              <input v-model="ticketData.serialNumber" placeholder="Optional" class="m3-dialog-input" />
+              <label class="hui-dialog-label">Serial Number</label>
+              <input v-model="ticketData.serialNumber" placeholder="Optional" class="hui-dialog-input" />
             </div>
             <div class="space-y-2">
-              <label class="m3-dialog-label">Priority</label>
+              <label class="hui-dialog-label">Priority</label>
               <Select v-model="ticketData.priority">
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -239,13 +239,13 @@
           </div>
 
           <div class="space-y-2">
-            <label class="m3-dialog-label">Device Condition</label>
-            <textarea v-model="ticketData.deviceDescription" rows="2" placeholder="Color, visible damage, accessories included…" class="m3-dialog-textarea" />
+            <label class="hui-dialog-label">Device Condition</label>
+            <textarea v-model="ticketData.deviceDescription" rows="2" placeholder="Color, visible damage, accessories included…" class="hui-dialog-textarea" />
           </div>
 
           <!-- Photo Attachments -->
           <div class="space-y-3">
-            <label class="m3-dialog-label">Photos <span class="normal-case font-medium opacity-60">(optional — up to 6)</span></label>
+            <label class="hui-dialog-label">Photos <span class="normal-case font-medium opacity-60">(optional — up to 6)</span></label>
 
             <!-- Drop zone -->
             <div
@@ -265,10 +265,10 @@
                 @change="handlePhotoSelect"
               />
               <div v-if="photoAttachments.length === 0" class="flex flex-col items-center gap-2 py-4">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: #5b5ef415">
-                  <Camera class="w-5 h-5" style="color: #5b5ef4" />
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: #6366f115">
+                  <Camera class="w-5 h-5" style="color: #6366f1" />
                 </div>
-                <p class="text-sm font-bold text-muted-foreground">Drop photos here or <span style="color: #5b5ef4">click to browse</span></p>
+                <p class="text-sm font-bold text-muted-foreground">Drop photos here or <span style="color: #6366f1">click to browse</span></p>
                 <p class="text-xs text-muted-foreground/60 font-medium">JPG, PNG, HEIC up to 10 MB each</p>
               </div>
               <div v-else class="grid grid-cols-3 gap-2 p-1" @click.stop>
@@ -292,10 +292,10 @@
                 <button
                   v-if="photoAttachments.length < 6"
                   class="h-20 rounded-xl border-2 border-dashed flex items-center justify-center transition-all hover:scale-[1.02]"
-                  style="border-color: #5b5ef440; background: #5b5ef408"
+                  style="border-color: #6366f140; background: #6366f108"
                   @click.stop="triggerPhotoInput"
                 >
-                  <Plus class="w-5 h-5" style="color: #5b5ef4" />
+                  <Plus class="w-5 h-5" style="color: #6366f1" />
                 </button>
               </div>
             </div>
@@ -324,15 +324,15 @@
           @click="handleCancel">Cancel</button>
         <button v-if="currentStep < 5"
           class="flex-1 h-12 rounded-full text-sm font-black text-white flex items-center justify-center gap-2 transition-all hover:scale-[1.04] hover:-translate-y-0.5 active:scale-95"
-          style="background: linear-gradient(135deg, #5b5ef4, #8b5cf6); box-shadow: 0 4px 16px #5b5ef440"
+          style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 4px 16px #6366f140"
           :disabled="!canProceed"
-          :style="!canProceed ? 'opacity: 0.5; cursor: not-allowed' : 'background: linear-gradient(135deg, #5b5ef4, #8b5cf6); box-shadow: 0 4px 16px #5b5ef440'"
+          :style="!canProceed ? 'opacity: 0.5; cursor: not-allowed' : 'background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 4px 16px #6366f140'"
           @click="nextStep">
           Next <ChevronRight class="w-4 h-4" />
         </button>
         <button v-else
           class="flex-1 h-12 rounded-full text-sm font-black text-white flex items-center justify-center gap-2 transition-all hover:scale-[1.04] hover:-translate-y-0.5 active:scale-95"
-          :style="canCreate ? 'background: linear-gradient(135deg, #5b5ef4, #8b5cf6); box-shadow: 0 4px 16px #5b5ef440' : 'background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); cursor: not-allowed'"
+          :style="canCreate ? 'background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 4px 16px #6366f140' : 'background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); cursor: not-allowed'"
           :disabled="!canCreate || creating"
           @click="createTicket">
           {{ creating ? 'Saving…' : 'Create Ticket' }}
@@ -406,7 +406,7 @@
               <Plus class="w-4 h-4" /> Add
             </button>
           </div>
-          <div v-if="showEmojiPicker" class="flex flex-wrap gap-1 p-3 rounded-xl border border-border/60 bg-muted/30">
+          <div v-if="showEmojiPicker" class="flex flex-wrap gap-1 p-3 rounded-2xl border border-divider bg-muted/30">
             <button v-for="e in categoryEmojis" :key="e" class="w-9 h-9 rounded-lg hover:bg-muted flex items-center justify-center text-xl transition-all hover:scale-110"
               :class="newCatEmoji === e ? 'bg-purple-100 outline outline-2 outline-purple-400' : ''"
               @click="newCatEmoji = e; showEmojiPicker = false">{{ e }}</button>
@@ -445,7 +445,7 @@
           </button>
           <div class="space-y-1.5 max-h-64 overflow-y-auto pr-1">
             <div v-for="m in catalogModels" :key="m.id"
-              class="flex items-center gap-3 px-3 py-2.5 rounded-[12px] group text-sm"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-xl group text-sm"
               style="background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.5); outline-offset: 0">
               <span class="text-muted-foreground text-xs w-20 flex-shrink-0 truncate">{{ m.brand }}</span>
               <span class="text-muted-foreground text-xs w-20 flex-shrink-0 truncate">{{ m.category }}</span>
@@ -884,7 +884,7 @@ const resetForm = () => {
 </script>
 
 <style scoped>
-.m3-dialog-label {
+.hui-label {
   display: block;
   font-size: 10px;
   font-weight: 800;
@@ -894,7 +894,7 @@ const resetForm = () => {
   margin-bottom: 0.5rem;
 }
 
-.m3-dialog-input {
+.hui-input {
   width: 100%;
   height: 48px;
   padding: 0 20px;
@@ -907,13 +907,13 @@ const resetForm = () => {
   outline: none;
   transition: all 0.2s ease;
 }
-.m3-dialog-input:focus {
-  border-color: #5b5ef4;
-  box-shadow: 0 0 0 3px #5b5ef418;
+.hui-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px #6366f118;
   background: hsl(var(--background));
 }
 
-.m3-dialog-textarea {
+.hui-input {
   width: 100%;
   padding: 14px 20px;
   border-radius: 20px;
@@ -926,13 +926,13 @@ const resetForm = () => {
   resize: none;
   transition: all 0.2s ease;
 }
-.m3-dialog-textarea:focus {
-  border-color: #5b5ef4;
-  box-shadow: 0 0 0 3px #5b5ef418;
+.hui-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px #6366f118;
   background: hsl(var(--background));
 }
 
-.m3-step-chip {
+.hui-step-chip {
   padding: 14px 16px;
   border-radius: 20px;
   background: hsl(var(--muted)/0.4);
@@ -941,23 +941,23 @@ const resetForm = () => {
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   cursor: pointer;
 }
-.m3-step-chip:hover {
+.hui-step-chip:hover {
   transform: scale(1.02) translateY(-2px);
   background: hsl(var(--muted)/0.7);
   box-shadow: 0 4px 16px rgba(0,0,0,0.08);
 }
-.m3-step-chip:active { transform: scale(0.97); }
+.hui-step-chip:active { transform: scale(0.97); }
 
-.m3-step-chip--active {
-  background: #5b5ef414 !important;
-  outline: 2px solid #5b5ef450 !important;
-  color: #5b5ef4;
+.hui-step-chip--active {
+  background: #6366f114 !important;
+  outline: 2px solid #6366f150 !important;
+  color: #6366f1;
 }
-.m3-step-chip--active:hover {
-  background: #5b5ef420 !important;
+.hui-step-chip--active:hover {
+  background: #6366f120 !important;
 }
 
-.m3-back-btn {
+.hui-back-btn {
   width: 36px;
   height: 36px;
   border-radius: 18px;
@@ -968,8 +968,8 @@ const resetForm = () => {
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   flex-shrink: 0;
 }
-.m3-back-btn:hover { transform: scale(1.1); background: hsl(var(--muted)); }
-.m3-back-btn:active { transform: scale(0.9); }
+.hui-back-btn:hover { transform: scale(1.1); background: hsl(var(--muted)); }
+.hui-back-btn:active { transform: scale(0.9); }
 
 .photo-dropzone {
   border-radius: 20px;
@@ -985,9 +985,9 @@ const resetForm = () => {
 }
 .photo-dropzone:hover,
 .photo-dropzone--drag {
-  border-color: #5b5ef4;
-  background: #5b5ef408;
-  box-shadow: 0 0 0 3px #5b5ef415;
+  border-color: #6366f1;
+  background: #6366f108;
+  box-shadow: 0 0 0 3px #6366f115;
 }
 .photo-dropzone--has-files {
   cursor: default;
