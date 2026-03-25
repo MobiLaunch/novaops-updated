@@ -6,7 +6,7 @@
       <div class="flex-shrink-0 px-4 sm:px-7 pt-5 sm:pt-7 pb-4 border-b border-border/50">
         <div class="flex items-start justify-between gap-4 pr-10">
           <div class="flex items-center gap-3">
-            <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md"
+            <div class="w-11 h-11 rounded-[22px] flex items-center justify-center flex-shrink-0 shadow-md"
               :style="`background: linear-gradient(135deg, ${ticketStatusColor(ticket?.status)}, ${ticketStatusColor(ticket?.status)}dd); box-shadow: 0 4px 14px ${ticketStatusColor(ticket?.status)}40`">
               <TicketCheck class="w-5 h-5 text-white" />
             </div>
@@ -26,10 +26,10 @@
                 <SelectItem v-for="s in statusList" :key="s" :value="s">{{ s }}</SelectItem>
               </SelectContent>
             </Select>
-            <span class="text-[10px] font-black px-3 py-1.5 rounded-full capitalize"
-              :style="`background: ${priorityColorRaw(ticket?.priority)}20; color: ${priorityColorRaw(ticket?.priority)}`">
-              {{ ticket?.priority }}
-            </span>
+            <StatusChip
+              :variant="ticket?.priority === 'high' ? 'danger' : ticket?.priority === 'low' ? 'muted' : 'info'"
+              size="sm"
+            >{{ ticket?.priority }}</StatusChip>
           </div>
         </div>
       </div>
@@ -63,7 +63,7 @@
         <div v-if="activeTab === 'info'" class="space-y-4">
 
           <!-- Customer Contact Card -->
-          <Card v-if="ticketCustomer" class="rounded-xl overflow-hidden">
+          <Card v-if="ticketCustomer" class="rounded-[20px] overflow-hidden">
             <CardContent class="p-0">
               <div class="flex items-center gap-3 px-4 pt-4 pb-3"
                 style="background: linear-gradient(135deg, #6366f108, #8b5cf608); border-bottom: 1px solid hsl(var(--border)/0.5)">
@@ -104,7 +104,7 @@
 
           <!-- ── Edit / View toggle ── -->
           <div class="flex items-center justify-between">
-            <p class="hui-section-label mb-0">Device & Repair Details</p>
+            <p class="m3-section-label mb-0">Device & Repair Details</p>
             <button
               class="flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95"
               :style="editingInfo
@@ -119,23 +119,26 @@
 
           <!-- VIEW MODE -->
           <div v-if="!editingInfo" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Card class="rounded-xl">
+            <Card class="rounded-[20px]">
               <CardContent class="p-5 space-y-3">
-                <p class="hui-section-label">Device</p>
+                <p class="m3-section-label">Device</p>
                 <div class="space-y-1.5 text-sm">
                   <div class="flex justify-between"><span class="text-muted-foreground">Brand</span><span class="font-medium">{{ ticket?.device }}</span></div>
                   <div class="flex justify-between"><span class="text-muted-foreground">Model</span><span class="font-medium">{{ ticket?.deviceModel || '—' }}</span></div>
                   <div class="flex justify-between"><span class="text-muted-foreground">Serial</span><span class="font-medium font-mono text-xs">{{ ticket?.serialNumber || '—' }}</span></div>
                   <div class="flex justify-between capitalize"><span class="text-muted-foreground">Priority</span>
-                    <span class="font-bold text-xs px-2 py-0.5 rounded-full" :style="`background: ${priorityColorRaw(ticket?.priority)}20; color: ${priorityColorRaw(ticket?.priority)}`">{{ ticket?.priority }}</span>
+                    <StatusChip
+                      :variant="ticket?.priority === 'high' ? 'danger' : ticket?.priority === 'low' ? 'muted' : 'info'"
+                      size="sm"
+                    >{{ ticket?.priority }}</StatusChip>
                   </div>
                   <div v-if="ticket?.deviceDescription" class="pt-1"><span class="text-muted-foreground block text-xs">Condition</span><p class="text-xs mt-0.5">{{ ticket?.deviceDescription }}</p></div>
                 </div>
               </CardContent>
             </Card>
-            <Card class="rounded-xl">
+            <Card class="rounded-[20px]">
               <CardContent class="p-5 space-y-3">
-                <p class="hui-section-label">Financials</p>
+                <p class="m3-section-label">Financials</p>
                 <div class="space-y-1.5 text-sm">
                   <div class="flex justify-between"><span class="text-muted-foreground">Labor</span><span class="font-medium text-blue-500">{{ formatCurrency(laborTotal) }}</span></div>
                   <div class="flex justify-between"><span class="text-muted-foreground">Parts</span><span class="font-medium text-purple-500">{{ formatCurrency(partsTotal) }}</span></div>
@@ -149,33 +152,33 @@
               </CardContent>
             </Card>
           </div>
-          <Card v-if="!editingInfo" class="rounded-xl">
+          <Card v-if="!editingInfo" class="rounded-[20px]">
             <CardContent class="p-5 space-y-2">
-              <p class="hui-section-label">Issue Reported</p>
+              <p class="m3-section-label">Issue Reported</p>
               <p class="text-sm leading-relaxed">{{ ticket?.issue }}</p>
             </CardContent>
           </Card>
 
           <!-- EDIT MODE -->
-          <Card v-if="editingInfo" class="rounded-xl">
+          <Card v-if="editingInfo" class="rounded-[20px]">
             <CardContent class="p-5 space-y-4">
-              <p class="hui-section-label">Edit Device Details</p>
+              <p class="m3-section-label">Edit Device Details</p>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div class="space-y-1.5">
                   <label class="field-label">Brand / Manufacturer</label>
-                  <input v-model="localDevice" class="hui-input" placeholder="Apple, Samsung…" />
+                  <input v-model="localDevice" class="m3-edit-input" placeholder="Apple, Samsung…" />
                 </div>
                 <div class="space-y-1.5">
                   <label class="field-label">Model</label>
-                  <input v-model="localDeviceModel" class="hui-input" placeholder="iPhone 15 Pro…" />
+                  <input v-model="localDeviceModel" class="m3-edit-input" placeholder="iPhone 15 Pro…" />
                 </div>
                 <div class="space-y-1.5">
                   <label class="field-label">Serial Number</label>
-                  <input v-model="localSerialNumber" class="hui-input font-mono text-xs" placeholder="Optional" />
+                  <input v-model="localSerialNumber" class="m3-edit-input font-mono text-xs" placeholder="Optional" />
                 </div>
                 <div class="space-y-1.5">
                   <label class="field-label">Priority</label>
-                  <select v-model="localPriority" class="hui-input">
+                  <select v-model="localPriority" class="m3-edit-input">
                     <option value="low">Low</option>
                     <option value="normal">Normal</option>
                     <option value="high">High</option>
@@ -183,11 +186,11 @@
                 </div>
                 <div class="sm:col-span-2 space-y-1.5">
                   <label class="field-label">Issue / Problem Description</label>
-                  <textarea v-model="localIssue" class="hui-input resize-none" rows="3" placeholder="Describe the issue…" />
+                  <textarea v-model="localIssue" class="m3-edit-input resize-none" rows="3" placeholder="Describe the issue…" />
                 </div>
                 <div class="sm:col-span-2 space-y-1.5">
                   <label class="field-label">Device Condition Notes</label>
-                  <textarea v-model="localDeviceDescription" class="hui-input resize-none" rows="2" placeholder="Color, visible damage, accessories included…" />
+                  <textarea v-model="localDeviceDescription" class="m3-edit-input resize-none" rows="2" placeholder="Color, visible damage, accessories included…" />
                 </div>
               </div>
             </CardContent>
@@ -197,18 +200,18 @@
           <div class="grid grid-cols-2 gap-3">
             <div class="space-y-1.5">
               <label class="field-label">Warranty Days</label>
-              <input v-model.number="localWarrantyDays" type="number" min="0" placeholder="0" class="hui-input" @change="saveField('warranty_days', localWarrantyDays)" />
+              <input v-model.number="localWarrantyDays" type="number" min="0" placeholder="0" class="m3-edit-input" @change="saveField('warranty_days', localWarrantyDays)" />
             </div>
             <div class="space-y-1.5">
               <label class="field-label">Tracking Number</label>
-              <input v-model="localTracking" placeholder="Optional" class="hui-input" @change="saveField('tracking', localTracking)" />
+              <input v-model="localTracking" placeholder="Optional" class="m3-edit-input" @change="saveField('tracking', localTracking)" />
             </div>
           </div>
 
           <!-- Financials summary (always visible) -->
-          <Card v-if="editingInfo" class="rounded-xl">
+          <Card v-if="editingInfo" class="rounded-[20px]">
             <CardContent class="p-5 space-y-2">
-              <p class="hui-section-label">Financials</p>
+              <p class="m3-section-label">Financials</p>
               <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
                 <div class="flex justify-between"><span class="text-muted-foreground">Labor</span><span class="text-blue-500 font-medium">{{ formatCurrency(laborTotal) }}</span></div>
                 <div class="flex justify-between"><span class="text-muted-foreground">Parts</span><span class="text-purple-500 font-medium">{{ formatCurrency(partsTotal) }}</span></div>
@@ -221,8 +224,8 @@
 
           <!-- Signature -->
           <div v-if="ticket?.signature">
-            <p class="hui-section-label mb-2">Customer Signature</p>
-            <div class="border rounded-2xl p-3 bg-muted/20">
+            <p class="m3-section-label mb-2">Customer Signature</p>
+            <div class="border rounded-[16px] p-3 bg-muted/20">
               <img :src="ticket.signature" alt="Signature" class="max-h-24 w-auto" />
             </div>
           </div>
@@ -238,9 +241,9 @@
         <div v-if="activeTab === 'services'" class="space-y-4">
 
           <!-- Add service -->
-          <Card class="rounded-xl">
+          <Card class="rounded-[20px]">
             <CardContent class="p-5 space-y-3">
-              <p class="hui-section-label">Add Service</p>
+              <p class="m3-section-label">Add Service</p>
               <div class="flex gap-2">
                 <div class="flex-1 relative">
                   <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
@@ -286,7 +289,7 @@
             <div
               v-for="(svc, idx) in localServices"
               :key="idx"
-              class="flex items-center gap-3 px-4 py-3 rounded-2xl border bg-content1 transition-all hover:bg-muted/30"
+              class="flex items-center gap-3 px-4 py-3 rounded-[16px] border bg-card transition-all hover:bg-muted/30"
             >
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium">{{ svc.name }}</p>
@@ -322,13 +325,13 @@
               </button>
             </div>
 
-            <div v-if="localServices.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-2xl border border-dashed">
+            <div v-if="localServices.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-[16px] border border-dashed">
               No services added yet — search the catalog above
             </div>
           </div>
 
           <!-- Labor total -->
-          <div v-if="localServices.length > 0" class="flex justify-between items-center px-4 py-3 rounded-2xl bg-muted/40 text-sm font-semibold">
+          <div v-if="localServices.length > 0" class="flex justify-between items-center px-4 py-3 rounded-[16px] bg-muted/40 text-sm font-semibold">
             <span>Labor Total</span>
             <span class="text-emerald-600">{{ formatCurrency(laborTotal) }}</span>
           </div>
@@ -336,9 +339,9 @@
 
         <!-- ── Parts Tab ──────────────────────────────────────────── -->
         <div v-if="activeTab === 'parts'" class="space-y-4">
-          <Card class="rounded-xl">
+          <Card class="rounded-[20px]">
             <CardContent class="p-5 space-y-3">
-              <p class="hui-section-label">Add Part</p>
+              <p class="m3-section-label">Add Part</p>
               <div class="flex gap-2">
                 <div class="flex-1 relative">
                   <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
@@ -376,7 +379,7 @@
             <div
               v-for="(part, idx) in localParts"
               :key="idx"
-              class="flex items-center gap-3 px-4 py-3 rounded-2xl border bg-content1 transition-all hover:bg-muted/30"
+              class="flex items-center gap-3 px-4 py-3 rounded-[16px] border bg-card transition-all hover:bg-muted/30"
             >
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium">{{ part.name }}</p>
@@ -399,12 +402,12 @@
                 <X class="w-4 h-4" />
               </button>
             </div>
-            <div v-if="localParts.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-2xl border border-dashed">
+            <div v-if="localParts.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-[16px] border border-dashed">
               No parts added yet
             </div>
           </div>
 
-          <div v-if="localParts.length > 0" class="flex justify-between items-center px-4 py-3 rounded-2xl bg-muted/40 text-sm font-semibold">
+          <div v-if="localParts.length > 0" class="flex justify-between items-center px-4 py-3 rounded-[16px] bg-muted/40 text-sm font-semibold">
             <span>Parts Total</span>
             <span class="text-purple-600">{{ formatCurrency(partsTotal) }}</span>
           </div>
@@ -415,19 +418,19 @@
 
           <!-- Balance summary -->
           <div class="grid grid-cols-3 gap-2 sm:gap-3">
-            <Card class="rounded-xl">
+            <Card class="rounded-[20px]">
               <CardContent class="p-3 text-center">
                 <p class="text-xs text-muted-foreground">Invoice</p>
                 <p class="text-lg font-bold">{{ formatCurrency(laborTotal + partsTotal) }}</p>
               </CardContent>
             </Card>
-            <Card class="rounded-xl">
+            <Card class="rounded-[20px]">
               <CardContent class="p-3 text-center">
                 <p class="text-xs text-muted-foreground">Paid</p>
                 <p class="text-lg font-bold text-emerald-500">{{ formatCurrency(paymentsTotal) }}</p>
               </CardContent>
             </Card>
-            <Card class="rounded-xl">
+            <Card class="rounded-[20px]">
               <CardContent class="p-3 text-center">
                 <p class="text-xs text-muted-foreground">Balance</p>
                 <p class="text-lg font-bold" :class="balance > 0 ? 'text-destructive' : 'text-emerald-500'">
@@ -438,9 +441,9 @@
           </div>
 
           <!-- Add payment -->
-          <Card class="rounded-xl">
+          <Card class="rounded-[20px]">
             <CardContent class="p-5 space-y-3">
-              <p class="hui-section-label">Record Payment</p>
+              <p class="m3-section-label">Record Payment</p>
               <div class="grid grid-cols-2 gap-3">
                 <div class="space-y-1.5">
                   <Label class="text-xs">Amount</Label>
@@ -478,7 +481,7 @@
             <div
               v-for="(payment, idx) in localPayments"
               :key="idx"
-              class="flex items-center gap-3 px-4 py-3 rounded-2xl border bg-content1 transition-all hover:bg-muted/30"
+              class="flex items-center gap-3 px-4 py-3 rounded-[16px] border bg-card transition-all hover:bg-muted/30"
             >
               <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: #10b98118">
                 <DollarSign class="w-4 h-4 text-emerald-500" />
@@ -492,7 +495,7 @@
                 <X class="w-4 h-4" />
               </button>
             </div>
-            <div v-if="localPayments.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-2xl border border-dashed">
+            <div v-if="localPayments.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-[16px] border border-dashed">
               No payments recorded yet
             </div>
           </div>
@@ -510,7 +513,7 @@
             <div
               v-for="(note, idx) in localNotes"
               :key="idx"
-              class="px-4 py-3 rounded-2xl border bg-content1 text-sm transition-all hover:bg-muted/30"
+              class="px-4 py-3 rounded-[16px] border bg-card text-sm transition-all hover:bg-muted/30"
             >
               <div class="flex items-start justify-between gap-2">
                 <p class="flex-1">{{ note.text }}</p>
@@ -520,7 +523,7 @@
               </div>
               <p class="text-xs text-muted-foreground mt-1">{{ formatDate(note.date) }}</p>
             </div>
-            <div v-if="localNotes.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-2xl border border-dashed">
+            <div v-if="localNotes.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-[16px] border border-dashed">
               No notes yet
             </div>
           </div>
@@ -563,6 +566,7 @@
 
     </DialogContent>
   </Dialog>
+  <ToastStack />
 </template>
 
 <script setup lang="ts">
@@ -577,6 +581,9 @@ import { Label } from '~/components/ui/label'
 import { Textarea } from '~/components/ui/textarea'
 import { Badge } from '~/components/ui/badge'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '~/components/ui/select'
+import StatusChip from '~/components/ui/StatusChip.vue'
+import ToastStack from '~/components/ui/ToastStack.vue'
+import { useToast } from '~/composables/useToast'
 
 const props = defineProps<{
   modelValue: boolean
@@ -590,6 +597,7 @@ const { customers, inventory, settings } = storeToRefs(appStore)
 const { $supabase } = useNuxtApp()
 const from = (table: string) => ($supabase as any).from(table)
 const { addNotification } = useNotifications()
+const { toast } = useToast()
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -842,7 +850,7 @@ const removeNote = (idx: number) => {
 // ── Save helpers ──────────────────────────────────────────────────
 const saveStatus = async (status: string) => {
   await appStore.updateTicket(props.ticket.id, { status })
-  addNotification('Status Updated', `Ticket #${props.ticket.id} → ${status}`, 'success')
+  toast.success('Status Updated', `Ticket #${props.ticket.id} → ${status}`)
 }
 
 const saveField = async (field: string, value: any) => {
@@ -912,7 +920,7 @@ const saveAll = async () => {
     })
     editingInfo.value = false
     emit('save')
-    addNotification('Ticket Saved', `Ticket #${props.ticket.id} updated`, 'success')
+    toast.success('Ticket Saved', `Ticket #${props.ticket.id} updated`)
   } finally {
     saving.value = false
   }
@@ -920,7 +928,7 @@ const saveAll = async () => {
 </script>
 
 <style scoped>
-.hui-section-label {
+.m3-section-label {
   font-size: 10px;
   font-weight: 800;
   color: hsl(var(--muted-foreground));
@@ -938,7 +946,7 @@ const saveAll = async () => {
   margin-bottom: 0.3rem;
 }
 
-.hui-input {
+.m3-edit-input {
   width: 100%;
   height: 44px;
   padding: 0 14px;
@@ -951,12 +959,12 @@ const saveAll = async () => {
   outline: none;
   transition: all 0.2s ease;
 }
-.hui-input:focus {
+.m3-edit-input:focus {
   border-color: #6366f1;
   box-shadow: 0 0 0 3px #6366f115;
   background: hsl(var(--background));
 }
-.hui-input.resize-none {
+.m3-edit-input.resize-none {
   height: auto;
   padding-top: 10px;
   padding-bottom: 10px;

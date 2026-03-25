@@ -27,7 +27,7 @@
               <!-- Panel header -->
               <div class="notif-panel-header">
                 <div class="flex items-center gap-2">
-                  <div class="w-7 h-7 rounded-xl flex items-center justify-center" style="background:#f59e0b20">
+                  <div class="w-7 h-7 rounded-[14px] flex items-center justify-center" style="background:#f59e0b20">
                     <Bell class="w-3.5 h-3.5" style="color:#f59e0b" />
                   </div>
                   <span class="text-sm font-black">Notifications</span>
@@ -82,7 +82,7 @@
     </div>
 
     <!-- ── Gmail Connection Banner ────────────────────────────────── -->
-    <div v-if="!gmailConnected" class="rounded-xl p-4 flex items-center justify-between flex-wrap gap-3"
+    <div v-if="!gmailConnected" class="rounded-[20px] p-4 flex items-center justify-between flex-wrap gap-3"
       style="background:linear-gradient(135deg,#ea443514,#4285f414);outline:2px solid #4285f428;outline-offset:0">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:#4285f424">
@@ -98,7 +98,7 @@
         Connect Gmail
       </button>
     </div>
-    <div v-else class="rounded-xl p-3 px-5 flex items-center gap-3 flex-wrap"
+    <div v-else class="rounded-[20px] p-3 px-5 flex items-center gap-3 flex-wrap"
       style="background:#10b98114;outline:2px solid #10b98128;outline-offset:0">
       <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style="background:#10b98124">
         <Check class="w-4 h-4" style="color:#10b981" />
@@ -122,10 +122,10 @@
     <!-- ── Stats Row ──────────────────────────────────────────────── -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
       <div v-for="stat in msgStats" :key="stat.label"
-        class="rounded-2xl p-4 flex flex-col gap-2"
+        class="rounded-[24px] p-4 flex flex-col gap-2"
         :style="`background:${stat.color}14;outline:2px solid ${stat.color}28;outline-offset:0`">
         <div class="flex items-center justify-between">
-          <div class="w-9 h-9 rounded-xl flex items-center justify-center" :style="`background:${stat.color}24`">
+          <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" :style="`background:${stat.color}24`">
             <component :is="stat.icon" class="w-4.5 h-4.5" :style="`color:${stat.color}`" />
           </div>
         </div>
@@ -146,7 +146,10 @@
           <div class="relative mb-3">
             <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             <input v-model="threadSearch" placeholder="Search messages…"
-              class="w-full h-10 pl-10 pr-4 rounded-full text-sm font-medium" />
+              class="w-full h-10 pl-10 pr-4 rounded-full text-sm font-medium"
+              style="background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.6);outline:none"
+              @focus="e => e.target.style.borderColor='#ec4899'"
+              @blur="e => e.target.style.borderColor='hsl(var(--border)/0.6)'" />
           </div>
           <div class="flex gap-1.5 flex-wrap">
             <button v-for="f in threadFilters" :key="f"
@@ -186,7 +189,7 @@
           </div>
 
           <div v-if="filteredThreads.length === 0" class="flex flex-col items-center gap-3 py-12 px-4 text-center">
-            <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:#ec489914">
+            <div class="w-12 h-12 rounded-[20px] flex items-center justify-center" style="background:#ec489914">
               <MessageCircle class="w-6 h-6" style="color:#ec4899;opacity:0.5" />
             </div>
             <p class="font-black text-sm">No threads found</p>
@@ -234,7 +237,7 @@
             <!-- Ticket context banner -->
             <div v-if="selectedThread.ticketId" class="msg-ticket-banner">
               <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:#f59e0b20">
+                <div class="w-8 h-8 rounded-[14px] flex items-center justify-center" style="background:#f59e0b20">
                   <TicketCheck class="w-4 h-4" style="color:#f59e0b" />
                 </div>
                 <div>
@@ -279,7 +282,7 @@
               <div class="flex gap-2 ml-auto flex-wrap">
                 <button v-for="qr in quickReplies" :key="qr"
                   class="px-3 py-1.5 rounded-full text-xs font-semibold transition-all hover:scale-105"
-                  
+                  style="background:hsl(var(--muted)/0.5);border:1.5px solid hsl(var(--border)/0.6)"
                   @click="replyBody = qr">
                   {{ qr.substring(0, 28) }}{{ qr.length > 28 ? '…' : '' }}
                 </button>
@@ -289,8 +292,8 @@
             <!-- Subject (email only) -->
             <input v-if="replyChannel === 'email'" v-model="replySubject"
               placeholder="Subject…"
-              class="w-full h-9 px-4 rounded-xl text-sm font-medium mb-2"
-               />
+              class="w-full h-9 px-4 rounded-[14px] text-sm font-medium mb-2"
+              style="background:hsl(var(--muted)/0.4);border:1.5px solid hsl(var(--border)/0.6);outline:none" />
 
             <div class="flex gap-3 items-end">
               <div class="flex-1 relative">
@@ -321,7 +324,7 @@
         <!-- Empty state -->
         <template v-else>
           <div class="flex-1 flex flex-col items-center justify-center gap-4 p-8 text-center">
-            <div class="w-20 h-20 rounded-3xl flex items-center justify-center" style="background:#ec489914">
+            <div class="w-20 h-20 rounded-[32px] flex items-center justify-center" style="background:#ec489914">
               <MessageCircle class="w-10 h-10" style="color:#ec4899;opacity:0.4" />
             </div>
             <h3 class="text-lg font-black">No conversation selected</h3>
@@ -341,7 +344,7 @@
       <DialogContent class="max-w-lg">
         <div class="flex flex-col gap-5 p-7">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center"
               style="background:linear-gradient(135deg,#ec4899,#db2777)">
               <Pencil class="w-5 h-5 text-white" />
             </div>
@@ -354,14 +357,14 @@
           <!-- To / Channel -->
           <div class="grid grid-cols-2 gap-3">
             <div class="space-y-2">
-              <label class="hui-label">To</label>
+              <label class="m3-label">To</label>
               <CustomerSelect v-model="compose.customerId" />
             </div>
             <div class="space-y-2">
-              <label class="hui-label">Via</label>
+              <label class="m3-label">Via</label>
               <div class="flex gap-1.5 mt-1">
                 <button v-for="ch in ['email', 'sms', 'chat']" :key="ch"
-                  class="flex-1 py-2 rounded-xl text-xs font-black capitalize transition-all"
+                  class="flex-1 py-2 rounded-[12px] text-xs font-black capitalize transition-all"
                   :style="compose.channel === ch
                     ? `background:${channelColor(ch)};color:white;box-shadow:0 4px 12px ${channelColor(ch)}40`
                     : 'background:hsl(var(--muted)/0.5);color:hsl(var(--muted-foreground))'"
@@ -372,7 +375,7 @@
 
           <!-- Ticket link (optional) -->
           <div class="space-y-2">
-            <label class="hui-label">Link to Ticket (optional)</label>
+            <label class="m3-label">Link to Ticket (optional)</label>
             <select v-model="compose.ticketId" class="compose-select">
               <option value="">No ticket</option>
               <option v-for="t in customerTickets" :key="t.id" :value="t.id">
@@ -383,17 +386,17 @@
 
           <!-- Subject (email) -->
           <div v-if="compose.channel === 'email'" class="space-y-2">
-            <label class="hui-label">Subject</label>
+            <label class="m3-label">Subject</label>
             <input v-model="compose.subject" placeholder="Repair status update…" class="compose-input" />
           </div>
 
           <!-- Body -->
           <div class="space-y-2">
             <div class="flex items-center justify-between">
-              <label class="hui-label">Message</label>
+              <label class="m3-label">Message</label>
               <div class="flex gap-1.5">
                 <button v-for="tmpl in emailTemplates.slice(0,3)" :key="tmpl.name"
-                  class="text-[10px] font-bold px-2 py-1 rounded-lg transition-all hover:scale-105"
+                  class="text-[10px] font-bold px-2 py-1 rounded-[8px] transition-all hover:scale-105"
                   style="background:hsl(var(--muted)/0.5);color:hsl(var(--muted-foreground))"
                   @click="applyTemplate(tmpl)">{{ tmpl.name }}</button>
               </div>
@@ -424,7 +427,7 @@
           <h2 class="text-base font-black">Message Templates</h2>
           <div class="space-y-2 max-h-80 overflow-y-auto">
             <button v-for="tmpl in emailTemplates" :key="tmpl.name"
-              class="w-full text-left p-4 rounded-xl transition-all hover:scale-[1.01]"
+              class="w-full text-left p-4 rounded-[20px] transition-all hover:scale-[1.01]"
               style="background:hsl(var(--muted)/0.4);outline:1.5px solid hsl(var(--border)/0.5);outline-offset:0"
               @click="replyBody = tmpl.body; templateOpen = false">
               <p class="text-sm font-black mb-1">{{ tmpl.name }}</p>
@@ -439,6 +442,17 @@
     </Dialog>
 
   </div>
+
+  <AlertDialog
+    :open="deleteThreadOpen"
+    heading="Delete conversation?"
+    body="This conversation will be removed from your inbox. This cannot be undone."
+    status="danger"
+    confirm-label="Delete"
+    @update:open="v => { if (!v) deleteThreadOpen = false }"
+    @confirm="executeDeleteThread"
+  />
+  <ToastStack />
 </template>
 
 <script setup lang="ts">
@@ -449,12 +463,16 @@ import {
 } from 'lucide-vue-next'
 import { Dialog, DialogContent } from '~/components/ui/dialog'
 import { storeToRefs } from 'pinia'
+import AlertDialog from '~/components/ui/AlertDialog.vue'
+import ToastStack from '~/components/ui/ToastStack.vue'
+import { useToast } from '~/composables/useToast'
 
 definePageMeta({ middleware: ['auth'] })
 
 const appStore = useAppStore()
 const { customers, tickets, settings, notificationPrefs } = storeToRefs(appStore)
 const { addNotification, notifications, removeNotification, markAsRead, markAllAsRead, clearAll, unreadCount } = useNotifications()
+const { toast } = useToast()
 const route = useRoute()
 const { $supabase } = useNuxtApp()
 
@@ -511,7 +529,7 @@ async function connectGmail() {
   const config = useRuntimeConfig()
   const clientId = config.public.googleClientId
   if (!clientId) {
-    alert('Google Client ID is not configured. Add NUXT_PUBLIC_GOOGLE_CLIENT_ID to your environment variables.')
+    toast.warning('Google Sign-In Unavailable', 'Google Client ID is not configured. Add NUXT_PUBLIC_GOOGLE_CLIENT_ID to your .env')
     return
   }
   const redirectUri = `${window.location.origin}/auth/callback`
@@ -536,11 +554,11 @@ async function syncGmailInbox() {
       // Reload threads to reflect newly synced messages
       await loadMessages()
       if (result.synced > 0 && notificationPrefs.value.newMessage) {
-        addNotification('Inbox Synced', `${result.inbound} new, ${result.outbound} sent messages loaded`, 'success')
+        toast.success('Inbox Synced', `${result.inbound} new, ${result.outbound} sent messages loaded`)
       }
     }
   } catch (err: any) {
-    addNotification('Sync Failed', err.message || 'Could not sync Gmail inbox', 'error')
+    toast.danger('Sync Failed', err.message || 'Could not sync Gmail inbox')
   } finally {
     syncing.value = false
   }
@@ -921,12 +939,12 @@ async function sendReply() {
       msgBody
     )
     if (emailResult?.delivered) {
-      addNotification('Email Sent', `Email delivered to ${thread.name}`, 'success')
+      toast.success('Email Sent', `Email delivered to ${thread.name}`)
     } else {
-      addNotification('Message Saved', `${replyChannel.value} saved to ${thread.name} (email delivery not configured)`, 'info')
+      toast.info('Message Saved', `${replyChannel.value} saved to ${thread.name} (email delivery not configured)`)
     }
   } else {
-    addNotification('Message Sent', `${replyChannel.value} sent to ${thread.name}`, 'success')
+    toast.success('Message Sent', `${replyChannel.value} sent to ${thread.name}`)
   }
 
   nextTick(() => scrollToBottom())
@@ -995,12 +1013,12 @@ async function sendCompose() {
       msgBody
     )
     if (emailResult?.delivered) {
-      addNotification('Email Sent', `Email delivered to ${customer.name}`, 'success')
+      toast.success('Email Sent', `Email delivered to ${customer.name}`)
     } else {
-      addNotification('Message Saved', `Message saved to ${customer.name} (email delivery not configured)`, 'info')
+      toast.info('Message Saved', `Message saved to ${customer.name} (email delivery not configured)`)
     }
   } else {
-    addNotification('Message Sent', `${channel} sent to ${customer.name}`, 'success')
+    toast.success('Message Sent', `${channel} sent to ${customer.name}`)
   }
 
   compose.value = { customerId: '', ticketId: '', channel: 'email', subject: '', body: '' }
@@ -1012,24 +1030,31 @@ async function sendCompose() {
 function callCustomer() {
   const phone = customers.value?.find((c: any) => c.email === selectedThread.value?.email)?.phone
   if (phone) window.open(`tel:${phone}`)
-  else addNotification('No Phone', 'Customer has no phone number on file', 'warning')
+  else toast.warning('No Phone', 'Customer has no phone number on file')
 }
 
 function archiveThread() {
   if (!selectedThread.value) return
   threads.value = threads.value.filter(t => t.id !== selectedThread.value?.id)
   selectedThread.value = null
-  addNotification('Archived', 'Thread archived', 'info')
+  toast.info('Archived', 'Thread archived')
 }
 
 function toggleUnread() {
   if (selectedThread.value) selectedThread.value.unread = !selectedThread.value.unread
 }
 
+const deleteThreadOpen = ref(false)
+
 function deleteThread() {
-  if (!selectedThread.value || !confirm('Delete this conversation?')) return
+  if (!selectedThread.value) return
+  deleteThreadOpen.value = true
+}
+
+function executeDeleteThread() {
   threads.value = threads.value.filter(t => t.id !== selectedThread.value?.id)
   selectedThread.value = null
+  deleteThreadOpen.value = false
 }
 
 // ── Compose opener (from query string — called from ticket detail) ──
@@ -1049,7 +1074,7 @@ const customerTickets = computed(() =>
 )
 
 function attachFile() {
-  addNotification('Attach File', 'File attachment support coming soon', 'info')
+  toast.info('Attach File', 'File attachment support coming soon')
 }
 
 function scrollToBottom() {
@@ -1107,7 +1132,7 @@ function setupRealtime() {
       }
 
       if (notificationPrefs.value.newMessage) {
-        addNotification('New Message', `${msg.customer_name || 'Customer'}: ${msg.body?.substring(0, 50)}…`, 'info')
+        toast.info('New Message', `${msg.customer_name || 'Customer'}: ${msg.body?.substring(0, 50)}…`)
       }
     })
     .subscribe()
@@ -1276,7 +1301,7 @@ onMounted(async () => {
 .msg-send-btn:not(:disabled):hover { transform:scale(1.1); }
 .msg-send-btn:disabled { opacity:0.4;cursor:not-allowed; }
 
-.hui-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
+.m3-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
 .compose-select { width:100%;height:44px;padding:0 12px;border-radius:18px;font-size:13px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);outline:none;transition:border 0.2s;color:hsl(var(--foreground)); }
 .compose-select:focus { border-color:#ec4899; }
 .compose-input { width:100%;height:44px;padding:0 16px;border-radius:18px;font-size:13px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);outline:none;transition:border 0.2s;color:hsl(var(--foreground)); }

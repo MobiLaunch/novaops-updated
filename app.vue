@@ -1,5 +1,5 @@
 <template>
-  <div :class="['min-h-screen bg-background text-foreground heroui-provider', { 'electron-app': isElectron }]">
+  <div :class="{ 'electron-app': isElectron }">
     <VitePwaManifest />
     <ElectronTitlebar />
     <NuxtLayout>

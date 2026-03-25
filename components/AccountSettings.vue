@@ -75,6 +75,16 @@
       </Button>
     </CardContent>
   </Card>
+  <AppAlert
+    v-if="validationAlert"
+    status="warning"
+    :title="validationAlert"
+    :inline="true"
+    :dismissible="true"
+    class="mt-3"
+    @dismiss="validationAlert = ''"
+  />
+  <ToastStack />
 </template>
 
 <script setup lang="ts">
@@ -84,8 +94,13 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
+import AppAlert from '~/components/ui/AppAlert.vue'
+import ToastStack from '~/components/ui/ToastStack.vue'
+import { useToast } from '~/composables/useToast'
 
 const { addNotification } = useNotifications()
+const { toast } = useToast()
+const validationAlert = ref('')
 
 const accountForm = ref({
   name: '',
@@ -119,22 +134,27 @@ const getInitials = (name: string) => {
 }
 
 const changeAvatar = () => {
-  alert('Avatar upload coming soon!')
+  toast.info('Coming Soon', 'Avatar upload will be available in a future update')
 }
 
 const saveAccount = () => {
+  validationAlert.value = ''
+
   if (!accountForm.value.name || !accountForm.value.email) {
-    addNotification('Validation Error', 'Name and email are required', 'warning')
+    validationAlert.value = 'Name and email are required'
+    toast.warning('Validation Error', 'Name and email are required')
     return
   }
 
   if (accountForm.value.newPassword) {
     if (accountForm.value.newPassword !== accountForm.value.confirmPassword) {
-      addNotification('Password Mismatch', 'New passwords do not match', 'error')
+      validationAlert.value = 'New passwords do not match'
+      toast.danger('Password Mismatch', 'New passwords do not match')
       return
     }
     if (accountForm.value.newPassword.length < 6) {
-      addNotification('Weak Password', 'Password must be at least 6 characters', 'warning')
+      validationAlert.value = 'Password must be at least 6 characters'
+      toast.warning('Weak Password', 'Password must be at least 6 characters')
       return
     }
   }
@@ -147,7 +167,7 @@ const saveAccount = () => {
     }))
   }
 
-  addNotification('Account Updated', 'Your account settings have been saved', 'success')
+  toast.success('Account Updated', 'Your account settings have been saved')
 
   accountForm.value.currentPassword = ''
   accountForm.value.newPassword = ''

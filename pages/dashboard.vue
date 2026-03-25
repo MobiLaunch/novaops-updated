@@ -488,4 +488,3 @@ const handleCreateTicket = async (ticketData: any) => {
 @keyframes spinSlow { to { transform: rotate(360deg); } }
 .animate-spin-slow { animation: spinSlow 4s linear infinite; }
 </style>
-

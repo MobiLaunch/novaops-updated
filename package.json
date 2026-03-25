@@ -1,7 +1,7 @@
 {
-  "name": "novaops-heroui",
-  "version": "4.0.0",
-  "description": "NovaOps — Modern Repair Shop Management System (HeroUI)",
+  "name": "novaops-shadcn",
+  "version": "3.1.0",
+  "description": "NovaOps — Modern Repair Shop Management System",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,19 +12,21 @@
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
-    "@heroui/theme": "2.4.15",
     "@pinia/nuxt": "^0.11.3",
     "@supabase/supabase-js": "^2.96.0",
     "@vueuse/core": "^11.0.0",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "framer-motion": "^11.3.0",
     "jsbarcode": "^3.12.3",
     "lucide-vue-next": "^0.460.0",
     "node-fetch": "^2.7.0",
     "nuxt": "^3.13.2",
     "pinia": "^3.0.4",
     "qrcode": "^1.5.4",
+    "radix-vue": "^1.9.17",
+    "tailwind-merge": "^2.6.1",
     "tailwindcss-animate": "^1.0.7",
+    "vaul-vue": "^0.2.0",
     "vue": "^3.4.38"
   },
   "devDependencies": {
@@ -38,15 +40,14 @@
     "wait-on": "^8.0.1"
   },
   "overrides": {
-    "@parcel/watcher": "2.4.1",
-    "@heroui/theme": "2.4.15"
+    "@parcel/watcher": "2.4.1"
   },
   "optionalDependencies": {
+    "nodemailer": "^6.9.15",
     "@parcel/watcher-darwin-arm64": "2.4.1",
     "@parcel/watcher-darwin-x64": "2.4.1",
     "@parcel/watcher-linux-x64-glibc": "2.4.1",
     "@parcel/watcher-win32-arm64": "2.4.1",
-    "@parcel/watcher-win32-x64": "2.4.1",
-    "nodemailer": "^6.9.15"
+    "@parcel/watcher-win32-x64": "2.4.1"
   }
 }

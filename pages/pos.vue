@@ -380,6 +380,7 @@
     </Transition>
 
   </div>
+  <ToastStack />
 </template>
 
 <script setup lang="ts">
@@ -390,12 +391,15 @@ import {
 } from 'lucide-vue-next'
 import CustomerSelect from '~/components/CustomerSelect.vue'
 import { printReceipt } from '~/utils/print'
+import ToastStack from '~/components/ui/ToastStack.vue'
+import { useToast } from '~/composables/useToast'
 
 definePageMeta({ middleware: ['auth'] })
 
 const config = useRuntimeConfig()
 const appStore = useAppStore()
 const { addNotification } = useNotifications()
+const { toast } = useToast()
 
 // Load Square SDK — sandbox vs production.
 // Prefer the squareSandbox toggle from user settings (saved in Supabase profile).
@@ -588,7 +592,7 @@ async function processScannedBarcode(code: string) {
       
       // Prevent adding if already in cart
       if (cart.value.some(i => i.isTicket && i.ticketId === ticketId)) {
-        addNotification('Already in Cart', `Ticket #${ticketId} is already added.`, 'info')
+        toast.info('Already in Cart', `Ticket #${ticketId} is already added.`)
         return
       }
 
@@ -620,11 +624,11 @@ async function processScannedBarcode(code: string) {
           isService: true
         })
         if (ticket.customerId) selectedCustomerId.value = ticket.customerId
-        addNotification('Ticket Added', `Added Ticket #${ticket.id} to cart`, 'success')
+        toast.success('Ticket Added', `Added Ticket #${ticket.id} to cart`)
         return
       }
     }
-    addNotification('Not Found', `Ticket missing or closed: ${code}`, 'error')
+    toast.danger('Not Found', `Ticket missing or closed: ${code}`)
     return
   }
 
@@ -632,11 +636,11 @@ async function processScannedBarcode(code: string) {
   const product = appStore.inventory?.find((item: any) => item.sku?.toUpperCase() === code.toUpperCase())
   if (product) {
     addToCart(product)
-    addNotification('Item Added', `${product.name} ready for checkout`, 'success')
+    toast.success('Item Added', `${product.name} ready for checkout`)
     return
   }
 
-  addNotification('Not Found', `Barcode not recognized: ${code}`, 'error')
+  toast.danger('Not Found', `Barcode not recognized: ${code}`)
 }
 
 onMounted(() => {
@@ -696,7 +700,7 @@ async function initCardForm() {
   cardLoading.value = true
   try {
     const ok = await loadSquarePayments()
-    if (!ok) { addNotification('Square Error', 'SDK failed to load.', 'error'); return }
+    if (!ok) { toast.danger('Square Error', 'SDK failed to load.'); return }
     if (cardInstance.value) {
       try { await cardInstance.value.destroy() } catch {}
       cardInstance.value = null; cardAttached.value = false
@@ -712,7 +716,7 @@ async function initCardForm() {
     cardAttached.value = true
   } catch (e: any) {
     console.error('Card form init:', e)
-    addNotification('Card Form Error', e.message || 'Failed to initialize card form', 'error')
+    toast.danger('Card Form Error', e.message || 'Failed to initialize card form')
   } finally {
     cardLoading.value = false
   }
@@ -745,7 +749,7 @@ async function initAfterpayButton(amount: number) {
         } else { throw new Error(result.errors?.[0]?.message || 'Afterpay tokenization failed') }
       } catch (err: any) {
         terminalStatus.value = ''
-        addNotification('Afterpay Failed', err.message, 'error')
+        toast.danger('Afterpay Failed', err.message)
       } finally { processing.value = false }
     })
   } catch (e: any) { console.error('Afterpay init:', e) }
@@ -783,7 +787,7 @@ async function handleCheckout() {
         const result = await afterpayInstance.value.tokenize()
         if (result.status === 'OK') await handleRemoteSuccess(result.token, 'Afterpay')
         else throw new Error(result.errors?.[0]?.message || 'Failed')
-      } catch (e: any) { terminalStatus.value = ''; addNotification('Afterpay Error', e.message, 'error') }
+      } catch (e: any) { terminalStatus.value = ''; toast.danger('Afterpay Error', e.message) }
       finally { processing.value = false }
     }
     return
@@ -791,13 +795,13 @@ async function handleCheckout() {
   // Cash / Other
   processing.value = true
   try { await executeSale(paymentMethod.value) }
-  catch (e: any) { terminalStatus.value = ''; addNotification('Sale Failed', e.message, 'error') }
+  catch (e: any) { terminalStatus.value = ''; toast.danger('Sale Failed', e.message) }
   finally { processing.value = false }
 }
 
 async function handleCardPayment() {
   if (!cardInstance.value || !cardAttached.value) {
-    addNotification('Card Form', 'Card form not ready. Please wait.', 'warning'); return
+    toast.warning('Card Form', 'Card form not ready. Please wait.'); return
   }
   processing.value = true; terminalStatus.value = 'Processing card…'
   try {
@@ -807,7 +811,7 @@ async function handleCardPayment() {
       await handleRemoteSuccess(result.token, 'Card')
     } else { throw new Error(result.errors?.[0]?.message || 'Card tokenization failed') }
   } catch (err: any) {
-    terminalStatus.value = ''; addNotification('Card Failed', err.message, 'error')
+    terminalStatus.value = ''; toast.danger('Card Failed', err.message)
   } finally { processing.value = false }
 }
 
@@ -833,7 +837,7 @@ async function handleRemoteSuccess(sourceId: string, method: 'Card' | 'Afterpay'
     terminalStatus.value = ''
     // $fetch wraps server errors in e.data.message
     const msg = (e as any).data?.message || (e as any).message || `${method} charge failed`
-    addNotification(`${method} Charge Error`, msg, 'error')
+    toast.danger(`${method} Charge Error`, msg)
   }
 }
 

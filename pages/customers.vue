@@ -4,7 +4,7 @@
     <!-- ── Page Header ─────────────────────────────────────────── -->
     <div class="flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"
+        <div class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg"
           style="background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4px 20px #3b82f650">
           <Users class="w-6 h-6 text-white" />
         </div>
@@ -13,7 +13,7 @@
           <p class="text-sm text-muted-foreground font-medium mt-0.5">{{ customers.length }} total customers</p>
         </div>
       </div>
-      <button class="hui-fab flex items-center gap-2 h-10 px-5 rounded-full text-sm font-black text-white"
+      <button class="m3-fab flex items-center gap-2 h-10 px-5 rounded-full text-sm font-black text-white"
         style="background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4px 16px #3b82f640"
         @click="newOpen = true">
         <Plus class="w-4 h-4" /> Add Customer
@@ -22,9 +22,9 @@
 
     <!-- ── Stat Cards ───────────────────────────────────────────── -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <div class="hui-stat-card rounded-2xl p-5 flex flex-col gap-3" style="background:#3b82f614;outline:2px solid #3b82f628;outline-offset:0">
+      <div class="m3-stat-card rounded-[28px] p-5 flex flex-col gap-3" style="background:#3b82f614;outline:2px solid #3b82f628;outline-offset:0">
         <div class="flex items-center justify-between">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:#3b82f624"><Users class="w-5 h-5" style="color:#3b82f6" /></div>
+          <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background:#3b82f624"><Users class="w-5 h-5" style="color:#3b82f6" /></div>
           <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background:#3b82f620;color:#3b82f6">TOTAL</span>
         </div>
         <div>
@@ -32,9 +32,9 @@
           <p class="text-2xl font-black" style="color:#3b82f6">{{ customers.length }}</p>
         </div>
       </div>
-      <div class="hui-stat-card rounded-2xl p-5 flex flex-col gap-3" style="background:#10b98114;outline:2px solid #10b98128;outline-offset:0">
+      <div class="m3-stat-card rounded-[28px] p-5 flex flex-col gap-3" style="background:#10b98114;outline:2px solid #10b98128;outline-offset:0">
         <div class="flex items-center justify-between">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:#10b98124"><DollarSign class="w-5 h-5" style="color:#10b981" /></div>
+          <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background:#10b98124"><DollarSign class="w-5 h-5" style="color:#10b981" /></div>
           <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background:#10b98120;color:#10b981">REVENUE</span>
         </div>
         <div>
@@ -42,9 +42,9 @@
           <p class="text-2xl font-black" style="color:#10b981">{{ formatCurrency(totalRevenue) }}</p>
         </div>
       </div>
-      <div class="hui-stat-card rounded-2xl p-5 flex flex-col gap-3" style="background:#f59e0b14;outline:2px solid #f59e0b28;outline-offset:0">
+      <div class="m3-stat-card rounded-[28px] p-5 flex flex-col gap-3" style="background:#f59e0b14;outline:2px solid #f59e0b28;outline-offset:0">
         <div class="flex items-center justify-between">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:#f59e0b24"><TicketCheck class="w-5 h-5" style="color:#f59e0b" /></div>
+          <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background:#f59e0b24"><TicketCheck class="w-5 h-5" style="color:#f59e0b" /></div>
           <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background:#f59e0b20;color:#f59e0b">TICKETS</span>
         </div>
         <div>
@@ -52,9 +52,9 @@
           <p class="text-2xl font-black" style="color:#f59e0b">{{ tickets.length }}</p>
         </div>
       </div>
-      <div class="hui-stat-card rounded-2xl p-5 flex flex-col gap-3" style="background:#6366f114;outline:2px solid #6366f128;outline-offset:0">
+      <div class="m3-stat-card rounded-[28px] p-5 flex flex-col gap-3" style="background:#6366f114;outline:2px solid #6366f128;outline-offset:0">
         <div class="flex items-center justify-between">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:#6366f124"><TrendingUp class="w-5 h-5" style="color:#6366f1" /></div>
+          <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background:#6366f124"><TrendingUp class="w-5 h-5" style="color:#6366f1" /></div>
           <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background:#6366f120;color:#6366f1">AVG</span>
         </div>
         <div>
@@ -69,23 +69,25 @@
       <Search class="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
       <input v-model="q" placeholder="Search by name, phone, or email…"
         class="w-full h-12 pl-11 pr-4 rounded-full text-sm font-medium transition-all"
-         />
+        style="background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);outline:none"
+        @focus="($event.target as HTMLElement).style.cssText += ';border-color:#3b82f6;box-shadow:0 0 0 3px #3b82f618'"
+        @blur="($event.target as HTMLElement).style.cssText = ($event.target as HTMLElement).style.cssText.replace(/border-color:[^;]+;box-shadow:[^;]+;/,'')" />
     </div>
 
     <!-- ── Customer Cards Grid ────────────────────────────────── -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       <div v-for="c in filteredCustomers" :key="c.id"
-        class="hui-card hui-card-hover rounded-2xl p-5 flex flex-col gap-4 bg-content1 cursor-pointer"
+        class="m3-customer-card rounded-[28px] p-5 flex flex-col gap-4 bg-card cursor-pointer"
         style="outline:2px solid hsl(var(--border)/0.6);outline-offset:0"
         @click="openDetail(c)">
         <!-- Avatar + actions -->
         <div class="flex items-start justify-between">
-          <div class="w-14 h-14 rounded-3xl flex items-center justify-center font-black text-lg flex-shrink-0"
+          <div class="w-14 h-14 rounded-[26px] flex items-center justify-center font-black text-lg flex-shrink-0"
             style="background:linear-gradient(135deg,#3b82f620,#2563eb20);color:#3b82f6">
             {{ c.name?.substring(0,2).toUpperCase() || '??' }}
           </div>
           <div class="flex gap-1">
-            <button class="w-8 h-8 rounded-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-90 hover:bg-red-50 dark:hover:bg-red-950/30"
+            <button class="w-8 h-8 rounded-[16px] flex items-center justify-center transition-all hover:scale-110 active:scale-90 hover:bg-red-50 dark:hover:bg-red-950/30"
               @click.stop="deleteCustomer(c)">
               <Trash2 class="w-3.5 h-3.5 text-muted-foreground" />
             </button>
@@ -110,16 +112,16 @@
       </div>
 
       <!-- Empty state -->
-      <div v-if="filteredCustomers.length === 0" class="col-span-full rounded-3xl py-20 flex flex-col items-center gap-4 bg-content1"
+      <div v-if="filteredCustomers.length === 0" class="col-span-full rounded-[32px] py-20 flex flex-col items-center gap-4 bg-card"
         style="outline:2px solid hsl(var(--border)/0.6);outline-offset:0">
-        <div class="w-20 h-20 rounded-3xl flex items-center justify-center" style="background:#3b82f614">
+        <div class="w-20 h-20 rounded-[32px] flex items-center justify-center" style="background:#3b82f614">
           <Users class="w-10 h-10" style="color:#3b82f6;opacity:0.5" />
         </div>
         <div class="text-center">
           <h3 class="text-lg font-black mb-1">No customers found</h3>
           <p class="text-sm text-muted-foreground font-medium">{{ q ? 'Try a different search' : 'Add your first customer to get started' }}</p>
         </div>
-        <button v-if="!q" class="hui-fab flex items-center gap-2 px-6 py-3 rounded-full text-sm font-black text-white mt-2"
+        <button v-if="!q" class="m3-fab flex items-center gap-2 px-6 py-3 rounded-full text-sm font-black text-white mt-2"
           style="background:linear-gradient(135deg,#3b82f6,#2563eb)"
           @click="newOpen = true">
           <Plus class="w-4 h-4" /> Add Customer
@@ -132,7 +134,7 @@
       <DialogContent class="max-w-md">
         <div class="flex flex-col gap-5 p-7">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">
               <UserPlus class="w-5 h-5 text-white" />
             </div>
             <div>
@@ -141,10 +143,10 @@
             </div>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="col-span-2 space-y-2"><label class="hui-label">Full Name *</label><input v-model="form.name" placeholder="Jane Smith" class="hui-input" /></div>
-            <div class="space-y-2"><label class="hui-label">Phone</label><input v-model="form.phone" placeholder="(555) 123-4567" class="hui-input" /></div>
-            <div class="space-y-2"><label class="hui-label">Email</label><input v-model="form.email" type="email" placeholder="jane@email.com" class="hui-input" /></div>
-            <div class="col-span-2 space-y-2"><label class="hui-label">Notes</label><textarea v-model="form.notes" placeholder="Any additional notes…" class="hui-input resize-none" rows="2" style="height:auto;padding-top:12px" /></div>
+            <div class="col-span-2 space-y-2"><label class="m3-label">Full Name *</label><input v-model="form.name" placeholder="Jane Smith" class="m3-input" /></div>
+            <div class="space-y-2"><label class="m3-label">Phone</label><input v-model="form.phone" placeholder="(555) 123-4567" class="m3-input" /></div>
+            <div class="space-y-2"><label class="m3-label">Email</label><input v-model="form.email" type="email" placeholder="jane@email.com" class="m3-input" /></div>
+            <div class="col-span-2 space-y-2"><label class="m3-label">Notes</label><textarea v-model="form.notes" placeholder="Any additional notes…" class="m3-input resize-none" rows="2" style="height:auto;padding-top:12px" /></div>
           </div>
           <div class="flex gap-3 pt-1">
             <button class="flex-1 h-12 rounded-full text-sm font-bold transition-all hover:scale-105 active:scale-95"
@@ -162,7 +164,7 @@
       <DialogContent class="w-full max-w-[96vw] sm:max-w-lg">
         <div v-if="selected" class="flex flex-col gap-5 p-7">
           <div class="flex items-center gap-4">
-            <div class="w-16 h-16 rounded-2xl flex items-center justify-center font-black text-xl flex-shrink-0"
+            <div class="w-16 h-16 rounded-[28px] flex items-center justify-center font-black text-xl flex-shrink-0"
               style="background:linear-gradient(135deg,#3b82f620,#2563eb20);color:#3b82f6">
               {{ selected.name?.substring(0,2).toUpperCase() || '??' }}
             </div>
@@ -176,15 +178,15 @@
             </div>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="p-3 rounded-xl" style="background:hsl(var(--muted)/0.4)">
+            <div class="p-3 rounded-[20px]" style="background:hsl(var(--muted)/0.4)">
               <p class="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Phone</p>
               <p class="text-sm font-bold">{{ selected.phone || '—' }}</p>
             </div>
-            <div class="p-3 rounded-xl" style="background:hsl(var(--muted)/0.4)">
+            <div class="p-3 rounded-[20px]" style="background:hsl(var(--muted)/0.4)">
               <p class="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Email</p>
               <p class="text-sm font-bold truncate">{{ selected.email || '—' }}</p>
             </div>
-            <div v-if="selected.notes" class="col-span-2 p-3 rounded-xl" style="background:hsl(var(--muted)/0.4)">
+            <div v-if="selected.notes" class="col-span-2 p-3 rounded-[20px]" style="background:hsl(var(--muted)/0.4)">
               <p class="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Notes</p>
               <p class="text-sm font-medium">{{ selected.notes }}</p>
             </div>
@@ -195,8 +197,8 @@
             </p>
             <div class="space-y-2 max-h-52 overflow-y-auto">
               <div v-for="t in custTicketList(selected.id)" :key="t.id"
-                class="flex items-center gap-3 px-3 py-2.5 rounded-xl" style="background:hsl(var(--muted)/0.4)">
-                <div class="w-8 h-8 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:#f59e0b20">
+                class="flex items-center gap-3 px-3 py-2.5 rounded-[18px]" style="background:hsl(var(--muted)/0.4)">
+                <div class="w-8 h-8 rounded-[16px] flex items-center justify-center flex-shrink-0" style="background:#f59e0b20">
                   <TicketCheck class="w-4 h-4" style="color:#f59e0b" />
                 </div>
                 <div class="flex-1 min-w-0">
@@ -224,10 +226,25 @@
       </DialogContent>
     </Dialog>
   </div>
+
+  <!-- Delete confirmation -->
+  <AlertDialog
+    :open="deleteConfirmTarget !== null"
+    :heading="deleteConfirmTarget ? `Delete ${deleteConfirmTarget.name}?` : ''"
+    body="This will permanently remove the customer and all their data. This cannot be undone."
+    status="danger"
+    confirm-label="Delete Customer"
+    @update:open="v => { if (!v) deleteConfirmTarget = null }"
+    @confirm="executeDeleteCustomer"
+  />
+  <ToastStack />
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import AlertDialog from '~/components/ui/AlertDialog.vue'
+import ToastStack from '~/components/ui/ToastStack.vue'
+import { useToast } from '~/composables/useToast'
 import { Users, Plus, Search, Trash2, UserPlus, DollarSign, TrendingUp, TicketCheck } from 'lucide-vue-next'
 import { Dialog, DialogContent } from '~/components/ui/dialog'
 import { useAppStore } from '~/stores/app'
@@ -251,43 +268,58 @@ const avgRevenue = computed(() => customers.value.length > 0 ? totalRevenue.valu
 const openDetail = (c: any) => { selected.value = c; detailOpen.value = true }
 const editingCustomer = ref<any>(null)
 const startEdit = () => { editingCustomer.value = selected.value; form.value = { ...selected.value }; detailOpen.value = false; newOpen.value = true }
+const { toast } = useToast()
+const deleteConfirmTarget = ref<any>(null)
+
 const saveCustomer = async () => {
-  if (!form.value.name) return alert('Please enter a name')
+  if (!form.value.name) {
+    toast.warning('Name required', 'Please enter a customer name')
+    return
+  }
   if (editingCustomer.value?.id) {
-    // Update existing customer via store (persists to Supabase)
     await appStore.updateCustomer(editingCustomer.value.id, {
       name: form.value.name,
       phone: form.value.phone,
       email: form.value.email,
       notes: form.value.notes,
     })
+    toast.success('Customer Updated', form.value.name)
   } else {
     await appStore.createCustomer({ ...form.value })
+    toast.success('Customer Added', form.value.name)
   }
   newOpen.value = false; editingCustomer.value = null; form.value = { name:'', phone:'', email:'', notes:'' }
 }
+
+const deleteCustomer = (c: any) => {
+  deleteConfirmTarget.value = c
+}
+
+const executeDeleteCustomer = async () => {
+  if (!deleteConfirmTarget.value) return
+  await appStore.deleteCustomer(deleteConfirmTarget.value.id)
+  toast.success('Deleted', `${deleteConfirmTarget.value.name} removed`)
+  deleteConfirmTarget.value = null
+  detailOpen.value = false
+}
+
 const messageCustomer = (c: any) => {
   detailOpen.value = false
   navigateTo({ path: '/messages', query: { compose: '1', customerId: String(c.id) } })
 }
-
-const deleteCustomer = async (c: any) => {
-  if (!confirm(`Delete ${c.name}? This cannot be undone.`)) return
-  await appStore.deleteCustomer(c.id)
-}
 </script>
 
 <style scoped>
-.hui-fab { transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease; }
-.hui-fab:hover  { transform: scale(1.05) translateY(-2px); }
-.hui-fab:active { transform: scale(0.92); }
-.hui-stat-card { transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease; }
-.hui-stat-card:hover  { transform: scale(1.03) translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.1); }
-.hui-stat-card:active { transform: scale(0.96); }
-.hui-card hui-card-hover { transition: transform 0.4s cubic-bezier(0.34,1.5,0.64,1), box-shadow 0.3s ease; }
-.hui-card hui-card-hover:hover  { transform: scale(1.03) translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
-.hui-card hui-card-hover:active { transform: scale(0.96); }
-.hui-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
-.hui-input:focus { border-color:#3b82f6;box-shadow:0 0 0 3px #3b82f618; }
-.hui-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
+.m3-fab { transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease; }
+.m3-fab:hover  { transform: scale(1.05) translateY(-2px); }
+.m3-fab:active { transform: scale(0.92); }
+.m3-stat-card { transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease; }
+.m3-stat-card:hover  { transform: scale(1.03) translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.1); }
+.m3-stat-card:active { transform: scale(0.96); }
+.m3-customer-card { transition: transform 0.4s cubic-bezier(0.34,1.5,0.64,1), box-shadow 0.3s ease; }
+.m3-customer-card:hover  { transform: scale(1.03) translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
+.m3-customer-card:active { transform: scale(0.96); }
+.m3-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
+.m3-input:focus { border-color:#3b82f6;box-shadow:0 0 0 3px #3b82f618; }
+.m3-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
 </style>

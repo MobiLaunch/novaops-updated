@@ -3,7 +3,7 @@
 
     <!-- ── Page Header ── -->
     <div class="flex items-center gap-4">
-      <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg" style="background: linear-gradient(135deg, #64748b, #475569)">
+      <div class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg" style="background: linear-gradient(135deg, #64748b, #475569)">
         <SettingsIcon class="w-6 h-6 text-white" />
       </div>
       <div>
@@ -18,9 +18,9 @@
       <div class="lg:col-span-2 space-y-5">
 
         <!-- Business Info -->
-        <div class="hui-card">
-          <div class="flex items-center gap-3 px-6 py-5 border-b border-divider" style="background: #6366f108">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #6366f1, #8b5cf6)">
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #6366f108">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #6366f1, #8b5cf6)">
               <Building class="w-5 h-5 text-white" />
             </div>
             <div>
@@ -31,63 +31,67 @@
           <div class="p-6 space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="space-y-2">
-                <label class="hui-label">Business Name</label>
-                <input v-model="form.businessName" placeholder="Your Repair Shop" class="hui-input" />
+                <label class="m3-label">Business Name</label>
+                <input v-model="form.businessName" placeholder="Your Repair Shop" class="m3-input" />
               </div>
               <div class="space-y-2">
-                <label class="hui-label">Phone</label>
-                <input v-model="form.phone" placeholder="(555) 123-4567" class="hui-input" />
+                <label class="m3-label">Phone</label>
+                <input v-model="form.phone" placeholder="(555) 123-4567" class="m3-input" />
               </div>
             </div>
             <div class="space-y-2">
-              <label class="hui-label">Email</label>
-              <input v-model="form.email" type="email" placeholder="contact@yourshop.com" class="hui-input" />
+              <label class="m3-label">Email</label>
+              <input v-model="form.email" type="email" placeholder="contact@yourshop.com" class="m3-input" />
             </div>
             <div class="space-y-2">
-              <label class="hui-label">Address</label>
-              <textarea v-model="form.address" :rows="2" placeholder="123 Main St, City, State ZIP" class="hui-input resize-none" />
+              <label class="m3-label">Address</label>
+              <textarea v-model="form.address" :rows="2" placeholder="123 Main St, City, State ZIP" class="m3-input resize-none" />
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="space-y-2">
-                <label class="hui-label">Currency Symbol</label>
-                <input v-model="form.currency" placeholder="$" class="hui-input" />
+                <label class="m3-label">Currency Symbol</label>
+                <input v-model="form.currency" placeholder="$" class="m3-input" />
               </div>
               <div class="space-y-2">
-                <label class="hui-label">Tax Rate (%)</label>
-                <input v-model.number="form.taxRate" type="number" step="0.01" placeholder="0.00" class="hui-input" />
+                <label class="m3-label">Tax Rate (%)</label>
+                <input v-model.number="form.taxRate" type="number" step="0.01" placeholder="0.00" class="m3-input" />
               </div>
             </div>
             <div class="space-y-2">
-              <label class="hui-label">Ticket Statuses</label>
-              <input v-model="form.statuses" placeholder="Open, In Progress, Waiting for Parts, Completed, Delivered" class="hui-input" />
+              <label class="m3-label">Ticket Statuses</label>
+              <input v-model="form.statuses" placeholder="Open, In Progress, Waiting for Parts, Completed, Delivered" class="m3-input" />
               <p class="text-xs text-muted-foreground font-medium">Separate each status with a comma</p>
             </div>
             <div class="space-y-2">
-              <label class="hui-label">Screen Lock PIN</label>
-              <input v-model="form.pin" type="password" maxlength="4" placeholder="4-digit PIN" class="hui-input w-[160px] font-mono tracking-widest" />
+              <label class="m3-label">Screen Lock PIN</label>
+              <input v-model="form.pin" type="password" maxlength="4" placeholder="4-digit PIN" class="m3-input w-[160px] font-mono tracking-widest" />
               <p class="text-xs text-muted-foreground font-medium">Screen locks after 3 minutes of inactivity</p>
             </div>
-            <div class="pt-4 border-t border-divider flex items-center gap-4">
-              <button @click="saveSettings" :disabled="saving" class="hui-btn hui-btn-solid-primary hui-btn-md flex items-center gap-2.5 h-12 px-7 rounded-full text-sm font-black text-white disabled:opacity-50">
-                <div v-if="saving" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <Save v-else class="w-4 h-4" />
-                {{ saving ? 'Saving…' : 'Save Business Settings' }}
-              </button>
-              <Transition name="save-msg">
-                <div v-if="saveMsg" class="flex items-center gap-2 text-sm font-bold" :style="saveMsg.ok ? 'color:#10b981' : 'color:#ef4444'">
-                  <CheckCircle v-if="saveMsg.ok" class="w-4 h-4" />
-                  <AlertCircle v-else class="w-4 h-4" />
-                  {{ saveMsg.text }}
-                </div>
-              </Transition>
+            <div class="pt-4 border-t border-border/60 flex flex-col gap-3">
+              <div class="flex items-center gap-4 flex-wrap">
+                <button @click="saveSettings" :disabled="saving" class="m3-btn-primary flex items-center gap-2.5 h-12 px-7 rounded-full text-sm font-black text-white disabled:opacity-50">
+                  <div v-if="saving" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <Save v-else class="w-4 h-4" />
+                  {{ saving ? 'Saving…' : 'Save Business Settings' }}
+                </button>
+              </div>
+              <AppAlert
+                v-if="saveMsg"
+                :status="saveMsg.ok ? 'success' : 'danger'"
+                :title="saveMsg.ok ? 'Settings saved' : 'Save failed'"
+                :description="saveMsg.ok ? undefined : saveMsg.text"
+                :inline="true"
+                :dismissible="true"
+                @dismiss="saveMsg = null"
+              />
             </div>
           </div>
         </div>
 
         <!-- ── Services Management ── -->
-        <div class="hui-card">
-          <div class="flex items-center gap-3 px-6 py-5 border-b border-divider" style="background: #10b98108">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #10b981, #059669)">
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #10b98108">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #10b981, #059669)">
               <Wrench class="w-5 h-5 text-white" />
             </div>
             <div class="flex-1">
@@ -104,31 +108,31 @@
           <div class="p-6 space-y-4">
             <!-- Add / Edit Form -->
             <Transition name="save-msg">
-              <div v-if="showServiceForm" class="rounded-xl p-5 space-y-4" style="background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.6); outline-offset: 0">
+              <div v-if="showServiceForm" class="rounded-[20px] p-5 space-y-4" style="background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.6); outline-offset: 0">
                 <p class="text-xs font-black text-muted-foreground uppercase tracking-widest">{{ editingServiceId ? 'Edit Service' : 'New Service' }}</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div class="space-y-1.5">
-                    <label class="hui-label">Name</label>
-                    <input v-model="serviceForm.name" placeholder="Screen Replacement" class="hui-input" style="height:40px;font-size:13px" />
+                    <label class="m3-label">Name</label>
+                    <input v-model="serviceForm.name" placeholder="Screen Replacement" class="m3-input" style="height:40px;font-size:13px" />
                   </div>
                   <div class="space-y-1.5">
-                    <label class="hui-label">Category</label>
-                    <input v-model="serviceForm.category" placeholder="Repairs" class="hui-input" style="height:40px;font-size:13px" />
+                    <label class="m3-label">Category</label>
+                    <input v-model="serviceForm.category" placeholder="Repairs" class="m3-input" style="height:40px;font-size:13px" />
                   </div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div class="space-y-1.5">
-                    <label class="hui-label">Price</label>
-                    <input v-model.number="serviceForm.price" type="number" step="0.01" placeholder="0.00" class="hui-input" style="height:40px;font-size:13px" />
+                    <label class="m3-label">Price</label>
+                    <input v-model.number="serviceForm.price" type="number" step="0.01" placeholder="0.00" class="m3-input" style="height:40px;font-size:13px" />
                   </div>
                   <div class="space-y-1.5">
-                    <label class="hui-label">Est. Minutes</label>
-                    <input v-model.number="serviceForm.estimated_minutes" type="number" placeholder="30" class="hui-input" style="height:40px;font-size:13px" />
+                    <label class="m3-label">Est. Minutes</label>
+                    <input v-model.number="serviceForm.estimated_minutes" type="number" placeholder="30" class="m3-input" style="height:40px;font-size:13px" />
                   </div>
                 </div>
                 <div class="space-y-1.5">
-                  <label class="hui-label">Description</label>
-                  <input v-model="serviceForm.description" placeholder="Brief description" class="hui-input" style="height:40px;font-size:13px" />
+                  <label class="m3-label">Description</label>
+                  <input v-model="serviceForm.description" placeholder="Brief description" class="m3-input" style="height:40px;font-size:13px" />
                 </div>
                 <div class="flex items-center gap-3">
                   <button @click="handleSaveService" :disabled="!serviceForm.name || savingService"
@@ -151,9 +155,9 @@
             </div>
             <div v-else class="space-y-1.5 max-h-[320px] overflow-y-auto pr-1">
               <div v-for="svc in svcList" :key="svc.id"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-muted/30"
+                class="flex items-center gap-3 px-4 py-3 rounded-[18px] transition-colors hover:bg-muted/30"
                 style="background: hsl(var(--muted)/0.2)">
-                <div class="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0" style="background: #10b98114">
+                <div class="w-9 h-9 rounded-[16px] flex items-center justify-center flex-shrink-0" style="background: #10b98114">
                   <Wrench class="w-4 h-4" style="color: #10b981" />
                 </div>
                 <div class="flex-1 min-w-0">
@@ -175,20 +179,21 @@
               </div>
             </div>
 
-            <Transition name="save-msg">
-              <div v-if="serviceMsg" class="flex items-center gap-2 text-sm font-bold" :style="serviceMsg.ok ? 'color:#10b981' : 'color:#ef4444'">
-                <CheckCircle v-if="serviceMsg.ok" class="w-4 h-4" />
-                <AlertCircle v-else class="w-4 h-4" />
-                {{ serviceMsg.text }}
-              </div>
-            </Transition>
+            <AppAlert
+              v-if="serviceMsg"
+              :status="serviceMsg.ok ? 'success' : 'danger'"
+              :title="serviceMsg.text"
+              :inline="true"
+              :dismissible="true"
+              @dismiss="serviceMsg = null"
+            />
           </div>
         </div>
 
         <!-- ── Expenses Management ── -->
-        <div class="hui-card">
-          <div class="flex items-center gap-3 px-6 py-5 border-b border-divider" style="background: #ef444408">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #ef4444, #dc2626)">
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #ef444408">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #ef4444, #dc2626)">
               <DollarSign class="w-5 h-5 text-white" />
             </div>
             <div class="flex-1">
@@ -205,22 +210,22 @@
           <div class="p-6 space-y-4">
             <!-- Add Form -->
             <Transition name="save-msg">
-              <div v-if="showExpenseForm" class="rounded-xl p-5 space-y-4" style="background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.6); outline-offset: 0">
+              <div v-if="showExpenseForm" class="rounded-[20px] p-5 space-y-4" style="background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.6); outline-offset: 0">
                 <p class="text-xs font-black text-muted-foreground uppercase tracking-widest">New Expense</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div class="space-y-1.5">
-                    <label class="hui-label">Description</label>
-                    <input v-model="expenseForm.description" placeholder="Rent, Insurance, etc." class="hui-input" style="height:40px;font-size:13px" />
+                    <label class="m3-label">Description</label>
+                    <input v-model="expenseForm.description" placeholder="Rent, Insurance, etc." class="m3-input" style="height:40px;font-size:13px" />
                   </div>
                   <div class="space-y-1.5">
-                    <label class="hui-label">Amount</label>
-                    <input v-model.number="expenseForm.amount" type="number" step="0.01" placeholder="0.00" class="hui-input" style="height:40px;font-size:13px" />
+                    <label class="m3-label">Amount</label>
+                    <input v-model.number="expenseForm.amount" type="number" step="0.01" placeholder="0.00" class="m3-input" style="height:40px;font-size:13px" />
                   </div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div class="space-y-1.5">
-                    <label class="hui-label">Category</label>
-                    <select v-model="expenseForm.category" class="hui-input" style="height:40px;font-size:13px">
+                    <label class="m3-label">Category</label>
+                    <select v-model="expenseForm.category" class="m3-input" style="height:40px;font-size:13px">
                       <option value="Overhead">Overhead</option>
                       <option value="Utilities">Utilities</option>
                       <option value="Software">Software</option>
@@ -229,8 +234,8 @@
                     </select>
                   </div>
                   <div class="space-y-1.5">
-                    <label class="hui-label">Date</label>
-                    <input v-model="expenseForm.date" type="date" class="hui-input" style="height:40px;font-size:13px" />
+                    <label class="m3-label">Date</label>
+                    <input v-model="expenseForm.date" type="date" class="m3-input" style="height:40px;font-size:13px" />
                   </div>
                 </div>
                 <div class="flex items-center gap-3">
@@ -254,9 +259,9 @@
             </div>
             <div v-else class="space-y-1.5 max-h-[280px] overflow-y-auto pr-1">
               <div v-for="exp in expensesList" :key="exp.id"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-muted/30"
+                class="flex items-center gap-3 px-4 py-3 rounded-[18px] transition-colors hover:bg-muted/30"
                 style="background: hsl(var(--muted)/0.2)">
-                <div class="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0" style="background: #ef444414">
+                <div class="w-9 h-9 rounded-[16px] flex items-center justify-center flex-shrink-0" style="background: #ef444414">
                   <DollarSign class="w-4 h-4" style="color: #ef4444" />
                 </div>
                 <div class="flex-1 min-w-0">
@@ -273,21 +278,22 @@
               </div>
             </div>
 
-            <Transition name="save-msg">
-              <div v-if="expenseMsg" class="flex items-center gap-2 text-sm font-bold" :style="expenseMsg.ok ? 'color:#10b981' : 'color:#ef4444'">
-                <CheckCircle v-if="expenseMsg.ok" class="w-4 h-4" />
-                <AlertCircle v-else class="w-4 h-4" />
-                {{ expenseMsg.text }}
-              </div>
-            </Transition>
+            <AppAlert
+              v-if="expenseMsg"
+              :status="expenseMsg.ok ? 'success' : 'danger'"
+              :title="expenseMsg.text"
+              :inline="true"
+              :dismissible="true"
+              @dismiss="expenseMsg = null"
+            />
           </div>
         </div>
 
 
         <!-- ── Supabase Connection ── -->
-        <div class="hui-card">
-          <div class="flex items-center gap-3 px-6 py-5 border-b border-divider" style="background: #3ecf8e08">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #3ecf8e, #1a9e6a)">
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #3ecf8e08">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #3ecf8e, #1a9e6a)">
               <Database class="w-5 h-5 text-white" />
             </div>
             <div class="flex-1">
@@ -311,8 +317,8 @@
           <div class="p-6 space-y-5">
 
             <!-- Connected state -->
-            <div v-if="sbConn.status.connected" class="flex items-center gap-4 p-4 rounded-xl" style="background:#3ecf8e10;outline:1.5px solid #3ecf8e28;outline-offset:0">
-              <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#3ecf8e20">
+            <div v-if="sbConn.status.connected" class="flex items-center gap-4 p-4 rounded-[20px]" style="background:#3ecf8e10;outline:1.5px solid #3ecf8e28;outline-offset:0">
+              <div class="w-10 h-10 rounded-[20px] flex items-center justify-center flex-shrink-0" style="background:#3ecf8e20">
                 <CheckCircle class="w-5 h-5" style="color:#3ecf8e" />
               </div>
               <div class="flex-1 min-w-0">
@@ -328,9 +334,9 @@
 
             <!-- Not connected / setup prompt -->
             <div v-else>
-              <div class="rounded-xl p-5 flex flex-col gap-4" style="background:hsl(var(--muted)/0.4);outline:1.5px solid hsl(var(--border)/0.6);outline-offset:0">
+              <div class="rounded-[20px] p-5 flex flex-col gap-4" style="background:hsl(var(--muted)/0.4);outline:1.5px solid hsl(var(--border)/0.6);outline-offset:0">
                 <div class="flex items-start gap-3">
-                  <div class="w-8 h-8 rounded-2xl flex items-center justify-center flex-shrink-0 mt-0.5" style="background:#3ecf8e20">
+                  <div class="w-8 h-8 rounded-[16px] flex items-center justify-center flex-shrink-0 mt-0.5" style="background:#3ecf8e20">
                     <Database class="w-4 h-4" style="color:#3ecf8e" />
                   </div>
                   <div>
@@ -373,9 +379,9 @@
           <!-- Disconnect confirm -->
           <Transition name="overlay">
             <div v-if="confirmSbDisconnect" class="fixed inset-0 z-[100] flex items-center justify-center p-4" style="background:rgba(0,0,0,0.5);backdrop-filter:blur(8px)">
-              <div class="w-full max-w-sm rounded-2xl bg-content1 p-7 flex flex-col gap-5 shadow-2xl" style="outline:2px solid hsl(var(--border)/0.6);outline-offset:0;animation:sbModalEnter 0.3s cubic-bezier(0.34,1.3,0.64,1) both">
+              <div class="w-full max-w-sm rounded-[28px] bg-card p-7 flex flex-col gap-5 shadow-2xl" style="outline:2px solid hsl(var(--border)/0.6);outline-offset:0;animation:sbModalEnter 0.3s cubic-bezier(0.34,1.3,0.64,1) both">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#ef444420">
+                  <div class="w-10 h-10 rounded-[20px] flex items-center justify-center flex-shrink-0" style="background:#ef444420">
                     <AlertCircle class="w-5 h-5" style="color:#ef4444" />
                   </div>
                   <div>
@@ -397,18 +403,18 @@
           <!-- Connect modal -->
           <Transition name="overlay">
             <div v-if="showSbModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" style="background:rgba(0,0,0,0.55);backdrop-filter:blur(10px)" @click.self="showSbModal = false">
-              <div class="w-full max-w-lg rounded-3xl bg-content1 flex flex-col shadow-2xl overflow-hidden" style="outline:2px solid hsl(var(--border)/0.6);outline-offset:0;animation:sbModalEnter 0.35s cubic-bezier(0.34,1.3,0.64,1) both">
+              <div class="w-full max-w-lg rounded-[32px] bg-card flex flex-col shadow-2xl overflow-hidden" style="outline:2px solid hsl(var(--border)/0.6);outline-offset:0;animation:sbModalEnter 0.35s cubic-bezier(0.34,1.3,0.64,1) both">
 
                 <!-- Header -->
                 <div class="flex items-center gap-4 px-7 pt-7 pb-5 border-b border-border/50" style="background:#3ecf8e06">
-                  <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md" style="background:linear-gradient(135deg,#3ecf8e,#1a9e6a);box-shadow:0 4px 16px #3ecf8e30">
+                  <div class="w-11 h-11 rounded-[22px] flex items-center justify-center flex-shrink-0 shadow-md" style="background:linear-gradient(135deg,#3ecf8e,#1a9e6a);box-shadow:0 4px 16px #3ecf8e30">
                     <Database class="w-5 h-5 text-white" />
                   </div>
                   <div class="flex-1">
                     <h2 class="text-base font-black">Connect to Supabase</h2>
                     <p class="text-xs text-muted-foreground font-medium mt-0.5">Paste your project URL and anon key from the Supabase dashboard</p>
                   </div>
-                  <button class="w-8 h-8 rounded-2xl flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90 text-muted-foreground" @click="showSbModal = false">
+                  <button class="w-8 h-8 rounded-[16px] flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90 text-muted-foreground" @click="showSbModal = false">
                     <X class="w-4 h-4" />
                   </button>
                 </div>
@@ -416,7 +422,7 @@
                 <div class="p-7 space-y-5">
 
                   <!-- Step guide -->
-                  <div class="rounded-xl p-4 space-y-2.5" style="background:hsl(var(--muted)/0.4)">
+                  <div class="rounded-[20px] p-4 space-y-2.5" style="background:hsl(var(--muted)/0.4)">
                     <p class="text-xs font-black text-muted-foreground uppercase tracking-widest">Where to find these</p>
                     <div class="space-y-2">
                       <div class="flex items-center gap-2.5 text-xs font-medium text-muted-foreground">
@@ -440,21 +446,21 @@
 
                   <!-- URL field -->
                   <div class="space-y-2">
-                    <label class="hui-label">Project URL</label>
-                    <input v-model="sbForm.url" type="url" placeholder="https://xxxxxxxxxxxx.supabase.co" class="hui-input font-mono text-xs"
+                    <label class="m3-label">Project URL</label>
+                    <input v-model="sbForm.url" type="url" placeholder="https://xxxxxxxxxxxx.supabase.co" class="m3-input font-mono text-xs"
                       autocomplete="off" spellcheck="false" />
                   </div>
 
                   <!-- Key field -->
                   <div class="space-y-2">
-                    <label class="hui-label">Anon / Public Key</label>
-                    <input v-model="sbForm.key" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…" class="hui-input font-mono text-xs"
+                    <label class="m3-label">Anon / Public Key</label>
+                    <input v-model="sbForm.key" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…" class="m3-input font-mono text-xs"
                       autocomplete="off" spellcheck="false" />
                     <p class="text-[11px] text-muted-foreground font-medium">Use the <strong>anon</strong> key — not the service_role key.</p>
                   </div>
 
                   <!-- Error -->
-                  <div v-if="sbConn.status.error" class="flex items-center gap-2.5 p-3.5 rounded-xl text-sm font-semibold"
+                  <div v-if="sbConn.status.error" class="flex items-center gap-2.5 p-3.5 rounded-[18px] text-sm font-semibold"
                     style="background:#ef444412;color:#ef4444;outline:1.5px solid #ef444428;outline-offset:0">
                     <AlertCircle class="w-4 h-4 flex-shrink-0" />
                     {{ sbConn.status.error }}
@@ -480,9 +486,9 @@
         </Teleport>
 
         <!-- ── Square Integration ── -->
-        <div class="hui-card">
-          <div class="flex items-center gap-3 px-6 py-5 border-b border-divider" style="background: #10b98108">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #10b981, #059669)">
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #10b98108">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #10b981, #059669)">
               <CreditCard class="w-5 h-5 text-white" />
             </div>
             <div class="flex-1">
@@ -510,30 +516,31 @@
             <!-- Credentials (server-side only — user enters for persistence) -->
             <div class="space-y-4">
               <div class="space-y-2">
-                <label class="hui-label">Square Access Token</label>
-                <input v-model="form.squareAccessToken" type="password" placeholder="EAAAl…" class="hui-input font-mono text-xs"
+                <label class="m3-label">Square Access Token</label>
+                <input v-model="form.squareAccessToken" type="password" placeholder="EAAAl…" class="m3-input font-mono text-xs"
                   autocomplete="off" @blur="debouncedSquareCheck" />
                 <p class="text-xs text-muted-foreground font-medium">Stored securely — never sent to the browser after save</p>
               </div>
               <div class="space-y-2">
-                <label class="hui-label">Location ID</label>
-                <input v-model="form.squareLocationId" placeholder="L1234…" class="hui-input font-mono text-xs"
+                <label class="m3-label">Location ID</label>
+                <input v-model="form.squareLocationId" placeholder="L1234…" class="m3-input font-mono text-xs"
                   @blur="debouncedSquareCheck" />
               </div>
-              <div class="flex items-center justify-between p-4 rounded-xl" style="background: hsl(var(--muted)/0.3)">
+              <div class="flex items-center justify-between p-4 rounded-[20px]" style="background: hsl(var(--muted)/0.3)">
                 <div>
                   <p class="text-sm font-bold">Use Square Sandbox</p>
                   <p class="text-xs text-muted-foreground font-medium">Test mode — use sandbox credentials</p>
                 </div>
-                <button class="hui-toggle" :class="{ 'active': form.squareSandbox }" @click="form.squareSandbox = !form.squareSandbox; debouncedSquareCheck()">
-                  <span class="hui-toggle-thumb">
-                    <component :is="form.squareSandbox ? Check : X" class="w-3 h-3" />
-                  </span>
-                </button>
+                <IconSwitch
+                  v-model="form.squareSandbox"
+                  :icon-on="Check"
+                  :icon-off="X"
+                  @update:model-value="debouncedSquareCheck"
+                />
               </div>
 
               <!-- Connection test result -->
-              <div v-if="squareTestMsg" class="flex items-center gap-2.5 p-3.5 rounded-xl text-sm font-semibold"
+              <div v-if="squareTestMsg" class="flex items-center gap-2.5 p-3.5 rounded-[18px] text-sm font-semibold"
                 :style="squareStatus === 'connected'
                   ? 'background:#10b98112;color:#10b981;outline:1.5px solid #10b98128;outline-offset:0'
                   : 'background:#ef444412;color:#ef4444;outline:1.5px solid #ef444428;outline-offset:0'">
@@ -544,7 +551,7 @@
 
               <div class="flex items-center gap-3">
                 <button @click="saveSquareSettings" :disabled="savingSquare"
-                  class="hui-btn hui-btn-light hui-btn-md flex items-center gap-2 h-11 px-6 rounded-full text-sm font-bold">
+                  class="m3-btn-tonal flex items-center gap-2 h-11 px-6 rounded-full text-sm font-bold">
                   <div v-if="savingSquare" class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                   <Save v-else class="w-4 h-4" />
                   {{ savingSquare ? 'Saving…' : 'Save Credentials' }}
@@ -561,9 +568,9 @@
         </div>
 
         <!-- Web Printing Preferences -->
-        <div class="hui-card">
-          <div class="flex items-center gap-3 px-6 py-5 border-b border-divider" style="background: #06b6d408">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #06b6d4, #0891b2)">
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #06b6d408">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #06b6d4, #0891b2)">
               <Printer class="w-5 h-5 text-white" />
             </div>
             <div class="flex-1">
@@ -574,9 +581,9 @@
           <div class="p-6 space-y-6">
 
             <!-- Zadig Setup Instructions -->
-            <div class="rounded-xl p-5 space-y-3" style="background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.6); outline-offset: 0">
+            <div class="rounded-[20px] p-5 space-y-3" style="background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.6); outline-offset: 0">
               <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-2xl flex items-center justify-center flex-shrink-0 mt-0.5" style="background: #06b6d420">
+                <div class="w-8 h-8 rounded-[16px] flex items-center justify-center flex-shrink-0 mt-0.5" style="background: #06b6d420">
                   <Printer class="w-4 h-4" style="color: #06b6d4" />
                 </div>
                 <div>
@@ -602,7 +609,7 @@
                 <div class="space-y-0.5">
                   <p class="text-foreground font-bold">4. Replace the Driver</p>
                   <p>With the printer selected, choose <strong>WinUSB</strong> on the right side and click "Replace Driver" or "Install Driver". Wait for the success message.</p>
-                  <div class="mt-2 p-3 rounded-xl flex items-start gap-2 text-[11px]" style="background: #f59e0b18; color: #d97706">
+                  <div class="mt-2 p-3 rounded-[12px] flex items-start gap-2 text-[11px]" style="background: #f59e0b18; color: #d97706">
                     <AlertTriangle class="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
                     <p><strong>Important:</strong> This detaches the standard Windows printer driver and replaces it with WinUSB. After this, the printer will no longer work with standard Windows printing — it will only work via WebUSB from your app.</p>
                   </div>
@@ -611,10 +618,10 @@
             </div>
 
             <!-- Default Thermal Printer Setup -->
-            <div class="flex flex-col gap-3 p-4 rounded-2xl" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.5)">
+            <div class="flex flex-col gap-3 p-4 rounded-[16px]" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.5)">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: #10b98118">
+                  <div class="w-8 h-8 rounded-[12px] flex items-center justify-center" style="background: #10b98118">
                     <Receipt class="w-4 h-4" style="color: #10b981" />
                   </div>
                   <div>
@@ -622,10 +629,10 @@
                     <p class="text-xs text-muted-foreground font-medium mt-0.5" v-if="!pairedThermalPrinter">No device linked</p>
                   </div>
                 </div>
-                <button v-if="!pairedThermalPrinter" @click="pairUSBPrinter('thermal')" class="hui-btn hui-btn-solid-primary hui-btn-md h-8 px-4 rounded-full text-xs font-bold text-white transition-all hover:scale-105">Pair a Device</button>
+                <button v-if="!pairedThermalPrinter" @click="pairUSBPrinter('thermal')" class="m3-btn-primary h-8 px-4 rounded-full text-xs font-bold text-white transition-all hover:scale-105">Pair a Device</button>
               </div>
               
-              <div v-if="pairedThermalPrinter" class="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl" style="background: hsl(var(--background)); outline: 1px solid hsl(var(--border)/0.5)">
+              <div v-if="pairedThermalPrinter" class="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-[12px]" style="background: hsl(var(--background)); outline: 1px solid hsl(var(--border)/0.5)">
                 <div class="flex items-start gap-3">
                   <p class="text-xs font-bold mt-0.5">1.</p>
                   <div>
@@ -634,17 +641,17 @@
                   </div>
                 </div>
                 <div class="flex items-center gap-4 align-self-end">
-                  <button @click="pairUSBPrinter('thermal')" class="hui-btn hui-btn-light hui-btn-md h-8 px-4 rounded-full text-[11px] font-bold">Link Printer</button>
+                  <button @click="pairUSBPrinter('thermal')" class="m3-btn-tonal h-8 px-4 rounded-full text-[11px] font-bold">Link Printer</button>
                   <button @click="removeUSBPrinter('thermal')" class="text-[11px] font-bold text-red-500 hover:underline">Remove device</button>
                 </div>
               </div>
             </div>
 
             <!-- Default Label Printer Setup -->
-            <div class="flex flex-col gap-3 p-4 rounded-2xl" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.5)">
+            <div class="flex flex-col gap-3 p-4 rounded-[16px]" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.5)">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: #06b6d418">
+                  <div class="w-8 h-8 rounded-[12px] flex items-center justify-center" style="background: #06b6d418">
                     <ScanLine class="w-4 h-4" style="color: #06b6d4" />
                   </div>
                   <div>
@@ -652,10 +659,10 @@
                     <p class="text-xs text-muted-foreground font-medium mt-0.5" v-if="!pairedLabelPrinter">No device linked</p>
                   </div>
                 </div>
-                <button v-if="!pairedLabelPrinter" @click="pairUSBPrinter('label')" class="hui-btn hui-btn-solid-primary hui-btn-md h-8 px-4 rounded-full text-xs font-bold text-white transition-all hover:scale-105">Pair a Device</button>
+                <button v-if="!pairedLabelPrinter" @click="pairUSBPrinter('label')" class="m3-btn-primary h-8 px-4 rounded-full text-xs font-bold text-white transition-all hover:scale-105">Pair a Device</button>
               </div>
               
-              <div v-if="pairedLabelPrinter" class="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl" style="background: hsl(var(--background)); outline: 1px solid hsl(var(--border)/0.5)">
+              <div v-if="pairedLabelPrinter" class="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-[12px]" style="background: hsl(var(--background)); outline: 1px solid hsl(var(--border)/0.5)">
                 <div class="flex items-start gap-3">
                   <p class="text-xs font-bold mt-0.5">1.</p>
                   <div>
@@ -664,52 +671,61 @@
                   </div>
                 </div>
                 <div class="flex items-center gap-4 align-self-end">
-                  <button @click="pairUSBPrinter('label')" class="hui-btn hui-btn-light hui-btn-md h-8 px-4 rounded-full text-[11px] font-bold">Link Printer</button>
+                  <button @click="pairUSBPrinter('label')" class="m3-btn-tonal h-8 px-4 rounded-full text-[11px] font-bold">Link Printer</button>
                   <button @click="removeUSBPrinter('label')" class="text-[11px] font-bold text-red-500 hover:underline">Remove device</button>
                 </div>
               </div>
             </div>
 
             <!-- Receipt & Barcode Options -->
-            <div class="pt-4 border-t border-divider space-y-4">
+            <div class="pt-4 border-t border-border/60 space-y-4">
               <div class="flex items-center justify-between mt-2">
                 <div>
                   <p class="text-sm font-bold">Auto-Print Receipts</p>
                   <p class="text-xs text-muted-foreground font-medium mt-0.5">Prompt to print receipt after POS checkout</p>
                 </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" v-model="printerSettings.autoPrintReceipt" class="sr-only peer" @change="savePrinterSettings" />
-                  <div class="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                </label>
+                <IconSwitch
+                  v-model="printerSettings.autoPrintReceipt"
+                  :icon-on="Check"
+                  :icon-off="X"
+                  accent-class="bg-green-500/80"
+                  @update:model-value="savePrinterSettings"
+                />
               </div>
-              <button class="hui-btn hui-btn-light hui-btn-md h-10 px-5 rounded-full text-xs font-bold w-full max-w-[200px]" @click="testReceiptPrint">Test Receipt Print</button>
+              <button class="m3-btn-tonal h-10 px-5 rounded-full text-xs font-bold w-full max-w-[200px]" @click="testReceiptPrint">Test Receipt Print</button>
 
-              <div class="flex items-center justify-between pt-4 border-t border-divider text-foreground">
+              <div class="flex items-center justify-between pt-4 border-t border-border/60 text-foreground">
                 <div>
                   <p class="text-sm font-bold">Auto-Print Barcode Labels</p>
                   <p class="text-xs text-muted-foreground font-medium mt-0.5">Prompt to print barcode label when a ticket is created</p>
                 </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" v-model="printerSettings.autoPrintBarcode" class="sr-only peer" @change="savePrinterSettings" />
-                  <div class="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
-                </label>
+                <IconSwitch
+                  v-model="printerSettings.autoPrintBarcode"
+                  :icon-on="Check"
+                  :icon-off="X"
+                  accent-class="bg-blue-500/80"
+                  @update:model-value="savePrinterSettings"
+                />
               </div>
-              <button class="hui-btn hui-btn-light hui-btn-md h-10 px-5 rounded-full text-xs font-bold w-full max-w-[200px]" @click="testBarcodePrint">Test Label Print</button>
+              <button class="m3-btn-tonal h-10 px-5 rounded-full text-xs font-bold w-full max-w-[200px]" @click="testBarcodePrint">Test Label Print</button>
             </div>
-            
-            <div v-if="printerMsg" class="flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold mt-4"
-              :style="printerMsg.type === 'success' ? 'background:#10b98114;color:#10b981' : 'background:#ef444414;color:#ef4444'">
-              <CheckCircle v-if="printerMsg.type === 'success'" class="w-3.5 h-3.5" />
-              <AlertCircle v-else class="w-3.5 h-3.5" />
-              {{ printerMsg.text }}
-            </div>
+
+            <AppAlert
+              v-if="printerMsg"
+              :status="printerMsg.type === 'success' ? 'success' : 'danger'"
+              :title="printerMsg.text"
+              :inline="true"
+              :dismissible="true"
+              class="mt-4"
+              @dismiss="printerMsg = null"
+            />
           </div>
         </div>
 
         <!-- Notification Settings -->
-        <div class="hui-card">
-          <div class="flex items-center gap-3 px-6 py-5 border-b border-divider" style="background: #f59e0b08">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #f59e0b, #d97706)">
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #f59e0b08">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #f59e0b, #d97706)">
               <Bell class="w-5 h-5 text-white" />
             </div>
             <div>
@@ -718,9 +734,9 @@
             </div>
           </div>
           <div class="p-3">
-            <div v-for="(notif, key) in notificationSettings" :key="key" class="flex items-center justify-between px-3 py-3.5 rounded-xl hover:bg-muted/20 transition-colors">
+            <div v-for="(notif, key) in notificationSettings" :key="key" class="flex items-center justify-between px-3 py-3.5 rounded-[20px] hover:bg-muted/20 transition-colors">
               <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-2xl flex items-center justify-center flex-shrink-0" :style="`background: ${notif.color}18`">
+                <div class="w-8 h-8 rounded-[16px] flex items-center justify-center flex-shrink-0" :style="`background: ${notif.color}18`">
                   <component :is="notif.icon" class="w-4 h-4" :style="`color: ${notif.color}`" />
                 </div>
                 <div>
@@ -728,11 +744,12 @@
                   <p class="text-xs text-muted-foreground font-medium">{{ notif.desc }}</p>
                 </div>
               </div>
-              <button class="hui-toggle" :class="{ 'active': notif.enabled }" @click="toggleNotif(key)">
-                <span class="hui-toggle-thumb">
-                  <component :is="notif.enabled ? Check : X" class="w-3 h-3" />
-                </span>
-              </button>
+              <IconSwitch
+                :model-value="notif.enabled"
+                :icon-on="BellRing"
+                :icon-off="BellOff"
+                @update:model-value="toggleNotif(key)"
+              />
             </div>
           </div>
         </div>
@@ -743,9 +760,9 @@
       <div class="space-y-5">
 
         <!-- Account info -->
-        <div class="hui-card">
-          <div class="flex items-center gap-3 px-6 py-5 border-b border-divider" style="background: #8b5cf608">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed)">
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #8b5cf608">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed)">
               <User class="w-5 h-5 text-white" />
             </div>
             <div>
@@ -754,7 +771,7 @@
             </div>
           </div>
           <div class="p-6 space-y-4">
-            <div class="flex items-center gap-3 p-4 rounded-xl" style="background: hsl(var(--muted)/0.3)">
+            <div class="flex items-center gap-3 p-4 rounded-[20px]" style="background: hsl(var(--muted)/0.3)">
               <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-sm shadow-md" style="background: linear-gradient(135deg, #6366f1, #8b5cf6)">
                 {{ userInitials }}
               </div>
@@ -770,9 +787,9 @@
         </div>
 
         <!-- Data Management -->
-        <div class="hui-card">
-          <div class="flex items-center gap-3 px-6 py-5 border-b border-divider" style="background: #06b6d408">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #06b6d4, #0891b2)">
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #06b6d408">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #06b6d4, #0891b2)">
               <Database class="w-5 h-5 text-white" />
             </div>
             <div>
@@ -791,9 +808,9 @@
         </div>
 
         <!-- System Diagnostics -->
-        <div class="hui-card">
-          <div class="flex items-center gap-3 px-6 py-5 border-b border-divider" style="background: #3ecf8e08">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #3ecf8e, #1a9e6a)">
+        <div class="m3-bento-card">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #3ecf8e08">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #3ecf8e, #1a9e6a)">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v8"/><path d="M16 2v0"/><path d="m16 2 4 4"/><path d="m20 2-4 4"/><path d="M18 10a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"/></svg>
             </div>
             <div>
@@ -807,7 +824,7 @@
               {{ isRunningDiag ? 'Running Tests...' : 'Run Diagnostics' }}
             </button>
             <div v-if="diagResults.length > 0" class="space-y-2 mt-4 max-h-[300px] overflow-y-auto pr-2">
-              <div v-for="(res, idx) in diagResults" :key="idx" class="p-3 rounded-2xl text-xs" :style="res.status === 'success' ? 'background:#10b98110; border: 1px solid #10b98120' : res.status === 'error' ? 'background:#ef444410; border: 1px solid #ef444420' : 'background:hsl(var(--muted)/0.5)'">
+              <div v-for="(res, idx) in diagResults" :key="idx" class="p-3 rounded-[16px] text-xs" :style="res.status === 'success' ? 'background:#10b98110; border: 1px solid #10b98120' : res.status === 'error' ? 'background:#ef444410; border: 1px solid #ef444420' : 'background:hsl(var(--muted)/0.5)'">
                 <div class="flex items-start gap-2">
                   <span class="mt-0.5">
                     <svg v-if="res.status === 'pending'" class="animate-spin w-3 h-3 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -825,9 +842,9 @@
         </div>
 
         <!-- Danger Zone -->
-        <div class="hui-card" style="outline-color: #ef444430 !important">
-          <div class="flex items-center gap-3 px-6 py-5 border-b border-divider" style="background: #ef444408">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #ef4444, #dc2626)">
+        <div class="m3-bento-card" style="outline-color: #ef444430 !important">
+          <div class="flex items-center gap-3 px-6 py-5 border-b border-border/60" style="background: #ef444408">
+            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: linear-gradient(135deg, #ef4444, #dc2626)">
               <AlertTriangle class="w-5 h-5 text-white" />
             </div>
             <div>
@@ -845,24 +862,19 @@
       </div>
     </div>
 
-    <!-- ── Confirm Dialog ── -->
-    <Teleport to="body">
-      <Transition name="modal">
-        <div v-if="confirmDialog.open" class="fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(6px)" @click.self="confirmDialog.open = false">
-          <div class="rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl" style="background: hsl(var(--card)); outline: 2px solid #ef444430; outline-offset: 0">
-            <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5" style="background: linear-gradient(135deg, #ef4444, #dc2626)">
-              <AlertTriangle class="w-7 h-7 text-white" />
-            </div>
-            <h3 class="text-lg font-black text-center mb-2">{{ confirmDialog.title }}</h3>
-            <p class="text-sm text-muted-foreground text-center font-medium mb-7">{{ confirmDialog.message }}</p>
-            <div class="flex gap-3">
-              <button class="flex-1 h-11 rounded-full text-sm font-bold transition-all hover:scale-[1.02] active:scale-95" style="background: hsl(var(--muted)/0.6); outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0" @click="confirmDialog.open = false">Cancel</button>
-              <button class="flex-1 h-11 rounded-full text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-95" style="background: linear-gradient(135deg, #ef4444, #dc2626)" @click="confirmDialog.onConfirm(); confirmDialog.open = false">{{ confirmDialog.confirmLabel }}</button>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
+    <!-- ── Confirm Dialog (AlertDialog) ── -->
+    <AlertDialog
+      :open="confirmDialog.open"
+      :heading="confirmDialog.title"
+      :body="confirmDialog.message"
+      :confirm-label="confirmDialog.confirmLabel"
+      status="danger"
+      @update:open="v => { if (!v) confirmDialog.open = false }"
+      @confirm="confirmDialog.onConfirm()"
+    />
+
+    <!-- Toast Stack -->
+    <ToastStack />
 
   </div>
 </template>
@@ -873,10 +885,18 @@ import {
   AlertTriangle, Trash2, Save, Download, Upload, LogOut, Check, X,
   TicketCheck, ShoppingCart, UserPlus, Calendar, Link, ExternalLink,
   Printer, XCircle, RefreshCw, ScanLine, Receipt, CheckCircle, AlertCircle,
-  MonitorSmartphone, Tablet, MessageCircle,
-  Plus, Pencil, Wrench, DollarSign,
+  MonitorSmartphone, Tablet, MessageCircle, Moon, Sun,
+  Plus, Pencil, Wrench, DollarSign, BellOff, BellRing,
 } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
+import IconSwitch from '~/components/ui/IconSwitch.vue'
+import AlertDialog from '~/components/ui/AlertDialog.vue'
+import AppAlert from '~/components/ui/AppAlert.vue'
+import ToastStack from '~/components/ui/ToastStack.vue'
+import { useToast } from '~/composables/useToast'
+
+// ── Toast ─────────────────────────────────────────────────────────────
+const { toast } = useToast()
 
 // ── Supabase Connect ──────────────────────────────────────────────────
 const sbConn = useSupabaseConnect()
@@ -931,16 +951,18 @@ const saveSettings = async () => {
   saving.value = true
   try {
     await appStore.saveSettings({ ...form.value })
-    saveMsg.value = { ok: true, text: 'Saved!' }
+    saveMsg.value = { ok: true, text: 'Settings saved successfully' }
+    toast.success('Settings Saved', 'Your business settings have been updated')
   } catch (err: any) {
     const msg = err?.message || err?.data?.message || JSON.stringify(err) || 'Save failed'
     console.error('[Settings] Save failed:', err)
     saveMsg.value = { ok: false, text: msg }
+    toast.danger('Save Failed', msg)
   } finally {
     saving.value = false
   }
   if (saveMsgTimer) clearTimeout(saveMsgTimer)
-  saveMsgTimer = setTimeout(() => { saveMsg.value = null }, 3000)
+  saveMsgTimer = setTimeout(() => { saveMsg.value = null }, 4000)
 }
 
 // ── Services CRUD ─────────────────────────────────────────────────────
@@ -992,13 +1014,16 @@ async function handleSaveService() {
         duration: serviceForm.value.estimated_minutes,
       })
       showServiceMsg(true, 'Service updated')
+      toast.success('Service Updated', serviceForm.value.name)
     } else {
       await appStore.createService({ ...serviceForm.value })
       showServiceMsg(true, 'Service added')
+      toast.success('Service Added', serviceForm.value.name)
     }
     cancelServiceEdit()
   } catch (e: any) {
     showServiceMsg(false, e.message || 'Failed to save service')
+    toast.danger('Error', e.message || 'Failed to save service')
   }
   savingService.value = false
 }
@@ -1007,8 +1032,10 @@ async function handleDeleteService(id: number) {
   try {
     await appStore.deleteService(id)
     showServiceMsg(true, 'Service deleted')
+    toast.success('Deleted', 'Service removed')
   } catch (e: any) {
     showServiceMsg(false, e.message || 'Failed to delete')
+    toast.danger('Error', e.message || 'Failed to delete')
   }
 }
 
@@ -1034,10 +1061,12 @@ async function handleAddExpense() {
   try {
     await appStore.createExpense({ ...expenseForm.value })
     showExpenseMsg(true, 'Expense added')
+    toast.success('Expense Added', expenseForm.value.description)
     resetExpenseForm()
     showExpenseForm.value = false
   } catch (e: any) {
     showExpenseMsg(false, e.message || 'Failed to save expense')
+    toast.danger('Error', e.message || 'Failed to save expense')
   }
   savingExpense.value = false
 }
@@ -1046,8 +1075,10 @@ async function handleDeleteExpense(id: number) {
   try {
     await appStore.deleteExpense(id)
     showExpenseMsg(true, 'Expense deleted')
+    toast.success('Deleted', 'Expense removed')
   } catch (e: any) {
     showExpenseMsg(false, e.message || 'Failed to delete')
+    toast.danger('Error', e.message || 'Failed to delete')
   }
 }
 
@@ -1364,39 +1395,39 @@ onUnmounted(() => { })
 </script>
 
 <style scoped>
-.hui-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
-.hui-card {
+.m3-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
+.m3-bento-card {
   border-radius: 32px;
   overflow: hidden;
   background: hsl(var(--card));
   outline: 2px solid hsl(var(--border)/0.6);
   outline-offset: 0;
 }
-.hui-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
-.hui-input:focus { border-color: hsl(var(--primary)/0.5); box-shadow: 0 0 0 3px hsl(var(--primary)/0.12); }
-.hui-input.resize-none { height: auto; padding-top: 12px; padding-bottom: 12px; }
-.hui-btn hui-btn-solid-primary hui-btn-md {
+.m3-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
+.m3-input:focus { border-color: hsl(var(--primary)/0.5); box-shadow: 0 0 0 3px hsl(var(--primary)/0.12); }
+.m3-input.resize-none { height: auto; padding-top: 12px; padding-bottom: 12px; }
+.m3-btn-primary {
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   box-shadow: 0 4px 20px #6366f140;
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
 }
-.hui-btn hui-btn-solid-primary hui-btn-md:hover  { transform: scale(1.05) translateY(-2px); box-shadow: 0 8px 28px #6366f160; }
-.hui-btn hui-btn-solid-primary hui-btn-md:active { transform: scale(0.92); }
-.hui-btn hui-btn-light hui-btn-md {
+.m3-btn-primary:hover  { transform: scale(1.05) translateY(-2px); box-shadow: 0 8px 28px #6366f160; }
+.m3-btn-primary:active { transform: scale(0.92); }
+.m3-btn-tonal {
   background: hsl(var(--muted)/0.7);
   outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0;
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.hui-btn hui-btn-light hui-btn-md:hover  { transform: scale(1.04); }
-.hui-btn hui-btn-light hui-btn-md:active { transform: scale(0.94); }
-.hui-toggle {
+.m3-btn-tonal:hover  { transform: scale(1.04); }
+.m3-btn-tonal:active { transform: scale(0.94); }
+.m3-toggle {
   position: relative; width: 56px; height: 32px; border-radius: 999px;
   background: hsl(var(--muted)); border: 2px solid hsl(var(--border)/0.8);
   transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   flex-shrink: 0; cursor: pointer;
 }
-.hui-toggle.active { background: #6366f1; border-color: #6366f1; box-shadow: 0 2px 12px #6366f140; }
-.hui-toggle-thumb {
+.m3-toggle.active { background: #6366f1; border-color: #6366f1; box-shadow: 0 2px 12px #6366f140; }
+.m3-toggle-thumb {
   position: absolute; top: 3px; left: 3px;
   width: 22px; height: 22px; border-radius: 50%;
   background: white; display: flex; align-items: center; justify-content: center;
@@ -1404,7 +1435,7 @@ onUnmounted(() => { })
   transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
-.hui-toggle.active .hui-toggle-thumb { left: calc(100% - 25px); color: #6366f1; }
+.m3-toggle.active .m3-toggle-thumb { left: calc(100% - 25px); color: #6366f1; }
 .modal-enter-active { animation: modal-in 0.3s cubic-bezier(0.34, 1.3, 0.64, 1); }
 .modal-leave-active { animation: modal-out 0.18s ease forwards; }
 @keyframes modal-in  { from { opacity: 0; transform: scale(0.92) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }

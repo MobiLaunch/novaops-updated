@@ -1,1 +1,16 @@
-<template><div class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 bg-primary text-primary-foreground"><slot/></div></template>
+<script setup lang="ts">
+import { type HTMLAttributes, computed } from 'vue'
+import { type BadgeVariants, badgeVariants } from '.'
+import { cn } from '~/lib/utils'
+
+const props = defineProps<{
+  variant?: BadgeVariants['variant']
+  class?: HTMLAttributes['class']
+}>()
+</script>
+
+<template>
+  <div :class="cn(badgeVariants({ variant }), props.class)">
+    <slot />
+  </div>
+</template>

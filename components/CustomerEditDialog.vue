@@ -2,9 +2,9 @@
   <Dialog v-model:open="isOpen">
     <DialogContent class="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
 
-      <!-- M3 Dialog Header -->
+      <!-- Header -->
       <div class="flex items-center gap-4 px-7 pt-7 pb-5 border-b border-border/50">
-        <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md"
+        <div class="w-11 h-11 rounded-[22px] flex items-center justify-center flex-shrink-0 shadow-md"
           style="background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4px 16px #3b82f640">
           <component :is="customer ? Pencil : UserPlus" class="w-5 h-5 text-white" />
         </div>
@@ -18,30 +18,40 @@
 
       <div class="p-7 space-y-5">
 
+        <!-- Validation alert -->
+        <AppAlert
+          v-if="validationMsg"
+          status="warning"
+          :title="validationMsg"
+          :inline="true"
+          :dismissible="true"
+          @dismiss="validationMsg = ''"
+        />
+
         <div class="grid grid-cols-2 gap-4">
           <div class="col-span-2 space-y-2">
-            <label class="hui-label">Full Name *</label>
-            <input v-model="form.name" placeholder="Jane Smith" class="hui-input" />
+            <label class="m3-label">Full Name *</label>
+            <input v-model="form.name" placeholder="Jane Smith" class="m3-input" />
           </div>
           <div class="space-y-2">
-            <label class="hui-label">Phone</label>
-            <input v-model="form.phone" placeholder="(555) 123-4567" class="hui-input" />
+            <label class="m3-label">Phone</label>
+            <input v-model="form.phone" placeholder="(555) 123-4567" class="m3-input" />
           </div>
           <div class="space-y-2">
-            <label class="hui-label">Email</label>
-            <input v-model="form.email" type="email" placeholder="jane@email.com" class="hui-input" />
+            <label class="m3-label">Email</label>
+            <input v-model="form.email" type="email" placeholder="jane@email.com" class="m3-input" />
           </div>
           <div class="space-y-2">
-            <label class="hui-label">Driver's License</label>
-            <input v-model="form.driversLicense" placeholder="Optional" class="hui-input" />
+            <label class="m3-label">Driver's License</label>
+            <input v-model="form.driversLicense" placeholder="Optional" class="m3-input" />
           </div>
           <div class="space-y-2">
-            <label class="hui-label">Address</label>
-            <input v-model="form.address" placeholder="Street, City, State ZIP" class="hui-input" />
+            <label class="m3-label">Address</label>
+            <input v-model="form.address" placeholder="Street, City, State ZIP" class="m3-input" />
           </div>
           <div class="col-span-2 space-y-2">
-            <label class="hui-label">Notes</label>
-            <textarea v-model="form.notes" rows="2" placeholder="Additional information…" class="hui-textarea" />
+            <label class="m3-label">Notes</label>
+            <textarea v-model="form.notes" rows="2" placeholder="Additional information…" class="m3-textarea" />
           </div>
         </div>
 
@@ -50,7 +60,7 @@
           <button v-if="customer"
             class="h-12 px-5 rounded-full text-sm font-bold text-white transition-all hover:scale-[1.03] active:scale-95"
             style="background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 14px #ef444430"
-            @click="deleteCustomer">
+            @click="deleteConfirmOpen = true">
             Delete
           </button>
           <button class="flex-1 h-12 rounded-full text-sm font-bold transition-all hover:bg-muted/60 hover:scale-[1.03] active:scale-95"
@@ -64,12 +74,26 @@
       </div>
     </DialogContent>
   </Dialog>
+
+  <!-- Delete confirmation -->
+  <AlertDialog
+    :open="deleteConfirmOpen"
+    :heading="`Delete ${customer?.name}?`"
+    body="This will permanently remove the customer and cannot be undone."
+    status="danger"
+    confirm-label="Delete Customer"
+    @update:open="v => { if (!v) deleteConfirmOpen = false }"
+    @confirm="confirmDelete"
+  />
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { Pencil, UserPlus } from 'lucide-vue-next'
 import type { Customer } from '~/types'
 import { Dialog, DialogContent } from '~/components/ui/dialog'
+import AlertDialog from '~/components/ui/AlertDialog.vue'
+import AppAlert from '~/components/ui/AppAlert.vue'
 
 const props = defineProps<{
   customer?: Customer | null
@@ -88,6 +112,8 @@ const isOpen = computed({
 })
 
 const form = ref({ name: '', phone: '', email: '', driversLicense: '', address: '', notes: '' })
+const deleteConfirmOpen = ref(false)
+const validationMsg = ref('')
 
 watch(() => props.customer, (customer) => {
   if (customer) {
@@ -105,13 +131,16 @@ watch(() => props.customer, (customer) => {
 }, { immediate: true })
 
 const save = () => {
-  if (!form.value.name) return alert('Please enter a name')
+  if (!form.value.name.trim()) {
+    validationMsg.value = 'Please enter a customer name'
+    return
+  }
   emit('save', { ...form.value })
   close()
 }
 
-const deleteCustomer = () => {
-  if (props.customer && confirm(`Delete ${props.customer.name}? This cannot be undone.`)) {
+const confirmDelete = () => {
+  if (props.customer) {
     emit('delete', props.customer.id)
     close()
   }
@@ -121,7 +150,7 @@ const close = () => emit('update:open', false)
 </script>
 
 <style scoped>
-.hui-label {
+.m3-label {
   display: block;
   font-size: 10px;
   font-weight: 800;
@@ -130,7 +159,7 @@ const close = () => emit('update:open', false)
   letter-spacing: 0.12em;
   margin-bottom: 0.5rem;
 }
-.hui-input {
+.m3-input {
   width: 100%;
   height: 48px;
   padding: 0 20px;
@@ -143,8 +172,8 @@ const close = () => emit('update:open', false)
   outline: none;
   transition: all 0.2s ease;
 }
-.hui-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px #3b82f618; background: hsl(var(--background)); }
-.hui-input {
+.m3-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px #3b82f618; background: hsl(var(--background)); }
+.m3-textarea {
   width: 100%;
   padding: 14px 20px;
   border-radius: 20px;
@@ -158,5 +187,5 @@ const close = () => emit('update:open', false)
   transition: all 0.2s ease;
   height: auto;
 }
-.hui-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px #3b82f618; background: hsl(var(--background)); }
+.m3-textarea:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px #3b82f618; background: hsl(var(--background)); }
 </style>

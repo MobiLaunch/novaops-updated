@@ -4,7 +4,7 @@
     <!-- ── Page Header ─────────────────────────────────────────── -->
     <div class="flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-4">
-        <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl"
+        <div class="w-14 h-14 rounded-[28px] flex items-center justify-center shadow-xl"
           style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); box-shadow: 0 6px 28px #6366f150">
           <CalendarDays class="w-7 h-7 text-white" />
         </div>
@@ -50,8 +50,8 @@
         </button>
       </div>
 
-      <div class="rounded-3xl overflow-hidden bg-content1">
-        <div class="grid grid-cols-7 border-b border-divider" style="background: #6366f108">
+      <div class="rounded-[32px] overflow-hidden bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+        <div class="grid grid-cols-7 border-b border-border/60" style="background: #6366f108">
           <div v-for="d in ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']" :key="d"
             class="py-3 text-center text-xs font-black text-muted-foreground uppercase tracking-widest">{{ d }}</div>
         </div>
@@ -66,13 +66,13 @@
             </div>
             <div class="space-y-0.5">
               <div v-for="event in getDayEvents(day.date).slice(0, 3)" :key="event._id"
-                class="text-[9px] font-bold px-1.5 py-0.5 rounded-md truncate flex items-center gap-0.5"
+                class="text-[9px] font-bold px-1.5 py-0.5 rounded-[6px] truncate flex items-center gap-0.5"
                 :style="`background: ${eColor(event)}22; color: ${eColor(event)}`">
                 <component :is="eIcon(event)" class="w-2 h-2 flex-shrink-0" />
                 {{ eLabel(event) }}
               </div>
               <div v-if="getDayEvents(day.date).length > 3"
-                class="text-[9px] font-semibold px-1.5 py-0.5 rounded-md"
+                class="text-[9px] font-semibold px-1.5 py-0.5 rounded-[6px]"
                 style="background: hsl(var(--muted)/0.5); color: hsl(var(--muted-foreground))">
                 +{{ getDayEvents(day.date).length - 3 }} more
               </div>
@@ -94,8 +94,8 @@
         </button>
       </div>
 
-      <div class="rounded-3xl overflow-hidden bg-content1">
-        <div class="grid grid-cols-7 border-b border-divider" style="background: #6366f108">
+      <div class="rounded-[32px] overflow-hidden bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+        <div class="grid grid-cols-7 border-b border-border/60" style="background: #6366f108">
           <div v-for="day in weekDays" :key="day.date" class="py-3 text-center">
             <p class="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{{ day.dow }}</p>
             <div class="w-8 h-8 flex items-center justify-center rounded-full mx-auto mt-1 text-sm font-black"
@@ -109,7 +109,7 @@
             class="p-2 border-r border-border/20 last:border-r-0 space-y-1"
             :style="day.isToday ? 'background: #6366f108' : ''">
             <div v-for="event in getDayEvents(day.date)" :key="event._id"
-              class="text-[10px] font-bold px-2 py-1.5 rounded-xl"
+              class="text-[10px] font-bold px-2 py-1.5 rounded-[10px]"
               :style="`background: ${eColor(event)}18; color: ${eColor(event)}; outline: 1.5px solid ${eColor(event)}30; outline-offset: 0`">
               <div class="flex items-center gap-1">
                 <component :is="eIcon(event)" class="w-3 h-3 flex-shrink-0" />
@@ -148,9 +148,9 @@
           </div>
           <div class="space-y-2 pl-12">
             <div v-for="event in group.events" :key="event._id"
-              class="hui-row flex items-center gap-3 px-4 py-3 rounded-xl"
+              class="m3-row flex items-center gap-3 px-4 py-3 rounded-[20px]"
               :style="`background: ${eColor(event)}10; outline: 1.5px solid ${eColor(event)}25; outline-offset: 0`">
-              <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              <div class="w-10 h-10 rounded-[20px] flex items-center justify-center flex-shrink-0"
                 :style="`background: ${eColor(event)}22`">
                 <component :is="eIcon(event)" class="w-5 h-5" :style="`color: ${eColor(event)}`" />
               </div>
@@ -168,7 +168,7 @@
         </div>
       </div>
       <div v-else class="flex flex-col items-center gap-3 py-20">
-        <div class="w-16 h-16 rounded-2xl flex items-center justify-center" style="background:#6366f114">
+        <div class="w-16 h-16 rounded-[28px] flex items-center justify-center" style="background:#6366f114">
           <CalendarDays class="w-8 h-8" style="color:#6366f1;opacity:0.4" />
         </div>
         <p class="text-sm font-bold text-muted-foreground">No events this month</p>
@@ -309,9 +309,9 @@ const statusStyle = (s: string) => ({
 </script>
 
 <style scoped>
-.hui-row {
+.m3-row {
   transition: transform 0.35s cubic-bezier(0.34,1.4,0.64,1);
 }
-.hui-row:hover  { transform: scale(1.01) translateY(-1px); }
-.hui-row:active { transform: scale(0.98); }
+.m3-row:hover  { transform: scale(1.01) translateY(-1px); }
+.m3-row:active { transform: scale(0.98); }
 </style>

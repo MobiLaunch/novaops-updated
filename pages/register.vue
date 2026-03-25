@@ -11,7 +11,7 @@
 
       <!-- Logo & Title -->
       <div class="flex flex-col items-center gap-4">
-        <div class="w-20 h-20 rounded-3xl flex items-center justify-center shadow-2xl" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); box-shadow: 0 8px 40px #8b5cf660">
+        <div class="w-20 h-20 rounded-[32px] flex items-center justify-center shadow-2xl" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); box-shadow: 0 8px 40px #8b5cf660">
           <Zap class="w-9 h-9 text-white" />
         </div>
         <div class="text-center">
@@ -36,7 +36,7 @@
       </div>
 
       <!-- Error Banner -->
-      <div v-if="globalError" class="flex items-center gap-3 p-4 rounded-xl" style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0">
+      <div v-if="globalError" class="flex items-center gap-3 p-4 rounded-[20px]" style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0">
         <AlertCircle class="w-5 h-5 flex-shrink-0" style="color: #ef4444" />
         <p class="text-sm font-semibold" style="color: #ef4444">{{ globalError }}</p>
       </div>
@@ -61,31 +61,31 @@
           <div v-if="currentStep === 0" class="step-card-body">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="sm:col-span-2 space-y-1.5">
-                <label class="hui-label">Business Name *</label>
-                <input v-model="form.businessName" type="text" placeholder="Acme Repair Shop" class="hui-input" :disabled="loading" />
+                <label class="m3-label">Business Name *</label>
+                <input v-model="form.businessName" type="text" placeholder="Acme Repair Shop" class="m3-input" :disabled="loading" />
               </div>
               <div class="space-y-1.5">
-                <label class="hui-label">Email *</label>
-                <input v-model="form.email" type="email" placeholder="you@example.com" class="hui-input" :disabled="loading" />
+                <label class="m3-label">Email *</label>
+                <input v-model="form.email" type="email" placeholder="you@example.com" class="m3-input" :disabled="loading" />
               </div>
               <div class="space-y-1.5">
-                <label class="hui-label">Phone</label>
-                <input v-model="form.phone" type="tel" placeholder="(555) 123-4567" class="hui-input" :disabled="loading" />
+                <label class="m3-label">Phone</label>
+                <input v-model="form.phone" type="tel" placeholder="(555) 123-4567" class="m3-input" :disabled="loading" />
               </div>
               <div class="space-y-1.5">
-                <label class="hui-label">Password *</label>
-                <input v-model="form.password" type="password" placeholder="At least 6 characters" class="hui-input" :disabled="loading" />
+                <label class="m3-label">Password *</label>
+                <input v-model="form.password" type="password" placeholder="At least 6 characters" class="m3-input" :disabled="loading" />
               </div>
               <div class="space-y-1.5">
-                <label class="hui-label">Confirm Password *</label>
-                <input v-model="form.confirmPassword" type="password" placeholder="••••••••" class="hui-input" :disabled="loading" />
+                <label class="m3-label">Confirm Password *</label>
+                <input v-model="form.confirmPassword" type="password" placeholder="••••••••" class="m3-input" :disabled="loading" />
               </div>
               <div class="sm:col-span-2 space-y-1.5">
-                <label class="hui-label">Business Address</label>
-                <input v-model="form.address" type="text" placeholder="123 Main St, City, State 12345" class="hui-input" :disabled="loading" />
+                <label class="m3-label">Business Address</label>
+                <input v-model="form.address" type="text" placeholder="123 Main St, City, State 12345" class="m3-input" :disabled="loading" />
               </div>
               <div class="sm:col-span-2 space-y-1.5">
-                <label class="hui-label">Currency</label>
+                <label class="m3-label">Currency</label>
                 <div class="flex gap-2 flex-wrap">
                   <button v-for="c in currencies" :key="c.value" class="currency-btn" :class="{ 'currency-btn-active': form.currency === c.value }" @click="form.currency = c.value">{{ c.label }}</button>
                 </div>
@@ -115,16 +115,16 @@
               <p class="text-xs font-medium text-muted-foreground">Find these in your Supabase project under <strong>Settings → API</strong>. NovaOps uses these to store tickets, customers, inventory, and more.</p>
             </div>
             <div class="space-y-1.5">
-              <label class="hui-label">Supabase Project URL *</label>
-              <input v-model="form.supabaseUrl" type="url" placeholder="https://xyzabc.supabase.co" class="hui-input font-mono text-xs" />
+              <label class="m3-label">Supabase Project URL *</label>
+              <input v-model="form.supabaseUrl" type="url" placeholder="https://xyzabc.supabase.co" class="m3-input font-mono text-xs" />
             </div>
             <div class="space-y-1.5">
-              <label class="hui-label">Supabase Anon Key *</label>
-              <input v-model="form.supabaseAnonKey" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5c..." class="hui-input font-mono text-xs" />
+              <label class="m3-label">Supabase Anon Key *</label>
+              <input v-model="form.supabaseAnonKey" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5c..." class="m3-input font-mono text-xs" />
             </div>
             <div class="space-y-1.5">
-              <label class="hui-label">Service Role Key <span class="normal-case font-normal">(for admin operations)</span></label>
-              <input v-model="form.supabaseServiceKey" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5c..." class="hui-input font-mono text-xs" />
+              <label class="m3-label">Service Role Key <span class="normal-case font-normal">(for admin operations)</span></label>
+              <input v-model="form.supabaseServiceKey" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5c..." class="m3-input font-mono text-xs" />
             </div>
             <div class="flex gap-3 mt-1">
               <button class="skip-btn" @click="skipStep(1)">Skip for now</button>
@@ -153,23 +153,23 @@
               <p class="text-xs font-medium text-muted-foreground">Get credentials from <strong>developer.squareup.com → Applications → Credentials</strong>. Use Sandbox for testing.</p>
             </div>
             <div class="space-y-1.5">
-              <label class="hui-label">Environment</label>
+              <label class="m3-label">Environment</label>
               <div class="flex gap-2">
                 <button v-for="env in ['sandbox', 'production']" :key="env" class="currency-btn capitalize" :class="{ 'currency-btn-active': form.squareEnv === env }" @click="form.squareEnv = env">{{ env }}</button>
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="sm:col-span-2 space-y-1.5">
-                <label class="hui-label">Square Access Token</label>
-                <input v-model="form.squareToken" type="password" placeholder="EAAAl..." class="hui-input font-mono text-xs" />
+                <label class="m3-label">Square Access Token</label>
+                <input v-model="form.squareToken" type="password" placeholder="EAAAl..." class="m3-input font-mono text-xs" />
               </div>
               <div class="space-y-1.5">
-                <label class="hui-label">Application ID</label>
-                <input v-model="form.squareAppId" type="text" placeholder="sq0idp-..." class="hui-input font-mono text-xs" />
+                <label class="m3-label">Application ID</label>
+                <input v-model="form.squareAppId" type="text" placeholder="sq0idp-..." class="m3-input font-mono text-xs" />
               </div>
               <div class="space-y-1.5">
-                <label class="hui-label">Location ID</label>
-                <input v-model="form.squareLocationId" type="text" placeholder="LXXXXXXXXXX" class="hui-input font-mono text-xs" />
+                <label class="m3-label">Location ID</label>
+                <input v-model="form.squareLocationId" type="text" placeholder="LXXXXXXXXXX" class="m3-input font-mono text-xs" />
               </div>
             </div>
             <div class="flex gap-3 mt-1">
@@ -200,16 +200,16 @@
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="space-y-1.5">
-                <label class="hui-label">Google Client ID</label>
-                <input v-model="form.googleClientId" type="text" placeholder="123456789-abc.apps.googleusercontent.com" class="hui-input font-mono text-xs" />
+                <label class="m3-label">Google Client ID</label>
+                <input v-model="form.googleClientId" type="text" placeholder="123456789-abc.apps.googleusercontent.com" class="m3-input font-mono text-xs" />
               </div>
               <div class="space-y-1.5">
-                <label class="hui-label">Google Client Secret</label>
-                <input v-model="form.googleClientSecret" type="password" placeholder="GOCSPX-..." class="hui-input font-mono text-xs" />
+                <label class="m3-label">Google Client Secret</label>
+                <input v-model="form.googleClientSecret" type="password" placeholder="GOCSPX-..." class="m3-input font-mono text-xs" />
               </div>
               <div class="sm:col-span-2 space-y-1.5">
-                <label class="hui-label">Support Email Address</label>
-                <input v-model="form.supportEmail" type="email" placeholder="support@yourshop.com" class="hui-input" />
+                <label class="m3-label">Support Email Address</label>
+                <input v-model="form.supportEmail" type="email" placeholder="support@yourshop.com" class="m3-input" />
               </div>
             </div>
             <div class="flex gap-3 mt-1">
@@ -293,8 +293,8 @@
                   <span class="doc-badge">Auto-generated</span>
                 </div>
                 <div class="space-y-1.5">
-                  <label class="hui-label">Custom Clauses</label>
-                  <textarea v-model="form.liabilityWaiver" class="hui-input resize-none text-xs" rows="2" placeholder="e.g. 'Shop is not responsible for data loss during repair...'"></textarea>
+                  <label class="m3-label">Custom Clauses</label>
+                  <textarea v-model="form.liabilityWaiver" class="m3-input resize-none text-xs" rows="2" placeholder="e.g. 'Shop is not responsible for data loss during repair...'"></textarea>
                 </div>
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" v-model="form.requireWaiverSignature" class="checkbox-input" />
@@ -320,8 +320,8 @@
                   </label>
                 </div>
                 <div v-if="form.tradeInEnabled" class="space-y-1.5">
-                  <label class="hui-label">Trade-In Policy Notes</label>
-                  <textarea v-model="form.tradeInPolicy" class="hui-input resize-none text-xs" rows="2" placeholder="e.g. 'Trade-in value is final. Device must power on...'"></textarea>
+                  <label class="m3-label">Trade-In Policy Notes</label>
+                  <textarea v-model="form.tradeInPolicy" class="m3-input resize-none text-xs" rows="2" placeholder="e.g. 'Trade-in value is final. Device must power on...'"></textarea>
                 </div>
               </div>
 
@@ -334,12 +334,12 @@
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                   <div class="space-y-1.5">
-                    <label class="hui-label">Warranty Period (days)</label>
-                    <input v-model.number="form.warrantyDays" type="number" placeholder="90" class="hui-input" />
+                    <label class="m3-label">Warranty Period (days)</label>
+                    <input v-model.number="form.warrantyDays" type="number" placeholder="90" class="m3-input" />
                   </div>
                   <div class="space-y-1.5">
-                    <label class="hui-label">Covered Repairs</label>
-                    <input v-model="form.warrantyCoverage" type="text" placeholder="Screen, Battery..." class="hui-input" />
+                    <label class="m3-label">Covered Repairs</label>
+                    <input v-model="form.warrantyCoverage" type="text" placeholder="Screen, Battery..." class="m3-input" />
                   </div>
                 </div>
                 <label class="flex items-center gap-2 cursor-pointer">
@@ -356,12 +356,12 @@
                   <span class="doc-badge">Auto-generated</span>
                 </div>
                 <div class="space-y-1.5">
-                  <label class="hui-label">Additional Terms</label>
-                  <textarea v-model="form.serviceTerms" class="hui-input resize-none text-xs" rows="2" placeholder="e.g. 'Unclaimed devices disposed of after 30 days...'"></textarea>
+                  <label class="m3-label">Additional Terms</label>
+                  <textarea v-model="form.serviceTerms" class="m3-input resize-none text-xs" rows="2" placeholder="e.g. 'Unclaimed devices disposed of after 30 days...'"></textarea>
                 </div>
                 <div class="space-y-1.5">
-                  <label class="hui-label">Payment Terms</label>
-                  <input v-model="form.paymentTerms" type="text" placeholder="Full payment due upon device pickup" class="hui-input" />
+                  <label class="m3-label">Payment Terms</label>
+                  <input v-model="form.paymentTerms" type="text" placeholder="Full payment due upon device pickup" class="m3-input" />
                 </div>
               </div>
 
@@ -376,7 +376,7 @@
       </div>
 
       <!-- Final Submit CTA -->
-      <div class="rounded-2xl p-6 flex flex-col gap-4 shadow-xl" style="background: hsl(var(--card)); outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+      <div class="rounded-[28px] p-6 flex flex-col gap-4 shadow-xl" style="background: hsl(var(--card)); outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-black">Ready to launch?</p>
@@ -388,7 +388,7 @@
         </div>
 
         <button
-          class="hui-btn hui-btn-solid-primary hui-btn-lg w-full h-14 rounded-full text-sm font-black text-white shadow-lg flex items-center justify-center gap-2.5 disabled:opacity-50"
+          class="m3-jelly-btn w-full h-14 rounded-full text-sm font-black text-white shadow-lg flex items-center justify-center gap-2.5 disabled:opacity-50"
           style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); box-shadow: 0 4px 20px #8b5cf650"
           :disabled="loading || !completedSteps.has(0)"
           @click="handleRegister"
@@ -409,7 +409,7 @@
         </div>
 
         <NuxtLink to="/login">
-          <button class="hui-btn hui-btn-light hui-btn-md w-full h-12 rounded-full text-sm font-bold" style="background: hsl(var(--muted)); color: hsl(var(--foreground))">
+          <button class="m3-tonal-btn w-full h-12 rounded-full text-sm font-bold" style="background: hsl(var(--muted)); color: hsl(var(--foreground))">
             Sign In Instead
           </button>
         </NuxtLink>
@@ -530,19 +530,19 @@ const handleRegister = async () => {
 </script>
 
 <style scoped>
-.hui-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.375rem; }
+.m3-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.375rem; }
 @keyframes registerEnter {
   0%   { transform: scale(0.94) translateY(20px); opacity: 0; }
   65%  { transform: scale(1.02) translateY(-4px); opacity: 1; }
   100% { transform: scale(1) translateY(0); }
 }
-.hui-input {
+.m3-input {
   width:100%;height:48px;padding:0 16px;border-radius:16px;font-size:14px;font-weight:500;
   background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));
   outline:none;transition:all 0.2s ease;
 }
-.hui-input:focus { border-color:#8b5cf6;box-shadow:0 0 0 3px #8b5cf618; }
-.hui-input.resize-none { height:auto;padding-top:12px;padding-bottom:12px; }
+.m3-input:focus { border-color:#8b5cf6;box-shadow:0 0 0 3px #8b5cf618; }
+.m3-input.resize-none { height:auto;padding-top:12px;padding-bottom:12px; }
 .step-node { width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all 0.3s ease;flex-shrink:0; }
 .step-done { background:#8b5cf6;color:white; }
 .step-active { background:#8b5cf620;color:#8b5cf6;outline:2px solid #8b5cf6;outline-offset:0; }
@@ -573,10 +573,10 @@ const handleRegister = async () => {
 .doc-section-header { display:flex;align-items:center;gap:8px; }
 .doc-badge { font-size:9px;font-weight:800;letter-spacing:0.08em;color:#6366f1;background:#6366f118;padding:2px 8px;border-radius:20px;text-transform:uppercase; }
 .checkbox-input { width:16px;height:16px;border-radius:5px;accent-color:#8b5cf6;cursor:pointer; }
-.hui-btn hui-btn-solid-primary hui-btn-lg { transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.3s ease; }
-.hui-btn hui-btn-solid-primary hui-btn-lg:hover:not(:disabled) { transform:scale(1.03) translateY(-2px);box-shadow:0 8px 32px #8b5cf660 !important; }
-.hui-btn hui-btn-solid-primary hui-btn-lg:active:not(:disabled) { transform:scale(0.92); }
-.hui-btn hui-btn-light hui-btn-md { transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);width:100%; }
-.hui-btn hui-btn-light hui-btn-md:hover { transform:scale(1.03); }
-.hui-btn hui-btn-light hui-btn-md:active { transform:scale(0.95); }
+.m3-jelly-btn { transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.3s ease; }
+.m3-jelly-btn:hover:not(:disabled) { transform:scale(1.03) translateY(-2px);box-shadow:0 8px 32px #8b5cf660 !important; }
+.m3-jelly-btn:active:not(:disabled) { transform:scale(0.92); }
+.m3-tonal-btn { transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);width:100%; }
+.m3-tonal-btn:hover { transform:scale(1.03); }
+.m3-tonal-btn:active { transform:scale(0.95); }
 </style>

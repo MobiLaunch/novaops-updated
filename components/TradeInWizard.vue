@@ -5,7 +5,7 @@
       <!-- Header -->
       <div class="flex-shrink-0 px-6 pt-6 pb-4 border-b border-border/50">
         <div class="flex items-center gap-3">
-          <div class="w-11 h-11 rounded-2xl flex items-center justify-center shadow-md flex-shrink-0"
+          <div class="w-11 h-11 rounded-[22px] flex items-center justify-center shadow-md flex-shrink-0"
             style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 16px #f59e0b40">
             <ArrowLeftRight class="w-5 h-5 text-white" />
           </div>
@@ -64,7 +64,7 @@
           </div>
 
           <!-- IMEI / Model Number -->
-          <div class="rounded-2xl p-4 space-y-3" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.5); outline-offset: 0">
+          <div class="rounded-[16px] p-4 space-y-3" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.5); outline-offset: 0">
             <div class="flex items-center gap-2">
               <Fingerprint class="w-4 h-4 text-muted-foreground" />
               <p class="text-xs font-black">Device Identifiers <span class="font-normal text-muted-foreground">(improves lookup accuracy)</span></p>
@@ -95,7 +95,7 @@
           </div>
 
           <!-- Resolved device banner (shown when IMEI/model# resolved the device) -->
-          <div v-if="resolvedDevice" class="flex items-center gap-3 p-3 rounded-xl"
+          <div v-if="resolvedDevice" class="flex items-center gap-3 p-3 rounded-[14px]"
             style="background: #10b98110; outline: 1.5px solid #10b98130; outline-offset: 0">
             <CheckCircle2 class="w-4 h-4 flex-shrink-0" style="color: #10b981" />
             <div class="flex-1">
@@ -106,7 +106,7 @@
           </div>
 
           <!-- Market price fetch -->
-          <div class="rounded-xl p-4 space-y-3" style="background: #f59e0b0c; outline: 1.5px solid #f59e0b28; outline-offset: 0">
+          <div class="rounded-[18px] p-4 space-y-3" style="background: #f59e0b0c; outline: 1.5px solid #f59e0b28; outline-offset: 0">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <TrendingUp class="w-4 h-4" style="color: #f59e0b" />
@@ -186,7 +186,7 @@
               <label class="wi-label">Screen Condition</label>
               <div class="space-y-1.5">
                 <button v-for="s in screenConditions" :key="s.value"
-                  class="w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all hover:scale-[1.01]"
+                  class="w-full flex items-center gap-3 p-3 rounded-[14px] text-left transition-all hover:scale-[1.01]"
                   :style="form.screen_condition === s.value
                     ? `background: ${s.color}18; outline: 1.5px solid ${s.color}50; outline-offset: 0`
                     : 'background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.4); outline-offset: 0'"
@@ -219,7 +219,7 @@
                 <label class="wi-label">Device Age</label>
                 <div class="grid grid-cols-3 gap-1.5">
                   <button v-for="a in ageOptions" :key="a.value"
-                    class="py-2 px-1 rounded-xl text-[11px] font-bold transition-all text-center"
+                    class="py-2 px-1 rounded-[12px] text-[11px] font-bold transition-all text-center"
                     :style="form.age_years === a.value
                       ? 'background: #6366f120; color: #6366f1; outline: 1.5px solid #6366f150; outline-offset: 0'
                       : 'background: hsl(var(--muted)/0.4); color: hsl(var(--muted-foreground))'"
@@ -240,7 +240,7 @@
             <label class="wi-label">Functional Issues <span class="text-muted-foreground font-normal normal-case">(select all that apply)</span></label>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <button v-for="issue in functionalIssues" :key="issue.value"
-                class="flex items-center gap-2 p-3 rounded-xl text-left transition-all text-xs font-bold"
+                class="flex items-center gap-2 p-3 rounded-[14px] text-left transition-all text-xs font-bold"
                 :style="form.functional_issues.includes(issue.value)
                   ? 'background: #ef444418; outline: 1.5px solid #ef444440; color: #ef4444; outline-offset: 0'
                   : 'background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.4); color: hsl(var(--foreground)); outline-offset: 0'"
@@ -255,7 +255,7 @@
             <label class="wi-label">Cosmetic Issues <span class="text-muted-foreground font-normal normal-case">(select all that apply)</span></label>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <button v-for="issue in cosmeticIssues" :key="issue.value"
-                class="flex items-center gap-2 p-3 rounded-xl text-left transition-all text-xs font-bold"
+                class="flex items-center gap-2 p-3 rounded-[14px] text-left transition-all text-xs font-bold"
                 :style="form.cosmetic_issues.includes(issue.value)
                   ? 'background: #f59e0b18; outline: 1.5px solid #f59e0b40; color: #d97706; outline-offset: 0'
                   : 'background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.4); color: hsl(var(--foreground)); outline-offset: 0'"
@@ -271,7 +271,7 @@
               <label class="wi-label">Accessories Included</label>
               <div class="space-y-1.5">
                 <button v-for="acc in accessoryOptions" :key="acc.value"
-                  class="w-full flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-bold transition-all"
+                  class="w-full flex items-center gap-2.5 p-2.5 rounded-[12px] text-xs font-bold transition-all"
                   :style="form.accessories.includes(acc.value)
                     ? 'background: #10b98118; outline: 1.5px solid #10b98140; color: #10b981; outline-offset: 0'
                     : 'background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.4); outline-offset: 0'"
@@ -285,7 +285,7 @@
             <div class="space-y-3">
               <label class="wi-label">Lock Status</label>
               <div class="space-y-2">
-                <div class="p-3 rounded-xl" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.4); outline-offset: 0">
+                <div class="p-3 rounded-[14px]" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.4); outline-offset: 0">
                   <label class="flex items-start gap-3 cursor-pointer">
                     <input type="checkbox" v-model="form.icloud_locked" class="wi-check mt-0.5" />
                     <div>
@@ -294,7 +294,7 @@
                     </div>
                   </label>
                 </div>
-                <div class="p-3 rounded-xl" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.4); outline-offset: 0">
+                <div class="p-3 rounded-[14px]" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.4); outline-offset: 0">
                   <label class="flex items-start gap-3 cursor-pointer">
                     <input type="checkbox" v-model="form.frp_locked" class="wi-check mt-0.5" />
                     <div>
@@ -322,7 +322,7 @@
           <p class="step-hint">Review the calculated offer and adjust before presenting to the customer.</p>
 
           <!-- Pricing breakdown card -->
-          <div class="rounded-2xl overflow-hidden">
+          <div class="rounded-[22px] overflow-hidden" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
             <div class="px-5 py-4" style="background: linear-gradient(135deg, #f59e0b0a, #d9770608)">
               <p class="text-xs font-black uppercase tracking-widest" style="color: #f59e0b">Valuation Summary</p>
               <p class="text-sm text-muted-foreground mt-0.5 font-medium">{{ form.brand }} {{ form.model }} {{ form.storage }}</p>
@@ -374,7 +374,7 @@
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-base font-bold text-muted-foreground">{{ currency }}</span>
                 <input v-model.number="form.offer_price" type="number" min="0" step="0.50" class="wi-input pl-7 font-mono text-lg font-black" style="border-color: #f59e0b; box-shadow: 0 0 0 3px #f59e0b18" />
               </div>
-              <button class="h-11 px-4 rounded-xl text-xs font-bold transition-all hover:scale-105"
+              <button class="h-11 px-4 rounded-[14px] text-xs font-bold transition-all hover:scale-105"
                 style="background: hsl(var(--muted)/0.5); outline: 1.5px solid hsl(var(--border)); outline-offset: 0"
                 @click="form.offer_price = calculatedOffer">Reset</button>
             </div>
@@ -382,24 +382,24 @@
 
           <!-- Estimated resale & profit -->
           <div class="grid grid-cols-3 gap-3">
-            <div class="p-4 rounded-xl text-center" style="background: #6366f10c; outline: 1.5px solid #6366f128; outline-offset: 0">
+            <div class="p-4 rounded-[18px] text-center" style="background: #6366f10c; outline: 1.5px solid #6366f128; outline-offset: 0">
               <p class="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Est. Resale</p>
               <p class="text-lg font-black" style="color: #6366f1">{{ currency }}{{ estimatedResale.toFixed(2) }}</p>
             </div>
-            <div class="p-4 rounded-xl text-center" :style="estimatedProfit >= 0 ? 'background: #10b9810c; outline: 1.5px solid #10b98128; outline-offset: 0' : 'background: #ef44440c; outline: 1.5px solid #ef444428; outline-offset: 0'">
+            <div class="p-4 rounded-[18px] text-center" :style="estimatedProfit >= 0 ? 'background: #10b9810c; outline: 1.5px solid #10b98128; outline-offset: 0' : 'background: #ef44440c; outline: 1.5px solid #ef444428; outline-offset: 0'">
               <p class="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Est. Profit</p>
               <p class="text-lg font-black" :style="estimatedProfit >= 0 ? 'color: #10b981' : 'color: #ef4444'">
                 {{ estimatedProfit >= 0 ? '' : '−' }}{{ currency }}{{ Math.abs(estimatedProfit).toFixed(2) }}
               </p>
             </div>
-            <div class="p-4 rounded-xl text-center" :style="profitMargin >= 20 ? 'background: #10b9810c; outline: 1.5px solid #10b98128; outline-offset: 0' : 'background: #f59e0b0c; outline: 1.5px solid #f59e0b28; outline-offset: 0'">
+            <div class="p-4 rounded-[18px] text-center" :style="profitMargin >= 20 ? 'background: #10b9810c; outline: 1.5px solid #10b98128; outline-offset: 0' : 'background: #f59e0b0c; outline: 1.5px solid #f59e0b28; outline-offset: 0'">
               <p class="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Margin</p>
               <p class="text-lg font-black" :style="profitMargin >= 20 ? 'color: #10b981' : 'color: #f59e0b'">{{ profitMargin.toFixed(0) }}%</p>
             </div>
           </div>
 
           <!-- Warning banners -->
-          <div v-if="form.icloud_locked || form.frp_locked" class="flex items-start gap-3 p-3 rounded-xl" style="background: #ef444410; outline: 1.5px solid #ef444430; outline-offset: 0">
+          <div v-if="form.icloud_locked || form.frp_locked" class="flex items-start gap-3 p-3 rounded-[14px]" style="background: #ef444410; outline: 1.5px solid #ef444430; outline-offset: 0">
             <AlertTriangle class="w-4 h-4 flex-shrink-0 mt-0.5" style="color: #ef4444" />
             <p class="text-xs font-semibold" style="color: #ef4444">
               This device has {{ [form.icloud_locked && 'iCloud Lock', form.frp_locked && 'FRP Lock'].filter(Boolean).join(' + ') }}.

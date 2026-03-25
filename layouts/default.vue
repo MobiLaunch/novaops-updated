@@ -18,7 +18,7 @@
         v-if="mobileMenuOpen"
         class="fixed left-0 top-0 z-50 h-screen flex lg:hidden shadow-2xl"
       >
-        <div class="w-[96px] h-full bg-content1 border-r border-divider flex flex-col items-center py-3 gap-1 flex-shrink-0 mob-rail">
+        <div class="w-[96px] h-full bg-card border-r border-border/60 flex flex-col items-center py-3 gap-1 flex-shrink-0 mob-rail">
           <RailContent
             :navigation="navigation"
             :user-initials="userInitials"
@@ -35,7 +35,7 @@
         <Transition name="drawer">
           <div
             v-if="activeDrawer"
-            class="w-72 h-full bg-content1 border-r border-divider flex flex-col"
+            class="w-72 h-full bg-card border-r border-border/60 flex flex-col"
           >
             <DrawerContent
               :drawer="activeDrawer"
@@ -52,7 +52,7 @@
 
     <!-- ── Desktop Rail ───────────────────────────────────────────── -->
     <aside
-      class="hidden lg:flex fixed left-0 z-40 w-[76px] bg-content1 border-r border-divider flex-col items-center py-3 gap-1"
+      class="hidden lg:flex fixed left-0 z-40 w-[76px] bg-card border-r border-border/60 flex-col items-center py-3 gap-1"
       style="top:0;height:100vh"
     >
       <RailContent
@@ -72,7 +72,7 @@
     <Transition name="drawer">
       <aside
         v-if="activeDrawer && !mobileMenuOpen"
-        class="hidden lg:flex fixed left-[76px] z-30 w-64 bg-content1 border-r border-divider flex-col shadow-[var(--hui-shadow-xl)]"
+        class="hidden lg:flex fixed left-[76px] z-30 w-64 bg-card border-r border-border/60 flex-col shadow-xl"
         style="top:0;height:100vh"
       >
         <DrawerContent
@@ -100,9 +100,9 @@
       :class="activeDrawer && !mobileMenuOpen ? 'lg:pl-[340px]' : 'lg:pl-[76px]'"
     >
       <!-- Mobile top bar -->
-      <header class="sticky top-0 z-30 flex items-center gap-3 border-b border-divider bg-content1/90 backdrop-blur-xl px-4 h-14 lg:hidden">
+      <header class="sticky top-0 z-30 flex items-center gap-3 border-b border-border/60 bg-card/90 backdrop-blur-xl px-4 h-14 lg:hidden">
         <button
-          class="h-10 w-10 flex items-center justify-center rounded-2xl hover:bg-muted/60 transition-all duration-200 hover:scale-105 active:scale-95 -ml-1"
+          class="h-10 w-10 flex items-center justify-center rounded-[20px] hover:bg-muted/60 transition-all duration-200 hover:scale-105 active:scale-95 -ml-1"
           @click="mobileMenuOpen = true"
         >
           <Menu class="h-5 w-5" />
@@ -110,7 +110,7 @@
         <div class="flex items-center gap-2.5 flex-1 min-w-0">
           <div
             v-if="currentPageNav"
-            class="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
+            class="w-7 h-7 rounded-[14px] flex items-center justify-center flex-shrink-0"
             :style="`background: ${currentPageNav.color}20`"
           >
             <component :is="currentPageNav.icon" class="w-4 h-4" :style="`color: ${currentPageNav.color}`" />
@@ -125,13 +125,13 @@
         <div v-if="appStore.isLoading && !noLoadingGate" class="flex items-center justify-center py-32">
           <div class="flex flex-col items-center gap-4">
             <!-- M3 Expressive elastic progress bar -->
-            <div class="hui-loading-bar-wrap relative">
-              <div class="hui-loading-bar" style="background: linear-gradient(90deg, #6366f1, #8b5cf6)" />
+            <div class="w-48 h-2 rounded-full overflow-hidden relative" style="background: hsl(var(--muted))">
+              <div class="absolute top-0 h-full rounded-full m3-elastic-bar" style="background: linear-gradient(90deg, #6366f1, #8b5cf6)" />
             </div>
             <p class="text-xs text-muted-foreground font-medium">Loading your data…</p>
           </div>
         </div>
-        <div v-else class="hui-page-enter">
+        <div v-else class="m3-page-enter">
           <slot />
         </div>
       </main>
@@ -327,7 +327,7 @@ const RailContent = defineComponent({
       const inner = () => [
         h('div', {
           class: [
-            `${m ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-2xl flex items-center justify-center transition-all duration-300 relative`,
+            `${m ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-[18px] flex items-center justify-center transition-all duration-300 relative`,
             active ? 'shadow-md' : 'hover:bg-muted/60',
           ].join(' '),
           style: active ? `background: ${item.color}28; transform: scale(1.05)` : '',
@@ -361,7 +361,7 @@ const RailContent = defineComponent({
       // More button (FAB) — opens the upcoming + quick-add drawer
       h('div', { class: 'flex flex-col items-center w-full px-2 pt-3 pb-3 flex-shrink-0' }, [
         h('button', {
-          class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-2xl flex items-center justify-center transition-all duration-200 active:scale-[0.92] hover:scale-[1.04]`,
+          class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-[18px] flex items-center justify-center transition-all duration-200 active:scale-[0.92] hover:scale-[1.04]`,
           style: props.activeDrawer === 'more'
             ? 'background: #ec489918; border: 2px solid #ec489940'
             : 'background: linear-gradient(145deg, #f9a8d4, #ec4899); box-shadow: 0 2px 8px #ec489945; border: 2px solid transparent',
@@ -390,7 +390,7 @@ const RailContent = defineComponent({
           onClick: () => emit('set-drawer', 'tools'),
         }, [
           h('div', {
-            class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-2xl flex items-center justify-center transition-all duration-300`,
+            class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-[18px] flex items-center justify-center transition-all duration-300`,
             style: props.activeDrawer === 'tools'
               ? 'background: #64748b28; transform: scale(1.05)'
               : '',
@@ -416,7 +416,7 @@ const RailContent = defineComponent({
         // Upcoming
         h('div', { class: 'flex flex-col items-center gap-1 w-full px-1 relative', 'data-upcoming': '' }, [
           h('button', {
-            class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-2xl flex items-center justify-center transition-all duration-300 relative`,
+            class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-[18px] flex items-center justify-center transition-all duration-300 relative`,
             style: upcomingOpen.value ? 'background: #06b6d428; transform: scale(1.05)' : '',
             onClick: () => { upcomingOpen.value = !upcomingOpen.value },
           }, [
@@ -479,7 +479,7 @@ const RailContent = defineComponent({
             emit('set-theme', next)
           },
         }, [
-          h('div', { class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-2xl flex items-center justify-center hover:bg-muted/60 transition-all duration-200 hover:scale-105 active:scale-90` }, [
+          h('div', { class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-[18px] flex items-center justify-center hover:bg-muted/60 transition-all duration-200 hover:scale-105 active:scale-90` }, [
             h(props.currentTheme === 'dark' ? Moon : props.currentTheme === 'light' ? Sun : Monitor, { class: `${props.isMobile ? 'w-5 h-5' : 'w-4 h-4'} text-muted-foreground` }),
           ]),
           h('span', { class: `${props.isMobile ? 'text-[11px]' : 'text-[10px]'} text-muted-foreground font-semibold leading-none` },
@@ -489,7 +489,7 @@ const RailContent = defineComponent({
         // Settings shortcut
         h('div', { class: 'flex flex-col items-center gap-1 w-full px-1' }, [
           h('button', {
-            class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-2xl flex items-center justify-center transition-all duration-300 hover:bg-muted/60 hover:scale-105 active:scale-90`,
+            class: `${props.isMobile ? 'w-[72px] h-12' : 'w-14 h-9'} rounded-[18px] flex items-center justify-center transition-all duration-300 hover:bg-muted/60 hover:scale-105 active:scale-90`,
             style: isActive('/settings') ? 'background: #64748b28; transform: scale(1.05)' : '',
             title: 'Settings',
             onClick: () => { navigateTo('/settings'); emit('navigate') },
@@ -539,7 +539,7 @@ const DrawerContent = defineComponent({
 
     const toolsNav = computed(() => props.navigation.filter(n => n.group === 'tools'))
 
-    const navLinkClass = 'flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold transition-all duration-200 text-muted-foreground hover:bg-muted/60 hover:text-foreground hover:scale-[1.01] active:scale-[0.98]'
+    const navLinkClass = 'flex items-center gap-3 rounded-[20px] px-3 py-2.5 text-sm font-semibold transition-all duration-200 text-muted-foreground hover:bg-muted/60 hover:text-foreground hover:scale-[1.01] active:scale-[0.98]'
     const activeClass  = '!bg-primary/10 !text-primary'
 
     const quickItems = [
@@ -611,13 +611,13 @@ const DrawerContent = defineComponent({
           // ── Header
           h('div', { class: 'flex items-center justify-between px-4 py-4 border-b border-border/60 flex-shrink-0' }, [
             h('div', { class: 'flex items-center gap-2.5' }, [
-              h('div', { class: 'w-8 h-8 rounded-2xl flex items-center justify-center', style: 'background: linear-gradient(135deg, #6366f1, #8b5cf6)' }, [
+              h('div', { class: 'w-8 h-8 rounded-[18px] flex items-center justify-center', style: 'background: linear-gradient(135deg, #6366f1, #8b5cf6)' }, [
                 h(CalendarDays, { class: 'w-4 h-4 text-white' }),
               ]),
               h('h2', { class: 'text-sm font-bold' }, 'More'),
             ]),
             h('button', {
-              class: 'w-8 h-8 rounded-2xl flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90 text-muted-foreground',
+              class: 'w-8 h-8 rounded-[16px] flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90 text-muted-foreground',
               onClick: () => emit('close'),
             }, [h(X, { class: 'w-4 h-4' })]),
           ]),
@@ -637,7 +637,7 @@ const DrawerContent = defineComponent({
               ]),
 
               upcomingAppts.length === 0
-                ? h('div', { class: 'flex items-center gap-3 px-3 py-4 rounded-2xl text-muted-foreground', style: 'background: hsl(var(--muted)/0.3)' }, [
+                ? h('div', { class: 'flex items-center gap-3 px-3 py-4 rounded-[18px] text-muted-foreground', style: 'background: hsl(var(--muted)/0.3)' }, [
                     h(CalendarDays, { class: 'w-4 h-4 opacity-40' }),
                     h('p', { class: 'text-xs font-medium' }, 'No appointments scheduled'),
                   ])
@@ -647,12 +647,12 @@ const DrawerContent = defineComponent({
                       const urg = urgencyStyle(mins)
                       return h('div', {
                         key: a.id,
-                        class: 'flex items-start gap-3 px-3 py-3 rounded-2xl cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.98] group',
+                        class: 'flex items-start gap-3 px-3 py-3 rounded-[18px] cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.98] group',
                         style: `background: ${urg.bg}; outline: 1.5px solid ${urg.dot}20; outline-offset: 0`,
                         onClick: () => { navigateTo('/calendar'); emit('navigate') },
                       }, [
                         h('div', {
-                          class: 'w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0',
+                          class: 'w-9 h-9 rounded-[14px] flex items-center justify-center flex-shrink-0',
                           style: `background: ${urg.dot}22`,
                         }, [
                           h(CalendarDays, { class: 'w-4 h-4', style: `color: ${urg.dot}` }),
@@ -683,7 +683,7 @@ const DrawerContent = defineComponent({
               ]),
 
               openTickets.length === 0
-                ? h('div', { class: 'flex items-center gap-3 px-3 py-4 rounded-2xl text-muted-foreground', style: 'background: hsl(var(--muted)/0.3)' }, [
+                ? h('div', { class: 'flex items-center gap-3 px-3 py-4 rounded-[18px] text-muted-foreground', style: 'background: hsl(var(--muted)/0.3)' }, [
                     h(TicketCheck, { class: 'w-4 h-4 opacity-40' }),
                     h('p', { class: 'text-xs font-medium' }, 'No open tickets'),
                   ])
@@ -692,12 +692,12 @@ const DrawerContent = defineComponent({
                       const sc = ticketStatusColor(t.status)
                       return h('div', {
                         key: t.id,
-                        class: 'flex items-start gap-3 px-3 py-3 rounded-2xl cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.98]',
+                        class: 'flex items-start gap-3 px-3 py-3 rounded-[18px] cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.98]',
                         style: `background: ${sc}10; outline: 1.5px solid ${sc}20; outline-offset: 0`,
                         onClick: () => { navigateTo('/bookings'); emit('navigate') },
                       }, [
                         h('div', {
-                          class: 'w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0',
+                          class: 'w-9 h-9 rounded-[14px] flex items-center justify-center flex-shrink-0',
                           style: `background: ${sc}22`,
                         }, [
                           h(TicketCheck, { class: 'w-4 h-4', style: `color: ${sc}` }),
@@ -729,11 +729,11 @@ const DrawerContent = defineComponent({
                 quickItems.map((item: any) =>
                   h('button', {
                     key: item.type,
-                    class: 'w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-muted/60 transition-all text-left group hover:scale-[1.01] active:scale-[0.97]',
+                    class: 'w-full flex items-center gap-3 px-3 py-2.5 rounded-[16px] hover:bg-muted/60 transition-all text-left group hover:scale-[1.01] active:scale-[0.97]',
                     onClick: () => { navigateTo(item.path); emit('navigate') },
                   }, [
                     h('div', {
-                      class: 'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110',
+                      class: 'w-8 h-8 rounded-[14px] flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110',
                       style: `background: ${item.color}20`,
                     }, [
                       h(item.icon, { class: 'w-4 h-4', style: `color: ${item.color}` }),
@@ -755,13 +755,13 @@ const DrawerContent = defineComponent({
         return h('div', { class: 'flex flex-col h-full' }, [
           h('div', { class: 'flex items-center justify-between px-4 py-4 border-b border-border/60 flex-shrink-0' }, [
             h('div', { class: 'flex items-center gap-2.5' }, [
-              h('div', { class: 'w-8 h-8 rounded-2xl flex items-center justify-center', style: 'background: #64748b22' }, [
+              h('div', { class: 'w-8 h-8 rounded-[18px] flex items-center justify-center', style: 'background: #64748b22' }, [
                 h(ChevronRight, { class: 'w-4 h-4', style: 'color: #64748b' }),
               ]),
               h('h2', { class: 'text-sm font-bold' }, 'Tools'),
             ]),
             h('button', {
-              class: 'w-8 h-8 rounded-2xl flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90 text-muted-foreground',
+              class: 'w-8 h-8 rounded-[16px] flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90 text-muted-foreground',
               onClick: () => emit('close'),
             }, [h(X, { class: 'w-4 h-4' })]),
           ]),
@@ -775,7 +775,7 @@ const DrawerContent = defineComponent({
                 onClick: () => emit('navigate'),
               }, () => [
                 h('div', {
-                  class: 'w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0',
+                  class: 'w-9 h-9 rounded-[18px] flex items-center justify-center flex-shrink-0',
                   style: `background: ${item.color}20`,
                 }, [
                   h(item.icon, { class: 'w-4 h-4', style: `color: ${item.color}` }),
@@ -795,13 +795,13 @@ const DrawerContent = defineComponent({
               activeClass,
               onClick: () => emit('navigate'),
             }, () => [
-              h('div', { class: 'w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0', style: 'background: #64748b18' }, [
+              h('div', { class: 'w-9 h-9 rounded-[18px] flex items-center justify-center flex-shrink-0', style: 'background: #64748b18' }, [
                 h(SettingsIcon, { class: 'w-4 h-4', style: 'color: #64748b' }),
               ]),
               h('span', { class: 'flex-1 truncate' }, 'Settings'),
             ]),
             h('div', {
-              class: 'mt-1 px-3 py-2.5 rounded-2xl flex items-center gap-3 cursor-pointer hover:bg-muted/50 transition-all hover:scale-[1.01] active:scale-[0.97]',
+              class: 'mt-1 px-3 py-2.5 rounded-[20px] flex items-center gap-3 cursor-pointer hover:bg-muted/50 transition-all hover:scale-[1.01] active:scale-[0.97]',
               style: 'background: hsl(var(--muted)/0.3)',
               onClick: () => navigateTo('/settings'),
             }, [
@@ -847,14 +847,14 @@ const DrawerContent = defineComponent({
   70%  { left: 65%; width: 40%; }
   100% { left: 110%; width: 35%; }
 }
-.hui-loading-bar { animation: elasticBar 1.8s cubic-bezier(0.4,0,0.2,1) infinite; }
+.m3-elastic-bar { animation: elasticBar 1.8s cubic-bezier(0.4,0,0.2,1) infinite; }
 
 /* ── Page enter — smooth crossfade + gentle lift, no overshoot ── */
 @keyframes pageEnter {
   0%   { transform: translateY(8px); opacity: 0; }
   100% { transform: translateY(0);   opacity: 1; }
 }
-.hui-page-enter { animation: pageEnter 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+.m3-page-enter { animation: pageEnter 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
 
 /* ── Popout spring ────────────────────────────────────────────── */
 @keyframes m3BounceIn {

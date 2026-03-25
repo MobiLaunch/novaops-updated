@@ -12,7 +12,7 @@
       <!-- Header -->
       <div class="text-center flex flex-col items-center gap-4">
         <div
-          class="w-20 h-20 rounded-3xl flex items-center justify-center shadow-xl"
+          class="w-20 h-20 rounded-[32px] flex items-center justify-center shadow-xl"
           style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); box-shadow: 0 8px 32px #6366f140"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="w-9 h-9" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="1.75">
@@ -31,7 +31,7 @@
         <div
           v-for="i in 4"
           :key="i"
-          class="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black select-none transition-all duration-200"
+          class="w-16 h-16 rounded-[24px] flex items-center justify-center text-2xl font-black select-none transition-all duration-200"
           :style="pin.length >= i
             ? `background: #6366f124; outline: 2.5px solid #6366f170; outline-offset: 0; color: #6366f1; transform: scale(1.08)`
             : `outline: 2px solid hsl(var(--border)/0.7); outline-offset: 0; color: transparent`"
@@ -52,13 +52,14 @@
         <button
           v-for="num in [1,2,3,4,5,6,7,8,9]"
           :key="num"
-          class="hui-numkey h-16 rounded-2xl text-xl font-black select-none bg-content1"
+          class="m3-numkey h-16 rounded-[24px] text-xl font-black select-none bg-card"
+          style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0"
           @click="addDigit(num)"
         >{{ num }}</button>
 
         <!-- Clear -->
         <button
-          class="hui-numkey h-16 rounded-2xl select-none flex items-center justify-center"
+          class="m3-numkey h-16 rounded-[24px] select-none flex items-center justify-center"
           style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0"
           @click="clearPin"
         >
@@ -69,13 +70,14 @@
 
         <!-- Zero -->
         <button
-          class="hui-numkey h-16 rounded-2xl text-xl font-black select-none bg-content1"
+          class="m3-numkey h-16 rounded-[24px] text-xl font-black select-none bg-card"
+          style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0"
           @click="addDigit(0)"
         >0</button>
 
         <!-- Backspace -->
         <button
-          class="hui-numkey h-16 rounded-2xl select-none flex items-center justify-center"
+          class="m3-numkey h-16 rounded-[24px] select-none flex items-center justify-center"
           style="background: hsl(var(--muted)/0.6); outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0"
           @click="backspace"
         >
@@ -155,10 +157,10 @@ const logout = () => { localStorage.removeItem('isAuthenticated'); localStorage.
   60% { transform: translateX(-5px); }
   80% { transform: translateX(5px); }
 }
-.hui-numkey {
+.m3-numkey {
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   cursor: pointer;
 }
-.hui-numkey:hover  { transform: scale(1.05); }
-.hui-numkey:active { transform: scale(0.88); }
+.m3-numkey:hover  { transform: scale(1.05); }
+.m3-numkey:active { transform: scale(0.88); }
 </style>
