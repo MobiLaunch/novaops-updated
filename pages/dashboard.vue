@@ -86,7 +86,6 @@
         <v-card
           color="success"
           variant="flat"
-          rounded="xl"
           class="revenue-hero pa-5"
           style="cursor:pointer;min-height:140px"
           @click="navigateTo('/analytics')"
@@ -113,7 +112,6 @@
         md="2"
       >
         <v-card
-          rounded="xl"
           class="pa-4"
           style="cursor:pointer;height:100%"
           @click="navigateTo(stat.path)"
@@ -146,7 +144,6 @@
           sm="2"
         >
           <v-card
-            rounded="xl"
             class="pa-3 text-center action-tile"
             style="cursor:pointer"
             @click="action.onClick()"
@@ -171,7 +168,7 @@
 
       <!-- Today summary -->
       <v-col cols="12" md="3">
-        <v-card rounded="xl" class="pa-4" style="height:100%">
+        <v-card class="pa-4" style="height:100%">
           <div class="d-flex align-center gap-2 mb-4">
             <v-avatar color="primary" size="30" rounded="lg" variant="tonal">
               <v-icon color="primary" size="16">mdi-trending-up</v-icon>
@@ -199,7 +196,7 @@
 
       <!-- Recent tickets table -->
       <v-col cols="12" md="9">
-        <v-card rounded="xl">
+        <v-card>
           <v-card-title class="d-flex align-center justify-space-between pa-4 pb-0">
             <div class="d-flex align-center gap-2">
               <v-avatar color="warning" size="30" rounded="lg" variant="tonal">

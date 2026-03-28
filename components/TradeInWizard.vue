@@ -1,6 +1,6 @@
 <template>
   <v-dialog v-model="isOpen" max-width="800" scrollable>
-    <v-card rounded="xl" class="d-flex flex-column" style="max-height:90dvh">
+    <v-card class="d-flex flex-column" style="max-height:90dvh">
 
       <!-- Header -->
       <div class="flex-shrink-0 px-6 pt-6 pb-4 border-b border-border/50">

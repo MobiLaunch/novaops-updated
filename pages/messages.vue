@@ -341,7 +341,7 @@
 
     <!-- ── Compose Dialog ───────────────────────────────────────── -->
     <v-dialog v-model="composeOpen" max-width="560">
-      <v-card rounded="xl">
+      <v-card>
         <div class="flex flex-col gap-5 p-7">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-[20px] flex items-center justify-center"
@@ -422,7 +422,7 @@
 
     <!-- ── Template Picker Dialog ─────────────────────────────────── -->
     <v-dialog v-model="templateOpen" max-width="480">
-      <v-card rounded="xl">
+      <v-card>
         <div class="flex flex-col gap-4 p-7">
           <h2 class="text-base font-black">Message Templates</h2>
           <div class="space-y-2 max-h-80 overflow-y-auto">
@@ -444,7 +444,7 @@
   </div>
 
   <v-dialog v-model="deleteThreadOpen" max-width="420">
-    <v-card rounded="xl">
+    <v-card>
       <v-card-title class="text-h6">Delete conversation?</v-card-title>
       <v-card-text>This conversation will be removed from your inbox. This cannot be undone.</v-card-text>
       <v-card-actions>

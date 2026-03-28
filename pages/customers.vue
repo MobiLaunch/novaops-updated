@@ -14,7 +14,7 @@
     <!-- ── KPI cards ─────────────────────────────────────────────── -->
     <v-row dense class="mb-4">
       <v-col cols="6" sm="3">
-        <v-card rounded="xl" class="pa-4">
+        <v-card class="pa-4">
           <v-avatar color="info" size="36" rounded="lg" variant="tonal" class="mb-2">
             <v-icon color="info" size="18">mdi-account-group</v-icon>
           </v-avatar>
@@ -23,7 +23,7 @@
         </v-card>
       </v-col>
       <v-col cols="6" sm="3">
-        <v-card rounded="xl" class="pa-4">
+        <v-card class="pa-4">
           <v-avatar color="success" size="36" rounded="lg" variant="tonal" class="mb-2">
             <v-icon color="success" size="18">mdi-currency-usd</v-icon>
           </v-avatar>
@@ -32,7 +32,7 @@
         </v-card>
       </v-col>
       <v-col cols="6" sm="3">
-        <v-card rounded="xl" class="pa-4">
+        <v-card class="pa-4">
           <v-avatar color="warning" size="36" rounded="lg" variant="tonal" class="mb-2">
             <v-icon color="warning" size="18">mdi-trending-up</v-icon>
           </v-avatar>
@@ -41,7 +41,7 @@
         </v-card>
       </v-col>
       <v-col cols="6" sm="3">
-        <v-card rounded="xl" class="pa-4">
+        <v-card class="pa-4">
           <v-avatar color="primary" size="36" rounded="lg" variant="tonal" class="mb-2">
             <v-icon color="primary" size="18">mdi-ticket-outline</v-icon>
           </v-avatar>
@@ -52,7 +52,7 @@
     </v-row>
 
     <!-- ── Customer table ────────────────────────────────────────── -->
-    <v-card rounded="xl">
+    <v-card>
       <v-card-title class="pa-4 pb-0">
         <v-text-field
           v-model="q"
@@ -136,7 +136,7 @@
 
     <!-- ── Customer Detail Dialog ─────────────────────────────────── -->
     <v-dialog v-model="detailOpen" max-width="560" scrollable>
-      <v-card v-if="selected" rounded="xl">
+      <v-card v-if="selected">
         <v-card-item class="border-b">
           <template #prepend>
             <v-avatar :color="avatarColor(selected.name)" size="44" class="text-body-1 font-weight-bold text-white">
@@ -215,7 +215,7 @@
 
     <!-- ── New / Edit Customer Dialog ─────────────────────────────── -->
     <v-dialog v-model="newOpen" max-width="560">
-      <v-card rounded="xl">
+      <v-card>
         <v-card-item class="border-b">
           <template #prepend>
             <v-avatar color="info" size="40" rounded="lg">
@@ -275,7 +275,7 @@
 
     <!-- Delete confirm -->
     <v-dialog v-model="deleteDialogOpen" max-width="400">
-      <v-card rounded="xl">
+      <v-card>
         <v-card-item>
           <template #prepend>
             <v-avatar color="error" size="44" rounded="lg" variant="tonal">

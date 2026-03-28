@@ -63,7 +63,7 @@
         <!-- KPI row -->
         <v-row dense class="mb-4">
           <v-col v-for="stat in ticketStats" :key="stat.label" cols="6" sm="3">
-            <v-card rounded="xl" class="pa-4">
+            <v-card class="pa-4">
               <div class="d-flex align-center justify-space-between mb-3">
                 <v-avatar :color="stat.color" size="36" rounded="lg" variant="tonal">
                   <v-icon :color="stat.color" size="18">{{ stat.icon }}</v-icon>
@@ -76,7 +76,7 @@
         </v-row>
 
         <!-- Search + filter -->
-        <v-card rounded="xl" class="mb-4 pa-4">
+        <v-card class="mb-4 pa-4">
           <div class="d-flex align-center gap-3 flex-wrap">
             <v-text-field
               v-model="ticketSearch"
@@ -102,7 +102,7 @@
         </v-card>
 
         <!-- Tickets table -->
-        <v-card rounded="xl">
+        <v-card>
           <v-data-table
             :headers="ticketHeaders"
             :items="filteredTickets"
@@ -186,7 +186,7 @@
         <!-- KPI row -->
         <v-row dense class="mb-4">
           <v-col cols="6" sm="3">
-            <v-card rounded="xl" class="pa-4">
+            <v-card class="pa-4">
               <v-avatar color="success" size="36" rounded="lg" variant="tonal" class="mb-2">
                 <v-icon color="success" size="18">mdi-map-marker</v-icon>
               </v-avatar>
@@ -195,7 +195,7 @@
             </v-card>
           </v-col>
           <v-col cols="6" sm="3">
-            <v-card rounded="xl" class="pa-4">
+            <v-card class="pa-4">
               <v-avatar color="info" size="36" rounded="lg" variant="tonal" class="mb-2">
                 <v-icon color="info" size="18">mdi-clock-outline</v-icon>
               </v-avatar>
@@ -204,7 +204,7 @@
             </v-card>
           </v-col>
           <v-col cols="6" sm="3">
-            <v-card rounded="xl" class="pa-4">
+            <v-card class="pa-4">
               <v-avatar color="warning" size="36" rounded="lg" variant="tonal" class="mb-2">
                 <v-icon color="warning" size="18">mdi-wrench</v-icon>
               </v-avatar>
@@ -213,7 +213,7 @@
             </v-card>
           </v-col>
           <v-col cols="6" sm="3">
-            <v-card rounded="xl" class="pa-4">
+            <v-card class="pa-4">
               <v-avatar color="primary" size="36" rounded="lg" variant="tonal" class="mb-2">
                 <v-icon color="primary" size="18">mdi-check-circle-outline</v-icon>
               </v-avatar>
@@ -245,7 +245,7 @@
             sm="6"
             lg="4"
           >
-            <v-card rounded="xl" hover class="cursor-pointer" @click="viewHousecall(call)">
+            <v-card hover class="cursor-pointer" @click="viewHousecall(call)">
               <v-card-item>
                 <template #prepend>
                   <v-avatar color="success" size="40" rounded="lg" variant="tonal">
@@ -289,7 +289,7 @@
         </v-row>
 
         <!-- Empty -->
-        <v-card v-else rounded="xl" class="pa-10 text-center">
+        <v-card v-else class="pa-10 text-center">
           <v-icon size="48" color="success" class="opacity-30 mb-3">mdi-map-marker</v-icon>
           <p class="text-body-1 font-weight-bold mb-1">No house calls {{ housecallFilter !== 'All' ? `with status "${housecallFilter}"` : 'scheduled' }}</p>
           <p class="text-body-2 text-medium-emphasis mb-4">{{ housecallFilter === 'All' ? 'Schedule your first on-site visit' : 'Try a different filter' }}</p>
@@ -305,7 +305,7 @@
         <!-- KPI row -->
         <v-row dense class="mb-4">
           <v-col v-for="stat in vendorStats" :key="stat.label" cols="6" sm="3">
-            <v-card rounded="xl" class="pa-4">
+            <v-card class="pa-4">
               <v-avatar :color="stat.color" size="36" rounded="lg" variant="tonal" class="mb-2">
                 <v-icon :color="stat.color" size="18">{{ stat.icon }}</v-icon>
               </v-avatar>
@@ -344,7 +344,6 @@
           <v-card
             v-for="repair in filteredVendorRepairs"
             :key="repair.id"
-            rounded="xl"
             hover
             class="cursor-pointer"
             @click="openVendorRepair(repair)"
@@ -395,7 +394,7 @@
         </div>
 
         <!-- Empty -->
-        <v-card v-else rounded="xl" class="pa-10 text-center">
+        <v-card v-else class="pa-10 text-center">
           <v-icon size="48" color="secondary" class="opacity-30 mb-3">mdi-domain</v-icon>
           <p class="text-body-1 font-weight-bold mb-1">No vendor repairs</p>
           <p class="text-body-2 text-medium-emphasis mb-4">Send your first device out for third-party repair</p>
@@ -422,7 +421,7 @@
 
     <!-- Delete Ticket confirm -->
     <v-dialog v-model="deleteDialogOpen" max-width="400">
-      <v-card rounded="xl">
+      <v-card>
         <v-card-item>
           <template #prepend>
             <v-avatar color="error" size="44" rounded="lg" variant="tonal">
@@ -445,7 +444,7 @@
 
     <!-- House Call Form -->
     <v-dialog v-model="housecallFormOpen" max-width="720" scrollable>
-      <v-card rounded="xl">
+      <v-card>
         <v-card-item class="border-b">
           <template #prepend>
             <v-avatar color="success" size="40" rounded="lg">
@@ -587,7 +586,7 @@
 
     <!-- Delete House Call confirm -->
     <v-dialog v-model="deleteHousecallDialogOpen" max-width="400">
-      <v-card rounded="xl">
+      <v-card>
         <v-card-item>
           <template #prepend>
             <v-avatar color="error" size="44" rounded="lg" variant="tonal">
@@ -609,7 +608,7 @@
 
     <!-- Vendor Repair Form -->
     <v-dialog v-model="vendorFormOpen" max-width="560" scrollable>
-      <v-card rounded="xl">
+      <v-card>
         <v-card-item class="border-b">
           <template #prepend>
             <v-avatar color="secondary" size="40" rounded="lg">

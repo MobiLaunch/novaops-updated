@@ -141,7 +141,7 @@
 
     <!-- ── Add/Edit Dialog ─────────────────────────────────────── -->
     <v-dialog v-model="newOpen" max-width="500">
-      <v-card rounded="xl">
+      <v-card>
         <div class="flex flex-col gap-5 p-7">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-[20px] flex items-center justify-center"
@@ -226,7 +226,7 @@
 
   <!-- Batch print confirmation -->
   <v-dialog v-model="batchPrintConfirmOpen" max-width="420">
-    <v-card rounded="xl">
+    <v-card>
       <v-card-title class="text-h6">Print {{ batchPrintCount }} labels?</v-card-title>
       <v-card-text>You're about to print {{ batchPrintCount }} barcode labels. Make sure your label printer is ready.</v-card-text>
       <v-card-actions>

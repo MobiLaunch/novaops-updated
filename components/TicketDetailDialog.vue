@@ -1,6 +1,6 @@
 <template>
   <v-dialog v-model="isOpen" max-width="900" scrollable>
-    <v-card rounded="xl" class="d-flex flex-column" style="max-height:90dvh">
+    <v-card class="d-flex flex-column" style="max-height:90dvh">
 
       <!-- Header -->
       <v-card-item class="border-b">
@@ -54,7 +54,7 @@
             <div class="d-flex flex-column gap-4 py-2">
 
               <!-- Customer Contact Card -->
-              <v-card v-if="ticketCustomer" rounded="xl" variant="outlined">
+              <v-card v-if="ticketCustomer" variant="outlined">
                 <v-card-item>
                   <template #prepend>
                     <v-avatar :color="avatarColor(ticketCustomer.name)" size="40" class="text-body-2 font-weight-bold text-white">
@@ -96,7 +96,7 @@
               <!-- VIEW MODE -->
               <v-row v-if="!editingInfo" dense>
                 <v-col cols="12" sm="6">
-                  <v-card rounded="xl" class="pa-4">
+                  <v-card class="pa-4">
                     <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-3">Device</p>
                     <div class="d-flex flex-column gap-1 text-body-2">
                       <div class="d-flex justify-space-between"><span class="text-medium-emphasis">Brand</span><span class="font-weight-medium">{{ ticket?.device }}</span></div>
@@ -110,7 +110,7 @@
                   </v-card>
                 </v-col>
                 <v-col cols="12" sm="6">
-                  <v-card rounded="xl" class="pa-4">
+                  <v-card class="pa-4">
                     <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-3">Financials</p>
                     <div class="d-flex flex-column gap-1 text-body-2">
                       <div class="d-flex justify-space-between"><span class="text-medium-emphasis">Labor</span><span class="font-weight-medium text-info">{{ formatCurrency(laborTotal) }}</span></div>
@@ -125,13 +125,13 @@
                   </v-card>
                 </v-col>
               </v-row>
-              <v-card v-if="!editingInfo" rounded="xl" class="pa-4">
+              <v-card v-if="!editingInfo" class="pa-4">
                 <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-2">Issue Reported</p>
                 <p class="text-body-2 mb-0">{{ ticket?.issue }}</p>
               </v-card>
 
               <!-- EDIT MODE -->
-              <v-card v-if="editingInfo" rounded="xl" class="pa-4">
+              <v-card v-if="editingInfo" class="pa-4">
                 <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-3">Edit Device Details</p>
                 <v-row dense>
                   <v-col cols="12" sm="6">
@@ -166,7 +166,7 @@
               </v-row>
 
               <!-- Financials summary (editing mode) -->
-              <v-card v-if="editingInfo" rounded="xl" class="pa-4">
+              <v-card v-if="editingInfo" class="pa-4">
                 <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-2">Financials</p>
                 <v-row dense class="text-body-2">
                   <v-col cols="6"><div class="d-flex justify-space-between"><span class="text-medium-emphasis">Labor</span><span class="text-info font-weight-medium">{{ formatCurrency(laborTotal) }}</span></div></v-col>
@@ -198,7 +198,7 @@
             <div class="d-flex flex-column gap-4 py-2">
 
               <!-- Add service -->
-              <v-card rounded="xl" class="pa-4">
+              <v-card class="pa-4">
                 <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-3">Add Service</p>
                 <div class="d-flex gap-2 mb-3">
                   <v-text-field
@@ -246,7 +246,6 @@
                 <v-card
                   v-for="(svc, idx) in localServices"
                   :key="idx"
-                  rounded="xl"
                   variant="outlined"
                   class="pa-3"
                 >
@@ -282,7 +281,7 @@
                     <v-btn icon="mdi-close" size="x-small" variant="text" color="error" @click="removeService(idx)" />
                   </div>
                 </v-card>
-                <v-card v-if="localServices.length === 0" rounded="xl" variant="outlined" class="pa-6 text-center text-body-2 text-medium-emphasis" style="border-style:dashed">
+                <v-card v-if="localServices.length === 0" variant="outlined" class="pa-6 text-center text-body-2 text-medium-emphasis" style="border-style:dashed">
                   No services added yet — search the catalog above
                 </v-card>
               </div>
@@ -298,7 +297,7 @@
           <!-- ── Parts Tab ──────────────────────────────────────────── -->
           <v-tabs-window-item value="parts">
             <div class="d-flex flex-column gap-4 py-2">
-              <v-card rounded="xl" class="pa-4">
+              <v-card class="pa-4">
                 <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-3">Add Part</p>
                 <v-text-field
                   v-model="partSearch"
@@ -339,7 +338,6 @@
                 <v-card
                   v-for="(part, idx) in localParts"
                   :key="idx"
-                  rounded="xl"
                   variant="outlined"
                   class="pa-3"
                 >
@@ -366,7 +364,7 @@
                     <v-btn icon="mdi-close" size="x-small" variant="text" color="error" @click="removePart(idx)" />
                   </div>
                 </v-card>
-                <v-card v-if="localParts.length === 0" rounded="xl" variant="outlined" class="pa-6 text-center text-body-2 text-medium-emphasis" style="border-style:dashed">
+                <v-card v-if="localParts.length === 0" variant="outlined" class="pa-6 text-center text-body-2 text-medium-emphasis" style="border-style:dashed">
                   No parts added yet
                 </v-card>
               </div>
@@ -384,19 +382,19 @@
               <!-- Balance summary -->
               <v-row dense>
                 <v-col cols="4">
-                  <v-card rounded="xl" class="pa-3 text-center">
+                  <v-card class="pa-3 text-center">
                     <p class="text-caption text-medium-emphasis mb-1">Invoice</p>
                     <p class="text-h6 font-weight-bold mb-0">{{ formatCurrency(laborTotal + partsTotal) }}</p>
                   </v-card>
                 </v-col>
                 <v-col cols="4">
-                  <v-card rounded="xl" class="pa-3 text-center">
+                  <v-card class="pa-3 text-center">
                     <p class="text-caption text-medium-emphasis mb-1">Paid</p>
                     <p class="text-h6 font-weight-bold text-success mb-0">{{ formatCurrency(paymentsTotal) }}</p>
                   </v-card>
                 </v-col>
                 <v-col cols="4">
-                  <v-card rounded="xl" class="pa-3 text-center">
+                  <v-card class="pa-3 text-center">
                     <p class="text-caption text-medium-emphasis mb-1">Balance</p>
                     <p class="text-h6 font-weight-bold mb-0" :class="balance > 0 ? 'text-error' : 'text-success'">{{ formatCurrency(balance) }}</p>
                   </v-card>
@@ -404,7 +402,7 @@
               </v-row>
 
               <!-- Add payment -->
-              <v-card rounded="xl" class="pa-4">
+              <v-card class="pa-4">
                 <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-3">Record Payment</p>
                 <v-row dense>
                   <v-col cols="6">
@@ -427,7 +425,6 @@
                 <v-card
                   v-for="(payment, idx) in localPayments"
                   :key="idx"
-                  rounded="xl"
                   variant="outlined"
                   class="pa-3"
                 >
@@ -443,7 +440,7 @@
                     <v-btn icon="mdi-close" size="x-small" variant="text" color="error" @click="removePayment(idx)" />
                   </div>
                 </v-card>
-                <v-card v-if="localPayments.length === 0" rounded="xl" variant="outlined" class="pa-6 text-center text-body-2 text-medium-emphasis" style="border-style:dashed">
+                <v-card v-if="localPayments.length === 0" variant="outlined" class="pa-6 text-center text-body-2 text-medium-emphasis" style="border-style:dashed">
                   No payments recorded yet
                 </v-card>
               </div>
@@ -461,7 +458,6 @@
                 <v-card
                   v-for="(note, idx) in localNotes"
                   :key="idx"
-                  rounded="xl"
                   variant="outlined"
                   class="pa-3"
                 >
@@ -471,7 +467,7 @@
                   </div>
                   <p class="text-caption text-medium-emphasis mt-1 mb-0">{{ formatDate(note.date) }}</p>
                 </v-card>
-                <v-card v-if="localNotes.length === 0" rounded="xl" variant="outlined" class="pa-6 text-center text-body-2 text-medium-emphasis" style="border-style:dashed">
+                <v-card v-if="localNotes.length === 0" variant="outlined" class="pa-6 text-center text-body-2 text-medium-emphasis" style="border-style:dashed">
                   No notes yet
                 </v-card>
               </div>

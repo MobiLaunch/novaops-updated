@@ -1,6 +1,6 @@
 <template>
   <v-dialog v-model="isOpen" max-width="800" scrollable>
-    <v-card rounded="xl" style="max-height:90vh;overflow-y:auto">
+    <v-card style="max-height:90vh;overflow-y:auto">
 
       <!-- Header -->
       <v-card-item class="border-b">
@@ -59,7 +59,7 @@
 
   <!-- Delete confirmation -->
   <v-dialog v-model="deleteConfirmOpen" max-width="400">
-    <v-card rounded="xl">
+    <v-card>
       <v-card-title class="text-h6">Delete {{ customer?.name }}?</v-card-title>
       <v-card-text>This will permanently remove the customer and cannot be undone.</v-card-text>
       <v-card-actions>

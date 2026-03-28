@@ -71,14 +71,14 @@ export default defineNuxtConfig({
       },
 
       defaults: {
-        VCard:        { rounded: 'xl', elevation: 0, border: true },
+        VCard:        { rounded: 'lg', elevation: 1, border: false },
         VBtn:         { rounded: 'pill', elevation: 0 },
         VChip:        { rounded: 'pill' },
         VTextField:   { variant: 'outlined', density: 'comfortable', rounded: 'lg', hideDetails: 'auto' },
         VSelect:      { variant: 'outlined', density: 'comfortable', rounded: 'lg', hideDetails: 'auto' },
         VTextarea:    { variant: 'outlined', density: 'comfortable', rounded: 'lg', hideDetails: 'auto' },
         VSwitch:      { color: 'primary', hideDetails: true, density: 'compact' },
-        VDialog:      { maxWidth: '480', rounded: 'xl' },
+        VDialog:      { maxWidth: '480', rounded: 'lg' },
         VSnackbar:    { rounded: 'lg', location: 'bottom right', timeout: 4000 },
         VDataTable:   { density: 'comfortable', hover: true },
         VNavigationDrawer: { elevation: 0 },

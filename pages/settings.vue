@@ -860,7 +860,7 @@
 
     <!-- ── Confirm Dialog ── -->
     <v-dialog v-model="confirmDialog.open" max-width="420">
-      <v-card rounded="xl">
+      <v-card>
         <v-card-title class="text-h6">{{ confirmDialog.title }}</v-card-title>
         <v-card-text>{{ confirmDialog.message }}</v-card-text>
         <v-card-actions>

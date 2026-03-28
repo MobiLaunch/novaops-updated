@@ -1,6 +1,6 @@
 <template>
   <v-dialog v-model="isOpen" max-width="900" scrollable>
-    <v-card rounded="xl" style="max-height:90dvh;overflow-y:auto">
+    <v-card style="max-height:90dvh;overflow-y:auto">
       <!-- M3 Dialog Header -->
       <div class="flex items-center gap-4 px-7 pt-7 pb-5 border-b border-border/50">
         <div class="w-11 h-11 rounded-[22px] flex items-center justify-center flex-shrink-0 shadow-md"
@@ -336,7 +336,7 @@
 
   <!-- ══ Device Catalog Manager ══════════════════════════════════════ -->
   <v-dialog v-model="showDeviceMgr" max-width="800" scrollable>
-    <v-card rounded="xl" class="d-flex flex-column" style="max-height:90dvh">
+    <v-card class="d-flex flex-column" style="max-height:90dvh">
       <!-- Header -->
       <div class="flex items-center gap-3 px-6 pt-6 pb-4 border-b border-border/50 flex-shrink-0">
         <div class="w-10 h-10 rounded-[20px] flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed)">

@@ -11,7 +11,7 @@
     </v-btn>
 
     <v-dialog v-model="open" max-width="500">
-      <v-card rounded="xl">
+      <v-card>
         <v-card-item>
           <v-card-title>Notifications</v-card-title>
           <template #append>
