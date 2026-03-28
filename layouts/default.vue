@@ -36,17 +36,15 @@
 
         <!-- Logo / More FAB -->
         <v-list-item
-          class="mb-1 justify-center"
+          class="mb-1 text-center"
           :active="activeDrawer === 'more'"
           :base-color="activeDrawer === 'more' ? 'primary' : undefined"
           rounded="xl"
           @click="toggleDrawer('more')"
         >
-          <template #prepend>
-            <div class="d-flex justify-center w-100">
-              <v-icon color="primary" size="22">mdi-plus-circle</v-icon>
-            </div>
-          </template>
+          <div class="d-flex justify-center w-100 py-1">
+            <v-icon color="primary" size="22">mdi-plus-circle</v-icon>
+          </div>
         </v-list-item>
 
         <v-divider class="mb-2" />
@@ -65,26 +63,24 @@
               :value="item.path"
               :active="route.path === item.path"
               rounded="xl"
-              class="mb-0.5 justify-center"
+              class="mb-0.5 text-center"
               nav
             >
-              <template #prepend>
-                <div class="d-flex justify-center w-100">
-                  <component
-                    :is="item.icon"
-                    :size="20"
-                    :color="route.path === item.path ? item.color : '#94a3b8'"
-                  />
-                </div>
-              </template>
-              <template #append>
+              <div class="d-flex justify-center w-100 py-1 position-relative">
+                <component
+                  :is="item.icon"
+                  :size="20"
+                  :color="route.path === item.path ? item.color : '#94a3b8'"
+                />
                 <v-badge
                   v-if="item.badge"
                   :color="item.badge.color"
                   dot
                   floating
+                  class="position-absolute top-0 right-0"
+                  style="transform: translate(25%, -25%)"
                 />
-              </template>
+              </div>
             </v-list-item>
           </template>
         </v-tooltip>
@@ -98,17 +94,15 @@
               v-bind="props"
               :active="activeDrawer === 'tools'"
               rounded="xl"
-              class="justify-center"
+              class="text-center"
               @click="toggleDrawer('tools')"
             >
-              <template #prepend>
-                <div class="d-flex justify-center w-100">
-                  <v-icon
-                    :color="activeDrawer === 'tools' ? 'secondary' : '#94a3b8'"
-                    size="20"
-                  >{{ activeDrawer === 'tools' ? 'mdi-chevron-right' : 'mdi-dots-horizontal' }}</v-icon>
-                </div>
-              </template>
+              <div class="d-flex justify-center w-100 py-1">
+                <v-icon
+                  :color="activeDrawer === 'tools' ? 'secondary' : '#94a3b8'"
+                  size="20"
+                >{{ activeDrawer === 'tools' ? 'mdi-chevron-right' : 'mdi-dots-horizontal' }}</v-icon>
+              </div>
             </v-list-item>
           </template>
         </v-tooltip>
@@ -120,14 +114,12 @@
           <!-- Upcoming -->
           <v-tooltip text="Upcoming" location="end">
             <template #activator="{ props }">
-              <v-list-item v-bind="props" rounded="xl" class="justify-center" @click="upcomingMenu = true">
-                <template #prepend>
-                  <div class="d-flex justify-center w-100">
-                    <v-badge :content="upcomingCount || undefined" color="info" :model-value="upcomingCount > 0">
-                      <v-icon color="#94a3b8" size="20">mdi-calendar-clock</v-icon>
-                    </v-badge>
-                  </div>
-                </template>
+              <v-list-item v-bind="props" rounded="xl" class="text-center" @click="upcomingMenu = true">
+                <div class="d-flex justify-center w-100 py-1">
+                  <v-badge :content="upcomingCount || undefined" color="info" :model-value="upcomingCount > 0">
+                    <v-icon color="#94a3b8" size="20">mdi-calendar-clock</v-icon>
+                  </v-badge>
+                </div>
               </v-list-item>
             </template>
           </v-tooltip>
@@ -135,14 +127,12 @@
           <!-- Theme toggle -->
           <v-tooltip :text="`Theme: ${theme}`" location="end">
             <template #activator="{ props }">
-              <v-list-item v-bind="props" rounded="xl" class="justify-center" @click="toggleTheme">
-                <template #prepend>
-                  <div class="d-flex justify-center w-100">
-                    <v-icon color="#94a3b8" size="20">
-                      {{ theme === 'dark' ? 'mdi-weather-sunny' : 'mdi-weather-night' }}
-                    </v-icon>
-                  </div>
-                </template>
+              <v-list-item v-bind="props" rounded="xl" class="text-center" @click="toggleTheme">
+                <div class="d-flex justify-center w-100 py-1">
+                  <v-icon color="#94a3b8" size="20">
+                    {{ theme === 'dark' ? 'mdi-weather-sunny' : 'mdi-weather-night' }}
+                  </v-icon>
+                </div>
               </v-list-item>
             </template>
           </v-tooltip>
@@ -150,28 +140,26 @@
           <!-- Settings -->
           <v-tooltip text="Settings" location="end">
             <template #activator="{ props }">
-              <v-list-item v-bind="props" rounded="xl" class="justify-center" :to="'/settings'" :active="route.path === '/settings'">
-                <template #prepend>
-                  <div class="d-flex justify-center w-100">
-                    <v-icon
-                      :color="route.path === '/settings' ? 'secondary' : '#94a3b8'"
-                      size="20"
-                    >mdi-cog-outline</v-icon>
-                  </div>
-                </template>
+              <v-list-item v-bind="props" rounded="xl" class="text-center" :to="'/settings'" :active="route.path === '/settings'">
+                <div class="d-flex justify-center w-100 py-1">
+                  <v-icon
+                    :color="route.path === '/settings' ? 'secondary' : '#94a3b8'"
+                    size="20"
+                  >mdi-cog-outline</v-icon>
+                </div>
               </v-list-item>
             </template>
           </v-tooltip>
 
           <!-- User avatar -->
-          <v-list-item rounded="xl" @click="navigateTo('/settings')">
-            <template #prepend>
-              <v-avatar
-                color="primary"
-                size="32"
-                class="text-caption font-weight-bold"
-              >{{ userInitials }}</v-avatar>
-            </template>
+          <v-list-item rounded="xl" class="text-center" @click="navigateTo('/settings')">
+                <div class="d-flex justify-center w-100 py-1">
+                  <v-avatar
+                    color="primary"
+                    size="32"
+                    class="text-caption font-weight-bold"
+                  >{{ userInitials }}</v-avatar>
+                </div>
           </v-list-item>
         </v-list>
       </template>
