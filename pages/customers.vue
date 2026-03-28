@@ -1,301 +1,411 @@
 <template>
-  <div class="flex flex-col gap-8">
+  <div>
 
-    <!-- ── Page Header ─────────────────────────────────────────── -->
-    <div class="flex items-center justify-between flex-wrap gap-4">
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg"
-          style="background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4px 20px #3b82f650">
-          <Users class="w-6 h-6 text-white" />
-        </div>
-        <div>
-          <h1 class="text-3xl font-black tracking-tight">Customers</h1>
-          <p class="text-sm text-muted-foreground font-medium mt-0.5">{{ customers.length }} total customers</p>
-        </div>
+    <!-- ── Page header ─────────────────────────────────────────── -->
+    <div class="d-flex align-center justify-space-between flex-wrap gap-3 mb-6">
+      <div>
+        <p class="text-caption text-medium-emphasis mb-0">Mobicare Device Recovery</p>
+        <h1 class="text-h5 font-weight-black">Customers</h1>
+        <p class="text-body-2 text-medium-emphasis">{{ customers.length }} total clients</p>
       </div>
-      <button class="m3-fab flex items-center gap-2 h-10 px-5 rounded-full text-sm font-black text-white"
-        style="background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4px 16px #3b82f640"
-        @click="newOpen = true">
-        <Plus class="w-4 h-4" /> Add Customer
-      </button>
+      <v-btn color="info" prepend-icon="mdi-account-plus" @click="openNew">Add Customer</v-btn>
     </div>
 
-    <!-- ── Stat Cards ───────────────────────────────────────────── -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <div class="m3-stat-card rounded-[28px] p-5 flex flex-col gap-3" style="background:#3b82f614;outline:2px solid #3b82f628;outline-offset:0">
-        <div class="flex items-center justify-between">
-          <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background:#3b82f624"><Users class="w-5 h-5" style="color:#3b82f6" /></div>
-          <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background:#3b82f620;color:#3b82f6">TOTAL</span>
-        </div>
-        <div>
-          <p class="text-xs font-semibold text-muted-foreground">Total Customers</p>
-          <p class="text-2xl font-black" style="color:#3b82f6">{{ customers.length }}</p>
-        </div>
-      </div>
-      <div class="m3-stat-card rounded-[28px] p-5 flex flex-col gap-3" style="background:#10b98114;outline:2px solid #10b98128;outline-offset:0">
-        <div class="flex items-center justify-between">
-          <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background:#10b98124"><DollarSign class="w-5 h-5" style="color:#10b981" /></div>
-          <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background:#10b98120;color:#10b981">REVENUE</span>
-        </div>
-        <div>
-          <p class="text-xs font-semibold text-muted-foreground">Total Revenue</p>
-          <p class="text-2xl font-black" style="color:#10b981">{{ formatCurrency(totalRevenue) }}</p>
-        </div>
-      </div>
-      <div class="m3-stat-card rounded-[28px] p-5 flex flex-col gap-3" style="background:#f59e0b14;outline:2px solid #f59e0b28;outline-offset:0">
-        <div class="flex items-center justify-between">
-          <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background:#f59e0b24"><TicketCheck class="w-5 h-5" style="color:#f59e0b" /></div>
-          <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background:#f59e0b20;color:#f59e0b">TICKETS</span>
-        </div>
-        <div>
-          <p class="text-xs font-semibold text-muted-foreground">Total Tickets</p>
-          <p class="text-2xl font-black" style="color:#f59e0b">{{ tickets.length }}</p>
-        </div>
-      </div>
-      <div class="m3-stat-card rounded-[28px] p-5 flex flex-col gap-3" style="background:#6366f114;outline:2px solid #6366f128;outline-offset:0">
-        <div class="flex items-center justify-between">
-          <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background:#6366f124"><TrendingUp class="w-5 h-5" style="color:#6366f1" /></div>
-          <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background:#6366f120;color:#6366f1">AVG</span>
-        </div>
-        <div>
-          <p class="text-xs font-semibold text-muted-foreground">Avg Per Customer</p>
-          <p class="text-2xl font-black" style="color:#6366f1">{{ formatCurrency(avgRevenue) }}</p>
-        </div>
-      </div>
-    </div>
+    <!-- ── KPI cards ─────────────────────────────────────────────── -->
+    <v-row dense class="mb-4">
+      <v-col cols="6" sm="3">
+        <v-card rounded="xl" class="pa-4">
+          <v-avatar color="info" size="36" rounded="lg" variant="tonal" class="mb-2">
+            <v-icon color="info" size="18">mdi-account-group</v-icon>
+          </v-avatar>
+          <div class="text-h5 font-weight-black text-info">{{ customers.length }}</div>
+          <div class="text-caption text-medium-emphasis">Total Customers</div>
+        </v-card>
+      </v-col>
+      <v-col cols="6" sm="3">
+        <v-card rounded="xl" class="pa-4">
+          <v-avatar color="success" size="36" rounded="lg" variant="tonal" class="mb-2">
+            <v-icon color="success" size="18">mdi-currency-usd</v-icon>
+          </v-avatar>
+          <div class="text-h5 font-weight-black text-success">{{ formatCurrency(totalRevenue) }}</div>
+          <div class="text-caption text-medium-emphasis">Total Revenue</div>
+        </v-card>
+      </v-col>
+      <v-col cols="6" sm="3">
+        <v-card rounded="xl" class="pa-4">
+          <v-avatar color="warning" size="36" rounded="lg" variant="tonal" class="mb-2">
+            <v-icon color="warning" size="18">mdi-trending-up</v-icon>
+          </v-avatar>
+          <div class="text-h5 font-weight-black text-warning">{{ formatCurrency(avgRevenue) }}</div>
+          <div class="text-caption text-medium-emphasis">Avg per Customer</div>
+        </v-card>
+      </v-col>
+      <v-col cols="6" sm="3">
+        <v-card rounded="xl" class="pa-4">
+          <v-avatar color="primary" size="36" rounded="lg" variant="tonal" class="mb-2">
+            <v-icon color="primary" size="18">mdi-ticket-outline</v-icon>
+          </v-avatar>
+          <div class="text-h5 font-weight-black text-primary">{{ tickets.length }}</div>
+          <div class="text-caption text-medium-emphasis">Total Tickets</div>
+        </v-card>
+      </v-col>
+    </v-row>
 
-    <!-- ── Search ─────────────────────────────────────────────── -->
-    <div class="relative max-w-md">
-      <Search class="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-      <input v-model="q" placeholder="Search by name, phone, or email…"
-        class="w-full h-12 pl-11 pr-4 rounded-full text-sm font-medium transition-all"
-        style="background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);outline:none"
-        @focus="($event.target as HTMLElement).style.cssText += ';border-color:#3b82f6;box-shadow:0 0 0 3px #3b82f618'"
-        @blur="($event.target as HTMLElement).style.cssText = ($event.target as HTMLElement).style.cssText.replace(/border-color:[^;]+;box-shadow:[^;]+;/,'')" />
-    </div>
+    <!-- ── Customer table ────────────────────────────────────────── -->
+    <v-card rounded="xl">
+      <v-card-title class="pa-4 pb-0">
+        <v-text-field
+          v-model="q"
+          placeholder="Search customers…"
+          prepend-inner-icon="mdi-magnify"
+          hide-details
+          density="compact"
+          rounded="pill"
+          style="max-width:320px"
+        />
+      </v-card-title>
 
-    <!-- ── Customer Cards Grid ────────────────────────────────── -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      <div v-for="c in filteredCustomers" :key="c.id"
-        class="m3-customer-card rounded-[28px] p-5 flex flex-col gap-4 bg-card cursor-pointer"
-        style="outline:2px solid hsl(var(--border)/0.6);outline-offset:0"
-        @click="openDetail(c)">
-        <!-- Avatar + actions -->
-        <div class="flex items-start justify-between">
-          <div class="w-14 h-14 rounded-[26px] flex items-center justify-center font-black text-lg flex-shrink-0"
-            style="background:linear-gradient(135deg,#3b82f620,#2563eb20);color:#3b82f6">
-            {{ c.name?.substring(0,2).toUpperCase() || '??' }}
-          </div>
-          <div class="flex gap-1">
-            <button class="w-8 h-8 rounded-[16px] flex items-center justify-center transition-all hover:scale-110 active:scale-90 hover:bg-red-50 dark:hover:bg-red-950/30"
-              @click.stop="deleteCustomer(c)">
-              <Trash2 class="w-3.5 h-3.5 text-muted-foreground" />
-            </button>
-          </div>
-        </div>
-        <!-- Info -->
-        <div class="flex-1">
-          <h3 class="font-black text-sm leading-tight">{{ c.name }}</h3>
-          <p v-if="c.phone" class="text-xs text-muted-foreground font-medium mt-1">{{ c.phone }}</p>
-          <p v-if="c.email" class="text-xs text-muted-foreground font-medium truncate">{{ c.email }}</p>
-        </div>
-        <!-- Stats -->
-        <div class="flex items-center justify-between pt-3 border-t border-border/50">
-          <div>
-            <p class="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">Revenue</p>
-            <p class="text-base font-black" style="color:#10b981">{{ formatCurrency(custRevenue(c.id)) }}</p>
-          </div>
-          <span class="text-xs font-black px-3 py-1.5 rounded-full" style="background:#3b82f618;color:#3b82f6">
-            {{ custTickets(c.id) }} tickets
-          </span>
-        </div>
-      </div>
-
-      <!-- Empty state -->
-      <div v-if="filteredCustomers.length === 0" class="col-span-full rounded-[32px] py-20 flex flex-col items-center gap-4 bg-card"
-        style="outline:2px solid hsl(var(--border)/0.6);outline-offset:0">
-        <div class="w-20 h-20 rounded-[32px] flex items-center justify-center" style="background:#3b82f614">
-          <Users class="w-10 h-10" style="color:#3b82f6;opacity:0.5" />
-        </div>
-        <div class="text-center">
-          <h3 class="text-lg font-black mb-1">No customers found</h3>
-          <p class="text-sm text-muted-foreground font-medium">{{ q ? 'Try a different search' : 'Add your first customer to get started' }}</p>
-        </div>
-        <button v-if="!q" class="m3-fab flex items-center gap-2 px-6 py-3 rounded-full text-sm font-black text-white mt-2"
-          style="background:linear-gradient(135deg,#3b82f6,#2563eb)"
-          @click="newOpen = true">
-          <Plus class="w-4 h-4" /> Add Customer
-        </button>
-      </div>
-    </div>
-
-    <!-- ── Add Customer Dialog ─────────────────────────────────── -->
-    <Dialog v-model:open="newOpen">
-      <DialogContent class="max-w-md">
-        <div class="flex flex-col gap-5 p-7">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">
-              <UserPlus class="w-5 h-5 text-white" />
-            </div>
+      <v-data-table
+        :headers="customerHeaders"
+        :items="filteredCustomers"
+        :search="q"
+        :items-per-page="20"
+        density="comfortable"
+        hover
+        @click:row="(_, { item }) => openDetail(item)"
+      >
+        <!-- Avatar + name -->
+        <template #item.name="{ item }">
+          <div class="d-flex align-center gap-3 py-1">
+            <v-avatar :color="avatarColor(item.name)" size="34" class="text-caption font-weight-bold text-white flex-shrink-0">
+              {{ initials(item.name) }}
+            </v-avatar>
             <div>
-              <h2 class="text-base font-black">New Customer</h2>
-              <p class="text-xs text-muted-foreground font-medium">Add a customer to your shop</p>
+              <div class="text-body-2 font-weight-bold">{{ item.name }}</div>
+              <div v-if="item.email" class="text-caption text-medium-emphasis">{{ item.email }}</div>
             </div>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="col-span-2 space-y-2"><label class="m3-label">Full Name *</label><input v-model="form.name" placeholder="Jane Smith" class="m3-input" /></div>
-            <div class="space-y-2"><label class="m3-label">Phone</label><input v-model="form.phone" placeholder="(555) 123-4567" class="m3-input" /></div>
-            <div class="space-y-2"><label class="m3-label">Email</label><input v-model="form.email" type="email" placeholder="jane@email.com" class="m3-input" /></div>
-            <div class="col-span-2 space-y-2"><label class="m3-label">Notes</label><textarea v-model="form.notes" placeholder="Any additional notes…" class="m3-input resize-none" rows="2" style="height:auto;padding-top:12px" /></div>
-          </div>
-          <div class="flex gap-3 pt-1">
-            <button class="flex-1 h-12 rounded-full text-sm font-bold transition-all hover:scale-105 active:scale-95"
-              style="outline:2px solid hsl(var(--border));outline-offset:0" @click="newOpen = false">Cancel</button>
-            <button class="flex-1 h-12 rounded-full text-sm font-black text-white transition-all hover:scale-105 active:scale-95"
-              style="background:linear-gradient(135deg,#3b82f6,#2563eb);box-shadow:0 4px 16px #3b82f640"
-              @click="saveCustomer">Add Customer</button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </template>
 
-    <!-- ── Customer Detail Dialog ─────────────────────────────── -->
-    <Dialog v-model:open="detailOpen">
-      <DialogContent class="w-full max-w-[96vw] sm:max-w-lg">
-        <div v-if="selected" class="flex flex-col gap-5 p-7">
-          <div class="flex items-center gap-4">
-            <div class="w-16 h-16 rounded-[28px] flex items-center justify-center font-black text-xl flex-shrink-0"
-              style="background:linear-gradient(135deg,#3b82f620,#2563eb20);color:#3b82f6">
-              {{ selected.name?.substring(0,2).toUpperCase() || '??' }}
-            </div>
-            <div class="flex-1 min-w-0">
-              <h2 class="text-lg font-black truncate">{{ selected.name }}</h2>
-              <p class="text-xs text-muted-foreground font-medium">Customer #{{ selected.id }}</p>
-            </div>
-            <div class="flex flex-col items-end gap-1">
-              <span class="text-lg font-black" style="color:#10b981">{{ formatCurrency(custRevenue(selected.id)) }}</span>
-              <span class="text-[10px] text-muted-foreground font-semibold">Total Spent</span>
-            </div>
+        <!-- Phone -->
+        <template #item.phone="{ item }">
+          <span class="text-body-2">{{ item.phone || '—' }}</span>
+        </template>
+
+        <!-- Tickets count -->
+        <template #item.ticketCount="{ item }">
+          <v-chip
+            :color="custTickets(item.id) > 0 ? 'primary' : undefined"
+            :variant="custTickets(item.id) > 0 ? 'tonal' : 'outlined'"
+            size="x-small"
+          >{{ custTickets(item.id) }}</v-chip>
+        </template>
+
+        <!-- Revenue -->
+        <template #item.revenue="{ item }">
+          <span class="text-body-2 font-weight-bold text-success">
+            {{ formatCurrency(custRevenue(item.id)) }}
+          </span>
+        </template>
+
+        <!-- Actions -->
+        <template #item.actions="{ item }">
+          <div class="d-flex gap-1" @click.stop>
+            <v-btn icon="mdi-pencil-outline" size="x-small" variant="text" @click.stop="startEdit(item)" />
+            <v-btn
+              icon="mdi-email-outline"
+              size="x-small"
+              variant="text"
+              color="info"
+              :disabled="!item.email && !item.phone"
+              @click.stop="messageCustomer(item)"
+            />
+            <v-btn icon="mdi-delete-outline" size="x-small" variant="text" color="error" @click.stop="deleteCustomer(item)" />
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="p-3 rounded-[20px]" style="background:hsl(var(--muted)/0.4)">
-              <p class="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Phone</p>
-              <p class="text-sm font-bold">{{ selected.phone || '—' }}</p>
-            </div>
-            <div class="p-3 rounded-[20px]" style="background:hsl(var(--muted)/0.4)">
-              <p class="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Email</p>
-              <p class="text-sm font-bold truncate">{{ selected.email || '—' }}</p>
-            </div>
-            <div v-if="selected.notes" class="col-span-2 p-3 rounded-[20px]" style="background:hsl(var(--muted)/0.4)">
-              <p class="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Notes</p>
-              <p class="text-sm font-medium">{{ selected.notes }}</p>
-            </div>
+        </template>
+
+        <template #no-data>
+          <div class="text-center py-10 text-medium-emphasis">
+            <v-icon size="48" class="mb-2 opacity-30">mdi-account-group</v-icon>
+            <p class="text-body-2 font-weight-medium">No customers yet</p>
+            <v-btn color="info" variant="tonal" size="small" class="mt-3" @click="openNew">Add First Customer</v-btn>
           </div>
-          <div>
-            <p class="text-xs font-black text-muted-foreground uppercase tracking-widest mb-3">
-              Repair History ({{ custTickets(selected.id) }} tickets)
-            </p>
-            <div class="space-y-2 max-h-52 overflow-y-auto">
-              <div v-for="t in custTicketList(selected.id)" :key="t.id"
-                class="flex items-center gap-3 px-3 py-2.5 rounded-[18px]" style="background:hsl(var(--muted)/0.4)">
-                <div class="w-8 h-8 rounded-[16px] flex items-center justify-center flex-shrink-0" style="background:#f59e0b20">
-                  <TicketCheck class="w-4 h-4" style="color:#f59e0b" />
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs font-bold truncate">#{{ t.id }} — {{ t.device }}</p>
-                  <p class="text-[10px] text-muted-foreground font-medium truncate">{{ t.issue }}</p>
-                </div>
-                <div class="text-right flex-shrink-0">
-                  <p class="text-xs font-black" style="color:#10b981">{{ formatCurrency(t.price || 0) }}</p>
-                  <p class="text-[10px] text-muted-foreground">{{ t.status }}</p>
-                </div>
-              </div>
-              <div v-if="custTickets(selected.id) === 0" class="text-center py-4 text-xs text-muted-foreground font-semibold">No tickets yet</div>
-            </div>
+        </template>
+      </v-data-table>
+    </v-card>
+
+    <!-- ── Customer Detail Dialog ─────────────────────────────────── -->
+    <v-dialog v-model="detailOpen" max-width="560" scrollable>
+      <v-card v-if="selected" rounded="xl">
+        <v-card-item class="border-b">
+          <template #prepend>
+            <v-avatar :color="avatarColor(selected.name)" size="44" class="text-body-1 font-weight-bold text-white">
+              {{ initials(selected.name) }}
+            </v-avatar>
+          </template>
+          <v-card-title>{{ selected.name }}</v-card-title>
+          <v-card-subtitle>{{ selected.email || 'No email' }}</v-card-subtitle>
+          <template #append>
+            <v-btn icon="mdi-close" variant="text" @click="detailOpen = false" />
+          </template>
+        </v-card-item>
+
+        <v-card-text class="pa-6">
+          <!-- Contact info -->
+          <v-list density="compact" class="mb-4">
+            <v-list-item v-if="selected.phone" prepend-icon="mdi-phone-outline" :title="selected.phone" :href="`tel:${selected.phone}`" />
+            <v-list-item v-if="selected.email" prepend-icon="mdi-email-outline" :title="selected.email" @click="messageCustomer(selected)" />
+            <v-list-item v-if="selected.address" prepend-icon="mdi-map-marker-outline" :title="selected.address" />
+            <v-list-item v-if="selected.driversLicense" prepend-icon="mdi-card-account-details-outline" :title="selected.driversLicense" subtitle="Driver's License" />
+          </v-list>
+
+          <!-- Stats -->
+          <v-row dense class="mb-4">
+            <v-col cols="6">
+              <v-card color="primary" variant="tonal" rounded="lg" class="pa-3 text-center">
+                <div class="text-h6 font-weight-black">{{ custTickets(selected.id) }}</div>
+                <div class="text-caption">Tickets</div>
+              </v-card>
+            </v-col>
+            <v-col cols="6">
+              <v-card color="success" variant="tonal" rounded="lg" class="pa-3 text-center">
+                <div class="text-h6 font-weight-black">{{ formatCurrency(custRevenue(selected.id)) }}</div>
+                <div class="text-caption">Revenue</div>
+              </v-card>
+            </v-col>
+          </v-row>
+
+          <!-- Ticket history -->
+          <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-2">Ticket History</p>
+          <div v-if="custTicketList(selected.id).length === 0" class="text-center py-4 text-medium-emphasis">
+            <v-icon class="opacity-30">mdi-ticket-outline</v-icon>
+            <p class="text-caption mt-1">No tickets yet</p>
           </div>
-          <div class="flex gap-3 pt-1">
-            <button class="flex-1 h-12 rounded-full text-sm font-bold transition-all hover:scale-105 active:scale-95"
-              style="outline:2px solid hsl(var(--border));outline-offset:0" @click="detailOpen = false">Close</button>
-            <button class="h-12 px-4 rounded-full text-sm font-bold text-white transition-all hover:scale-105 active:scale-95"
-              style="background:linear-gradient(135deg,#ec4899,#db2777)"
-              @click="messageCustomer(selected)" :disabled="!selected?.email && !selected?.phone">📨</button>
-            <button class="flex-1 h-12 rounded-full text-sm font-black text-white transition-all hover:scale-105 active:scale-95"
-              style="background:linear-gradient(135deg,#3b82f6,#2563eb)" @click="startEdit">Edit Customer</button>
+          <v-list v-else density="compact" lines="two">
+            <v-list-item
+              v-for="t in custTicketList(selected.id).slice(0, 6)"
+              :key="t.id"
+              :subtitle="`${t.device} · ${formatCurrency(t.price)}`"
+              rounded="lg"
+            >
+              <template #prepend>
+                <v-chip :color="ticketStatusColor(t.status)" size="x-small" variant="tonal" class="me-2">#{{ t.id }}</v-chip>
+              </template>
+              <template #title>
+                <span class="text-body-2 font-weight-medium">{{ t.status }}</span>
+              </template>
+            </v-list-item>
+          </v-list>
+
+          <div v-if="selected.notes" class="mt-4 pa-3 rounded-lg" style="background:rgba(0,0,0,0.04)">
+            <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-1">Notes</p>
+            <p class="text-body-2">{{ selected.notes }}</p>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </v-card-text>
+
+        <v-divider />
+        <v-card-actions class="pa-4">
+          <v-btn color="error" variant="text" prepend-icon="mdi-delete-outline" @click="deleteCustomer(selected); detailOpen = false">Delete</v-btn>
+          <v-spacer />
+          <v-btn variant="outlined" prepend-icon="mdi-pencil-outline" @click="startEdit()">Edit</v-btn>
+          <v-btn color="info" prepend-icon="mdi-email-outline" :disabled="!selected.email && !selected.phone" @click="messageCustomer(selected)">Message</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- ── New / Edit Customer Dialog ─────────────────────────────── -->
+    <v-dialog v-model="newOpen" max-width="560">
+      <v-card rounded="xl">
+        <v-card-item class="border-b">
+          <template #prepend>
+            <v-avatar color="info" size="40" rounded="lg">
+              <v-icon color="white">{{ editingCustomer ? 'mdi-pencil' : 'mdi-account-plus' }}</v-icon>
+            </v-avatar>
+          </template>
+          <v-card-title>{{ editingCustomer ? `Edit ${editingCustomer.name}` : 'New Customer' }}</v-card-title>
+          <v-card-subtitle>{{ editingCustomer ? 'Update customer details' : 'Add a customer to your shop' }}</v-card-subtitle>
+          <template #append>
+            <v-btn icon="mdi-close" variant="text" @click="newOpen = false; editingCustomer = null" />
+          </template>
+        </v-card-item>
+
+        <v-card-text class="pa-6">
+          <!-- Validation alert -->
+          <v-alert
+            v-if="validationError"
+            type="warning"
+            variant="tonal"
+            density="compact"
+            rounded="lg"
+            class="mb-4"
+            closable
+            @click:close="validationError = ''"
+          >{{ validationError }}</v-alert>
+
+          <v-row dense>
+            <v-col cols="12">
+              <v-text-field v-model="form.name" label="Full Name *" placeholder="Jane Smith" />
+            </v-col>
+            <v-col cols="6">
+              <v-text-field v-model="form.phone" label="Phone" placeholder="(555) 123-4567" />
+            </v-col>
+            <v-col cols="6">
+              <v-text-field v-model="form.email" label="Email" type="email" placeholder="jane@email.com" />
+            </v-col>
+            <v-col cols="6">
+              <v-text-field v-model="form.driversLicense" label="Driver's License" placeholder="Optional" />
+            </v-col>
+            <v-col cols="6">
+              <v-text-field v-model="form.address" label="Address" placeholder="Street, City, State" />
+            </v-col>
+            <v-col cols="12">
+              <v-textarea v-model="form.notes" label="Notes" rows="2" placeholder="Additional info…" />
+            </v-col>
+          </v-row>
+        </v-card-text>
+
+        <v-divider />
+        <v-card-actions class="pa-4">
+          <v-spacer />
+          <v-btn variant="text" @click="newOpen = false; editingCustomer = null">Cancel</v-btn>
+          <v-btn color="info" @click="saveCustomer">{{ editingCustomer ? 'Save Changes' : 'Add Customer' }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Delete confirm -->
+    <v-dialog v-model="deleteDialogOpen" max-width="400">
+      <v-card rounded="xl">
+        <v-card-item>
+          <template #prepend>
+            <v-avatar color="error" size="44" rounded="lg" variant="tonal">
+              <v-icon color="error">mdi-delete-outline</v-icon>
+            </v-avatar>
+          </template>
+          <v-card-title>Delete {{ deleteConfirmTarget?.name }}?</v-card-title>
+          <v-card-subtitle>This cannot be undone.</v-card-subtitle>
+        </v-card-item>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="deleteConfirmTarget = null">Cancel</v-btn>
+          <v-btn color="error" variant="tonal" @click="executeDeleteCustomer">Delete</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
   </div>
-
-  <!-- Delete confirmation -->
-  <AlertDialog
-    :open="deleteConfirmTarget !== null"
-    :heading="deleteConfirmTarget ? `Delete ${deleteConfirmTarget.name}?` : ''"
-    body="This will permanently remove the customer and all their data. This cannot be undone."
-    status="danger"
-    confirm-label="Delete Customer"
-    @update:open="v => { if (!v) deleteConfirmTarget = null }"
-    @confirm="executeDeleteCustomer"
-  />
-  <ToastStack />
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import AlertDialog from '~/components/ui/AlertDialog.vue'
-import ToastStack from '~/components/ui/ToastStack.vue'
+import { useRouter } from 'vue-router'
 import { useToast } from '~/composables/useToast'
-import { Users, Plus, Search, Trash2, UserPlus, DollarSign, TrendingUp, TicketCheck } from 'lucide-vue-next'
-import { Dialog, DialogContent } from '~/components/ui/dialog'
-import { useAppStore } from '~/stores/app'
+
 definePageMeta({ middleware: ['auth'] })
-const appStore  = useAppStore()
+
+const router   = useRouter()
+const appStore = useAppStore()
 const customers = computed(() => appStore.customers ?? [])
 const tickets   = computed(() => appStore.tickets ?? [])
 const settings  = computed(() => appStore.settings ?? { currency: '$' })
-const q = ref(''); const newOpen = ref(false); const detailOpen = ref(false); const selected = ref<any>(null)
-const form = ref({ name:'', phone:'', email:'', notes:'' })
-const filteredCustomers = computed(() => customers.value.filter(c =>
-  !q.value || c.name?.toLowerCase().includes(q.value.toLowerCase()) ||
-  c.phone?.includes(q.value) || c.email?.toLowerCase().includes(q.value.toLowerCase())
-))
-const formatCurrency = (n: number) => `${settings.value?.currency||'$'}${(n||0).toFixed(2)}`
-const custRevenue = (id: number) => tickets.value.filter((t:any) => t.customerId===id).reduce((a:number,t:any)=>a+(t.price||0),0)
-const custTickets = (id: number) => tickets.value.filter((t:any) => t.customerId===id).length
-const custTicketList = (id: number) => tickets.value.filter((t:any) => t.customerId===id)
-const totalRevenue = computed(() => tickets.value.reduce((a:number,t:any)=>a+(t.price||0),0))
-const avgRevenue = computed(() => customers.value.length > 0 ? totalRevenue.value / customers.value.length : 0)
-const openDetail = (c: any) => { selected.value = c; detailOpen.value = true }
-const editingCustomer = ref<any>(null)
-const startEdit = () => { editingCustomer.value = selected.value; form.value = { ...selected.value }; detailOpen.value = false; newOpen.value = true }
-const { toast } = useToast()
-const deleteConfirmTarget = ref<any>(null)
 
-const saveCustomer = async () => {
-  if (!form.value.name) {
+const { toast } = useToast()
+
+// ── Helpers ───────────────────────────────────────────────────────
+const formatCurrency = (n: number) => `${settings.value?.currency || '$'}${(n || 0).toFixed(2)}`
+const custRevenue = (id: number) => tickets.value.filter((t: any) => t.customerId === id).reduce((a: number, t: any) => a + (t.price || 0), 0)
+const custTickets = (id: number) => tickets.value.filter((t: any) => t.customerId === id).length
+const custTicketList = (id: number) => tickets.value.filter((t: any) => t.customerId === id)
+const totalRevenue = computed(() => tickets.value.reduce((a: number, t: any) => a + (t.price || 0), 0))
+const avgRevenue   = computed(() => customers.value.length > 0 ? totalRevenue.value / customers.value.length : 0)
+
+const ticketStatusColor = (s: string) => ({ Open: 'info', 'In Progress': 'warning', 'Waiting for Parts': 'error', Completed: 'success', Delivered: 'secondary' }[s] || 'secondary')
+
+const AVATAR_COLORS = ['#6366f1','#3b82f6','#10b981','#f59e0b','#ec4899','#8b5cf6','#06b6d4','#ef4444']
+const avatarColor = (name: string) => AVATAR_COLORS[(name?.charCodeAt(0) || 0) % AVATAR_COLORS.length]
+const initials    = (name: string) => {
+  if (!name) return '?'
+  const parts = name.trim().split(' ')
+  return parts.length >= 2 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : name.slice(0, 2).toUpperCase()
+}
+
+// ── State ─────────────────────────────────────────────────────────
+const q               = ref('')
+const newOpen         = ref(false)
+const detailOpen      = ref(false)
+const selected        = ref<any>(null)
+const editingCustomer = ref<any>(null)
+const validationError = ref('')
+const form = ref({ name: '', phone: '', email: '', driversLicense: '', address: '', notes: '' })
+const deleteConfirmTarget = ref<any>(null)
+const deleteDialogOpen = computed({ get: () => !!deleteConfirmTarget.value, set: v => { if (!v) deleteConfirmTarget.value = null } })
+
+const filteredCustomers = computed(() =>
+  customers.value.filter((c: any) =>
+    !q.value || c.name?.toLowerCase().includes(q.value.toLowerCase()) || c.email?.toLowerCase().includes(q.value.toLowerCase()) || c.phone?.includes(q.value)
+  )
+)
+
+// ── Customer table headers ─────────────────────────────────────────
+const customerHeaders = [
+  { title: 'Name',    key: 'name',        minWidth: 200 },
+  { title: 'Phone',   key: 'phone',       width: 150 },
+  { title: 'Tickets', key: 'ticketCount', width: 100, align: 'center' as const, sortable: false },
+  { title: 'Revenue', key: 'revenue',     width: 120, align: 'end' as const, sortable: false },
+  { title: '',        key: 'actions',     width: 120, sortable: false },
+]
+
+// ── Actions ───────────────────────────────────────────────────────
+function openNew() {
+  editingCustomer.value = null
+  form.value = { name: '', phone: '', email: '', driversLicense: '', address: '', notes: '' }
+  validationError.value = ''
+  newOpen.value = true
+}
+
+function openDetail(c: any) {
+  selected.value = c
+  detailOpen.value = true
+}
+
+function startEdit(c?: any) {
+  const customer = c || selected.value
+  editingCustomer.value = customer
+  form.value = {
+    name: customer.name || '',
+    phone: customer.phone || '',
+    email: customer.email || '',
+    driversLicense: customer.driversLicense || '',
+    address: customer.address || '',
+    notes: customer.notes || '',
+  }
+  validationError.value = ''
+  detailOpen.value = false
+  newOpen.value = true
+}
+
+async function saveCustomer() {
+  if (!form.value.name.trim()) {
+    validationError.value = 'Please enter a customer name'
     toast.warning('Name required', 'Please enter a customer name')
     return
   }
   if (editingCustomer.value?.id) {
-    await appStore.updateCustomer(editingCustomer.value.id, {
-      name: form.value.name,
-      phone: form.value.phone,
-      email: form.value.email,
-      notes: form.value.notes,
-    })
-    toast.success('Customer Updated', form.value.name)
+    await appStore.updateCustomer(editingCustomer.value.id, { name: form.value.name, phone: form.value.phone, email: form.value.email, notes: form.value.notes, driversLicense: form.value.driversLicense, address: form.value.address })
+    toast.success('Updated', form.value.name)
   } else {
     await appStore.createCustomer({ ...form.value })
     toast.success('Customer Added', form.value.name)
   }
-  newOpen.value = false; editingCustomer.value = null; form.value = { name:'', phone:'', email:'', notes:'' }
+  newOpen.value = false
+  editingCustomer.value = null
+  form.value = { name: '', phone: '', email: '', driversLicense: '', address: '', notes: '' }
 }
 
-const deleteCustomer = (c: any) => {
+function deleteCustomer(c: any) {
   deleteConfirmTarget.value = c
 }
 
-const executeDeleteCustomer = async () => {
+async function executeDeleteCustomer() {
   if (!deleteConfirmTarget.value) return
   await appStore.deleteCustomer(deleteConfirmTarget.value.id)
   toast.success('Deleted', `${deleteConfirmTarget.value.name} removed`)
@@ -303,23 +413,8 @@ const executeDeleteCustomer = async () => {
   detailOpen.value = false
 }
 
-const messageCustomer = (c: any) => {
+function messageCustomer(c: any) {
   detailOpen.value = false
-  navigateTo({ path: '/messages', query: { compose: '1', customerId: String(c.id) } })
+  router.push({ path: '/messages', query: { compose: '1', customerId: String(c.id) } })
 }
 </script>
-
-<style scoped>
-.m3-fab { transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease; }
-.m3-fab:hover  { transform: scale(1.05) translateY(-2px); }
-.m3-fab:active { transform: scale(0.92); }
-.m3-stat-card { transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease; }
-.m3-stat-card:hover  { transform: scale(1.03) translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.1); }
-.m3-stat-card:active { transform: scale(0.96); }
-.m3-customer-card { transition: transform 0.4s cubic-bezier(0.34,1.5,0.64,1), box-shadow 0.3s ease; }
-.m3-customer-card:hover  { transform: scale(1.03) translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
-.m3-customer-card:active { transform: scale(0.96); }
-.m3-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
-.m3-input:focus { border-color:#3b82f6;box-shadow:0 0 0 3px #3b82f618; }
-.m3-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
-</style>

@@ -1,50 +1,16 @@
 /**
- * nuxt.config.ts
- *
- * FIX NOTES (TDZ / renderer$1 error):
- *
- *   1. Added `nitro.imports` to explicitly expose server/utils/* as Nitro
- *      auto-imports. Although Nitro scans server/utils by default, being
- *      explicit prevents edge cases where the scan order races the lazy-load
- *      phase that triggers the TDZ.
- *
- *   2. The `imports.autoImport: true` setting is retained so composable
- *      auto-imports keep working in the Vue layer.
- *
- *   3. All server route files (reply.ts, publish.ts, callback/[platform].ts,
- *      and all server/api/square/*.ts) have been updated to use dynamic
- *      import() for @supabase/supabase-js and ~/server/utils/squareClient
- *      instead of top-level static imports. This is the primary fix.
- *
- *   4. Electron compatibility is preserved: ssr: false is kept, and the
- *      nitro preset falls back to 'node-server' when not on Vercel.
- *
- * FIX: ERR_STREAM_WRITE_AFTER_END restart loop
- *   Vite's HMR WebSocket has a race condition: when a browser tab closes,
- *   Vite tries to send a WS close frame to an already-ended stream. The
- *   resulting rejected Promise surfaces as an `unhandledRejection` event.
- *   Nuxt's dev server catches ALL unhandledRejections and restarts — turning
- *   a harmless WebSocket race into an infinite restart loop.
- *
- *   Fix: patch process.emit BEFORE Nuxt installs its listener (this file is
- *   evaluated first) so the specific ERR_STREAM_WRITE_AFTER_END rejections
- *   are consumed here and never reach Nuxt's handler.
+ * nuxt.config.ts — NovaOps (Vuetify 3 Edition)
+ * vuetify-nuxt-module replaces @nuxtjs/tailwindcss
  */
 
-// Suppress the Vite HMR WebSocket race-condition restart loop in dev mode.
-// Must run BEFORE defineNuxtConfig so it is in place before Nuxt registers
-// its own unhandledRejection listener.
 if (process.env.NODE_ENV !== 'production') {
   const _emit = process.emit.bind(process)
-  // @ts-ignore — overriding process.emit is intentional here
-  process.emit = function (event: string, ...args: unknown[]) {
+  process.emit = function (event, ...args) {
     if (
       event === 'unhandledRejection' &&
-      ((args[0] as any)?.code === 'ERR_STREAM_WRITE_AFTER_END' ||
-        (args[0] as any)?.code === 'ECONNRESET')
-    ) {
-      return true // swallow — harmless Vite HMR WebSocket race
-    }
+      ((args[0]?.code === 'ERR_STREAM_WRITE_AFTER_END') ||
+        (args[0]?.code === 'ECONNRESET'))
+    ) return true
     return _emit(event, ...args)
   }
 }
@@ -52,8 +18,76 @@ if (process.env.NODE_ENV !== 'production') {
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
+  ssr: false,
 
-  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', '@vite-pwa/nuxt'],
+  modules: [
+    'vuetify-nuxt-module',
+    '@pinia/nuxt',
+    '@vite-pwa/nuxt',
+  ],
+
+  vuetify: {
+    moduleOptions: {
+      styles: { configFile: '~/assets/css/vuetify-settings.scss' },
+    },
+    vuetifyOptions: {
+      theme: {
+        defaultTheme: 'light',
+        themes: {
+          light: {
+            dark: false,
+            colors: {
+              primary:            '#6366f1',
+              'primary-darken-1': '#4f46e5',
+              secondary:          '#64748b',
+              success:            '#10b981',
+              warning:            '#f59e0b',
+              error:              '#ef4444',
+              info:               '#3b82f6',
+              background:         '#f8fafc',
+              surface:            '#ffffff',
+              'surface-variant':  '#f1f5f9',
+              'on-surface-variant': '#64748b',
+            },
+          },
+          dark: {
+            dark: true,
+            colors: {
+              primary:            '#818cf8',
+              'primary-darken-1': '#6366f1',
+              secondary:          '#94a3b8',
+              success:            '#34d399',
+              warning:            '#fbbf24',
+              error:              '#f87171',
+              info:               '#60a5fa',
+              background:         '#0f172a',
+              surface:            '#1e293b',
+              'surface-variant':  '#162032',
+              'on-surface-variant': '#94a3b8',
+            },
+          },
+        },
+      },
+
+      defaults: {
+        VCard:        { rounded: 'xl', elevation: 0, border: true },
+        VBtn:         { rounded: 'pill', elevation: 0 },
+        VChip:        { rounded: 'pill' },
+        VTextField:   { variant: 'outlined', density: 'comfortable', rounded: 'lg', hideDetails: 'auto' },
+        VSelect:      { variant: 'outlined', density: 'comfortable', rounded: 'lg', hideDetails: 'auto' },
+        VTextarea:    { variant: 'outlined', density: 'comfortable', rounded: 'lg', hideDetails: 'auto' },
+        VSwitch:      { color: 'primary', hideDetails: true, density: 'compact' },
+        VDialog:      { maxWidth: '480', rounded: 'xl' },
+        VSnackbar:    { rounded: 'lg', location: 'bottom right', timeout: 4000 },
+        VDataTable:   { density: 'comfortable', hover: true },
+        VNavigationDrawer: { elevation: 0 },
+        VList:        { density: 'compact', nav: true },
+        VListItem:    { rounded: 'lg' },
+      },
+
+      icons: { defaultSet: 'mdi' },
+    },
+  },
 
   pwa: {
     registerType: 'autoUpdate',
@@ -62,127 +96,69 @@ export default defineNuxtConfig({
       name: 'NovaOps',
       short_name: 'NovaOps',
       description: 'Modern Repair Shop Management System',
-      theme_color: '#0f172a',
+      theme_color: '#6366f1',
       background_color: '#0f172a',
       display: 'standalone',
-      orientation: 'portrait-primary',
       icons: [
-        {
-          src: '/icon-192.png',
-          sizes: '192x192',
-          type: 'image/png'
-        },
-        {
-          src: '/icon-512.png',
-          sizes: '512x512',
-          type: 'image/png'
-        },
-        {
-          src: '/icon-512.png',
-          sizes: '512x512',
-          type: 'image/png',
-          purpose: 'any maskable'
-        }
-      ]
+        { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+        { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+        { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+      ],
     },
     workbox: {
       navigateFallback: null,
       globPatterns: ['**/*.{js,css,html,png,svg,ico,webmanifest}'],
       runtimeCaching: [
-        {
-          urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
-          handler: 'NetworkOnly',
-          options: {
-            cacheName: 'supabase-api-cache',
-            backgroundSync: {
-              name: 'supabase-sync',
-              options: {
-                maxRetentionTime: 24 * 60
-              }
-            }
-          }
-        }
-      ]
-    },
-    client: {
-      installPrompt: true,
-      periodicSyncForUpdates: 3600
+        { urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i, handler: 'NetworkOnly' },
+      ],
     },
     devOptions: {
       enabled: true,
       suppressWarnings: true,
-      navigateFallbackAllowlist: [/^\/$/],
+      navigateFallbackAllowlist: [/^\//],
       type: 'module',
     },
   },
 
   runtimeConfig: {
-    // ── Private (server-side only) ─────────────────────────────────────────
-    squareAccessToken: process.env.SQUARE_ACCESS_TOKEN || '',
-    squareLocationId: process.env.SQUARE_LOCATION_ID || '',
-    squareSandbox: process.env.SQUARE_SANDBOX === 'true',
+    squareAccessToken:      process.env.SQUARE_ACCESS_TOKEN || '',
+    squareLocationId:       process.env.SQUARE_LOCATION_ID || '',
+    squareSandbox:          process.env.SQUARE_SANDBOX === 'true',
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-    geminiApiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY || '',
-
-    // Google OAuth — used for Gmail email support integration
-    googleClientId: process.env.GOOGLE_CLIENT_ID || '',
-    googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-
+    geminiApiKey:           process.env.GEMINI_API_KEY || '',
+    googleClientId:         process.env.GOOGLE_CLIENT_ID || '',
+    googleClientSecret:     process.env.GOOGLE_CLIENT_SECRET || '',
     public: {
-      // ── Public (safe in browser bundle) ─────────────────────────────────
       squareApplicationId: process.env.SQUARE_APPLICATION_ID || '',
-      squareLocationId: process.env.SQUARE_LOCATION_ID || '',
-      squareSandbox: process.env.SQUARE_SANDBOX === 'true',
-      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL || '',
-      supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY || '',
-      googleClientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID || '',
-
-      // EmailJS
-      emailjsServiceId: process.env.NUXT_PUBLIC_EMAILJS_SERVICE_ID || '',
-      emailjsPublicKey: process.env.NUXT_PUBLIC_EMAILJS_PUBLIC_KEY || '',
+      squareLocationId:    process.env.SQUARE_LOCATION_ID || '',
+      squareSandbox:       process.env.SQUARE_SANDBOX === 'true',
+      supabaseUrl:         process.env.NUXT_PUBLIC_SUPABASE_URL || '',
+      supabaseKey:         process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY || '',
+      googleClientId:      process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID || '',
+      emailjsServiceId:    process.env.NUXT_PUBLIC_EMAILJS_SERVICE_ID || '',
+      emailjsPublicKey:    process.env.NUXT_PUBLIC_EMAILJS_PUBLIC_KEY || '',
       emailjsTemplateCustomer: process.env.NUXT_PUBLIC_EMAILJS_TEMPLATE_CUSTOMER || '',
-    }
+    },
   },
 
   app: {
     baseURL: '/',
     buildAssetsDir: 'assets',
     head: {
+      meta: [{ name: 'theme-color', content: '#6366f1' }],
       link: [
-        { rel: 'icon',             type: 'image/x-icon', href: '/icon.ico' },
-        { rel: 'icon',             type: 'image/png',    href: '/icon-192.png', sizes: '192x192' },
-        { rel: 'apple-touch-icon',                       href: '/icon-192.png' },
-      ],
-      meta: [
-        { name: 'theme-color', content: '#0f172a' },
+        { rel: 'icon', type: 'image/x-icon', href: '/icon.ico' },
+        { rel: 'apple-touch-icon', href: '/icon-192.png' },
       ],
     },
   },
 
-  imports: { autoImport: true },
   css: ['~/assets/css/main.css'],
-
-  components: [
-    {
-      path: '~/components',
-      ignore: ['**/index.ts'],
-    },
-  ],
-
-  postcss: {
-    plugins: {
-      tailwindcss: {},
-      autoprefixer: {}
-    }
-  },
+  imports: { autoImport: true },
+  components: [{ path: '~/components', ignore: ['**/index.ts'] }],
 
   nitro: {
     preset: process.env.VERCEL ? 'vercel' : 'node-server',
-
-    // Explicitly register server/utils so Nitro's auto-import scanner
-    // resolves them before any lazy-loaded route handler runs.
-    imports: {
-      dirs: ['server/utils']
-    }
-  }
+    imports: { dirs: ['server/utils'] },
+  },
 })

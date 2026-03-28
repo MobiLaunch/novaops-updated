@@ -91,7 +91,7 @@
         <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #10b98114; outline: 2px solid #10b98128; outline-offset: 0">
           <div class="flex items-center justify-between">
             <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #10b98124"><DollarSign class="w-5 h-5" style="color: #10b981" /></div>
-            <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #10b98120; color: #10b981">REVENUE</span>
+            <StatusChip variant="success" size="sm">REVENUE</StatusChip>
           </div>
           <div>
             <p class="text-xs font-semibold text-muted-foreground">Total Revenue</p>
@@ -102,7 +102,7 @@
         <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0">
           <div class="flex items-center justify-between">
             <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #ef444424"><TrendingDown class="w-5 h-5" style="color: #ef4444" /></div>
-            <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #ef444420; color: #ef4444">COSTS</span>
+            <StatusChip variant="danger" size="sm">COSTS</StatusChip>
           </div>
           <div>
             <p class="text-xs font-semibold text-muted-foreground">Total Costs</p>
@@ -113,7 +113,7 @@
         <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #f59e0b14; outline: 2px solid #f59e0b28; outline-offset: 0">
           <div class="flex items-center justify-between">
             <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #f59e0b24"><Receipt class="w-5 h-5" style="color: #f59e0b" /></div>
-            <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #f59e0b20; color: #f59e0b">TAX</span>
+            <StatusChip variant="warning" size="sm">TAX</StatusChip>
           </div>
           <div>
             <p class="text-xs font-semibold text-muted-foreground">Tax Collected</p>
@@ -124,7 +124,7 @@
         <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #6366f114; outline: 2px solid #6366f128; outline-offset: 0">
           <div class="flex items-center justify-between">
             <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #6366f124"><Target class="w-5 h-5" style="color: #6366f1" /></div>
-            <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #6366f120; color: #6366f1">AVG</span>
+            <StatusChip variant="accent" size="sm">AVG</StatusChip>
           </div>
           <div>
             <p class="text-xs font-semibold text-muted-foreground">Avg Ticket Value</p>
@@ -265,7 +265,6 @@
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-bold truncate">{{ exp.description }}</p>
                 <div class="flex items-center gap-2">
-                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" :style="`background: ${expenseCategoryColor(exp.category)}18; color: ${expenseCategoryColor(exp.category)}`">{{ exp.category }}</span>
                   <span class="text-[10px] text-muted-foreground font-semibold">{{ formatDate(exp.date) }}</span>
                 </div>
               </div>
@@ -368,7 +367,7 @@
             <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #10b98114; outline: 2px solid #10b98128; outline-offset: 0">
               <div class="flex items-center justify-between">
                 <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #10b98124"><DollarSign class="w-5 h-5" style="color: #10b981" /></div>
-                <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #10b98120; color: #10b981">REVENUE</span>
+                <StatusChip variant="success" size="sm">REVENUE</StatusChip>
               </div>
               <div>
                 <p class="text-xs font-semibold text-muted-foreground">Square Revenue</p>
@@ -379,7 +378,7 @@
             <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0">
               <div class="flex items-center justify-between">
                 <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #ef444424"><TrendingDown class="w-5 h-5" style="color: #ef4444" /></div>
-                <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #ef444420; color: #ef4444">FEES</span>
+                <StatusChip variant="danger" size="sm">FEES</StatusChip>
               </div>
               <div>
                 <p class="text-xs font-semibold text-muted-foreground">Processing Fees</p>
@@ -390,7 +389,7 @@
             <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #6366f114; outline: 2px solid #6366f128; outline-offset: 0">
               <div class="flex items-center justify-between">
                 <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #6366f124"><Target class="w-5 h-5" style="color: #6366f1" /></div>
-                <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #6366f120; color: #6366f1">NET</span>
+                <StatusChip variant="accent" size="sm">NET</StatusChip>
               </div>
               <div>
                 <p class="text-xs font-semibold text-muted-foreground">Net Revenue</p>
@@ -401,7 +400,7 @@
             <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #f59e0b14; outline: 2px solid #f59e0b28; outline-offset: 0">
               <div class="flex items-center justify-between">
                 <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #f59e0b24"><Receipt class="w-5 h-5" style="color: #f59e0b" /></div>
-                <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #f59e0b20; color: #f59e0b">TIPS</span>
+                <StatusChip variant="warning" size="sm">TIPS</StatusChip>
               </div>
               <div>
                 <p class="text-xs font-semibold text-muted-foreground">Tips Received</p>
@@ -412,7 +411,7 @@
             <div class="m3-kpi rounded-[28px] p-5 flex flex-col gap-3" style="background: #06b6d414; outline: 2px solid #06b6d428; outline-offset: 0">
               <div class="flex items-center justify-between">
                 <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" style="background: #06b6d424"><Truck class="w-5 h-5" style="color: #06b6d4" /></div>
-                <span class="text-[10px] font-black px-2 py-1 rounded-full" style="background: #06b6d420; color: #06b6d4">DEPOSITS</span>
+                <StatusChip variant="info" size="sm">DEPOSITS</StatusChip>
               </div>
               <div>
                 <p class="text-xs font-semibold text-muted-foreground">Bank Deposits</p>
@@ -554,6 +553,7 @@
     </Dialog>
 
   </div>
+  <ToastStack />
 </template>
 
 <script setup lang="ts">
@@ -563,6 +563,9 @@ import {
   Wrench, ShoppingCart, Home, Zap, Wifi, Package, Truck, Users
 } from 'lucide-vue-next'
 import { Dialog, DialogContent } from '~/components/ui/dialog'
+import StatusChip from '~/components/ui/StatusChip.vue'
+import ToastStack from '~/components/ui/ToastStack.vue'
+import { useToast } from '~/composables/useToast'
 
 definePageMeta({ middleware: ['auth'] })
 
@@ -702,7 +705,8 @@ const kpiCards = computed(() => [
   { label: 'Avg Ticket Value', value: formatCurrency(avgTicketValue.value), color: '#f97316', icon: Target, change: null, changePositive: true, sub: 'Per completed job' },
 ])
 
-// Expenses — backed by store (persisted)
+const { toast } = useToast()
+
 const addExpenseOpen = ref(false)
 const expenseForm = ref({ description: '', amount: 0, category: 'Overhead', date: new Date().toISOString().split('T')[0] })
 const expenseCategories = [
@@ -724,10 +728,12 @@ const logExpense = async () => {
   await appStore.saveAll()
   addExpenseOpen.value = false
   expenseForm.value = { description: '', amount: 0, category: 'Overhead', date: new Date().toISOString().split('T')[0] }
+  toast.success('Expense Logged', 'Expense has been added')
 }
 const deleteExpense = async (id: number) => {
   appStore.expenses = appStore.expenses.filter((e: any) => e.id !== id)
   await appStore.saveAll()
+  toast.success('Deleted', 'Expense removed')
 }
 
 const formatCurrency = (n: number) => `${settings.value?.currency || '$'}${(n || 0).toFixed(2)}`

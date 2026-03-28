@@ -1,334 +1,51 @@
-@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+/* ── NovaOps Global Styles (Vuetify Edition) ── */
 
-/* Google Sans fallback - Nunito is a strong visual match */
+/* Google Sans + Nunito */
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* ── Base ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
 
-@layer base {
-  :root {
-    /* ── Lighter, Crisp, Premium Light Mode ── */
-    --background: 210 40% 98%;      /* Very soft, cool tinted white background */
-    --foreground: 222 47% 11%;      /* Sharp, dark slate text */
+html, body { height: 100%; margin: 0; }
 
-    --card: 0 0% 100%;              /* Pure white cards */
-    --card-foreground: 222 47% 11%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-
-    --primary: 245 80% 58%;         /* Vibrant indigo */
-    --primary-foreground: 0 0% 100%;/* White text on primary buttons */
-
-    --secondary: 210 40% 96%;       /* Very soft blue-gray for secondary surfaces */
-    --secondary-foreground: 222 47% 11%;
-
-    --muted: 210 40% 95.1%;         /* Slightly darker for muted borders/fills */
-    --muted-foreground: 215 16% 47%;/* Gray text for secondary text */
-
-    --accent: 245 80% 95%;          /* Tinted indigo for active states */
-    --accent-foreground: 245 80% 45%;
-
-    --destructive: 0 84% 60%;       /* Red */
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 214.3 31.8% 91.4%;    /* Soft, airy borders */
-    --input: 214.3 31.8% 91.4%;
-    --ring: 245 80% 58%;            /* Focus rings */
-
-    --radius: 0.6rem;
-
-    /* ── Scrollbar tokens (light) ── */
-    --sb-size:       5px;
-    --sb-track:      hsl(210 40% 96%);
-    --sb-thumb:      hsl(215 16% 76%);
-    --sb-thumb-hover:hsl(245 80% 62%);
-    --sb-radius:     99px;
-    --sb-glow:       rgba(99, 102, 241, 0.25);
-  }
-
-  .dark {
-    /* ── Softer, More Legible Dark Mode ── */
-    --background: 224 30% 6%;       /* Deeper, more saturated ink blue/black */
-    --foreground: 210 40% 98%;      /* Crisp white text */
-
-    --card: 224 28% 10%;            /* Slightly elevated card bg */
-    --card-foreground: 210 40% 98%;
-
-    --popover: 224 28% 10%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 245 80% 65%;         /* Brighter indigo for dark mode contrast */
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 224 25% 15%;       /* Softer secondary background */
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 224 25% 14%;           /* Softer muted backgrounds */
-    --muted-foreground: 215 20% 65%;/* Brighter muted text for readability */
-
-    --accent: 245 60% 18%;          /* Deep indigo accent */
-    --accent-foreground: 245 80% 75%;
-
-    --destructive: 0 62% 45%;       /* Slightly muted red */
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 224 25% 16%;          /* Higher contrast borders */
-    --input: 224 25% 16%;
-    --ring: 245 80% 65%;
-
-    /* ── Scrollbar tokens (dark) ── */
-    --sb-track:      hsl(224 28% 8%);
-    --sb-thumb:      hsl(224 25% 22%);
-    --sb-thumb-hover:hsl(245 70% 62%);
-    --sb-glow:       rgba(99, 102, 241, 0.4);
-  }
+body {
+  font-family: 'Google Sans', 'Nunito', sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-    font-family: 'Google Sans', 'Nunito', sans-serif;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Google Sans', 'Nunito', sans-serif;
-  }
-}
+/* ── Vuetify overrides ────────────────────────── */
 
-/* ────────────────────────────────────────────────────────────────
-   Custom scrollbars — matches the app's dark-navy / indigo palette.
+/* Tighter card borders */
+.v-card { border-color: rgba(0,0,0,0.08) !important; }
+.v-theme--dark .v-card { border-color: rgba(255,255,255,0.08) !important; }
 
-   Strategy:
-   • Firefox  → scrollbar-width + scrollbar-color (two-value shorthand)
-   • Chromium → ::-webkit-scrollbar-* pseudo-elements
-   • Both targets share the same CSS-variable tokens so theme switching
-     (light ↔ dark) is automatic.
-
-   The thumb fades in from transparent when the container is scrollable
-   and lights up with a soft indigo glow on hover — same language as the
-   menu bar dropdowns and the DriverSetupDialog panel.
-   ──────────────────────────────────────────────────────────────── */
-
-/* ── Firefox ── */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--sb-thumb) var(--sb-track);
-}
-
-/* ── Chromium / WebKit ── */
-
-/* Track */
-::-webkit-scrollbar {
-  width:  var(--sb-size);
-  height: var(--sb-size);   /* horizontal scrollbars */
-}
-
-::-webkit-scrollbar-track {
-  background:    var(--sb-track);
-  border-radius: var(--sb-radius);
-  /* Subtle inner shadow so the track reads as a recessed channel */
-  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.08);
-}
-
-::-webkit-scrollbar-corner {
-  background: var(--sb-track);
-}
-
-/* Thumb — base state */
-::-webkit-scrollbar-thumb {
-  background:    var(--sb-thumb);
-  border-radius: var(--sb-radius);
-  /* 1 px transparent border creates a gap between thumb and track edges,
-     making the thumb appear to float in the channel */
-  border: 1px solid transparent;
-  background-clip: padding-box;
-  transition: background 0.2s ease, box-shadow 0.2s ease;
-}
-
-/* Thumb — hover: brightens to the primary indigo and adds a soft glow */
-::-webkit-scrollbar-thumb:hover {
-  background:    var(--sb-thumb-hover);
-  background-clip: padding-box;
-  box-shadow: 0 0 6px var(--sb-glow);
-}
-
-/* Thumb — active (dragging): slightly more saturated */
-::-webkit-scrollbar-thumb:active {
-  background: hsl(245 80% 55%);
-  background-clip: padding-box;
-  box-shadow: 0 0 10px var(--sb-glow);
-}
-
-/* ── Scrollbars inside dark panels (DriverSetupDialog, modals, etc.)
-   These panels set their own dark backgrounds independent of .dark,
-   so we target them directly to ensure the scrollbar always matches. ── */
-
-/* DriverSetupDialog tool list + any panel with the dark bg */
-.dsd-tool-list,
-[style*="background: #090e1a"],
-[style*="background:#090e1a"],
-[style*="background: #0d1421"],
-[style*="background:#0d1421"] {
-  scrollbar-color: #1e3049 #090e1a;
-}
-
-.dsd-tool-list::-webkit-scrollbar-track,
-[style*="background: #090e1a"]::-webkit-scrollbar-track,
-[style*="background:#090e1a"]::-webkit-scrollbar-track,
-[style*="background: #0d1421"]::-webkit-scrollbar-track,
-[style*="background:#0d1421"]::-webkit-scrollbar-track {
-  background: #090e1a;
-}
-
-.dsd-tool-list::-webkit-scrollbar-thumb,
-[style*="background: #090e1a"]::-webkit-scrollbar-thumb,
-[style*="background:#090e1a"]::-webkit-scrollbar-thumb,
-[style*="background: #0d1421"]::-webkit-scrollbar-thumb,
-[style*="background:#0d1421"]::-webkit-scrollbar-thumb {
-  background: #1e3049;
-  border: 1px solid transparent;
-  background-clip: padding-box;
-}
-
-.dsd-tool-list::-webkit-scrollbar-thumb:hover,
-[style*="background: #090e1a"]::-webkit-scrollbar-thumb:hover,
-[style*="background:#090e1a"]::-webkit-scrollbar-thumb:hover,
-[style*="background: #0d1421"]::-webkit-scrollbar-thumb:hover,
-[style*="background:#0d1421"]::-webkit-scrollbar-thumb:hover {
-  background: #4ade80;
-  background-clip: padding-box;
-  box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
-}
-
-/* ── Rail nav override: ultra-slim, nearly invisible at rest ── */
-/* The sidebar rail is only 76px wide — keep its scrollbar razor thin */
-aside ::-webkit-scrollbar {
-  width: 3px;
-}
-
-aside ::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-aside ::-webkit-scrollbar-thumb {
-  background: hsl(var(--border) / 0.5);
-  border-radius: 99px;
-  border: none;
-}
-
-aside ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary) / 0.6);
-  box-shadow: 0 0 4px hsl(var(--primary) / 0.4);
-}
-
-/* Firefox equivalent for sidebar */
-aside nav {
-  scrollbar-width: thin;
-  scrollbar-color: hsl(var(--border) / 0.4) transparent;
-}
-
-/* ── Global M3 UI utilities (repair-shop consistent forms & cards) ── */
-.m3-label {
-  display: block;
-  font-size: 10px;
-  font-weight: 800;
-  color: hsl(var(--muted-foreground));
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  margin-bottom: 0.5rem;
-}
-
-.m3-input {
-  width: 100%;
-  height: 48px;
-  padding: 0 20px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
-  background: hsl(var(--muted) / 0.5);
-  border: 2px solid hsl(var(--border) / 0.7);
-  color: hsl(var(--foreground));
-  outline: none;
-  transition: all 0.2s ease;
-}
-
-.m3-input:focus {
-  border-color: hsl(var(--primary) / 0.8);
-  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.15);
-}
-
-textarea.m3-input,
-select.m3-input {
-  height: auto;
-  min-height: 48px;
-  padding-top: 12px;
-  padding-bottom: 12px;
-}
-
-.m3-btn-tonal {
-  background: hsl(var(--muted) / 0.7);
-  outline: 2px solid hsl(var(--border) / 0.6);
-  outline-offset: 0;
-  border-radius: 999px;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.m3-btn-tonal:hover {
-  transform: scale(1.04);
-}
-
-.m3-btn-tonal:active {
-  transform: scale(0.94);
-}
-
-.m3-btn-primary {
-  background: linear-gradient(135deg, hsl(var(--primary)), hsl(262 83% 58%));
-  color: white;
+/* Navigation rail item active pill */
+.v-navigation-drawer .v-list-item--active {
   font-weight: 700;
-  border-radius: 999px;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
 }
 
-.m3-btn-primary:hover {
-  transform: scale(1.05) translateY(-2px);
-  box-shadow: 0 8px 28px hsl(var(--primary) / 0.35);
-}
+/* Data table — zebra rows on hover */
+.v-data-table__tr:hover td { background: rgba(99,102,241,0.04) !important; }
 
-.m3-btn-primary:active {
-  transform: scale(0.92);
-}
+/* Snackbar bottom-right positioning fix for Nuxt */
+.v-snackbar__wrapper { margin: 16px !important; }
 
-.m3-kpi {
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
-}
+/* Chip size tweaks */
+.v-chip.v-chip--size-x-small { font-size: 10px; font-weight: 700; }
+.v-chip.v-chip--size-small    { font-size: 11px; font-weight: 700; }
 
-.m3-kpi:hover {
-  transform: scale(1.04) translateY(-3px);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
-}
+/* Page transition */
+.page-enter-active { transition: all 0.2s ease-out; }
+.page-leave-active { transition: all 0.15s ease-in; }
+.page-enter-from   { opacity: 0; transform: translateY(6px); }
+.page-leave-to     { opacity: 0; }
 
-.m3-kpi:active {
-  transform: scale(0.96);
-}
+/* Scrollbar */
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(100,116,139,0.3); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.5); }
 
-.m3-card,
-.m3-stat-card {
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
-}
-
-.m3-card:hover,
-.m3-stat-card:hover {
-  transform: scale(1.03) translateY(-3px);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
-}
-
-.m3-card:active,
-.m3-stat-card:active {
-  transform: scale(0.96);
-}
+/* ── Electron titlebar gap ───────────────────── */
+.electron-app { padding-top: 40px; }

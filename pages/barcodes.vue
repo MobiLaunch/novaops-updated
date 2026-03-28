@@ -179,12 +179,16 @@
 <script setup lang="ts">
 import { ScanLine, Barcode, Package, Layers } from 'lucide-vue-next'
 import { printHtmlContent, printBarcodeLabel, printBarcodeBatch } from '~/utils/print'
+import StatusChip from '~/components/ui/StatusChip.vue'
+import ToastStack from '~/components/ui/ToastStack.vue'
+import { useToast } from '~/composables/useToast'
 definePageMeta({ middleware: ['auth'] })
 
 const appStore  = useAppStore()
 const inventory = computed(() => appStore.inventory ?? [])
 const settings  = computed(() => appStore.settings ?? { currency: '$' })
 const formatCurrency = (n: number) => `${settings.value?.currency || '$'}${(n || 0).toFixed(2)}`
+const { toast } = useToast()
 
 const mode          = ref('Generate')
 const barcodeValue  = ref('')
@@ -279,13 +283,12 @@ function getSvgDataUrl(): string | null {
 
 function printBarcode() {
   const label = barcodeLabel.value || barcodeValue.value
-  
-  // Hand off to our central print manager which will attempt WebUSB (ZPL) natively first
   printBarcodeLabel({
     sku: barcodeValue.value,
     name: label,
     format: barcodeFormat.value === 'QR' ? 'QR' : 'CODE128',
   })
+  toast.success('Sent to Printer', label)
 }
 
 function downloadBarcode() {
@@ -295,6 +298,7 @@ function downloadBarcode() {
   a.href = dataUrl
   a.download = `barcode-${barcodeValue.value}.${barcodeFormat.value === 'QR' ? 'png' : 'svg'}`
   a.click()
+  toast.success('Downloaded', `barcode-${barcodeValue.value}`)
 }
 
 // ── Batch Print ───────────────────────────────────────────────────────────────

@@ -1,1 +1,0 @@
-<template><slot/></template><script setup>import { provide, computed } from 'vue'; const props = defineProps({ open: Boolean }); const emits = defineEmits(['update:open']); provide('dialogState', { open: computed(() => props.open), close: () => emits('update:open', false) });</script>

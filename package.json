@@ -1,7 +1,7 @@
 {
-  "name": "novaops-shadcn",
+  "name": "novaops",
   "version": "3.1.0",
-  "description": "NovaOps — Modern Repair Shop Management System",
+  "description": "NovaOps \u2014 Repair Shop Management (Vuetify 3 + Nuxt 3)",
   "private": true,
   "type": "module",
   "scripts": {
@@ -15,7 +15,6 @@
     "@pinia/nuxt": "^0.11.3",
     "@supabase/supabase-js": "^2.96.0",
     "@vueuse/core": "^11.0.0",
-    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "jsbarcode": "^3.12.3",
     "lucide-vue-next": "^0.460.0",
@@ -23,21 +22,16 @@
     "nuxt": "^3.13.2",
     "pinia": "^3.0.4",
     "qrcode": "^1.5.4",
-    "radix-vue": "^1.9.17",
-    "tailwind-merge": "^2.6.1",
-    "tailwindcss-animate": "^1.0.7",
-    "vaul-vue": "^0.2.0",
-    "vue": "^3.4.38"
+    "vue": "^3.4.38",
+    "vuetify": "^3.7.0",
+    "@mdi/font": "^7.4.47"
   },
   "devDependencies": {
     "@nuxt/devtools": "^1.5.1",
-    "@nuxtjs/tailwindcss": "^6.12.0",
     "@vite-pwa/nuxt": "^1.1.1",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.0",
     "typescript": "^5.5.4",
-    "wait-on": "^8.0.1"
+    "wait-on": "^8.0.1",
+    "vuetify-nuxt-module": "^0.18.0"
   },
   "overrides": {
     "@parcel/watcher": "2.4.1"

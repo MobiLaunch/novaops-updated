@@ -1,7 +1,6 @@
 <template>
   <div :class="{ 'electron-app': isElectron }">
     <VitePwaManifest />
-    <ElectronTitlebar />
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
@@ -19,19 +18,10 @@ onMounted(() => {
 useHead({
   link: [
     { rel: 'icon',             type: 'image/x-icon',  href: '/icon.ico' },
-    { rel: 'icon',             type: 'image/png',     href: '/icon-192.png', sizes: '192x192' },
-    { rel: 'icon',             type: 'image/png',     href: '/icon-512.png', sizes: '512x512' },
-    { rel: 'apple-touch-icon',                        href: '/icon-192.png' },
-    { rel: 'shortcut icon',    type: 'image/x-icon',  href: '/icon.ico' },
+    { rel: 'apple-touch-icon',                         href: '/icon-192.png' },
   ],
   meta: [
-    { name: 'theme-color', content: '#0f172a' },
+    { name: 'theme-color', content: '#6366f1' },
   ],
 })
 </script>
-
-<style>
-.electron-app {
-  padding-top: 40px;
-}
-</style>

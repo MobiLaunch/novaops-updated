@@ -1,0 +1,10 @@
+// vuetify-settings.scss
+// Global Vuetify SCSS variable overrides.
+// This file is injected into every Vuetify component's styles.
+
+@use 'vuetify/settings' with (
+  $border-radius-root: 8px,
+  $font-size-root: 14px,
+  $body-font-family: ('Google Sans', 'Nunito', sans-serif),
+  $heading-font-family: ('Google Sans', 'Nunito', sans-serif)
+);
