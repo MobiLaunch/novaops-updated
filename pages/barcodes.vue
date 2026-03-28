@@ -179,8 +179,6 @@
 <script setup lang="ts">
 import { ScanLine, Barcode, Package, Layers } from 'lucide-vue-next'
 import { printHtmlContent, printBarcodeLabel, printBarcodeBatch } from '~/utils/print'
-import StatusChip from '~/components/ui/StatusChip.vue'
-import ToastStack from '~/components/ui/ToastStack.vue'
 import { useToast } from '~/composables/useToast'
 definePageMeta({ middleware: ['auth'] })
 

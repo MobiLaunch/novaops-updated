@@ -553,7 +553,6 @@
     </Dialog>
 
   </div>
-  <ToastStack />
 </template>
 
 <script setup lang="ts">
@@ -562,9 +561,6 @@ import {
   Target, CreditCard, Download, Plus, Trash2, ClipboardList, PieChart,
   Wrench, ShoppingCart, Home, Zap, Wifi, Package, Truck, Users
 } from 'lucide-vue-next'
-import { Dialog, DialogContent } from '~/components/ui/dialog'
-import StatusChip from '~/components/ui/StatusChip.vue'
-import ToastStack from '~/components/ui/ToastStack.vue'
 import { useToast } from '~/composables/useToast'
 
 definePageMeta({ middleware: ['auth'] })

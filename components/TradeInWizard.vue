@@ -1,6 +1,6 @@
 <template>
-  <Dialog v-model:open="isOpen">
-    <DialogContent class="w-full max-w-[96vw] sm:max-w-2xl max-h-[90dvh] overflow-hidden flex flex-col">
+  <v-dialog v-model="isOpen" max-width="800" scrollable>
+    <v-card rounded="xl" class="d-flex flex-column" style="max-height:90dvh">
 
       <!-- Header -->
       <div class="flex-shrink-0 px-6 pt-6 pb-4 border-b border-border/50">
@@ -450,8 +450,8 @@
         </button>
       </div>
 
-    </DialogContent>
-  </Dialog>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -459,7 +459,7 @@ import {
   ArrowLeftRight, ChevronLeft, ChevronRight, Search, TrendingUp,
   AlertTriangle, CheckCircle, Fingerprint, CheckCircle2,
 } from 'lucide-vue-next'
-import { Dialog, DialogContent } from '~/components/ui/dialog'
+
 import CustomerSelect from '~/components/CustomerSelect.vue'
 import { useAppStore } from '~/stores/app'
 import { storeToRefs } from 'pinia'

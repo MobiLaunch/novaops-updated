@@ -260,10 +260,11 @@
             </template>
           </v-list-item>
         </v-list>
+      </template>
 
-        <template #append>
-          <div class="pa-3 border-t">
-            <v-list-item
+      <template v-if="activeDrawer === 'tools'" #append>
+        <div class="pa-3 border-t">
+          <v-list-item
               :subtitle="userEmail"
               rounded="lg"
               class="cursor-pointer"
@@ -278,8 +279,7 @@
                 <span class="text-caption font-weight-bold">{{ settings?.businessName || 'NovaOps' }}</span>
               </template>
             </v-list-item>
-          </div>
-        </template>
+        </div>
       </template>
     </v-navigation-drawer>
 

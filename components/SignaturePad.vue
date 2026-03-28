@@ -1,12 +1,13 @@
 <template>
-  <div class="space-y-2">
-    <Label>{{ label }}</Label>
-    <div class="border border-border rounded-lg overflow-hidden bg-background">
+  <div class="d-flex flex-column gap-2">
+    <label class="text-caption font-weight-bold text-medium-emphasis text-uppercase">{{ label }}</label>
+    <div class="border rounded-lg overflow-hidden bg-surface">
       <canvas
         ref="canvasRef"
         :width="width"
         :height="height"
-        class="touch-none cursor-crosshair"
+        class="touch-none"
+        style="cursor:crosshair"
         @mousedown="startDrawing"
         @mousemove="draw"
         @mouseup="stopDrawing"
@@ -16,24 +17,15 @@
         @touchend.prevent="stopDrawing"
       />
     </div>
-    <div class="flex gap-2">
-      <Button variant="outline" size="sm" @click="clear">
-        <X class="w-4 h-4 mr-1" />
-        Clear
-      </Button>
-      <Button variant="outline" size="sm" @click="save">
-        <Save class="w-4 h-4 mr-1" />
-        Save Signature
-      </Button>
+    <div class="d-flex gap-2">
+      <v-btn variant="outlined" size="small" prepend-icon="mdi-close" @click="clear">Clear</v-btn>
+      <v-btn variant="outlined" size="small" prepend-icon="mdi-content-save" @click="save">Save Signature</v-btn>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { X, Save } from 'lucide-vue-next'
-import { Button } from '~/components/ui/button'
-import { Label } from '~/components/ui/label'
 
 const props = defineProps<{
   label?: string
@@ -58,7 +50,7 @@ onMounted(() => {
       ctx.value.lineWidth = 2
       ctx.value.lineCap = 'round'
     }
-    
+
     // Load existing signature
     if (props.modelValue) {
       const img = new Image()
@@ -95,7 +87,7 @@ const stopDrawing = () => {
 const getPosition = (e: MouseEvent | TouchEvent) => {
   if (!canvasRef.value) return null
   const rect = canvasRef.value.getBoundingClientRect()
-  
+
   if (e instanceof MouseEvent) {
     return {
       x: e.clientX - rect.left,

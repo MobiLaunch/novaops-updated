@@ -380,7 +380,6 @@
     </Transition>
 
   </div>
-  <ToastStack />
 </template>
 
 <script setup lang="ts">
@@ -391,7 +390,6 @@ import {
 } from 'lucide-vue-next'
 import CustomerSelect from '~/components/CustomerSelect.vue'
 import { printReceipt } from '~/utils/print'
-import ToastStack from '~/components/ui/ToastStack.vue'
 import { useToast } from '~/composables/useToast'
 
 definePageMeta({ middleware: ['auth'] })

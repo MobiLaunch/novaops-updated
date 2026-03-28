@@ -1,101 +1,54 @@
 <template>
-  <Card>
-    <CardHeader>
-      <CardTitle>Account Settings</CardTitle>
-    </CardHeader>
-    <CardContent class="space-y-4">
-      <div class="flex items-center gap-4 mb-6">
-        <div class="relative">
-          <div class="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary">
+  <v-card>
+    <v-card-item>
+      <v-card-title>Account Settings</v-card-title>
+    </v-card-item>
+    <v-card-text class="d-flex flex-column gap-4">
+      <div class="d-flex align-center gap-4 mb-2">
+        <div class="position-relative">
+          <v-avatar color="primary" size="80" class="text-h5 font-weight-bold">
             {{ getInitials(accountForm.name) }}
-          </div>
-          <Button 
-            size="icon" 
-            variant="outline"
-            class="absolute -bottom-1 -right-1 h-8 w-8 rounded-full"
+          </v-avatar>
+          <v-btn
+            icon="mdi-camera"
+            size="x-small"
+            variant="outlined"
+            class="position-absolute"
+            style="bottom:-4px;right:-4px"
             @click="changeAvatar"
-          >
-            <Camera class="w-4 h-4" />
-          </Button>
+          />
         </div>
         <div>
-          <p class="text-sm text-muted-foreground">Profile Picture</p>
-          <p class="text-xs text-muted-foreground mt-1">Click camera to change</p>
+          <p class="text-body-2 text-medium-emphasis">Profile Picture</p>
+          <p class="text-caption text-medium-emphasis mt-1">Click camera to change</p>
         </div>
       </div>
 
-      <div class="space-y-2">
-        <Label for="acc-name">Full Name *</Label>
-        <Input id="acc-name" v-model="accountForm.name" placeholder="Your Name" />
-      </div>
+      <v-text-field v-model="accountForm.name" label="Full Name *" placeholder="Your Name" />
+      <v-text-field v-model="accountForm.email" label="Email *" type="email" placeholder="you@example.com" />
+      <v-select v-model="accountForm.role" label="Role" :items="['owner','manager','technician']" />
 
-      <div class="space-y-2">
-        <Label for="acc-email">Email *</Label>
-        <Input id="acc-email" v-model="accountForm.email" type="email" placeholder="you@example.com" />
-      </div>
+      <v-divider />
+      <p class="text-body-2 font-weight-medium mb-0">Change Password</p>
+      <v-text-field v-model="accountForm.currentPassword" type="password" placeholder="Current password" />
+      <v-text-field v-model="accountForm.newPassword" type="password" placeholder="New password" />
+      <v-text-field v-model="accountForm.confirmPassword" type="password" placeholder="Confirm new password" />
 
-      <div class="space-y-2">
-        <Label for="acc-role">Role</Label>
-        <Select v-model="accountForm.role">
-          <SelectTrigger id="acc-role">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="owner">Owner</SelectItem>
-            <SelectItem value="manager">Manager</SelectItem>
-            <SelectItem value="technician">Technician</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div class="pt-4 border-t">
-        <p class="text-sm font-medium mb-2">Change Password</p>
-        <div class="space-y-3">
-          <Input 
-            v-model="accountForm.currentPassword" 
-            type="password" 
-            placeholder="Current password" 
-          />
-          <Input 
-            v-model="accountForm.newPassword" 
-            type="password" 
-            placeholder="New password" 
-          />
-          <Input 
-            v-model="accountForm.confirmPassword" 
-            type="password" 
-            placeholder="Confirm new password" 
-          />
-        </div>
-      </div>
-
-      <Button class="w-full" @click="saveAccount">
-        <Save class="w-4 h-4 mr-2" />
-        Save Changes
-      </Button>
-    </CardContent>
-  </Card>
-  <AppAlert
+      <v-btn block color="primary" prepend-icon="mdi-content-save" @click="saveAccount">Save Changes</v-btn>
+    </v-card-text>
+  </v-card>
+  <v-alert
     v-if="validationAlert"
-    status="warning"
-    :title="validationAlert"
-    :inline="true"
-    :dismissible="true"
+    type="warning"
+    :text="validationAlert"
+    closable
     class="mt-3"
-    @dismiss="validationAlert = ''"
+    @click:close="validationAlert = ''"
   />
-  <ToastStack />
 </template>
 
 <script setup lang="ts">
 import { Camera, Save } from 'lucide-vue-next'
-import { Card, CardHeader, CardTitle, CardContent } from '~/components/ui/card'
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
-import AppAlert from '~/components/ui/AppAlert.vue'
-import ToastStack from '~/components/ui/ToastStack.vue'
 import { useToast } from '~/composables/useToast'
 
 const { addNotification } = useNotifications()

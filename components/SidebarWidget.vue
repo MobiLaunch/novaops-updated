@@ -1,93 +1,96 @@
 <template>
-  <div class="space-y-4">
+  <div class="d-flex flex-column gap-4">
     <!-- Upcoming Appointments Section -->
-    <Card class="border-violet-500/20">
-      <CardHeader class="pb-3">
-        <div class="flex items-center justify-between">
-          <CardTitle class="text-sm font-semibold flex items-center gap-2">
-            <CalendarClock class="w-4 h-4 text-violet-500" />
+    <v-card variant="outlined" style="border-color:rgba(139,92,246,0.2)">
+      <v-card-item>
+        <template #title>
+          <div class="d-flex align-center gap-2 text-body-2 font-weight-bold">
+            <CalendarClock :size="16" style="color:#8b5cf6" />
             Upcoming
-          </CardTitle>
-          <Button variant="ghost" size="sm" @click="navigateTo('/bookings')" class="h-7 text-xs">
-            View All
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent class="space-y-2">
-        <div
-          v-for="item in upcomingItems.slice(0, 5)"
-          :key="item.id"
-          class="p-3 rounded-lg bg-gradient-to-br from-violet-500/5 to-blue-500/5 border border-violet-500/10 hover:border-violet-500/30 transition-colors cursor-pointer"
-          @click="navigateToItem(item)"
-        >
-          <div class="flex items-start gap-3">
-            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center flex-shrink-0">
-              <component :is="getIcon(item.type)" class="w-4 h-4 text-white" />
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium line-clamp-1">{{ item.title }}</p>
-              <p class="text-xs text-muted-foreground line-clamp-1">{{ item.subtitle }}</p>
-              <div class="flex items-center gap-1 mt-1">
-                <Clock class="w-3 h-3 text-violet-500" />
-                <span class="text-xs text-violet-500">{{ item.timeFromNow }}</span>
+          </div>
+        </template>
+        <template #append>
+          <v-btn variant="text" size="small" @click="navigateTo('/bookings')">View All</v-btn>
+        </template>
+      </v-card-item>
+      <v-card-text>
+        <div class="d-flex flex-column gap-2">
+          <v-card
+            v-for="item in upcomingItems.slice(0, 5)"
+            :key="item.id"
+            variant="tonal"
+            rounded="lg"
+            class="pa-3 cursor-pointer"
+            @click="navigateToItem(item)"
+          >
+            <div class="d-flex align-start gap-3">
+              <v-avatar color="primary" size="32" rounded="lg">
+                <component :is="getIcon(item.type)" :size="16" color="white" />
+              </v-avatar>
+              <div class="flex-grow-1" style="min-width:0">
+                <p class="text-body-2 font-weight-medium text-truncate mb-0">{{ item.title }}</p>
+                <p class="text-caption text-medium-emphasis text-truncate mb-0">{{ item.subtitle }}</p>
+                <div class="d-flex align-center gap-1 mt-1">
+                  <Clock :size="12" style="color:#8b5cf6" />
+                  <span class="text-caption" style="color:#8b5cf6">{{ item.timeFromNow }}</span>
+                </div>
               </div>
             </div>
+          </v-card>
+
+          <div v-if="upcomingItems.length === 0" class="text-center py-6">
+            <CalendarClock :size="32" class="mx-auto mb-2 text-medium-emphasis" style="opacity:0.5" />
+            <p class="text-caption text-medium-emphasis mb-0">No upcoming items</p>
           </div>
         </div>
-
-        <div v-if="upcomingItems.length === 0" class="text-center py-6">
-          <CalendarClock class="w-8 h-8 mx-auto mb-2 text-muted-foreground opacity-50" />
-          <p class="text-xs text-muted-foreground">No upcoming items</p>
-        </div>
-      </CardContent>
-    </Card>
+      </v-card-text>
+    </v-card>
 
     <!-- Notifications Section -->
-    <Card class="border-blue-500/20">
-      <CardHeader class="pb-3">
-        <div class="flex items-center justify-between">
-          <CardTitle class="text-sm font-semibold flex items-center gap-2">
-            <Bell class="w-4 h-4 text-blue-500" />
+    <v-card variant="outlined" style="border-color:rgba(59,130,246,0.2)">
+      <v-card-item>
+        <template #title>
+          <div class="d-flex align-center gap-2 text-body-2 font-weight-bold">
+            <Bell :size="16" style="color:#3b82f6" />
             Notifications
-            <Badge v-if="unreadCount > 0" variant="destructive" class="h-5 px-1.5 text-xs">
-              {{ unreadCount }}
-            </Badge>
-          </CardTitle>
-          <Button variant="ghost" size="sm" @click="markAllRead" class="h-7 text-xs">
-            Clear All
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent class="space-y-2">
-        <div
-          v-for="notification in notifications.slice(0, 5)"
-          :key="notification.id"
-          class="p-3 rounded-lg border transition-colors cursor-pointer"
-          :class="notification.read ? 'bg-muted/20 border-muted' : 'bg-blue-500/5 border-blue-500/20 hover:border-blue-500/30'"
-          @click="handleNotificationClick(notification)"
-        >
-          <div class="flex items-start gap-3">
-            <div 
-              class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-              :class="getNotificationBgClass(notification.type)"
-            >
-              <component :is="getNotificationIcon(notification.type)" class="w-4 h-4" :class="getNotificationIconClass(notification.type)" />
+            <v-chip v-if="unreadCount > 0" color="error" size="x-small" variant="tonal">{{ unreadCount }}</v-chip>
+          </div>
+        </template>
+        <template #append>
+          <v-btn variant="text" size="small" @click="markAllRead">Clear All</v-btn>
+        </template>
+      </v-card-item>
+      <v-card-text>
+        <div class="d-flex flex-column gap-2">
+          <v-card
+            v-for="notification in notifications.slice(0, 5)"
+            :key="notification.id"
+            :variant="notification.read ? 'flat' : 'tonal'"
+            rounded="lg"
+            class="pa-3 cursor-pointer"
+            :style="notification.read ? 'opacity:0.6' : ''"
+            @click="handleNotificationClick(notification)"
+          >
+            <div class="d-flex align-start gap-3">
+              <v-avatar :color="getNotificationColor(notification.type)" size="32" rounded="lg" variant="tonal">
+                <component :is="getNotificationIcon(notification.type)" :size="16" />
+              </v-avatar>
+              <div class="flex-grow-1" style="min-width:0">
+                <p class="text-body-2 font-weight-medium text-truncate mb-0">{{ notification.title }}</p>
+                <p class="text-caption text-medium-emphasis mb-0" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ notification.message }}</p>
+                <p class="text-caption text-medium-emphasis mt-1 mb-0">{{ formatTime(notification.timestamp) }}</p>
+              </div>
+              <div v-if="!notification.read" class="rounded-circle bg-info" style="width:8px;height:8px;margin-top:4px;flex-shrink:0"></div>
             </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium line-clamp-1">{{ notification.title }}</p>
-              <p class="text-xs text-muted-foreground line-clamp-2">{{ notification.message }}</p>
-              <p class="text-xs text-muted-foreground mt-1">{{ formatTime(notification.timestamp) }}</p>
-            </div>
-            <div v-if="!notification.read" class="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-1"></div>
+          </v-card>
+
+          <div v-if="notifications.length === 0" class="text-center py-6">
+            <Bell :size="32" class="mx-auto mb-2 text-medium-emphasis" style="opacity:0.5" />
+            <p class="text-caption text-medium-emphasis mb-0">No notifications</p>
           </div>
         </div>
-
-        <div v-if="notifications.length === 0" class="text-center py-6">
-          <Bell class="w-8 h-8 mx-auto mb-2 text-muted-foreground opacity-50" />
-          <p class="text-xs text-muted-foreground">No notifications</p>
-        </div>
-      </CardContent>
-    </Card>
+      </v-card-text>
+    </v-card>
   </div>
 </template>
 
@@ -95,9 +98,9 @@
 import { useAppStore } from '~/stores/app'
 import { storeToRefs } from 'pinia'
 
-import { 
-  CalendarClock, 
-  Bell, 
+import {
+  CalendarClock,
+  Bell,
   Clock,
   MapPin,
   CalendarDays,
@@ -106,9 +109,6 @@ import {
   Info,
   TicketCheck
 } from 'lucide-vue-next'
-import { Card, CardHeader, CardTitle, CardContent } from '~/components/ui/card'
-import { Button } from '~/components/ui/button'
-import { Badge } from '~/components/ui/badge'
 import { useNotifications } from '~/composables/useNotifications'
 
 interface UpcomingItem {
@@ -221,24 +221,14 @@ const getNotificationIcon = (type: string) => {
   return icons[type] || Info
 }
 
-const getNotificationBgClass = (type: string) => {
-  const classes: Record<string, string> = {
-    'success': 'bg-emerald-500/10',
-    'warning': 'bg-amber-500/10',
-    'error': 'bg-red-500/10',
-    'info': 'bg-blue-500/10'
+const getNotificationColor = (type: string) => {
+  const colors: Record<string, string> = {
+    'success': 'success',
+    'warning': 'warning',
+    'error': 'error',
+    'info': 'info'
   }
-  return classes[type] || 'bg-gray-500/10'
-}
-
-const getNotificationIconClass = (type: string) => {
-  const classes: Record<string, string> = {
-    'success': 'text-emerald-500',
-    'warning': 'text-amber-500',
-    'error': 'text-red-500',
-    'info': 'text-blue-500'
-  }
-  return classes[type] || 'text-gray-500'
+  return colors[type] || 'secondary'
 }
 
 const formatTime = (timestamp: string) => {
@@ -260,7 +250,6 @@ const navigateToItem = (item: UpcomingItem) => {
 }
 
 const handleNotificationClick = (notification: any) => {
-  // Mark as read
   notification.read = true
   if (process.client) {
     localStorage.setItem('nova_notifications', JSON.stringify(notifications.value))

@@ -1,588 +1,505 @@
 <template>
-  <Dialog v-model:open="isOpen">
-    <DialogContent class="w-full max-w-[96vw] sm:max-w-3xl max-h-[90dvh] overflow-hidden flex flex-col">
+  <v-dialog v-model="isOpen" max-width="900" scrollable>
+    <v-card rounded="xl" class="d-flex flex-column" style="max-height:90dvh">
 
-      <!-- M3 Header -->
-      <div class="flex-shrink-0 px-4 sm:px-7 pt-5 sm:pt-7 pb-4 border-b border-border/50">
-        <div class="flex items-start justify-between gap-4 pr-10">
-          <div class="flex items-center gap-3">
-            <div class="w-11 h-11 rounded-[22px] flex items-center justify-center flex-shrink-0 shadow-md"
-              :style="`background: linear-gradient(135deg, ${ticketStatusColor(ticket?.status)}, ${ticketStatusColor(ticket?.status)}dd); box-shadow: 0 4px 14px ${ticketStatusColor(ticket?.status)}40`">
-              <TicketCheck class="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h2 class="text-lg font-black">Ticket #{{ ticket?.id }}</h2>
-              <p class="text-xs text-muted-foreground font-medium mt-0.5">
-                {{ ticket?.device }} {{ ticket?.deviceModel }} · {{ getCustomerName(ticket?.customerId) }}
-              </p>
-            </div>
+      <!-- Header -->
+      <v-card-item class="border-b">
+        <template #prepend>
+          <v-avatar :color="ticketStatusColor(ticket?.status)" size="44" rounded="lg">
+            <TicketCheck :size="20" color="white" />
+          </v-avatar>
+        </template>
+        <v-card-title class="text-h6 font-weight-black">Ticket #{{ ticket?.id }}</v-card-title>
+        <v-card-subtitle>{{ ticket?.device }} {{ ticket?.deviceModel }} · {{ getCustomerName(ticket?.customerId) }}</v-card-subtitle>
+        <template #append>
+          <div class="d-flex align-center gap-2">
+            <v-select
+              v-model="localStatus"
+              :items="statusList"
+              density="compact"
+              hide-details
+              style="max-width:165px"
+              @update:model-value="saveStatus"
+            />
+            <v-chip
+              :color="ticket?.priority === 'high' ? 'error' : ticket?.priority === 'low' ? 'secondary' : 'info'"
+              size="small"
+              variant="tonal"
+            >{{ ticket?.priority }}</v-chip>
+            <v-btn icon="mdi-close" variant="text" size="small" @click="isOpen = false" />
           </div>
-          <div class="flex items-center gap-2 flex-shrink-0">
-            <Select v-model="localStatus" @update:modelValue="saveStatus">
-              <SelectTrigger class="w-[165px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="s in statusList" :key="s" :value="s">{{ s }}</SelectItem>
-              </SelectContent>
-            </Select>
-            <StatusChip
-              :variant="ticket?.priority === 'high' ? 'danger' : ticket?.priority === 'low' ? 'muted' : 'info'"
-              size="sm"
-            >{{ ticket?.priority }}</StatusChip>
-          </div>
-        </div>
-      </div>
+        </template>
+      </v-card-item>
 
-      <!-- M3 Pill Tabs -->
-      <div class="flex-shrink-0 px-4 sm:px-7 py-3 border-b border-border/50">
-        <div class="flex gap-1 rounded-full p-1 w-fit" style="background: hsl(var(--muted)/0.5)">
-          <button
-            v-for="tab in tabs"
-            :key="tab.id"
-            @click="activeTab = tab.id"
-            class="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-black transition-all duration-300"
-            :style="activeTab === tab.id
-              ? 'background: white; color: hsl(var(--foreground)); box-shadow: 0 2px 8px rgba(0,0,0,0.1)'
-              : 'color: hsl(var(--muted-foreground))'"
-          >
-            {{ tab.label }}
-            <span
-              v-if="tab.count !== undefined && tab.count > 0"
-              class="text-[9px] font-black px-1.5 py-0.5 rounded-full"
-              :style="activeTab === tab.id ? 'background: #6366f120; color: #6366f1' : 'background: hsl(var(--border)); color: hsl(var(--muted-foreground))'"
-            >{{ tab.count }}</span>
-          </button>
-        </div>
-      </div>
+      <!-- Tabs -->
+      <v-tabs v-model="activeTab" density="compact" class="px-4">
+        <v-tab v-for="tab in tabs" :key="tab.id" :value="tab.id" size="small">
+          {{ tab.label }}
+          <v-chip
+            v-if="tab.count !== undefined && tab.count > 0"
+            size="x-small"
+            color="primary"
+            variant="tonal"
+            class="ms-2"
+          >{{ tab.count }}</v-chip>
+        </v-tab>
+      </v-tabs>
 
       <!-- Tab Content -->
-      <div class="flex-1 overflow-y-auto px-4 sm:px-7 py-5 space-y-4">
+      <v-card-text class="flex-grow-1 overflow-y-auto">
+        <v-tabs-window v-model="activeTab">
 
-        <!-- ── Info Tab ──────────────────────────────────────────── -->
-        <div v-if="activeTab === 'info'" class="space-y-4">
+          <!-- ── Info Tab ──────────────────────────────────────────── -->
+          <v-tabs-window-item value="info">
+            <div class="d-flex flex-column gap-4 py-2">
 
-          <!-- Customer Contact Card -->
-          <Card v-if="ticketCustomer" class="rounded-[20px] overflow-hidden">
-            <CardContent class="p-0">
-              <div class="flex items-center gap-3 px-4 pt-4 pb-3"
-                style="background: linear-gradient(135deg, #6366f108, #8b5cf608); border-bottom: 1px solid hsl(var(--border)/0.5)">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-black text-white select-none"
-                  :style="`background: linear-gradient(135deg, ${avatarColor(ticketCustomer.name)}, ${avatarColor(ticketCustomer.name)}cc)`">
-                  {{ initials(ticketCustomer.name) }}
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-black truncate">{{ ticketCustomer.name }}</p>
-                  <p class="text-[11px] text-muted-foreground font-medium">Customer</p>
-                </div>
-                <div class="flex gap-1.5">
-                  <a v-if="ticketCustomer.phone" :href="`tel:${ticketCustomer.phone}`" class="contact-action-btn" title="Call customer">
-                    <Phone class="w-3.5 h-3.5" />
-                  </a>
-                  <button v-if="ticketCustomer.email" class="contact-action-btn" title="Email customer" @click="emailCustomer">
-                    <Mail class="w-3.5 h-3.5" />
-                  </button>
+              <!-- Customer Contact Card -->
+              <v-card v-if="ticketCustomer" rounded="xl" variant="outlined">
+                <v-card-item>
+                  <template #prepend>
+                    <v-avatar :color="avatarColor(ticketCustomer.name)" size="40" class="text-body-2 font-weight-bold text-white">
+                      {{ initials(ticketCustomer.name) }}
+                    </v-avatar>
+                  </template>
+                  <v-card-title class="text-body-1 font-weight-bold">{{ ticketCustomer.name }}</v-card-title>
+                  <v-card-subtitle>Customer</v-card-subtitle>
+                  <template #append>
+                    <div class="d-flex gap-1">
+                      <v-btn v-if="ticketCustomer.phone" icon="mdi-phone" size="small" variant="text" :href="`tel:${ticketCustomer.phone}`" />
+                      <v-btn v-if="ticketCustomer.email" icon="mdi-email-outline" size="small" variant="text" @click="emailCustomer" />
+                    </div>
+                  </template>
+                </v-card-item>
+                <v-divider />
+                <v-list density="compact" class="pa-2">
+                  <v-list-item v-if="ticketCustomer.phone" prepend-icon="mdi-phone-outline" :title="ticketCustomer.phone" :href="`tel:${ticketCustomer.phone}`" />
+                  <v-list-item v-if="ticketCustomer.email" prepend-icon="mdi-email-outline" :title="ticketCustomer.email" @click="emailCustomer" />
+                  <v-list-item v-if="ticketCustomer.address" prepend-icon="mdi-map-marker-outline" :title="ticketCustomer.address" />
+                  <v-list-item v-if="!ticketCustomer.phone && !ticketCustomer.email && !ticketCustomer.address" class="text-medium-emphasis text-caption font-italic">
+                    No contact details on file
+                  </v-list-item>
+                </v-list>
+              </v-card>
+
+              <!-- Edit / View toggle -->
+              <div class="d-flex align-center justify-space-between">
+                <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-0">Device & Repair Details</p>
+                <v-btn
+                  size="small"
+                  variant="tonal"
+                  :color="editingInfo ? 'primary' : undefined"
+                  :prepend-icon="editingInfo ? 'mdi-check' : 'mdi-pencil'"
+                  @click="editingInfo = !editingInfo"
+                >{{ editingInfo ? 'Done Editing' : 'Edit' }}</v-btn>
+              </div>
+
+              <!-- VIEW MODE -->
+              <v-row v-if="!editingInfo" dense>
+                <v-col cols="12" sm="6">
+                  <v-card rounded="xl" class="pa-4">
+                    <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-3">Device</p>
+                    <div class="d-flex flex-column gap-1 text-body-2">
+                      <div class="d-flex justify-space-between"><span class="text-medium-emphasis">Brand</span><span class="font-weight-medium">{{ ticket?.device }}</span></div>
+                      <div class="d-flex justify-space-between"><span class="text-medium-emphasis">Model</span><span class="font-weight-medium">{{ ticket?.deviceModel || '—' }}</span></div>
+                      <div class="d-flex justify-space-between"><span class="text-medium-emphasis">Serial</span><span class="font-weight-medium text-caption" style="font-family:monospace">{{ ticket?.serialNumber || '—' }}</span></div>
+                      <div class="d-flex justify-space-between align-center text-capitalize"><span class="text-medium-emphasis">Priority</span>
+                        <v-chip :color="ticket?.priority === 'high' ? 'error' : ticket?.priority === 'low' ? 'secondary' : 'info'" size="x-small" variant="tonal">{{ ticket?.priority }}</v-chip>
+                      </div>
+                      <div v-if="ticket?.deviceDescription" class="pt-1"><span class="text-medium-emphasis d-block text-caption">Condition</span><p class="text-caption mt-1 mb-0">{{ ticket?.deviceDescription }}</p></div>
+                    </div>
+                  </v-card>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <v-card rounded="xl" class="pa-4">
+                    <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-3">Financials</p>
+                    <div class="d-flex flex-column gap-1 text-body-2">
+                      <div class="d-flex justify-space-between"><span class="text-medium-emphasis">Labor</span><span class="font-weight-medium text-info">{{ formatCurrency(laborTotal) }}</span></div>
+                      <div class="d-flex justify-space-between"><span class="text-medium-emphasis">Parts</span><span class="font-weight-medium" style="color:#8b5cf6">{{ formatCurrency(partsTotal) }}</span></div>
+                      <v-divider class="my-1" />
+                      <div class="d-flex justify-space-between"><span class="font-weight-bold">Total</span><span class="font-weight-bold">{{ formatCurrency(laborTotal + partsTotal) }}</span></div>
+                      <div class="d-flex justify-space-between"><span class="text-medium-emphasis">Paid</span><span class="font-weight-medium text-success">{{ formatCurrency(paymentsTotal) }}</span></div>
+                      <div class="d-flex justify-space-between"><span class="text-medium-emphasis">Balance</span>
+                        <span class="font-weight-bold" :class="balance > 0 ? 'text-error' : 'text-success'">{{ formatCurrency(balance) }}</span>
+                      </div>
+                    </div>
+                  </v-card>
+                </v-col>
+              </v-row>
+              <v-card v-if="!editingInfo" rounded="xl" class="pa-4">
+                <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-2">Issue Reported</p>
+                <p class="text-body-2 mb-0">{{ ticket?.issue }}</p>
+              </v-card>
+
+              <!-- EDIT MODE -->
+              <v-card v-if="editingInfo" rounded="xl" class="pa-4">
+                <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-3">Edit Device Details</p>
+                <v-row dense>
+                  <v-col cols="12" sm="6">
+                    <v-text-field v-model="localDevice" label="Brand / Manufacturer" placeholder="Apple, Samsung…" />
+                  </v-col>
+                  <v-col cols="12" sm="6">
+                    <v-text-field v-model="localDeviceModel" label="Model" placeholder="iPhone 15 Pro…" />
+                  </v-col>
+                  <v-col cols="12" sm="6">
+                    <v-text-field v-model="localSerialNumber" label="Serial Number" placeholder="Optional" style="font-family:monospace" />
+                  </v-col>
+                  <v-col cols="12" sm="6">
+                    <v-select v-model="localPriority" label="Priority" :items="['low','normal','high']" />
+                  </v-col>
+                  <v-col cols="12">
+                    <v-textarea v-model="localIssue" label="Issue / Problem Description" rows="3" placeholder="Describe the issue…" />
+                  </v-col>
+                  <v-col cols="12">
+                    <v-textarea v-model="localDeviceDescription" label="Device Condition Notes" rows="2" placeholder="Color, visible damage, accessories included…" />
+                  </v-col>
+                </v-row>
+              </v-card>
+
+              <!-- Always-editable fields -->
+              <v-row dense>
+                <v-col cols="6">
+                  <v-text-field v-model.number="localWarrantyDays" type="number" min="0" label="Warranty Days" placeholder="0" @change="saveField('warranty_days', localWarrantyDays)" />
+                </v-col>
+                <v-col cols="6">
+                  <v-text-field v-model="localTracking" label="Tracking Number" placeholder="Optional" @change="saveField('tracking', localTracking)" />
+                </v-col>
+              </v-row>
+
+              <!-- Financials summary (editing mode) -->
+              <v-card v-if="editingInfo" rounded="xl" class="pa-4">
+                <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-2">Financials</p>
+                <v-row dense class="text-body-2">
+                  <v-col cols="6"><div class="d-flex justify-space-between"><span class="text-medium-emphasis">Labor</span><span class="text-info font-weight-medium">{{ formatCurrency(laborTotal) }}</span></div></v-col>
+                  <v-col cols="6"><div class="d-flex justify-space-between"><span class="text-medium-emphasis">Parts</span><span class="font-weight-medium" style="color:#8b5cf6">{{ formatCurrency(partsTotal) }}</span></div></v-col>
+                  <v-col cols="12"><v-divider class="my-1" /><div class="d-flex justify-space-between"><span class="font-weight-bold">Balance</span>
+                    <span class="font-weight-bold" :class="balance > 0 ? 'text-error' : 'text-success'">{{ formatCurrency(balance) }}</span>
+                  </div></v-col>
+                </v-row>
+              </v-card>
+
+              <!-- Signature -->
+              <div v-if="ticket?.signature">
+                <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-2">Customer Signature</p>
+                <div class="border rounded-lg pa-3" style="background:rgba(0,0,0,0.02)">
+                  <img :src="ticket.signature" alt="Signature" style="max-height:96px;width:auto" />
                 </div>
               </div>
-              <div class="px-4 py-3 space-y-2 text-sm">
-                <div v-if="ticketCustomer.phone" class="flex items-center gap-2.5">
-                  <Phone class="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                  <a :href="`tel:${ticketCustomer.phone}`" class="font-medium hover:text-indigo-500 transition-colors">{{ ticketCustomer.phone }}</a>
-                </div>
-                <div v-if="ticketCustomer.email" class="flex items-center gap-2.5">
-                  <Mail class="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                  <button class="font-medium hover:text-indigo-500 transition-colors truncate text-left" @click="emailCustomer">{{ ticketCustomer.email }}</button>
-                </div>
-                <div v-if="ticketCustomer.address" class="flex items-start gap-2.5">
-                  <MapPin class="w-3.5 h-3.5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                  <span class="text-muted-foreground leading-snug">{{ ticketCustomer.address }}</span>
-                </div>
-                <div v-if="!ticketCustomer.phone && !ticketCustomer.email && !ticketCustomer.address" class="text-xs text-muted-foreground italic">No contact details on file</div>
+
+              <!-- Dates -->
+              <div class="d-flex gap-4 text-caption text-medium-emphasis">
+                <span>Created: {{ formatDate(ticket?.createdAt) }}</span>
+                <span>Updated: {{ formatDate(ticket?.updatedAt) }}</span>
               </div>
-            </CardContent>
-          </Card>
-
-          <!-- ── Edit / View toggle ── -->
-          <div class="flex items-center justify-between">
-            <p class="m3-section-label mb-0">Device & Repair Details</p>
-            <button
-              class="flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95"
-              :style="editingInfo
-                ? 'background: #6366f120; color: #6366f1; outline: 1.5px solid #6366f140; outline-offset: 0'
-                : 'background: hsl(var(--muted)/0.6); color: hsl(var(--muted-foreground))'"
-              @click="editingInfo = !editingInfo"
-            >
-              <Pencil v-if="!editingInfo" class="w-3 h-3" /> <Check v-else class="w-3 h-3" />
-              {{ editingInfo ? 'Done Editing' : 'Edit' }}
-            </button>
-          </div>
-
-          <!-- VIEW MODE -->
-          <div v-if="!editingInfo" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Card class="rounded-[20px]">
-              <CardContent class="p-5 space-y-3">
-                <p class="m3-section-label">Device</p>
-                <div class="space-y-1.5 text-sm">
-                  <div class="flex justify-between"><span class="text-muted-foreground">Brand</span><span class="font-medium">{{ ticket?.device }}</span></div>
-                  <div class="flex justify-between"><span class="text-muted-foreground">Model</span><span class="font-medium">{{ ticket?.deviceModel || '—' }}</span></div>
-                  <div class="flex justify-between"><span class="text-muted-foreground">Serial</span><span class="font-medium font-mono text-xs">{{ ticket?.serialNumber || '—' }}</span></div>
-                  <div class="flex justify-between capitalize"><span class="text-muted-foreground">Priority</span>
-                    <StatusChip
-                      :variant="ticket?.priority === 'high' ? 'danger' : ticket?.priority === 'low' ? 'muted' : 'info'"
-                      size="sm"
-                    >{{ ticket?.priority }}</StatusChip>
-                  </div>
-                  <div v-if="ticket?.deviceDescription" class="pt-1"><span class="text-muted-foreground block text-xs">Condition</span><p class="text-xs mt-0.5">{{ ticket?.deviceDescription }}</p></div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card class="rounded-[20px]">
-              <CardContent class="p-5 space-y-3">
-                <p class="m3-section-label">Financials</p>
-                <div class="space-y-1.5 text-sm">
-                  <div class="flex justify-between"><span class="text-muted-foreground">Labor</span><span class="font-medium text-blue-500">{{ formatCurrency(laborTotal) }}</span></div>
-                  <div class="flex justify-between"><span class="text-muted-foreground">Parts</span><span class="font-medium text-purple-500">{{ formatCurrency(partsTotal) }}</span></div>
-                  <div class="flex justify-between border-t border-border pt-1.5"><span class="font-semibold">Total</span><span class="font-bold">{{ formatCurrency(laborTotal + partsTotal) }}</span></div>
-                  <div class="flex justify-between"><span class="text-muted-foreground">Paid</span><span class="font-medium text-emerald-500">{{ formatCurrency(paymentsTotal) }}</span></div>
-                  <div class="flex justify-between">
-                    <span class="text-muted-foreground">Balance</span>
-                    <span class="font-bold" :class="balance > 0 ? 'text-destructive' : 'text-emerald-500'">{{ formatCurrency(balance) }}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          <Card v-if="!editingInfo" class="rounded-[20px]">
-            <CardContent class="p-5 space-y-2">
-              <p class="m3-section-label">Issue Reported</p>
-              <p class="text-sm leading-relaxed">{{ ticket?.issue }}</p>
-            </CardContent>
-          </Card>
-
-          <!-- EDIT MODE -->
-          <Card v-if="editingInfo" class="rounded-[20px]">
-            <CardContent class="p-5 space-y-4">
-              <p class="m3-section-label">Edit Device Details</p>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div class="space-y-1.5">
-                  <label class="field-label">Brand / Manufacturer</label>
-                  <input v-model="localDevice" class="m3-edit-input" placeholder="Apple, Samsung…" />
-                </div>
-                <div class="space-y-1.5">
-                  <label class="field-label">Model</label>
-                  <input v-model="localDeviceModel" class="m3-edit-input" placeholder="iPhone 15 Pro…" />
-                </div>
-                <div class="space-y-1.5">
-                  <label class="field-label">Serial Number</label>
-                  <input v-model="localSerialNumber" class="m3-edit-input font-mono text-xs" placeholder="Optional" />
-                </div>
-                <div class="space-y-1.5">
-                  <label class="field-label">Priority</label>
-                  <select v-model="localPriority" class="m3-edit-input">
-                    <option value="low">Low</option>
-                    <option value="normal">Normal</option>
-                    <option value="high">High</option>
-                  </select>
-                </div>
-                <div class="sm:col-span-2 space-y-1.5">
-                  <label class="field-label">Issue / Problem Description</label>
-                  <textarea v-model="localIssue" class="m3-edit-input resize-none" rows="3" placeholder="Describe the issue…" />
-                </div>
-                <div class="sm:col-span-2 space-y-1.5">
-                  <label class="field-label">Device Condition Notes</label>
-                  <textarea v-model="localDeviceDescription" class="m3-edit-input resize-none" rows="2" placeholder="Color, visible damage, accessories included…" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <!-- Always-editable fields -->
-          <div class="grid grid-cols-2 gap-3">
-            <div class="space-y-1.5">
-              <label class="field-label">Warranty Days</label>
-              <input v-model.number="localWarrantyDays" type="number" min="0" placeholder="0" class="m3-edit-input" @change="saveField('warranty_days', localWarrantyDays)" />
             </div>
-            <div class="space-y-1.5">
-              <label class="field-label">Tracking Number</label>
-              <input v-model="localTracking" placeholder="Optional" class="m3-edit-input" @change="saveField('tracking', localTracking)" />
-            </div>
-          </div>
+          </v-tabs-window-item>
 
-          <!-- Financials summary (always visible) -->
-          <Card v-if="editingInfo" class="rounded-[20px]">
-            <CardContent class="p-5 space-y-2">
-              <p class="m3-section-label">Financials</p>
-              <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
-                <div class="flex justify-between"><span class="text-muted-foreground">Labor</span><span class="text-blue-500 font-medium">{{ formatCurrency(laborTotal) }}</span></div>
-                <div class="flex justify-between"><span class="text-muted-foreground">Parts</span><span class="text-purple-500 font-medium">{{ formatCurrency(partsTotal) }}</span></div>
-                <div class="flex justify-between col-span-2 border-t border-border pt-1"><span class="font-semibold">Balance</span>
-                  <span class="font-bold" :class="balance > 0 ? 'text-destructive' : 'text-emerald-500'">{{ formatCurrency(balance) }}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <!-- ── Services / Labor Tab ──────────────────────────────── -->
+          <v-tabs-window-item value="services">
+            <div class="d-flex flex-column gap-4 py-2">
 
-          <!-- Signature -->
-          <div v-if="ticket?.signature">
-            <p class="m3-section-label mb-2">Customer Signature</p>
-            <div class="border rounded-[16px] p-3 bg-muted/20">
-              <img :src="ticket.signature" alt="Signature" class="max-h-24 w-auto" />
-            </div>
-          </div>
-
-          <!-- Dates -->
-          <div class="flex gap-6 text-xs text-muted-foreground">
-            <span>Created: {{ formatDate(ticket?.createdAt) }}</span>
-            <span>Updated: {{ formatDate(ticket?.updatedAt) }}</span>
-          </div>
-        </div>
-
-        <!-- ── Services / Labor Tab ──────────────────────────────── -->
-        <div v-if="activeTab === 'services'" class="space-y-4">
-
-          <!-- Add service -->
-          <Card class="rounded-[20px]">
-            <CardContent class="p-5 space-y-3">
-              <p class="m3-section-label">Add Service</p>
-              <div class="flex gap-2">
-                <div class="flex-1 relative">
-                  <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-                  <Input v-model="serviceSearch" placeholder="Search catalog..." class="pl-8 text-sm" />
-                </div>
-                <Button variant="outline" size="sm" @click="showCustomService = !showCustomService">
-                  <Plus class="w-3.5 h-3.5 mr-1" /> Custom
-                </Button>
-              </div>
-
-              <!-- Catalog results -->
-              <div v-if="serviceSearch" class="max-h-40 overflow-y-auto space-y-1 border rounded-lg p-1">
-                <button
-                  v-for="svc in filteredCatalog"
-                  :key="svc.id"
-                  class="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-accent text-sm text-left transition-colors"
-                  @click="addCatalogService(svc)"
-                >
-                  <div>
-                    <p class="font-medium">{{ svc.name }}</p>
-                    <p class="text-xs text-muted-foreground">{{ formatMinutes(svc.estimated_minutes) }} · {{ svc.category }}</p>
-                  </div>
-                  <span class="font-semibold text-emerald-600 ml-4">{{ formatCurrency(svc.flat_rate) }}</span>
-                </button>
-                <p v-if="filteredCatalog.length === 0" class="text-center py-3 text-xs text-muted-foreground">No services match</p>
-              </div>
-
-              <!-- Custom service form -->
-              <div v-if="showCustomService" class="grid grid-cols-3 gap-2 pt-1 border-t border-border">
-                <Input v-model="customService.name" placeholder="Service name" class="col-span-2 text-sm" />
-                <Input v-model.number="customService.rate" type="number" placeholder="Rate $" class="text-sm" />
-                <div class="col-span-2 flex items-center gap-2">
-                  <Input v-model.number="customService.minutes" type="number" placeholder="Minutes" class="text-sm" />
-                  <span class="text-xs text-muted-foreground whitespace-nowrap">= {{ formatCurrency(timeRate(customService.minutes)) }} @ hourly</span>
-                </div>
-                <Button size="sm" @click="addCustomService" :disabled="!customService.name">Add</Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <!-- Services list -->
-          <div class="space-y-2">
-            <div
-              v-for="(svc, idx) in localServices"
-              :key="idx"
-              class="flex items-center gap-3 px-4 py-3 rounded-[16px] border bg-card transition-all hover:bg-muted/30"
-            >
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium">{{ svc.name }}</p>
-                <p class="text-xs text-muted-foreground">{{ formatMinutes(svc.minutes) }}</p>
-              </div>
-
-              <!-- Time override toggle -->
-              <div class="flex items-center gap-2">
-                <button
-                  class="text-xs px-2 py-1 rounded-md border transition-colors"
-                  :class="svc.useTime ? 'bg-blue-500/10 text-blue-600 border-blue-500/30' : 'text-muted-foreground border-border'"
-                  @click="toggleTimeOverride(idx)"
-                  title="Toggle time-based pricing"
-                >
-                  <Clock class="w-3 h-3 inline mr-1" />{{ svc.useTime ? 'Time' : 'Flat' }}
-                </button>
-                <div v-if="svc.useTime" class="flex items-center gap-1">
-                  <Input
-                    v-model.number="svc.actualMinutes"
-                    type="number"
-                    min="0"
-                    class="w-16 h-7 text-xs text-center"
-                    @change="saveServices"
+              <!-- Add service -->
+              <v-card rounded="xl" class="pa-4">
+                <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-3">Add Service</p>
+                <div class="d-flex gap-2 mb-3">
+                  <v-text-field
+                    v-model="serviceSearch"
+                    placeholder="Search catalog..."
+                    prepend-inner-icon="mdi-magnify"
+                    hide-details
+                    density="compact"
+                    class="flex-grow-1"
                   />
-                  <span class="text-xs text-muted-foreground">min</span>
+                  <v-btn variant="outlined" size="small" @click="showCustomService = !showCustomService">
+                    <v-icon start size="14">mdi-plus</v-icon> Custom
+                  </v-btn>
                 </div>
-                <span class="text-sm font-bold text-emerald-600 w-16 text-right">
-                  {{ formatCurrency(svc.useTime ? timeRate(svc.actualMinutes || svc.minutes, svc.hourlyRate) : svc.rate) }}
-                </span>
-              </div>
-              <button class="text-muted-foreground hover:text-destructive transition-colors ml-1" @click="removeService(idx)">
-                <X class="w-4 h-4" />
-              </button>
-            </div>
 
-            <div v-if="localServices.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-[16px] border border-dashed">
-              No services added yet — search the catalog above
-            </div>
-          </div>
+                <!-- Catalog results -->
+                <v-list v-if="serviceSearch" density="compact" max-height="160" class="border rounded-lg overflow-y-auto mb-3">
+                  <v-list-item
+                    v-for="svc in filteredCatalog"
+                    :key="svc.id"
+                    :subtitle="`${formatMinutes(svc.estimated_minutes)} · ${svc.category}`"
+                    rounded="lg"
+                    @click="addCatalogService(svc)"
+                  >
+                    <template #title><span class="text-body-2 font-weight-medium">{{ svc.name }}</span></template>
+                    <template #append><span class="text-body-2 font-weight-bold text-success ms-4">{{ formatCurrency(svc.flat_rate) }}</span></template>
+                  </v-list-item>
+                  <v-list-item v-if="filteredCatalog.length === 0" class="text-center text-caption text-medium-emphasis">No services match</v-list-item>
+                </v-list>
 
-          <!-- Labor total -->
-          <div v-if="localServices.length > 0" class="flex justify-between items-center px-4 py-3 rounded-[16px] bg-muted/40 text-sm font-semibold">
-            <span>Labor Total</span>
-            <span class="text-emerald-600">{{ formatCurrency(laborTotal) }}</span>
-          </div>
-        </div>
-
-        <!-- ── Parts Tab ──────────────────────────────────────────── -->
-        <div v-if="activeTab === 'parts'" class="space-y-4">
-          <Card class="rounded-[20px]">
-            <CardContent class="p-5 space-y-3">
-              <p class="m3-section-label">Add Part</p>
-              <div class="flex gap-2">
-                <div class="flex-1 relative">
-                  <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-                  <Input v-model="partSearch" placeholder="Search inventory..." class="pl-8 text-sm" />
+                <!-- Custom service form -->
+                <div v-if="showCustomService" class="border-t pt-3">
+                  <v-row dense>
+                    <v-col cols="8"><v-text-field v-model="customService.name" placeholder="Service name" density="compact" hide-details /></v-col>
+                    <v-col cols="4"><v-text-field v-model.number="customService.rate" type="number" placeholder="Rate $" density="compact" hide-details /></v-col>
+                    <v-col cols="6"><v-text-field v-model.number="customService.minutes" type="number" placeholder="Minutes" density="compact" hide-details /></v-col>
+                    <v-col cols="6"><span class="text-caption text-medium-emphasis">= {{ formatCurrency(timeRate(customService.minutes)) }} @ hourly</span></v-col>
+                    <v-col cols="12"><v-btn size="small" block @click="addCustomService" :disabled="!customService.name">Add</v-btn></v-col>
+                  </v-row>
                 </div>
-              </div>
-              <div v-if="partSearch" class="max-h-40 overflow-y-auto space-y-1 border rounded-lg p-1">
-                <button
-                  v-for="item in filteredInventory"
-                  :key="item.id"
-                  class="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-accent text-sm text-left transition-colors"
-                  @click="addPart(item)"
+              </v-card>
+
+              <!-- Services list -->
+              <div class="d-flex flex-column gap-2">
+                <v-card
+                  v-for="(svc, idx) in localServices"
+                  :key="idx"
+                  rounded="xl"
+                  variant="outlined"
+                  class="pa-3"
                 >
-                  <div>
-                    <p class="font-medium">{{ item.name }}</p>
-                    <p class="text-xs text-muted-foreground">SKU: {{ item.sku }} · {{ item.stock }} in stock</p>
+                  <div class="d-flex align-center gap-3">
+                    <div class="flex-grow-1" style="min-width:0">
+                      <p class="text-body-2 font-weight-medium mb-0">{{ svc.name }}</p>
+                      <p class="text-caption text-medium-emphasis mb-0">{{ formatMinutes(svc.minutes) }}</p>
+                    </div>
+                    <div class="d-flex align-center gap-2">
+                      <v-btn
+                        size="x-small"
+                        :variant="svc.useTime ? 'tonal' : 'outlined'"
+                        :color="svc.useTime ? 'info' : undefined"
+                        @click="toggleTimeOverride(idx)"
+                      >
+                        <v-icon start size="12">mdi-clock-outline</v-icon>{{ svc.useTime ? 'Time' : 'Flat' }}
+                      </v-btn>
+                      <v-text-field
+                        v-if="svc.useTime"
+                        v-model.number="svc.actualMinutes"
+                        type="number"
+                        min="0"
+                        density="compact"
+                        hide-details
+                        style="max-width:64px"
+                        @change="saveServices"
+                      />
+                      <span v-if="svc.useTime" class="text-caption text-medium-emphasis">min</span>
+                      <span class="text-body-2 font-weight-bold text-success" style="min-width:64px;text-align:right">
+                        {{ formatCurrency(svc.useTime ? timeRate(svc.actualMinutes || svc.minutes, svc.hourlyRate) : svc.rate) }}
+                      </span>
+                    </div>
+                    <v-btn icon="mdi-close" size="x-small" variant="text" color="error" @click="removeService(idx)" />
                   </div>
-                  <span class="font-semibold text-emerald-600 ml-4">{{ formatCurrency(item.price) }}</span>
-                </button>
-                <p v-if="filteredInventory.length === 0" class="text-center py-3 text-xs text-muted-foreground">No items match</p>
+                </v-card>
+                <v-card v-if="localServices.length === 0" rounded="xl" variant="outlined" class="pa-6 text-center text-body-2 text-medium-emphasis" style="border-style:dashed">
+                  No services added yet — search the catalog above
+                </v-card>
               </div>
-              <!-- Manual part entry -->
-              <div class="grid grid-cols-3 gap-2 border-t border-border pt-3">
-                <Input v-model="manualPart.name" placeholder="Part name" class="col-span-2 text-sm" />
-                <Input v-model.number="manualPart.price" type="number" placeholder="Price $" class="text-sm" />
-                <Button size="sm" class="col-span-3" variant="outline" @click="addManualPart" :disabled="!manualPart.name">
-                  <Plus class="w-3.5 h-3.5 mr-1" /> Add Manual Part
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
 
-          <!-- Parts list -->
-          <div class="space-y-2">
-            <div
-              v-for="(part, idx) in localParts"
-              :key="idx"
-              class="flex items-center gap-3 px-4 py-3 rounded-[16px] border bg-card transition-all hover:bg-muted/30"
-            >
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium">{{ part.name }}</p>
-                <p class="text-xs text-muted-foreground">{{ part.sku || 'Manual entry' }}</p>
+              <!-- Labor total -->
+              <div v-if="localServices.length > 0" class="d-flex justify-space-between align-center pa-3 rounded-xl text-body-2 font-weight-bold" style="background:rgba(0,0,0,0.04)">
+                <span>Labor Total</span>
+                <span class="text-success">{{ formatCurrency(laborTotal) }}</span>
               </div>
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-muted-foreground">Qty</span>
-                <Input
-                  v-model.number="part.qty"
-                  type="number"
-                  min="1"
-                  class="w-14 h-7 text-xs text-center"
-                  @change="saveParts"
+            </div>
+          </v-tabs-window-item>
+
+          <!-- ── Parts Tab ──────────────────────────────────────────── -->
+          <v-tabs-window-item value="parts">
+            <div class="d-flex flex-column gap-4 py-2">
+              <v-card rounded="xl" class="pa-4">
+                <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-3">Add Part</p>
+                <v-text-field
+                  v-model="partSearch"
+                  placeholder="Search inventory..."
+                  prepend-inner-icon="mdi-magnify"
+                  hide-details
+                  density="compact"
+                  class="mb-3"
                 />
-                <span class="text-sm font-bold text-purple-600 w-16 text-right">
-                  {{ formatCurrency((part.price || 0) * (part.qty || 1)) }}
-                </span>
+                <v-list v-if="partSearch" density="compact" max-height="160" class="border rounded-lg overflow-y-auto mb-3">
+                  <v-list-item
+                    v-for="item in filteredInventory"
+                    :key="item.id"
+                    :subtitle="`SKU: ${item.sku} · ${item.stock} in stock`"
+                    rounded="lg"
+                    @click="addPart(item)"
+                  >
+                    <template #title><span class="text-body-2 font-weight-medium">{{ item.name }}</span></template>
+                    <template #append><span class="text-body-2 font-weight-bold text-success ms-4">{{ formatCurrency(item.price) }}</span></template>
+                  </v-list-item>
+                  <v-list-item v-if="filteredInventory.length === 0" class="text-center text-caption text-medium-emphasis">No items match</v-list-item>
+                </v-list>
+                <!-- Manual part entry -->
+                <v-divider class="mb-3" />
+                <v-row dense>
+                  <v-col cols="8"><v-text-field v-model="manualPart.name" placeholder="Part name" density="compact" hide-details /></v-col>
+                  <v-col cols="4"><v-text-field v-model.number="manualPart.price" type="number" placeholder="Price $" density="compact" hide-details /></v-col>
+                  <v-col cols="12">
+                    <v-btn variant="outlined" size="small" block @click="addManualPart" :disabled="!manualPart.name">
+                      <v-icon start size="14">mdi-plus</v-icon> Add Manual Part
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-card>
+
+              <!-- Parts list -->
+              <div class="d-flex flex-column gap-2">
+                <v-card
+                  v-for="(part, idx) in localParts"
+                  :key="idx"
+                  rounded="xl"
+                  variant="outlined"
+                  class="pa-3"
+                >
+                  <div class="d-flex align-center gap-3">
+                    <div class="flex-grow-1" style="min-width:0">
+                      <p class="text-body-2 font-weight-medium mb-0">{{ part.name }}</p>
+                      <p class="text-caption text-medium-emphasis mb-0">{{ part.sku || 'Manual entry' }}</p>
+                    </div>
+                    <div class="d-flex align-center gap-2">
+                      <span class="text-caption text-medium-emphasis">Qty</span>
+                      <v-text-field
+                        v-model.number="part.qty"
+                        type="number"
+                        min="1"
+                        density="compact"
+                        hide-details
+                        style="max-width:56px"
+                        @change="saveParts"
+                      />
+                      <span class="text-body-2 font-weight-bold" style="color:#8b5cf6;min-width:64px;text-align:right">
+                        {{ formatCurrency((part.price || 0) * (part.qty || 1)) }}
+                      </span>
+                    </div>
+                    <v-btn icon="mdi-close" size="x-small" variant="text" color="error" @click="removePart(idx)" />
+                  </div>
+                </v-card>
+                <v-card v-if="localParts.length === 0" rounded="xl" variant="outlined" class="pa-6 text-center text-body-2 text-medium-emphasis" style="border-style:dashed">
+                  No parts added yet
+                </v-card>
               </div>
-              <button class="text-muted-foreground hover:text-destructive transition-colors ml-1" @click="removePart(idx)">
-                <X class="w-4 h-4" />
-              </button>
-            </div>
-            <div v-if="localParts.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-[16px] border border-dashed">
-              No parts added yet
-            </div>
-          </div>
 
-          <div v-if="localParts.length > 0" class="flex justify-between items-center px-4 py-3 rounded-[16px] bg-muted/40 text-sm font-semibold">
-            <span>Parts Total</span>
-            <span class="text-purple-600">{{ formatCurrency(partsTotal) }}</span>
-          </div>
-        </div>
-
-        <!-- ── Payments Tab ───────────────────────────────────────── -->
-        <div v-if="activeTab === 'payments'" class="space-y-4">
-
-          <!-- Balance summary -->
-          <div class="grid grid-cols-3 gap-2 sm:gap-3">
-            <Card class="rounded-[20px]">
-              <CardContent class="p-3 text-center">
-                <p class="text-xs text-muted-foreground">Invoice</p>
-                <p class="text-lg font-bold">{{ formatCurrency(laborTotal + partsTotal) }}</p>
-              </CardContent>
-            </Card>
-            <Card class="rounded-[20px]">
-              <CardContent class="p-3 text-center">
-                <p class="text-xs text-muted-foreground">Paid</p>
-                <p class="text-lg font-bold text-emerald-500">{{ formatCurrency(paymentsTotal) }}</p>
-              </CardContent>
-            </Card>
-            <Card class="rounded-[20px]">
-              <CardContent class="p-3 text-center">
-                <p class="text-xs text-muted-foreground">Balance</p>
-                <p class="text-lg font-bold" :class="balance > 0 ? 'text-destructive' : 'text-emerald-500'">
-                  {{ formatCurrency(balance) }}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <!-- Add payment -->
-          <Card class="rounded-[20px]">
-            <CardContent class="p-5 space-y-3">
-              <p class="m3-section-label">Record Payment</p>
-              <div class="grid grid-cols-2 gap-3">
-                <div class="space-y-1.5">
-                  <Label class="text-xs">Amount</Label>
-                  <Input v-model.number="newPayment.amount" type="number" min="0" step="0.01" placeholder="0.00" />
-                </div>
-                <div class="space-y-1.5">
-                  <Label class="text-xs">Method</Label>
-                  <Select v-model="newPayment.method">
-                    <SelectTrigger class="h-9 text-sm">
-                      <SelectValue placeholder="Select..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cash">Cash</SelectItem>
-                      <SelectItem value="card">Card</SelectItem>
-                      <SelectItem value="zelle">Zelle</SelectItem>
-                      <SelectItem value="venmo">Venmo</SelectItem>
-                      <SelectItem value="check">Check</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div class="space-y-1.5 col-span-2">
-                  <Label class="text-xs">Note (optional)</Label>
-                  <Input v-model="newPayment.note" placeholder="Deposit, partial payment, etc." />
-                </div>
+              <div v-if="localParts.length > 0" class="d-flex justify-space-between align-center pa-3 rounded-xl text-body-2 font-weight-bold" style="background:rgba(0,0,0,0.04)">
+                <span>Parts Total</span>
+                <span style="color:#8b5cf6">{{ formatCurrency(partsTotal) }}</span>
               </div>
-              <Button class="w-full" size="sm" :disabled="!newPayment.amount || !newPayment.method" @click="addPayment">
-                <DollarSign class="w-3.5 h-3.5 mr-1.5" /> Record Payment
-              </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </v-tabs-window-item>
 
-          <!-- Payment history -->
-          <div class="space-y-2">
-            <div
-              v-for="(payment, idx) in localPayments"
-              :key="idx"
-              class="flex items-center gap-3 px-4 py-3 rounded-[16px] border bg-card transition-all hover:bg-muted/30"
-            >
-              <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: #10b98118">
-                <DollarSign class="w-4 h-4 text-emerald-500" />
+          <!-- ── Payments Tab ───────────────────────────────────────── -->
+          <v-tabs-window-item value="payments">
+            <div class="d-flex flex-column gap-4 py-2">
+              <!-- Balance summary -->
+              <v-row dense>
+                <v-col cols="4">
+                  <v-card rounded="xl" class="pa-3 text-center">
+                    <p class="text-caption text-medium-emphasis mb-1">Invoice</p>
+                    <p class="text-h6 font-weight-bold mb-0">{{ formatCurrency(laborTotal + partsTotal) }}</p>
+                  </v-card>
+                </v-col>
+                <v-col cols="4">
+                  <v-card rounded="xl" class="pa-3 text-center">
+                    <p class="text-caption text-medium-emphasis mb-1">Paid</p>
+                    <p class="text-h6 font-weight-bold text-success mb-0">{{ formatCurrency(paymentsTotal) }}</p>
+                  </v-card>
+                </v-col>
+                <v-col cols="4">
+                  <v-card rounded="xl" class="pa-3 text-center">
+                    <p class="text-caption text-medium-emphasis mb-1">Balance</p>
+                    <p class="text-h6 font-weight-bold mb-0" :class="balance > 0 ? 'text-error' : 'text-success'">{{ formatCurrency(balance) }}</p>
+                  </v-card>
+                </v-col>
+              </v-row>
+
+              <!-- Add payment -->
+              <v-card rounded="xl" class="pa-4">
+                <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-3">Record Payment</p>
+                <v-row dense>
+                  <v-col cols="6">
+                    <v-text-field v-model.number="newPayment.amount" type="number" min="0" step="0.01" label="Amount" placeholder="0.00" />
+                  </v-col>
+                  <v-col cols="6">
+                    <v-select v-model="newPayment.method" label="Method" :items="['cash','card','zelle','venmo','check','other']" />
+                  </v-col>
+                  <v-col cols="12">
+                    <v-text-field v-model="newPayment.note" label="Note (optional)" placeholder="Deposit, partial payment, etc." />
+                  </v-col>
+                </v-row>
+                <v-btn block color="success" :disabled="!newPayment.amount || !newPayment.method" @click="addPayment">
+                  <v-icon start>mdi-currency-usd</v-icon> Record Payment
+                </v-btn>
+              </v-card>
+
+              <!-- Payment history -->
+              <div class="d-flex flex-column gap-2">
+                <v-card
+                  v-for="(payment, idx) in localPayments"
+                  :key="idx"
+                  rounded="xl"
+                  variant="outlined"
+                  class="pa-3"
+                >
+                  <div class="d-flex align-center gap-3">
+                    <v-avatar color="success" size="32" rounded="lg" variant="tonal">
+                      <v-icon size="16">mdi-currency-usd</v-icon>
+                    </v-avatar>
+                    <div class="flex-grow-1" style="min-width:0">
+                      <p class="text-body-2 font-weight-medium text-capitalize mb-0">{{ payment.method }}</p>
+                      <p class="text-caption text-medium-emphasis mb-0">{{ formatDate(payment.date) }}{{ payment.note ? ` · ${payment.note}` : '' }}</p>
+                    </div>
+                    <span class="text-body-2 font-weight-bold text-success">{{ formatCurrency(payment.amount) }}</span>
+                    <v-btn icon="mdi-close" size="x-small" variant="text" color="error" @click="removePayment(idx)" />
+                  </div>
+                </v-card>
+                <v-card v-if="localPayments.length === 0" rounded="xl" variant="outlined" class="pa-6 text-center text-body-2 text-medium-emphasis" style="border-style:dashed">
+                  No payments recorded yet
+                </v-card>
               </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium capitalize">{{ payment.method }}</p>
-                <p class="text-xs text-muted-foreground">{{ formatDate(payment.date) }}{{ payment.note ? ` · ${payment.note}` : '' }}</p>
+            </div>
+          </v-tabs-window-item>
+
+          <!-- ── Notes Tab ─────────────────────────────────────────── -->
+          <v-tabs-window-item value="notes">
+            <div class="d-flex flex-column gap-4 py-2">
+              <div class="d-flex gap-2">
+                <v-textarea v-model="newNote" placeholder="Add a note..." rows="2" auto-grow class="flex-grow-1" />
+                <v-btn icon="mdi-plus" size="small" class="align-self-start" :disabled="!newNote.trim()" @click="addNote" />
               </div>
-              <span class="text-sm font-bold text-emerald-600">{{ formatCurrency(payment.amount) }}</span>
-              <button class="text-muted-foreground hover:text-destructive transition-colors ml-1" @click="removePayment(idx)">
-                <X class="w-4 h-4" />
-              </button>
-            </div>
-            <div v-if="localPayments.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-[16px] border border-dashed">
-              No payments recorded yet
-            </div>
-          </div>
-        </div>
-
-        <!-- ── Notes Tab ─────────────────────────────────────────── -->
-        <div v-if="activeTab === 'notes'" class="space-y-4">
-          <div class="flex gap-2">
-            <Textarea v-model="newNote" placeholder="Add a note..." :rows="2" class="flex-1 text-sm resize-none" />
-            <Button size="sm" class="self-start" :disabled="!newNote.trim()" @click="addNote">
-              <Plus class="w-3.5 h-3.5" />
-            </Button>
-          </div>
-          <div class="space-y-2">
-            <div
-              v-for="(note, idx) in localNotes"
-              :key="idx"
-              class="px-4 py-3 rounded-[16px] border bg-card text-sm transition-all hover:bg-muted/30"
-            >
-              <div class="flex items-start justify-between gap-2">
-                <p class="flex-1">{{ note.text }}</p>
-                <button class="text-muted-foreground hover:text-destructive transition-colors flex-shrink-0" @click="removeNote(idx)">
-                  <X class="w-3.5 h-3.5" />
-                </button>
+              <div class="d-flex flex-column gap-2">
+                <v-card
+                  v-for="(note, idx) in localNotes"
+                  :key="idx"
+                  rounded="xl"
+                  variant="outlined"
+                  class="pa-3"
+                >
+                  <div class="d-flex align-start justify-space-between gap-2">
+                    <p class="text-body-2 flex-grow-1 mb-0">{{ note.text }}</p>
+                    <v-btn icon="mdi-close" size="x-small" variant="text" color="error" @click="removeNote(idx)" />
+                  </div>
+                  <p class="text-caption text-medium-emphasis mt-1 mb-0">{{ formatDate(note.date) }}</p>
+                </v-card>
+                <v-card v-if="localNotes.length === 0" rounded="xl" variant="outlined" class="pa-6 text-center text-body-2 text-medium-emphasis" style="border-style:dashed">
+                  No notes yet
+                </v-card>
               </div>
-              <p class="text-xs text-muted-foreground mt-1">{{ formatDate(note.date) }}</p>
             </div>
-            <div v-if="localNotes.length === 0" class="text-center py-10 text-sm text-muted-foreground rounded-[16px] border border-dashed">
-              No notes yet
-            </div>
-          </div>
-        </div>
+          </v-tabs-window-item>
 
-      </div>
+        </v-tabs-window>
+      </v-card-text>
 
-      <!-- M3 Footer -->
-      <div class="flex gap-2 sm:gap-2.5 px-4 sm:px-7 pb-5 sm:pb-7 pt-4 border-t border-border/50 flex-shrink-0 flex-wrap">
-        <button class="flex items-center gap-1.5 h-11 px-4 rounded-full text-sm font-bold text-white mr-auto transition-all hover:scale-[1.03] active:scale-95"
-          style="background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 14px #ef444430"
-          @click="$emit('delete', ticket)">
-          <Trash2 class="w-3.5 h-3.5" /> Delete
-        </button>
-        <button class="flex items-center gap-1.5 h-11 px-4 rounded-full text-sm font-bold transition-all hover:scale-[1.03] hover:bg-muted/60 active:scale-95"
-          style="outline: 2px solid hsl(var(--border)); outline-offset: 0"
-          :disabled="!ticketCustomer?.email"
-          :title="!ticketCustomer?.email ? 'Customer has no email' : 'Email customer'"
-          :style="!ticketCustomer?.email ? 'opacity:0.4;cursor:not-allowed;outline:2px solid hsl(var(--border));outline-offset:0' : 'outline:2px solid hsl(var(--border));outline-offset:0'"
-          @click="emailCustomer">
-          <Mail class="w-3.5 h-3.5" /> Email
-        </button>
-        <button class="flex items-center gap-1.5 h-11 px-4 rounded-full text-sm font-bold transition-all hover:scale-[1.03] hover:bg-muted/60 active:scale-95"
-          style="outline: 2px solid hsl(var(--border)); outline-offset: 0"
-          @click="printIntakeLabel">
-          <Printer class="w-3.5 h-3.5" /> Print Label
-        </button>
-        <button class="h-11 px-5 rounded-full text-sm font-bold transition-all hover:scale-[1.03] hover:bg-muted/60 active:scale-95"
-          style="outline: 2px solid hsl(var(--border)); outline-offset: 0"
-          @click="isOpen = false">Close</button>
-        <button class="flex items-center gap-1.5 h-11 px-6 rounded-full text-sm font-black text-white transition-all hover:scale-[1.04] hover:-translate-y-0.5 active:scale-95"
-          style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 4px 16px #6366f140"
-          :disabled="saving"
-          @click="saveAll">
-          <Loader2 v-if="saving" class="w-3.5 h-3.5 animate-spin" />
-          <Save v-else class="w-3.5 h-3.5" />
-          {{ saving ? 'Saving…' : 'Save' }}
-        </button>
-      </div>
+      <!-- Footer -->
+      <v-divider />
+      <v-card-actions class="pa-4 flex-wrap gap-2">
+        <v-btn color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="$emit('delete', ticket)">Delete</v-btn>
+        <v-spacer />
+        <v-btn variant="outlined" prepend-icon="mdi-email-outline" :disabled="!ticketCustomer?.email" @click="emailCustomer">Email</v-btn>
+        <v-btn variant="outlined" prepend-icon="mdi-printer" @click="printIntakeLabel">Print Label</v-btn>
+        <v-btn variant="text" @click="isOpen = false">Close</v-btn>
+        <v-btn color="primary" :loading="saving" prepend-icon="mdi-content-save" @click="saveAll">Save</v-btn>
+      </v-card-actions>
 
-    </DialogContent>
-  </Dialog>
-  <ToastStack />
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
 import { X, Plus, Search, Clock, DollarSign, Save, Trash2, Loader2, Mail, TicketCheck, Printer, Phone, MapPin, Pencil, Check } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { printBarcodeLabel } from '~/utils/print'
-import { Dialog, DialogContent } from '~/components/ui/dialog'
-import { Card, CardContent } from '~/components/ui/card'
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
-import { Textarea } from '~/components/ui/textarea'
-import { Badge } from '~/components/ui/badge'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '~/components/ui/select'
-import StatusChip from '~/components/ui/StatusChip.vue'
-import ToastStack from '~/components/ui/ToastStack.vue'
 import { useToast } from '~/composables/useToast'
 
 const props = defineProps<{
@@ -707,21 +624,10 @@ const timeRate = (minutes: number, hourly = HOURLY_RATE.value) =>
 const getCustomerName = (id: number) =>
   customers.value?.find((c: any) => c.id === id)?.name || 'Unknown'
 
-const priorityClass = (p?: string) => {
-  const map: Record<string, string> = {
-    high: 'bg-destructive/10 text-destructive border-destructive/20',
-    normal: 'bg-muted text-muted-foreground',
-    low: 'bg-muted/50 text-muted-foreground',
-  }
-  return map[p || 'normal']
-}
-
 const ticketStatusColor = (status?: string) => ({
   'Open': '#3b82f6', 'In Progress': '#f59e0b', 'Waiting for Parts': '#f97316',
   'Completed': '#10b981', 'Delivered': '#64748b', 'Closed': '#6366f1'
 }[status || ''] || '#64748b')
-
-const priorityColorRaw = (p?: string) => ({ low: '#64748b', normal: '#3b82f6', high: '#ef4444' }[p || ''] || '#64748b')
 
 // ── Customer avatar helpers ───────────────────────────────────────
 const initials = (name: string) =>
@@ -888,13 +794,12 @@ function emailCustomer() {
 
 function printIntakeLabel() {
   if (!props.ticket) return
-  // Fire off the exact standard Direct Protocol expected by the label printer
   printBarcodeLabel({
-    sku: `TKT-${props.ticket.id}`, // the literal string POS listens for
+    sku: `TKT-${props.ticket.id}`,
     name: `Ticket #${props.ticket.id} - ${props.ticket.device}`,
     price: laborTotal.value + partsTotal.value,
     customerName: getCustomerName(props.ticket.customerId),
-    format: 'CODE128' // Fall back to standard bar so it's vertically compact
+    format: 'CODE128'
   })
 }
 
@@ -910,7 +815,6 @@ const saveAll = async () => {
       payments:           localPayments.value,
       notes:              localNotes.value,
       price:              laborTotal.value + partsTotal.value,
-      // Info fields (only written if editing was active)
       device:             localDevice.value,
       device_model:       localDeviceModel.value,
       issue:              localIssue.value,
@@ -926,69 +830,3 @@ const saveAll = async () => {
   }
 }
 </script>
-
-<style scoped>
-.m3-section-label {
-  font-size: 10px;
-  font-weight: 800;
-  color: hsl(var(--muted-foreground));
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-}
-
-.field-label {
-  display: block;
-  font-size: 10px;
-  font-weight: 800;
-  color: hsl(var(--muted-foreground));
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 0.3rem;
-}
-
-.m3-edit-input {
-  width: 100%;
-  height: 44px;
-  padding: 0 14px;
-  border-radius: 14px;
-  font-size: 13px;
-  font-weight: 500;
-  background: hsl(var(--muted)/0.5);
-  border: 2px solid hsl(var(--border)/0.7);
-  color: hsl(var(--foreground));
-  outline: none;
-  transition: all 0.2s ease;
-}
-.m3-edit-input:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px #6366f115;
-  background: hsl(var(--background));
-}
-.m3-edit-input.resize-none {
-  height: auto;
-  padding-top: 10px;
-  padding-bottom: 10px;
-}
-
-.contact-action-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: hsl(var(--muted)/0.6);
-  color: hsl(var(--muted-foreground));
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-.contact-action-btn:hover {
-  background: #6366f120;
-  color: #6366f1;
-  transform: scale(1.1);
-}
-.contact-action-btn:active {
-  transform: scale(0.92);
-}
-</style>
-

@@ -1,6 +1,6 @@
 <template>
-  <Dialog v-model:open="isOpen">
-    <DialogContent class="w-full max-w-[96vw] sm:max-w-3xl max-h-[90dvh] overflow-y-auto">
+  <v-dialog v-model="isOpen" max-width="900" scrollable>
+    <v-card rounded="xl" style="max-height:90dvh;overflow-y:auto">
       <!-- M3 Dialog Header -->
       <div class="flex items-center gap-4 px-7 pt-7 pb-5 border-b border-border/50">
         <div class="w-11 h-11 rounded-[22px] flex items-center justify-center flex-shrink-0 shadow-md"
@@ -227,14 +227,7 @@
             </div>
             <div class="space-y-2">
               <label class="m3-dialog-label">Priority</label>
-              <Select v-model="ticketData.priority">
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                </SelectContent>
-              </Select>
+              <v-select v-model="ticketData.priority" :items="['low','normal','high']" label="Priority" density="comfortable" />
             </div>
           </div>
 
@@ -338,12 +331,12 @@
           {{ creating ? 'Saving…' : 'Create Ticket' }}
         </button>
       </div>
-    </DialogContent>
-  </Dialog>
+    </v-card>
+  </v-dialog>
 
   <!-- ══ Device Catalog Manager ══════════════════════════════════════ -->
-  <Dialog v-model:open="showDeviceMgr">
-    <DialogContent class="w-full max-w-[96vw] sm:max-w-2xl max-h-[90dvh] overflow-hidden flex flex-col">
+  <v-dialog v-model="showDeviceMgr" max-width="800" scrollable>
+    <v-card rounded="xl" class="d-flex flex-column" style="max-height:90dvh">
       <!-- Header -->
       <div class="flex items-center gap-3 px-6 pt-6 pb-4 border-b border-border/50 flex-shrink-0">
         <div class="w-10 h-10 rounded-[20px] flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed)">
@@ -466,14 +459,12 @@
           style="background: hsl(var(--muted)); color: hsl(var(--foreground))"
           @click="showDeviceMgr = false; fetchBrands()">Done</button>
       </div>
-    </DialogContent>
-  </Dialog>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
 import { ChevronLeft, ChevronRight, Search, Zap, Droplets, Volume2, Wifi, Battery, Eye, Wrench, Check, Camera, X, Plus, Settings, Cpu } from 'lucide-vue-next'
-import { Dialog, DialogContent } from '~/components/ui/dialog'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '~/components/ui/select'
 import SignaturePad from '~/components/SignaturePad.vue'
 import CustomerSelect from '~/components/CustomerSelect.vue'
 

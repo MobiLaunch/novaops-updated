@@ -140,8 +140,8 @@
     </div>
 
     <!-- ── Add/Edit Dialog ─────────────────────────────────────── -->
-    <Dialog v-model:open="newOpen">
-      <DialogContent class="w-full max-w-[96vw] sm:max-w-md">
+    <v-dialog v-model="newOpen" max-width="500">
+      <v-card rounded="xl">
         <div class="flex flex-col gap-5 p-7">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-[20px] flex items-center justify-center"
@@ -219,31 +219,29 @@
             </div>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </v-card>
+    </v-dialog>
 
   </div>
 
   <!-- Batch print confirmation -->
-  <AlertDialog
-    :open="batchPrintConfirmOpen"
-    :heading="`Print ${batchPrintCount} labels?`"
-    :body="`You're about to print ${batchPrintCount} barcode labels. Make sure your label printer is ready.`"
-    status="warning"
-    confirm-label="Print All"
-    @update:open="v => { if (!v) batchPrintConfirmOpen = false }"
-    @confirm="executeBatchPrint"
-  />
-  <ToastStack />
+  <v-dialog v-model="batchPrintConfirmOpen" max-width="420">
+    <v-card rounded="xl">
+      <v-card-title class="text-h6">Print {{ batchPrintCount }} labels?</v-card-title>
+      <v-card-text>You're about to print {{ batchPrintCount }} barcode labels. Make sure your label printer is ready.</v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="batchPrintConfirmOpen = false">Cancel</v-btn>
+        <v-btn color="warning" @click="executeBatchPrint">Print All</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { Package, Search, Plus, AlertTriangle, Wrench, Printer } from 'lucide-vue-next'
 import { DollarSign, Tag } from 'lucide-vue-next'
-import { Dialog, DialogContent } from '~/components/ui/dialog'
-import AlertDialog from '~/components/ui/AlertDialog.vue'
-import ToastStack from '~/components/ui/ToastStack.vue'
 import { useToast } from '~/composables/useToast'
 import { useAppStore } from '~/stores/app'
 import { printBarcodeLabel, printBarcodeBatch } from '~/utils/print'

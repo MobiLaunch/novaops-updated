@@ -75,14 +75,13 @@
                   {{ saving ? 'Saving…' : 'Save Business Settings' }}
                 </button>
               </div>
-              <AppAlert
+              <v-alert
                 v-if="saveMsg"
-                :status="saveMsg.ok ? 'success' : 'danger'"
+                :type="saveMsg.ok ? 'success' : 'error'"
                 :title="saveMsg.ok ? 'Settings saved' : 'Save failed'"
-                :description="saveMsg.ok ? undefined : saveMsg.text"
-                :inline="true"
-                :dismissible="true"
-                @dismiss="saveMsg = null"
+                :text="saveMsg.ok ? undefined : saveMsg.text"
+                closable
+                @click:close="saveMsg = null"
               />
             </div>
           </div>
@@ -179,13 +178,12 @@
               </div>
             </div>
 
-            <AppAlert
+            <v-alert
               v-if="serviceMsg"
-              :status="serviceMsg.ok ? 'success' : 'danger'"
+              :type="serviceMsg.ok ? 'success' : 'error'"
               :title="serviceMsg.text"
-              :inline="true"
-              :dismissible="true"
-              @dismiss="serviceMsg = null"
+              closable
+              @click:close="serviceMsg = null"
             />
           </div>
         </div>
@@ -278,13 +276,12 @@
               </div>
             </div>
 
-            <AppAlert
+            <v-alert
               v-if="expenseMsg"
-              :status="expenseMsg.ok ? 'success' : 'danger'"
+              :type="expenseMsg.ok ? 'success' : 'error'"
               :title="expenseMsg.text"
-              :inline="true"
-              :dismissible="true"
-              @dismiss="expenseMsg = null"
+              closable
+              @click:close="expenseMsg = null"
             />
           </div>
         </div>
@@ -531,10 +528,10 @@
                   <p class="text-sm font-bold">Use Square Sandbox</p>
                   <p class="text-xs text-muted-foreground font-medium">Test mode — use sandbox credentials</p>
                 </div>
-                <IconSwitch
+                <v-switch
                   v-model="form.squareSandbox"
-                  :icon-on="Check"
-                  :icon-off="X"
+                  hide-details
+                  density="compact"
                   @update:model-value="debouncedSquareCheck"
                 />
               </div>
@@ -684,11 +681,11 @@
                   <p class="text-sm font-bold">Auto-Print Receipts</p>
                   <p class="text-xs text-muted-foreground font-medium mt-0.5">Prompt to print receipt after POS checkout</p>
                 </div>
-                <IconSwitch
+                <v-switch
                   v-model="printerSettings.autoPrintReceipt"
-                  :icon-on="Check"
-                  :icon-off="X"
-                  accent-class="bg-green-500/80"
+                  hide-details
+                  density="compact"
+                  color="success"
                   @update:model-value="savePrinterSettings"
                 />
               </div>
@@ -699,25 +696,24 @@
                   <p class="text-sm font-bold">Auto-Print Barcode Labels</p>
                   <p class="text-xs text-muted-foreground font-medium mt-0.5">Prompt to print barcode label when a ticket is created</p>
                 </div>
-                <IconSwitch
+                <v-switch
                   v-model="printerSettings.autoPrintBarcode"
-                  :icon-on="Check"
-                  :icon-off="X"
-                  accent-class="bg-blue-500/80"
+                  hide-details
+                  density="compact"
+                  color="info"
                   @update:model-value="savePrinterSettings"
                 />
               </div>
               <button class="m3-btn-tonal h-10 px-5 rounded-full text-xs font-bold w-full max-w-[200px]" @click="testBarcodePrint">Test Label Print</button>
             </div>
 
-            <AppAlert
+            <v-alert
               v-if="printerMsg"
-              :status="printerMsg.type === 'success' ? 'success' : 'danger'"
+              :type="printerMsg.type === 'success' ? 'success' : 'error'"
               :title="printerMsg.text"
-              :inline="true"
-              :dismissible="true"
+              closable
               class="mt-4"
-              @dismiss="printerMsg = null"
+              @click:close="printerMsg = null"
             />
           </div>
         </div>
@@ -744,10 +740,10 @@
                   <p class="text-xs text-muted-foreground font-medium">{{ notif.desc }}</p>
                 </div>
               </div>
-              <IconSwitch
+              <v-switch
                 :model-value="notif.enabled"
-                :icon-on="BellRing"
-                :icon-off="BellOff"
+                hide-details
+                density="compact"
                 @update:model-value="toggleNotif(key)"
               />
             </div>
@@ -862,19 +858,18 @@
       </div>
     </div>
 
-    <!-- ── Confirm Dialog (AlertDialog) ── -->
-    <AlertDialog
-      :open="confirmDialog.open"
-      :heading="confirmDialog.title"
-      :body="confirmDialog.message"
-      :confirm-label="confirmDialog.confirmLabel"
-      status="danger"
-      @update:open="v => { if (!v) confirmDialog.open = false }"
-      @confirm="confirmDialog.onConfirm()"
-    />
-
-    <!-- Toast Stack -->
-    <ToastStack />
+    <!-- ── Confirm Dialog ── -->
+    <v-dialog v-model="confirmDialog.open" max-width="420">
+      <v-card rounded="xl">
+        <v-card-title class="text-h6">{{ confirmDialog.title }}</v-card-title>
+        <v-card-text>{{ confirmDialog.message }}</v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="confirmDialog.open = false">Cancel</v-btn>
+          <v-btn color="error" @click="confirmDialog.onConfirm()">{{ confirmDialog.confirmLabel }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
   </div>
 </template>
@@ -889,10 +884,6 @@ import {
   Plus, Pencil, Wrench, DollarSign, BellOff, BellRing,
 } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
-import IconSwitch from '~/components/ui/IconSwitch.vue'
-import AlertDialog from '~/components/ui/AlertDialog.vue'
-import AppAlert from '~/components/ui/AppAlert.vue'
-import ToastStack from '~/components/ui/ToastStack.vue'
 import { useToast } from '~/composables/useToast'
 
 // ── Toast ─────────────────────────────────────────────────────────────

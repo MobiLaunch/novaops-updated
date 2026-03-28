@@ -152,12 +152,10 @@
     </div>
 
   </div>
-  <ToastStack />
 </template>
 
 <script setup lang="ts">
 import { Upload, Users, Package, TicketCheck, FileUp, Download, Clock, CheckCircle } from 'lucide-vue-next'
-import ToastStack from '~/components/ui/ToastStack.vue'
 import { useToast } from '~/composables/useToast'
 
 definePageMeta({ middleware: ['auth'] })

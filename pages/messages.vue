@@ -339,9 +339,9 @@
       </div>
     </div>
 
-    <!-- ── Compose Dialog ─────────────────────────────────────────── -->
-    <Dialog v-model:open="composeOpen">
-      <DialogContent class="max-w-lg">
+    <!-- ── Compose Dialog ───────────────────────────────────────── -->
+    <v-dialog v-model="composeOpen" max-width="560">
+      <v-card rounded="xl">
         <div class="flex flex-col gap-5 p-7">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-[20px] flex items-center justify-center"
@@ -417,12 +417,12 @@
             </button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </v-card>
+    </v-dialog>
 
     <!-- ── Template Picker Dialog ─────────────────────────────────── -->
-    <Dialog v-model:open="templateOpen">
-      <DialogContent class="max-w-md">
+    <v-dialog v-model="templateOpen" max-width="480">
+      <v-card rounded="xl">
         <div class="flex flex-col gap-4 p-7">
           <h2 class="text-base font-black">Message Templates</h2>
           <div class="space-y-2 max-h-80 overflow-y-auto">
@@ -438,21 +438,22 @@
             style="outline:2px solid hsl(var(--border));outline-offset:0"
             @click="templateOpen = false">Close</button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </v-card>
+    </v-dialog>
 
   </div>
 
-  <AlertDialog
-    :open="deleteThreadOpen"
-    heading="Delete conversation?"
-    body="This conversation will be removed from your inbox. This cannot be undone."
-    status="danger"
-    confirm-label="Delete"
-    @update:open="v => { if (!v) deleteThreadOpen = false }"
-    @confirm="executeDeleteThread"
-  />
-  <ToastStack />
+  <v-dialog v-model="deleteThreadOpen" max-width="420">
+    <v-card rounded="xl">
+      <v-card-title class="text-h6">Delete conversation?</v-card-title>
+      <v-card-text>This conversation will be removed from your inbox. This cannot be undone.</v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="deleteThreadOpen = false">Cancel</v-btn>
+        <v-btn color="error" @click="executeDeleteThread">Delete</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -461,10 +462,7 @@ import {
   TicketCheck, FileText, Paperclip, CheckCheck, Check, Bell,
   CheckCircle, AlertTriangle, AlertCircle, Info, X, RefreshCw
 } from 'lucide-vue-next'
-import { Dialog, DialogContent } from '~/components/ui/dialog'
 import { storeToRefs } from 'pinia'
-import AlertDialog from '~/components/ui/AlertDialog.vue'
-import ToastStack from '~/components/ui/ToastStack.vue'
 import { useToast } from '~/composables/useToast'
 
 definePageMeta({ middleware: ['auth'] })
