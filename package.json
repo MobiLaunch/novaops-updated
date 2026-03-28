@@ -1,7 +1,7 @@
 {
   "name": "novaops",
   "version": "3.1.0",
-  "description": "NovaOps \u2014 Repair Shop Management (Vuetify 3 + Nuxt 3)",
+  "description": "NovaOps — Repair Shop Management (Vuetify 3 + Nuxt 3)",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
+    "@mdi/font": "^7.4.47",
     "@pinia/nuxt": "^0.11.3",
     "@supabase/supabase-js": "^2.96.0",
     "@vueuse/core": "^11.0.0",
@@ -23,25 +24,25 @@
     "pinia": "^3.0.4",
     "qrcode": "^1.5.4",
     "vue": "^3.4.38",
-    "vuetify": "^3.7.0",
-    "@mdi/font": "^7.4.47"
+    "vuetify": "^3.7.0"
   },
   "devDependencies": {
     "@nuxt/devtools": "^1.5.1",
     "@vite-pwa/nuxt": "^1.1.1",
+    "sass-embedded": "^1.98.0",
     "typescript": "^5.5.4",
-    "wait-on": "^8.0.1",
-    "vuetify-nuxt-module": "^0.18.0"
+    "vuetify-nuxt-module": "^0.18.0",
+    "wait-on": "^8.0.1"
   },
   "overrides": {
     "@parcel/watcher": "2.4.1"
   },
   "optionalDependencies": {
-    "nodemailer": "^6.9.15",
     "@parcel/watcher-darwin-arm64": "2.4.1",
     "@parcel/watcher-darwin-x64": "2.4.1",
     "@parcel/watcher-linux-x64-glibc": "2.4.1",
     "@parcel/watcher-win32-arm64": "2.4.1",
-    "@parcel/watcher-win32-x64": "2.4.1"
+    "@parcel/watcher-win32-x64": "2.4.1",
+    "nodemailer": "^6.9.15"
   }
 }
