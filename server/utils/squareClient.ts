@@ -88,3 +88,31 @@ export async function serverSquareFetch(
 
   return data
 }
+
+export async function createPayment(accessToken: string, payload: any) {
+  return serverSquareFetch('/payments', accessToken, { method: 'POST', body: payload })
+}
+
+export async function retrievePayment(accessToken: string, paymentId: string) {
+  return serverSquareFetch(`/payments/${paymentId}`, accessToken)
+}
+
+export async function createOrder(accessToken: string, payload: any) {
+  return serverSquareFetch('/orders', accessToken, { method: 'POST', body: payload })
+}
+
+export async function retrieveOrder(accessToken: string, orderId: string) {
+  return serverSquareFetch(`/orders/${orderId}`, accessToken)
+}
+
+export async function listCustomers(accessToken: string) {
+  return serverSquareFetch('/customers', accessToken)
+}
+
+export async function pairTerminal(accessToken: string, payload: any) {
+  return serverSquareFetch('/terminal/checkouts', accessToken, { method: 'POST', body: payload })
+}
+
+export async function listLocations(accessToken: string) {
+  return serverSquareFetch('/locations', accessToken)
+}

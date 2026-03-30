@@ -1,0 +1,35 @@
+{
+  "appId": "com.mobilaunch.novaops",
+  "productName": "NovaOps",
+  "copyright": "Copyright © 2025 MobiLaunch",
+  "directories": {
+    "output": "build",
+    "buildResources": "public"
+  },
+  "files": [
+    "electron/**/*",
+    ".output/public/**/*",
+    "package.json"
+  ],
+  "win": {
+    "target": [{ "target": "nsis", "arch": ["x64"] }],
+    "icon": "public/icon.ico"
+  },
+  "mac": {
+    "target": [{ "target": "dmg", "arch": ["x64", "arm64"] }],
+    "icon": "public/icon.ico",
+    "category": "public.app-category.business"
+  },
+  "linux": {
+    "target": [{ "target": "AppImage", "arch": ["x64"] }],
+    "icon": "public/icon.ico",
+    "category": "Office"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true
+  },
+  "publish": null
+}

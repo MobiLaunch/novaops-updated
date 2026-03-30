@@ -588,7 +588,47 @@ const dateRanges = [
   { label: 'Year', value: '365' },
 ]
 
-const square = useSquareData()
+const isConfigured = computed(() => !!settings.value?.squareAccessToken && !!settings.value?.squareLocationId)
+const isLoading = ref(false)
+const payments = ref<any[]>([])
+const payouts = ref<any[]>([])
+const sqCustomers = ref<any[]>([])
+
+const fetchAll = async (days: number) => {
+  if (!isConfigured.value) return
+  isLoading.value = true
+  try {
+    const [payRes, poutRes, custRes] = await Promise.all([
+      $fetch('/api/square/payments', { query: { days } }).catch(() => null),
+      $fetch('/api/square/payouts', { query: { days } }).catch(() => null),
+      $fetch('/api/square/customers').catch(() => null)
+    ])
+    payments.value = (payRes as any)?.payments || []
+    payouts.value = (poutRes as any)?.payouts || []
+    sqCustomers.value = (custRes as any)?.customers || []
+  } catch(e) {
+    console.error('Square fetch error:', e)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const sqTotalRevenue = computed(() => payments.value.reduce((sum, p) => sum + (p.amount || 0), 0))
+const sqTotalTips = computed(() => payments.value.reduce((sum, p) => sum + (p.tip || 0), 0))
+const sqTotalFees = computed(() => payments.value.reduce((sum, p) => sum + (p.fee || 0), 0))
+const sqNetRevenue = computed(() => sqTotalRevenue.value + sqTotalTips.value - sqTotalFees.value)
+const sqTotalPayouts = computed(() => payouts.value.filter(p => !p.status || p.status === 'PAID').reduce((sum, p) => sum + (p.amount || 0), 0))
+
+const square = {
+  isConfigured, isLoading, payments, payouts, sqCustomers,
+  totalRevenue: sqTotalRevenue, 
+  totalTips: sqTotalTips, 
+  totalFees: sqTotalFees, 
+  netRevenue: sqNetRevenue, 
+  totalPayouts: sqTotalPayouts,
+  fetchAll
+}
+
 const squareFetched = ref(false)
 watch(activeTab, (tab) => {
   if (tab === 'square' && !squareFetched.value && square.isConfigured.value) {
