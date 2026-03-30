@@ -3,18 +3,28 @@
  * vuetify-nuxt-module replaces @nuxtjs/tailwindcss
  */
 
-
+if (process.env.NODE_ENV !== 'production') {
+  const _emit = process.emit.bind(process)
+  process.emit = function (event, ...args) {
+    if (
+      event === 'unhandledRejection' &&
+      ((args[0]?.code === 'ERR_STREAM_WRITE_AFTER_END') ||
+        (args[0]?.code === 'ECONNRESET'))
+    ) return true
+    return _emit(event, ...args)
+  }
+}
 
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
   ssr: false,
 
-  css: ['~/assets/css/utilities.scss'],
-
   modules: [
+    '@nuxtjs/tailwindcss',
     'vuetify-nuxt-module',
     '@pinia/nuxt',
+    '@vite-pwa/nuxt',
   ],
 
   vuetify: {
@@ -22,7 +32,6 @@ export default defineNuxtConfig({
       styles: { configFile: 'assets/css/vuetify-settings.scss' },
     },
     vuetifyOptions: {
-      labComponents: true,
       theme: {
         defaultTheme: 'light',
         themes: {
@@ -81,7 +90,36 @@ export default defineNuxtConfig({
     },
   },
 
-
+  pwa: {
+    registerType: 'autoUpdate',
+    registerWebManifestInRouteRules: true,
+    manifest: {
+      name: 'NovaOps',
+      short_name: 'NovaOps',
+      description: 'Modern Repair Shop Management System',
+      theme_color: '#6366f1',
+      background_color: '#0f172a',
+      display: 'standalone',
+      icons: [
+        { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+        { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+        { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+      ],
+    },
+    workbox: {
+      navigateFallback: null,
+      globPatterns: ['**/*.{js,css,html,png,svg,ico,webmanifest}'],
+      runtimeCaching: [
+        { urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i, handler: 'NetworkOnly' },
+      ],
+    },
+    devOptions: {
+      enabled: true,
+      suppressWarnings: true,
+      navigateFallbackAllowlist: [/^\//],
+      type: 'module',
+    },
+  },
 
   runtimeConfig: {
     squareAccessToken:      process.env.SQUARE_ACCESS_TOKEN || '',
@@ -116,6 +154,7 @@ export default defineNuxtConfig({
     },
   },
 
+  css: ['~/assets/css/main.css'],
   imports: { autoImport: true },
   components: [{ path: '~/components', ignore: ['**/index.ts'] }],
 
