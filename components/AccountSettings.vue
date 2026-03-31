@@ -48,7 +48,6 @@
 </template>
 
 <script setup lang="ts">
-import { Camera, Save } from 'lucide-vue-next'
 import { useToast } from '~/composables/useToast'
 
 const { addNotification } = useNotifications()

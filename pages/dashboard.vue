@@ -30,7 +30,7 @@
       density="compact"
     >
       <template #prepend>
-        <component :is="weatherIconComponent" :size="20" />
+        <v-icon :icon="weatherIcon" size="20" />
       </template>
       <span class="text-body-2 font-weight-medium">
         {{ weather.temp }}°F · {{ weather.description }} in {{ weather.location }} —
@@ -154,7 +154,7 @@
               rounded="lg"
               class="mb-2"
             >
-              <component :is="action.icon" :size="20" color="white" />
+              <v-icon :icon="action.icon" size="20" color="white" />
             </v-avatar>
             <div class="text-caption font-weight-bold text-truncate">{{ action.label }}</div>
             <div class="text-caption text-medium-emphasis text-truncate" style="font-size:10px">{{ action.sub }}</div>
@@ -278,11 +278,6 @@ import { ref, computed, onMounted } from 'vue'
 import { useAppStore } from '~/stores/app'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
-import {
-  ShoppingCart, CalendarDays, Package, UserPlus, MessageCircle,
-  ClipboardCheck, Sun, Cloud, CloudRain, CloudSnow,
-  CloudDrizzle, CloudLightning, Snowflake,
-} from 'lucide-vue-next'
 import NewTicketDialog from '~/components/NewTicketDialog.vue'
 import { useToast } from '~/composables/useToast'
 import { useWeather, getContextBanner } from '~/composables/useWeather'
@@ -317,14 +312,14 @@ const bannerColor = computed(() => {
   if (t <= 65) return 'success'
   return 'warning'
 })
-const weatherIconComponent = computed(() => {
-  const map: Record<string, any> = {
-    'sun': Sun, 'cloud-sun': Cloud, 'cloud': Cloud,
-    'cloud-rain': CloudRain, 'snowflake': Snowflake,
-    'cloud-drizzle': CloudDrizzle, 'cloud-snow': CloudSnow,
-    'cloud-lightning': CloudLightning,
+const weatherIcon = computed(() => {
+  const map: Record<string, string> = {
+    'sun': 'mdi-weather-sunny', 'cloud-sun': 'mdi-weather-partly-cloudy', 'cloud': 'mdi-weather-cloudy',
+    'cloud-rain': 'mdi-weather-rainy', 'snowflake': 'mdi-snowflake',
+    'cloud-drizzle': 'mdi-weather-rainy', 'cloud-snow': 'mdi-weather-snowy',
+    'cloud-lightning': 'mdi-weather-lightning',
   }
-  return map[weather.value.icon || 'cloud'] || Cloud
+  return map[weather.value.icon || 'cloud'] || 'mdi-weather-cloudy'
 })
 
 // Computed data
@@ -392,12 +387,12 @@ const kpiStats = computed(() => [
 
 // Quick actions
 const quickActions = computed(() => [
-  { label: 'New Sale',  sub: 'POS',          color: '#ec4899', icon: ShoppingCart,   onClick: () => navigateTo('/pos') },
-  { label: 'Schedule', sub: 'Calendar',      color: '#8b5cf6', icon: CalendarDays,   onClick: () => navigateTo('/calendar') },
-  { label: 'Inventory',sub: 'Stock',         color: '#f59e0b', icon: Package,        onClick: () => navigateTo('/inventory') },
-  { label: 'Bookings', sub: 'Repairs',       color: '#3b82f6', icon: ClipboardCheck, onClick: () => navigateTo('/bookings') },
-  { label: 'Customers',sub: 'Clients',       color: '#06b6d4', icon: UserPlus,       onClick: () => navigateTo('/customers') },
-  { label: 'Messages', sub: 'Email & chat',  color: '#10b981', icon: MessageCircle,  onClick: () => navigateTo('/messages') },
+  { label: 'New Sale',  sub: 'POS',          color: '#ec4899', icon: 'mdi-cart-outline',           onClick: () => navigateTo('/pos') },
+  { label: 'Schedule', sub: 'Calendar',      color: '#8b5cf6', icon: 'mdi-calendar',               onClick: () => navigateTo('/calendar') },
+  { label: 'Inventory',sub: 'Stock',         color: '#f59e0b', icon: 'mdi-package-variant-closed',  onClick: () => navigateTo('/inventory') },
+  { label: 'Bookings', sub: 'Repairs',       color: '#3b82f6', icon: 'mdi-clipboard-check-outline', onClick: () => navigateTo('/bookings') },
+  { label: 'Customers',sub: 'Clients',       color: '#06b6d4', icon: 'mdi-account-plus-outline',    onClick: () => navigateTo('/customers') },
+  { label: 'Messages', sub: 'Email & chat',  color: '#10b981', icon: 'mdi-message-outline',         onClick: () => navigateTo('/messages') },
 ])
 
 // Today summary

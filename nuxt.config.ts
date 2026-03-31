@@ -1,6 +1,6 @@
 /**
- * nuxt.config.ts — NovaOps (Vuetify 3 Edition)
- * vuetify-nuxt-module replaces @nuxtjs/tailwindcss
+ * nuxt.config.ts — NovaOps (Vuetify 4 Edition)
+ * Pure Vuetify 4 + MDI icons — no TailwindCSS
  */
 
 if (process.env.NODE_ENV !== 'production') {
@@ -21,7 +21,6 @@ export default defineNuxtConfig({
   ssr: false,
 
   modules: [
-    '@nuxtjs/tailwindcss',
     'vuetify-nuxt-module',
     '@pinia/nuxt',
     '@vite-pwa/nuxt',

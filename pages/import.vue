@@ -8,7 +8,7 @@
           class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg"
           style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); box-shadow: 0 6px 28px #8b5cf650"
         >
-          <Upload class="w-6 h-6 text-white" />
+          <v-icon icon="mdi-upload" size="24" color="white" />
         </div>
         <div>
           <h1 class="text-3xl font-black tracking-tight">Import & Export</h1>
@@ -35,7 +35,7 @@
       <div v-for="type in importTypes" :key="type.label" class="rounded-[32px] p-7 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
         <div class="flex items-center gap-3 mb-5">
           <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" :style="`background: ${type.color}20`">
-            <component :is="type.icon" class="w-5 h-5" :style="`color: ${type.color}`" />
+            <v-icon :icon="type.icon" size="20" :style="`color: ${type.color}`" />
           </div>
           <div>
             <h3 class="text-sm font-black">Import {{ type.label }}</h3>
@@ -52,7 +52,7 @@
           @click="triggerUpload(type.key)"
         >
           <div class="w-14 h-14 rounded-[26px] flex items-center justify-center" :style="`background: ${type.color}20`">
-            <FileUp class="w-7 h-7" :style="`color: ${type.color}; opacity: 0.8`" />
+            <v-icon icon="mdi-file-upload-outline" size="28" :style="`color: ${type.color}; opacity: 0.8`" />
           </div>
           <div class="text-center">
             <p class="text-sm font-black">Drop file here or click</p>
@@ -75,7 +75,7 @@
           style="background: hsl(var(--muted)/0.5); color: hsl(var(--muted-foreground))"
           @click="downloadTemplate(type)"
         >
-          <Download class="w-3.5 h-3.5" /> Download {{ type.label }} Template
+          <v-icon icon="mdi-download" size="14" /> Download {{ type.label }} Template
         </button>
       </div>
     </div>
@@ -85,7 +85,7 @@
       <div v-for="type in importTypes" :key="type.label" class="rounded-[32px] p-7 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
         <div class="flex items-center gap-3 mb-5">
           <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" :style="`background: ${type.color}20`">
-            <component :is="type.icon" class="w-5 h-5" :style="`color: ${type.color}`" />
+            <v-icon :icon="type.icon" size="20" :style="`color: ${type.color}`" />
           </div>
           <div>
             <h3 class="text-sm font-black">Export {{ type.label }}</h3>
@@ -95,7 +95,7 @@
 
         <div class="rounded-[24px] p-5 flex flex-col items-center gap-4 mb-4" :style="`background: ${type.color}08; outline: 2px solid ${type.color}18; outline-offset: 0`">
           <div class="w-12 h-12 rounded-[22px] flex items-center justify-center" :style="`background: ${type.color}20`">
-            <Download class="w-6 h-6" :style="`color: ${type.color}`" />
+            <v-icon icon="mdi-download" size="24" :style="`color: ${type.color}`" />
           </div>
           <div class="text-center">
             <p class="text-2xl font-black" :style="`color: ${type.color}`">{{ exportCount(type.key) }}</p>
@@ -127,7 +127,7 @@
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #8b5cf620">
-            <Clock class="w-4 h-4" style="color: #8b5cf6" />
+            <v-icon icon="mdi-clock-outline" size="16" style="color: #8b5cf6" />
           </div>
           <h3 class="text-sm font-black">Import History</h3>
         </div>
@@ -141,7 +141,7 @@
           style="background: hsl(var(--muted)/0.4)"
         >
           <div class="w-8 h-8 rounded-[16px] flex items-center justify-center flex-shrink-0" style="background: #10b98120">
-            <CheckCircle class="w-4 h-4" style="color: #10b981" />
+            <v-icon icon="mdi-check-circle-outline" size="16" style="color: #10b981" />
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-bold">{{ log.message }}</p>
@@ -155,7 +155,6 @@
 </template>
 
 <script setup lang="ts">
-import { Upload, Users, Package, TicketCheck, FileUp, Download, Clock, CheckCircle } from 'lucide-vue-next'
 import { useToast } from '~/composables/useToast'
 
 definePageMeta({ middleware: ['auth'] })
@@ -167,9 +166,9 @@ const importLog = ref<{ id: number; message: string; time: string }[]>([])
 const activeTab = ref('Import')
 
 const importTypes = [
-  { label: 'Customers', key: 'customers', icon: Users, color: '#3b82f6', colorDark: '#2563eb', desc: 'Name, phone, email columns' },
-  { label: 'Inventory', key: 'inventory', icon: Package, color: '#8b5cf6', colorDark: '#7c3aed', desc: 'Name, SKU, price, stock columns' },
-  { label: 'Tickets',   key: 'tickets',   icon: TicketCheck, color: '#f59e0b', colorDark: '#d97706', desc: 'Device, issue, status, price columns' },
+  { label: 'Customers', key: 'customers', icon: 'mdi-account-group-outline', color: '#3b82f6', colorDark: '#2563eb', desc: 'Name, phone, email columns' },
+  { label: 'Inventory', key: 'inventory', icon: 'mdi-package-variant-closed', color: '#8b5cf6', colorDark: '#7c3aed', desc: 'Name, SKU, price, stock columns' },
+  { label: 'Tickets',   key: 'tickets',   icon: 'mdi-ticket-confirmation-outline', color: '#f59e0b', colorDark: '#d97706', desc: 'Device, issue, status, price columns' },
 ]
 
 const exportCount = (key: string) => ((appStore as any)[key] ?? []).length

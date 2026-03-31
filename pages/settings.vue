@@ -4,7 +4,7 @@
     <!-- ── Page Header ── -->
     <div class="d-flex align-center gap-4 mb-6">
       <v-avatar size="48" rounded="xl" style="background:linear-gradient(135deg,#64748b,#475569)">
-        <SettingsIcon :size="22" color="white" />
+        <v-icon icon="mdi-cog-outline" size="22" color="white" />
       </v-avatar>
       <div>
         <h1 class="text-h5 font-weight-black">Settings</h1>
@@ -22,7 +22,7 @@
           <v-card-item class="border-b" style="background:#6366f108">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
-                <Building :size="18" color="white" />
+                <v-icon icon="mdi-office-building-outline" size="18" color="white" />
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black">Business Information</v-card-title>
@@ -69,7 +69,7 @@
           <v-card-item class="border-b" style="background:#10b98108">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#10b981,#059669)">
-                <Wrench :size="18" color="white" />
+                <v-icon icon="mdi-wrench-outline" size="18" color="white" />
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black">Services</v-card-title>
@@ -109,7 +109,7 @@
             </v-expand-transition>
 
             <div v-if="svcList.length === 0 && !showServiceForm" class="d-flex flex-column align-center gap-2 py-6 text-medium-emphasis">
-              <Wrench :size="24" style="opacity:.4" />
+              <v-icon icon="mdi-wrench-outline" size="24" style="opacity:.4" />
               <div class="text-body-2 font-weight-bold">No services yet</div>
               <div class="text-caption">Add your first service above</div>
             </div>
@@ -117,7 +117,7 @@
               <v-list-item v-for="svc in svcList" :key="svc.id" rounded="xl" class="mb-1" style="background:rgba(0,0,0,0.03)">
                 <template #prepend>
                   <v-avatar size="36" rounded="lg" style="background:#10b98114">
-                    <Wrench :size="16" color="#10b981" />
+                    <v-icon icon="mdi-wrench-outline" size="16" color="#10b981" />
                   </v-avatar>
                 </template>
                 <template #title><span class="text-body-2 font-weight-bold">{{ svc.name }}</span></template>
@@ -140,7 +140,7 @@
           <v-card-item class="border-b" style="background:#ef444408">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#ef4444,#dc2626)">
-                <DollarSign :size="18" color="white" />
+                <v-icon icon="mdi-currency-usd" size="18" color="white" />
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black">Expenses</v-card-title>
@@ -175,7 +175,7 @@
             </v-expand-transition>
 
             <div v-if="expensesList.length === 0 && !showExpenseForm" class="d-flex flex-column align-center gap-2 py-6 text-medium-emphasis">
-              <DollarSign :size="24" style="opacity:.4" />
+              <v-icon icon="mdi-currency-usd" size="24" style="opacity:.4" />
               <div class="text-body-2 font-weight-bold">No expenses logged</div>
               <div class="text-caption">Track your business costs here</div>
             </div>
@@ -183,7 +183,7 @@
               <v-list-item v-for="exp in expensesList" :key="exp.id" rounded="xl" class="mb-1" style="background:rgba(0,0,0,0.03)">
                 <template #prepend>
                   <v-avatar size="36" rounded="lg" style="background:#ef444414">
-                    <DollarSign :size="16" color="#ef4444" />
+                    <v-icon icon="mdi-currency-usd" size="16" color="#ef4444" />
                   </v-avatar>
                 </template>
                 <template #title><span class="text-body-2 font-weight-bold">{{ exp.description }}</span></template>
@@ -203,7 +203,7 @@
           <v-card-item class="border-b" style="background:#3ecf8e08">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#3ecf8e,#1a9e6a)">
-                <Database :size="18" color="white" />
+                <v-icon icon="mdi-database-outline" size="18" color="white" />
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black">Supabase Database</v-card-title>
@@ -249,7 +249,7 @@
           <v-card-item class="border-b" style="background:#10b98108">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#10b981,#059669)">
-                <CreditCard :size="18" color="white" />
+                <v-icon icon="mdi-credit-card-outline" size="18" color="white" />
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black">Square Terminal Integration</v-card-title>
@@ -323,7 +323,7 @@
           <v-card-item class="border-b" style="background:#06b6d408">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">
-                <Printer :size="18" color="white" />
+                <v-icon icon="mdi-printer" size="18" color="white" />
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black">Printing &amp; Barcodes</v-card-title>
@@ -339,7 +339,7 @@
             <v-card variant="tonal" color="surface-variant" rounded="lg" class="pa-4 mb-4">
               <div class="d-flex align-center justify-space-between mb-3">
                 <div class="d-flex align-center gap-3">
-                  <v-avatar size="32" rounded="lg" style="background:#10b98118"><Receipt :size="16" color="#10b981" /></v-avatar>
+                  <v-avatar size="32" rounded="lg" style="background:#10b98118"><v-icon icon="mdi-receipt-text-outline" size="16" color="#10b981" /></v-avatar>
                   <div>
                     <div class="text-body-2 font-weight-bold">Default Thermal Printer</div>
                     <div v-if="!pairedThermalPrinter" class="text-caption text-medium-emphasis">No device linked</div>
@@ -363,7 +363,7 @@
             <v-card variant="tonal" color="surface-variant" rounded="lg" class="pa-4 mb-4">
               <div class="d-flex align-center justify-space-between mb-3">
                 <div class="d-flex align-center gap-3">
-                  <v-avatar size="32" rounded="lg" style="background:#06b6d418"><ScanLine :size="16" color="#06b6d4" /></v-avatar>
+                  <v-avatar size="32" rounded="lg" style="background:#06b6d418"><v-icon icon="mdi-barcode-scan" size="16" color="#06b6d4" /></v-avatar>
                   <div>
                     <div class="text-body-2 font-weight-bold">Default Label Printer</div>
                     <div v-if="!pairedLabelPrinter" class="text-caption text-medium-emphasis">No device linked</div>
@@ -413,7 +413,7 @@
           <v-card-item class="border-b" style="background:#f59e0b08">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
-                <Bell :size="18" color="white" />
+                <v-icon icon="mdi-bell-outline" size="18" color="white" />
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black">Notifications</v-card-title>
@@ -423,7 +423,7 @@
             <v-list-item v-for="(notif, key) in notificationSettings" :key="key" rounded="lg" class="mx-2 my-1">
               <template #prepend>
                 <v-avatar size="32" rounded="lg" :style="`background:${notif.color}18`">
-                  <component :is="notif.icon" :size="16" :style="`color:${notif.color}`" />
+                  <v-icon :icon="notif.icon" size="16" :style="`color:${notif.color}`" />
                 </v-avatar>
               </template>
               <template #title><span class="text-body-2 font-weight-bold">{{ notif.label }}</span></template>
@@ -445,7 +445,7 @@
           <v-card-item class="border-b" style="background:#8b5cf608">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
-                <User :size="18" color="white" />
+                <v-icon icon="mdi-account-outline" size="18" color="white" />
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black">Account</v-card-title>
@@ -472,7 +472,7 @@
           <v-card-item class="border-b" style="background:#06b6d408">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">
-                <Database :size="18" color="white" />
+                <v-icon icon="mdi-database-outline" size="18" color="white" />
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black">Data Management</v-card-title>
@@ -517,7 +517,7 @@
           <v-card-item class="border-b" style="background:#ef444408">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#ef4444,#dc2626)">
-                <AlertTriangle :size="18" color="white" />
+                <v-icon icon="mdi-alert-outline" size="18" color="white" />
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black" style="color:#ef4444">Danger Zone</v-card-title>
@@ -537,7 +537,7 @@
         <v-card-item class="border-b" style="background:#3ecf8e06">
           <template #prepend>
             <v-avatar size="44" rounded="xl" style="background:linear-gradient(135deg,#3ecf8e,#1a9e6a);box-shadow:0 4px 16px #3ecf8e30">
-              <Database :size="20" color="white" />
+              <v-icon icon="mdi-database-outline" size="20" color="white" />
             </v-avatar>
           </template>
           <v-card-title>Connect to Supabase</v-card-title>
@@ -627,14 +627,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-  Settings as SettingsIcon, Building, CreditCard, Bell, User, Database,
-  AlertTriangle, Trash2, Save, Download, Upload, LogOut, Check, X,
-  TicketCheck, ShoppingCart, UserPlus, Calendar, Link, ExternalLink,
-  Printer, XCircle, RefreshCw, ScanLine, Receipt, CheckCircle, AlertCircle,
-  MonitorSmartphone, Tablet, MessageCircle, Moon, Sun,
-  Plus, Pencil, Wrench, DollarSign, BellOff, BellRing,
-} from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { useToast } from '~/composables/useToast'
 
@@ -881,11 +873,11 @@ const debouncedSquareCheck = () => {
 // notificationSettings is a computed display object that reads enabled state
 // from the globally persisted notificationPrefs in the app store.
 const notificationSettings = computed(() => ({
-  newTicket:   { label: 'New Ticket',    desc: 'Alert when a ticket is created',  color: '#f59e0b', icon: TicketCheck,  enabled: notificationPrefs.value.newTicket },
-  newSale:     { label: 'New Sale',      desc: 'Alert when POS sale completes',   color: '#10b981', icon: ShoppingCart, enabled: notificationPrefs.value.newSale },
-  newCustomer: { label: 'New Customer',  desc: 'Alert when customer is added',    color: '#3b82f6', icon: UserPlus,     enabled: notificationPrefs.value.newCustomer },
-  appointment: { label: 'Appointments', desc: 'Alert for upcoming appointments', color: '#8b5cf6', icon: Calendar,     enabled: notificationPrefs.value.appointment },
-  newMessage:  { label: 'New Message',   desc: 'Alert when a customer emails you', color: '#ec4899', icon: MessageCircle, enabled: notificationPrefs.value.newMessage },
+  newTicket:   { label: 'New Ticket',    desc: 'Alert when a ticket is created',  color: '#f59e0b', icon: 'mdi-ticket-confirmation-outline',  enabled: notificationPrefs.value.newTicket },
+  newSale:     { label: 'New Sale',      desc: 'Alert when POS sale completes',   color: '#10b981', icon: 'mdi-cart-outline', enabled: notificationPrefs.value.newSale },
+  newCustomer: { label: 'New Customer',  desc: 'Alert when customer is added',    color: '#3b82f6', icon: 'mdi-account-plus-outline',     enabled: notificationPrefs.value.newCustomer },
+  appointment: { label: 'Appointments', desc: 'Alert for upcoming appointments', color: '#8b5cf6', icon: 'mdi-calendar',     enabled: notificationPrefs.value.appointment },
+  newMessage:  { label: 'New Message',   desc: 'Alert when a customer emails you', color: '#ec4899', icon: 'mdi-message-outline', enabled: notificationPrefs.value.newMessage },
 }))
 
 function toggleNotif(key: string) {

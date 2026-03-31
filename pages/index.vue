@@ -1,6 +1,6 @@
 <template>
-  <div class="flex min-h-screen items-center justify-center">
-    <div class="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+  <div class="d-flex min-h-screen align-center justify-center">
+    <v-progress-circular indeterminate color="primary" size="32" />
   </div>
 </template>
 

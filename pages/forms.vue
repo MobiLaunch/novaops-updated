@@ -6,7 +6,7 @@
       <div class="flex items-center gap-4">
         <div class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg"
           style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 6px 28px #10b98150">
-          <FileText class="w-6 h-6 text-white" />
+          <v-icon icon="mdi-file-document-outline" size="24" color="white" />
         </div>
         <div>
           <h1 class="text-3xl font-black tracking-tight">Forms</h1>
@@ -22,7 +22,7 @@
         style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0"
         @click="openForm(template)">
         <div class="w-14 h-14 rounded-[26px] flex items-center justify-center" :style="`background: ${template.color}18`">
-          <component :is="template.icon" class="w-7 h-7" :style="`color: ${template.color}`" />
+          <v-icon :icon="template.icon" size="28" :style="`color: ${template.color}`" />
         </div>
         <div>
           <h3 class="font-black">{{ template.label }}</h3>
@@ -49,10 +49,10 @@
         <div class="flex items-center justify-between mb-6">
           <div class="flex items-center gap-3">
             <button class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-muted/60 transition-all" @click="activeForm = null">
-              <ChevronLeft class="w-4 h-4" />
+              <v-icon icon="mdi-chevron-left" size="16" />
             </button>
             <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" :style="`background: ${activeForm.color}20`">
-              <component :is="activeForm.icon" class="w-4 h-4" :style="`color: ${activeForm.color}`" />
+              <v-icon :icon="activeForm.icon" size="16" :style="`color: ${activeForm.color}`" />
             </div>
             <h3 class="text-base font-black">{{ activeForm.label }}</h3>
           </div>
@@ -61,7 +61,7 @@
         <div class="space-y-5">
           <!-- Business info (auto-filled from settings) -->
           <div class="rounded-[20px] px-4 py-3 flex items-center gap-3 text-xs" style="background: hsl(var(--muted)/0.4)">
-            <Building class="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <v-icon icon="mdi-office-building-outline" size="16" class="text-muted-foreground flex-shrink-0" />
             <div class="min-w-0">
               <p class="font-black truncate">{{ settings.businessName || 'Your Business' }}</p>
               <p class="text-muted-foreground truncate">{{ [settings.phone, settings.email].filter(Boolean).join(' · ') || 'Set phone & email in Settings' }}</p>
@@ -95,7 +95,7 @@
             <div class="flex items-center justify-between mb-3">
               <label class="m3-label">Line Items</label>
               <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-105" style="background: #10b98118; color: #10b981" @click="addLineItem">
-                <Plus class="w-3 h-3" /> Add Item
+                <v-icon icon="mdi-plus" size="12" /> Add Item
               </button>
             </div>
             <div class="space-y-2">
@@ -104,7 +104,7 @@
                 <input v-model.number="item.qty" type="number" min="1" placeholder="Qty" class="m3-input" style="width:68px" />
                 <input v-model.number="item.price" type="number" min="0" step="0.01" placeholder="Price" class="m3-input" style="width:96px" />
                 <button class="w-9 h-9 flex-shrink-0 rounded-full flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-950/30 transition-all" @click="removeLineItem(i)">
-                  <Trash2 class="w-3.5 h-3.5 text-muted-foreground" />
+                  <v-icon icon="mdi-delete-outline" size="14" class="text-muted-foreground" />
                 </button>
               </div>
               <div v-if="!form.lineItems.length" class="text-xs text-muted-foreground font-semibold py-2 px-1">
@@ -132,7 +132,7 @@
             style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 16px #10b98140"
             @click="generateAndPrint"
           >
-            <Printer class="w-4 h-4" /> Generate & Print
+            <v-icon icon="mdi-printer" size="16" /> Generate & Print
           </button>
         </div>
       </div>
@@ -140,7 +140,7 @@
       <!-- Right: Live Preview -->
       <div class="rounded-[32px] overflow-hidden bg-white dark:bg-zinc-900" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
         <div class="px-5 py-3 border-b border-border/40 flex items-center gap-2" style="background: hsl(var(--muted)/0.3)">
-          <Eye class="w-4 h-4 text-muted-foreground" />
+          <v-icon icon="mdi-eye-outline" size="16" class="text-muted-foreground" />
           <span class="text-xs font-black text-muted-foreground uppercase tracking-widest">Live Preview</span>
           <span class="ml-auto text-xs text-muted-foreground font-medium">Updates as you type</span>
         </div>
@@ -235,7 +235,7 @@
       <div class="flex items-center justify-between mb-5">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #10b98120">
-            <Clock class="w-4 h-4" style="color: #10b981" />
+            <v-icon icon="mdi-clock-outline" size="16" style="color: #10b981" />
           </div>
           <h3 class="text-sm font-black">Recent Documents</h3>
         </div>
@@ -246,7 +246,7 @@
           class="flex items-center gap-3 px-4 py-3 rounded-[20px] hover:bg-muted/20 transition-all"
           style="outline: 1.5px solid hsl(var(--border)/0.4); outline-offset: 0">
           <div class="w-9 h-9 rounded-[18px] flex items-center justify-center flex-shrink-0" style="background: #10b98118">
-            <Receipt class="w-4 h-4" style="color: #10b981" />
+            <v-icon icon="mdi-receipt-text-outline" size="16" style="color: #10b981" />
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-bold truncate">{{ inv.type }} — {{ inv.customerName }}</p>
@@ -254,7 +254,7 @@
           </div>
           <span class="text-sm font-black" style="color: #10b981">{{ formatCurrency(inv.total) }}</span>
           <button class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110" @click="reprintInvoice(inv)">
-            <Printer class="w-3.5 h-3.5 text-muted-foreground" />
+            <v-icon icon="mdi-printer" size="14" class="text-muted-foreground" />
           </button>
         </div>
       </div>
@@ -266,7 +266,6 @@
 </template>
 
 <script setup lang="ts">
-import { FileText, Receipt, ClipboardCheck, ShieldCheck, ChevronLeft, Printer, Plus, Trash2, Clock, Building, Eye, ArrowLeftRight } from 'lucide-vue-next'
 import TradeInWizard from '~/components/TradeInWizard.vue'
 definePageMeta({ middleware: ['auth'] })
 
@@ -294,22 +293,22 @@ const form = ref({
 const formTemplates = [
   {
     label: 'Invoice', desc: 'Itemized billing invoice for parts and labor',
-    icon: Receipt, color: '#10b981', colorDark: '#059669',
+    icon: 'mdi-receipt-text-outline', color: '#10b981', colorDark: '#059669',
     tags: ['Line items', 'Tax', 'Logo', 'Due date'],
   },
   {
     label: 'Repair Receipt', desc: 'Print a professional receipt for completed repairs',
-    icon: ClipboardCheck, color: '#3b82f6', colorDark: '#2563eb',
+    icon: 'mdi-clipboard-check-outline', color: '#3b82f6', colorDark: '#2563eb',
     tags: ['Ticket ref', 'Parts list', 'Warranty', 'Signature'],
   },
   {
     label: 'Service Agreement', desc: 'Customer authorization and consent form',
-    icon: ShieldCheck, color: '#8b5cf6', colorDark: '#7c3aed',
+    icon: 'mdi-shield-check-outline', color: '#8b5cf6', colorDark: '#7c3aed',
     tags: ['Authorization', 'Liability waiver', 'Signature line'],
   },
   {
     label: 'Trade-In Evaluator', desc: 'Multi-step device trade-in wizard with live market pricing',
-    icon: ArrowLeftRight, color: '#f59e0b', colorDark: '#d97706',
+    icon: 'mdi-swap-horizontal', color: '#f59e0b', colorDark: '#d97706',
     tags: ['Market price', 'Condition grading', 'Profit calc', 'Customer offer'],
     isTradeIn: true,
   },

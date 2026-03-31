@@ -5,7 +5,7 @@
     <div class="flex items-center justify-between flex-wrap gap-4">
       <div class="flex items-center gap-4">
         <div class="page-icon-wrap">
-          <MessageCircle class="w-6 h-6 text-white" />
+          <v-icon icon="mdi-message-outline" size="24" color="white" />
         </div>
         <div>
           <h1 class="text-3xl font-black tracking-tight">Messages</h1>
@@ -17,7 +17,7 @@
         <!-- Notification bell -->
         <div class="relative" ref="bellWrapEl">
           <button class="notif-bell-btn" :class="{ 'active': bellOpen }" @click="bellOpen = !bellOpen">
-            <Bell class="w-5 h-5" />
+            <v-icon icon="mdi-bell-outline" size="20" />
             <span v-if="unreadCount > 0" class="notif-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
           </button>
 
@@ -28,7 +28,7 @@
               <div class="notif-panel-header">
                 <div class="flex items-center gap-2">
                   <div class="w-7 h-7 rounded-[14px] flex items-center justify-center" style="background:#f59e0b20">
-                    <Bell class="w-3.5 h-3.5" style="color:#f59e0b" />
+                    <v-icon icon="mdi-bell-outline" size="14" style="color:#f59e0b" />
                   </div>
                   <span class="text-sm font-black">Notifications</span>
                   <span v-if="unreadCount > 0" class="text-[10px] font-black px-2 py-0.5 rounded-full" style="background:#ef444420;color:#ef4444">{{ unreadCount }} new</span>
@@ -42,7 +42,7 @@
               <!-- Notification list -->
               <div class="notif-list">
                 <div v-if="!notifications.length" class="notif-empty">
-                  <Bell class="w-8 h-8 opacity-20" />
+                  <v-icon icon="mdi-bell-outline" size="32" class="opacity-20" />
                   <p class="text-sm font-bold mt-2">All caught up</p>
                   <p class="text-xs text-muted-foreground">No new notifications</p>
                 </div>
@@ -52,10 +52,10 @@
                     :class="[n.type, { unread: !n.read }]"
                     @click="markAsRead(n.id)">
                     <div class="notif-item-icon" :class="n.type">
-                      <CheckCircle v-if="n.type === 'success'" class="w-3.5 h-3.5" />
-                      <AlertTriangle v-else-if="n.type === 'warning'" class="w-3.5 h-3.5" />
-                      <AlertCircle v-else-if="n.type === 'error'" class="w-3.5 h-3.5" />
-                      <Info v-else class="w-3.5 h-3.5" />
+                      <v-icon icon="mdi-check-circle-outline" size="14" v-if="n.type === 'success'" />
+                      <v-icon icon="mdi-alert-outline" size="14" v-else-if="n.type === 'warning'" />
+                      <v-icon icon="mdi-alert-circle" size="14" v-else-if="n.type === 'error'" />
+                      <v-icon icon="mdi-information-outline" size="14" v-else />
                     </div>
                     <div class="flex-1 min-w-0">
                       <p class="text-xs font-black truncate">{{ n.title }}</p>
@@ -63,7 +63,7 @@
                       <p class="text-[10px] text-muted-foreground/60 mt-1">{{ formatNotifTime(n.timestamp) }}</p>
                     </div>
                     <button class="notif-dismiss" @click.stop="removeNotification(n.id)">
-                      <X class="w-3 h-3" />
+                      <v-icon icon="mdi-close" size="12" />
                     </button>
                   </div>
                 </TransitionGroup>
@@ -76,7 +76,7 @@
         <button class="msg-fab flex items-center gap-2.5 h-10 px-5 rounded-full text-sm font-black text-white"
           style="background:linear-gradient(135deg,#ec4899,#db2777);box-shadow:0 4px 20px #ec489950"
           @click="openCompose">
-          <Pencil class="w-4 h-4" /> Compose
+          <v-icon icon="mdi-pencil" size="16" /> Compose
         </button>
       </div>
     </div>
@@ -86,7 +86,7 @@
       style="background:linear-gradient(135deg,#ea443514,#4285f414);outline:2px solid #4285f428;outline-offset:0">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background:#4285f424">
-          <Mail class="w-5 h-5" style="color:#4285f4" />
+          <v-icon icon="mdi-email-outline" size="20" style="color:#4285f4" />
         </div>
         <div>
           <p class="text-sm font-bold">Connect Gmail to send real emails</p>
@@ -101,12 +101,12 @@
     <div v-else class="rounded-[20px] p-3 px-5 flex items-center gap-3 flex-wrap"
       style="background:#10b98114;outline:2px solid #10b98128;outline-offset:0">
       <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style="background:#10b98124">
-        <Check class="w-4 h-4" style="color:#10b981" />
+        <v-icon icon="mdi-check" size="16" style="color:#10b981" />
       </div>
       <p class="text-sm font-bold flex-1"><span style="color:#10b981">Gmail Connected</span> — {{ gmailEmail }}</p>
       <div class="flex items-center gap-2">
         <span v-if="syncing" class="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
-          <RefreshCw class="w-3 h-3 animate-spin" /> Syncing…
+          <v-icon icon="mdi-refresh" size="12" class="animate-spin" /> Syncing…
         </span>
         <span v-else-if="lastSyncTime" class="text-xs text-muted-foreground font-medium">
           Synced {{ lastSyncTime }}
@@ -114,7 +114,7 @@
         <button @click="syncGmailInbox" :disabled="syncing"
           class="h-8 px-4 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
           style="background:#10b98122;color:#10b981;outline:1.5px solid #10b98130;outline-offset:0">
-          <RefreshCw class="w-3 h-3" :class="syncing ? 'animate-spin' : ''" /> Sync Inbox
+          <v-icon icon="mdi-refresh" size="12" :class="syncing ? 'animate-spin' : ''" /> Sync Inbox
         </button>
       </div>
     </div>
@@ -126,7 +126,7 @@
         :style="`background:${stat.color}14;outline:2px solid ${stat.color}28;outline-offset:0`">
         <div class="flex items-center justify-between">
           <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" :style="`background:${stat.color}24`">
-            <component :is="stat.icon" class="w-4.5 h-4.5" :style="`color:${stat.color}`" />
+            <v-icon :icon="stat.icon" size="18" :style="`color:${stat.color}`" />
           </div>
         </div>
         <div>
@@ -144,7 +144,7 @@
         <!-- Search + Filters -->
         <div class="p-4 border-b border-border/50">
           <div class="relative mb-3">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <v-icon icon="mdi-magnify" size="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <input v-model="threadSearch" placeholder="Search messages…"
               class="w-full h-10 pl-10 pr-4 rounded-full text-sm font-medium"
               style="background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.6);outline:none"
@@ -190,7 +190,7 @@
 
           <div v-if="filteredThreads.length === 0" class="flex flex-col items-center gap-3 py-12 px-4 text-center">
             <div class="w-12 h-12 rounded-[20px] flex items-center justify-center" style="background:#ec489914">
-              <MessageCircle class="w-6 h-6" style="color:#ec4899;opacity:0.5" />
+              <v-icon icon="mdi-message-outline" size="24" style="color:#ec4899;opacity:0.5" />
             </div>
             <p class="font-black text-sm">No threads found</p>
             <p class="text-xs text-muted-foreground">Start a conversation by composing a message</p>
@@ -217,16 +217,16 @@
             </div>
             <div class="flex items-center gap-2 flex-shrink-0">
               <button class="msg-icon-btn" title="Call customer" @click="callCustomer">
-                <Phone class="w-4 h-4" />
+                <v-icon icon="mdi-phone-outline" size="16" />
               </button>
               <button class="msg-icon-btn" title="Archive thread" @click="archiveThread">
                 <Archive class="w-4 h-4" />
               </button>
               <button class="msg-icon-btn" title="Mark unread" @click="toggleUnread">
-                <Mail class="w-4 h-4" />
+                <v-icon icon="mdi-email-outline" size="16" />
               </button>
               <button class="msg-icon-btn" title="Delete thread" style="color:#ef4444" @click="deleteThread">
-                <Trash2 class="w-4 h-4" />
+                <v-icon icon="mdi-delete-outline" size="16" />
               </button>
             </div>
           </div>
@@ -238,7 +238,7 @@
             <div v-if="selectedThread.ticketId" class="msg-ticket-banner">
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-[14px] flex items-center justify-center" style="background:#f59e0b20">
-                  <TicketCheck class="w-4 h-4" style="color:#f59e0b" />
+                  <v-icon icon="mdi-ticket-confirmation-outline" size="16" style="color:#f59e0b" />
                 </div>
                 <div>
                   <p class="text-xs font-black">Ticket #{{ selectedThread.ticketId }}</p>
@@ -259,7 +259,7 @@
                   <span class="text-[10px] opacity-60">{{ msg.time }}</span>
                   <span v-if="msg.channel" class="text-[9px] font-bold opacity-60 capitalize">· {{ msg.channel }}</span>
                   <CheckCheck v-if="msg.from === 'shop' && msg.read" class="w-3 h-3 opacity-60 ml-auto" style="color:#4ade80" />
-                  <Check v-else-if="msg.from === 'shop'" class="w-3 h-3 opacity-60 ml-auto" />
+                  <v-icon icon="mdi-check" size="12" v-else-if="msg.from === 'shop'" class="opacity-60 ml-auto" />
                 </div>
               </div>
             </div>
@@ -308,12 +308,12 @@
                     <Paperclip class="w-4 h-4" />
                   </button>
                   <button class="msg-textarea-btn" title="Insert template" @click="templateOpen = true">
-                    <FileText class="w-4 h-4" />
+                    <v-icon icon="mdi-file-document-outline" size="16" />
                   </button>
                 </div>
               </div>
               <button class="msg-send-btn" :disabled="!replyBody.trim()" @click="sendReply">
-                <Send class="w-4 h-4" />
+                <v-icon icon="mdi-send" size="16" />
               </button>
             </div>
             <p class="text-[10px] text-muted-foreground mt-1.5 font-medium">⌘↵ or Ctrl+Enter to send</p>
@@ -325,14 +325,14 @@
         <template v-else>
           <div class="flex-1 flex flex-col items-center justify-center gap-4 p-8 text-center">
             <div class="w-20 h-20 rounded-[32px] flex items-center justify-center" style="background:#ec489914">
-              <MessageCircle class="w-10 h-10" style="color:#ec4899;opacity:0.4" />
+              <v-icon icon="mdi-message-outline" size="40" style="color:#ec4899;opacity:0.4" />
             </div>
             <h3 class="text-lg font-black">No conversation selected</h3>
             <p class="text-sm text-muted-foreground max-w-xs">Select a thread on the left or compose a new message to a customer.</p>
             <button class="msg-fab flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black text-white"
               style="background:linear-gradient(135deg,#ec4899,#db2777)"
               @click="openCompose">
-              <Pencil class="w-4 h-4" /> Compose
+              <v-icon icon="mdi-pencil" size="16" /> Compose
             </button>
           </div>
         </template>
@@ -346,7 +346,7 @@
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-[20px] flex items-center justify-center"
               style="background:linear-gradient(135deg,#ec4899,#db2777)">
-              <Pencil class="w-5 h-5 text-white" />
+              <v-icon icon="mdi-pencil" size="20" color="white" />
             </div>
             <div>
               <h2 class="text-base font-black">New Message</h2>
@@ -413,7 +413,7 @@
               style="background:linear-gradient(135deg,#ec4899,#db2777);box-shadow:0 4px 16px #ec489940"
               :disabled="!compose.customerId || !compose.body.trim()"
               @click="sendCompose">
-              <span class="flex items-center justify-center gap-2"><Send class="w-4 h-4" /> Send</span>
+              <span class="flex items-center justify-center gap-2"><v-icon icon="mdi-send" size="16" /> Send</span>
             </button>
           </div>
         </div>
@@ -457,11 +457,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-  MessageCircle, Pencil, Search, Send, Phone, Archive, Mail, Trash2,
-  TicketCheck, FileText, Paperclip, CheckCheck, Check, Bell,
-  CheckCircle, AlertTriangle, AlertCircle, Info, X, RefreshCw
-} from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { useToast } from '~/composables/useToast'
 
@@ -747,10 +742,10 @@ const filteredThreads = computed(() => {
 
 // ── Stats ────────────────────────────────────────────────────────────
 const msgStats = computed(() => [
-  { label: 'Total Threads', value: threads.value.length, color: '#ec4899', icon: MessageCircle },
-  { label: 'Unread', value: threads.value.filter(t => t.unread).length, color: '#f59e0b', icon: Mail },
-  { label: 'Sent Today', value: threads.value.reduce((n, t) => n + t.messages.filter((m: any) => m.from === 'shop').length, 0), color: '#3b82f6', icon: Send },
-  { label: 'Customers', value: new Set(threads.value.map(t => t.email)).size, color: '#10b981', icon: TicketCheck },
+  { label: 'Total Threads', value: threads.value.length, color: '#ec4899', icon: 'mdi-message-outline' },
+  { label: 'Unread', value: threads.value.filter(t => t.unread).length, color: '#f59e0b', icon: 'mdi-email-outline' },
+  { label: 'Sent Today', value: threads.value.reduce((n, t) => n + t.messages.filter((m: any) => m.from === 'shop').length, 0), color: '#3b82f6', icon: 'mdi-send' },
+  { label: 'Customers', value: new Set(threads.value.map(t => t.email)).size, color: '#10b981', icon: 'mdi-ticket-confirmation-outline' },
 ])
 
 // ── Thread selection ─────────────────────────────────────────────────

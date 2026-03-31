@@ -6,7 +6,7 @@
       <div class="flex items-center gap-4">
         <div class="w-14 h-14 rounded-[28px] flex items-center justify-center shadow-xl"
           style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); box-shadow: 0 6px 28px #6366f150">
-          <CalendarDays class="w-7 h-7 text-white" />
+          <v-icon icon="mdi-calendar" size="28" color="white" />
         </div>
         <div>
           <h1 class="text-3xl font-black tracking-tight">Calendar</h1>
@@ -42,11 +42,11 @@
     <template v-if="calView === 'month'">
       <div class="flex items-center gap-4">
         <button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90" @click="prevMonth">
-          <ChevronLeft class="w-5 h-5" />
+          <v-icon icon="mdi-chevron-left" size="20" />
         </button>
         <h2 class="text-xl font-black flex-1 text-center">{{ monthLabel }}</h2>
         <button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90" @click="nextMonth">
-          <ChevronRight class="w-5 h-5" />
+          <v-icon icon="mdi-chevron-right" size="20" />
         </button>
       </div>
 
@@ -68,7 +68,7 @@
               <div v-for="event in getDayEvents(day.date).slice(0, 3)" :key="event._id"
                 class="text-[9px] font-bold px-1.5 py-0.5 rounded-[6px] truncate flex items-center gap-0.5"
                 :style="`background: ${eColor(event)}22; color: ${eColor(event)}`">
-                <component :is="eIcon(event)" class="w-2 h-2 flex-shrink-0" />
+                <v-icon :icon="eIcon(event)" size="8" class="flex-shrink-0" />
                 {{ eLabel(event) }}
               </div>
               <div v-if="getDayEvents(day.date).length > 3"
@@ -86,11 +86,11 @@
     <template v-else-if="calView === 'week'">
       <div class="flex items-center gap-4">
         <button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90" @click="prevWeek">
-          <ChevronLeft class="w-5 h-5" />
+          <v-icon icon="mdi-chevron-left" size="20" />
         </button>
         <h2 class="text-xl font-black flex-1 text-center">{{ weekLabel }}</h2>
         <button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90" @click="nextWeek">
-          <ChevronRight class="w-5 h-5" />
+          <v-icon icon="mdi-chevron-right" size="20" />
         </button>
       </div>
 
@@ -112,7 +112,7 @@
               class="text-[10px] font-bold px-2 py-1.5 rounded-[10px]"
               :style="`background: ${eColor(event)}18; color: ${eColor(event)}; outline: 1.5px solid ${eColor(event)}30; outline-offset: 0`">
               <div class="flex items-center gap-1">
-                <component :is="eIcon(event)" class="w-3 h-3 flex-shrink-0" />
+                <v-icon :icon="eIcon(event)" size="12" class="flex-shrink-0" />
                 <span class="truncate">{{ eLabel(event) }}</span>
               </div>
               <div v-if="event.time" class="opacity-60 pl-4">{{ event.time }}</div>
@@ -126,11 +126,11 @@
     <template v-else>
       <div class="flex items-center gap-4">
         <button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90" @click="prevMonth">
-          <ChevronLeft class="w-5 h-5" />
+          <v-icon icon="mdi-chevron-left" size="20" />
         </button>
         <h2 class="text-xl font-black flex-1 text-center">{{ monthLabel }}</h2>
         <button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted/60 transition-all hover:scale-110 active:scale-90" @click="nextMonth">
-          <ChevronRight class="w-5 h-5" />
+          <v-icon icon="mdi-chevron-right" size="20" />
         </button>
       </div>
 
@@ -152,7 +152,7 @@
               :style="`background: ${eColor(event)}10; outline: 1.5px solid ${eColor(event)}25; outline-offset: 0`">
               <div class="w-10 h-10 rounded-[20px] flex items-center justify-center flex-shrink-0"
                 :style="`background: ${eColor(event)}22`">
-                <component :is="eIcon(event)" class="w-5 h-5" :style="`color: ${eColor(event)}`" />
+                <v-icon :icon="eIcon(event)" size="20" :style="`color: ${eColor(event)}`" />
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-bold truncate">{{ eLabel(event) }}</p>
@@ -169,7 +169,7 @@
       </div>
       <div v-else class="flex flex-col items-center gap-3 py-20">
         <div class="w-16 h-16 rounded-[28px] flex items-center justify-center" style="background:#6366f114">
-          <CalendarDays class="w-8 h-8" style="color:#6366f1;opacity:0.4" />
+          <v-icon icon="mdi-calendar" size="32" style="color:#6366f1;opacity:0.4" />
         </div>
         <p class="text-sm font-bold text-muted-foreground">No events this month</p>
       </div>
@@ -180,7 +180,6 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { CalendarDays, MapPin, ChevronLeft, ChevronRight, TicketCheck } from 'lucide-vue-next'
 import { useAppStore } from '~/stores/app'
 import { storeToRefs } from 'pinia'
 
@@ -191,9 +190,9 @@ const { appointments, tickets } = storeToRefs(appStore)
 
 // ── Event type config ──────────────────────────────────────────
 const eventTypes = [
-  { key: 'appointment', label: 'Appointment',   color: '#06b6d4', icon: CalendarDays },
-  { key: 'housecall',   label: 'House Call',    color: '#10b981', icon: MapPin       },
-  { key: 'ticket',      label: 'Repair Ticket', color: '#f59e0b', icon: TicketCheck  },
+  { key: 'appointment', label: 'Appointment',   color: '#06b6d4', icon: 'mdi-calendar' },
+  { key: 'housecall',   label: 'House Call',    color: '#10b981', icon: 'mdi-map-marker-outline'       },
+  { key: 'ticket',      label: 'Repair Ticket', color: '#f59e0b', icon: 'mdi-ticket-confirmation-outline'  },
 ]
 
 // ── Unified events ─────────────────────────────────────────────
@@ -221,9 +220,9 @@ function eColor(e: any) {
   return '#06b6d4'
 }
 function eIcon(e: any) {
-  if (e._kind === 'housecall') return MapPin
-  if (e._kind === 'ticket')    return TicketCheck
-  return CalendarDays
+  if (e._kind === 'housecall') return 'mdi-map-marker-outline'
+  if (e._kind === 'ticket')    return 'mdi-ticket-confirmation-outline'
+  return 'mdi-calendar'
 }
 function eLabel(e: any) { return e.title || e.description || 'Untitled' }
 

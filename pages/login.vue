@@ -85,7 +85,7 @@
           class="flex items-center gap-3 p-4 rounded-[20px]"
           style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0"
         >
-          <AlertCircle class="w-5 h-5 flex-shrink-0" style="color: #ef4444" />
+          <v-icon icon="mdi-alert-circle" size="20" class="flex-shrink-0" style="color: #ef4444" />
           <p class="text-sm font-semibold" style="color: #ef4444">{{ error }}</p>
         </div>
 
@@ -164,7 +164,7 @@
           @click="handleLogin"
         >
           <div v-if="loading" class="w-5 h-5 border-[3px] border-white/40 border-t-white rounded-full animate-spin" />
-          <LogIn v-else class="w-5 h-5" />
+          <v-icon icon="mdi-login" size="20" v-else />
           {{ loading ? 'Signing in…' : 'Sign In' }}
         </button>
 
@@ -194,7 +194,7 @@
         style="background:#3ecf8e10;outline:2px solid #3ecf8e28;outline-offset:0;animation:loginEnter 0.55s 0.15s cubic-bezier(0.34,1.3,0.64,1) both">
         <div class="flex items-start gap-3">
           <div class="w-8 h-8 rounded-[16px] flex items-center justify-center flex-shrink-0" style="background:#3ecf8e20">
-            <Database class="w-4 h-4" style="color:#3ecf8e" />
+            <v-icon icon="mdi-database-outline" size="16" style="color:#3ecf8e" />
           </div>
           <div class="flex-1">
             <p class="text-sm font-black" style="color:#1a9e6a">Connect your database first</p>
@@ -207,13 +207,13 @@
           <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer"
             class="flex-1 flex items-center justify-center gap-2 h-10 rounded-full text-xs font-black text-white transition-all hover:scale-[1.02] active:scale-95"
             style="background:linear-gradient(135deg,#3ecf8e,#1a9e6a)">
-            <ExternalLink class="w-3.5 h-3.5" />
+            <v-icon icon="mdi-open-in-new" size="14" />
             Create Free Project
           </a>
           <button @click="showSbSetup = true"
             class="flex-1 flex items-center justify-center gap-2 h-10 rounded-full text-xs font-black transition-all hover:scale-[1.02] active:scale-95"
             style="background:#3ecf8e14;color:#1a9e6a;outline:1.5px solid #3ecf8e28;outline-offset:0">
-            <Link class="w-3.5 h-3.5" />
+            <v-icon icon="mdi-link" size="14" />
             I have a project
           </button>
         </div>
@@ -232,14 +232,14 @@
           <div class="flex items-center gap-4 px-7 pt-7 pb-5 border-b border-border/50" style="background:#3ecf8e06">
             <div class="w-11 h-11 rounded-[22px] flex items-center justify-center flex-shrink-0 shadow-md"
               style="background:linear-gradient(135deg,#3ecf8e,#1a9e6a);box-shadow:0 4px 16px #3ecf8e30">
-              <Database class="w-5 h-5 text-white" />
+              <v-icon icon="mdi-database-outline" size="20" color="white" />
             </div>
             <div class="flex-1">
               <h2 class="text-base font-black">Connect Supabase</h2>
               <p class="text-xs text-muted-foreground font-medium mt-0.5">Paste your project credentials</p>
             </div>
             <button class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted/60 text-muted-foreground" @click="showSbSetup = false">
-              <X class="w-4 h-4" />
+              <v-icon icon="mdi-close" size="16" />
             </button>
           </div>
 
@@ -265,14 +265,14 @@
             </div>
             <div v-if="sbConn.status.error" class="flex items-center gap-2 p-3 rounded-[14px] text-xs font-semibold"
               style="background:#ef444412;color:#ef4444">
-              <AlertCircle class="w-3.5 h-3.5 flex-shrink-0" />
+              <v-icon icon="mdi-alert-circle" size="14" class="flex-shrink-0" />
               {{ sbConn.status.error }}
             </div>
             <button @click="handleLoginSbConnect" :disabled="sbConn.status.checking || !sbSetupForm.url || !sbSetupForm.key"
               class="w-full h-12 rounded-full text-sm font-black text-white flex items-center justify-center gap-2.5 disabled:opacity-50 transition-all hover:scale-[1.02]"
               style="background:linear-gradient(135deg,#3ecf8e,#1a9e6a);box-shadow:0 4px 16px #3ecf8e30">
               <div v-if="sbConn.status.checking" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              <Database v-else class="w-4 h-4" />
+              <v-icon icon="mdi-database-outline" size="16" v-else />
               {{ sbConn.status.checking ? 'Testing…' : 'Connect & Sign In' }}
             </button>
           </div>
@@ -284,8 +284,6 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { LogIn, AlertCircle, Database, ExternalLink, Link, X } from 'lucide-vue-next'
-
 definePageMeta({ layout: 'auth' })
 
 const { $supabase } = useNuxtApp()

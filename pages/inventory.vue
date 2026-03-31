@@ -9,7 +9,7 @@
           rounded="xl"
           style="background: linear-gradient(135deg,#8b5cf6,#7c3aed); box-shadow: 0 4px 20px #8b5cf650"
         >
-          <Package :size="22" color="white" />
+          <v-icon icon="mdi-package-variant-closed" size="22" color="white" />
         </v-avatar>
         <div>
           <h1 class="text-h5 font-weight-black">Inventory &amp; Services</h1>
@@ -37,7 +37,7 @@
         >
           <div class="d-flex align-center justify-space-between mb-3">
             <v-avatar size="40" rounded="lg" :style="`background:${stat.color}24`">
-              <component :is="stat.icon" :size="20" :style="`color:${stat.color}`" />
+              <v-icon :icon="stat.icon" size="20" :style="`color:${stat.color}`" />
             </v-avatar>
             <v-chip size="x-small" :style="`background:${stat.color}20;color:${stat.color}`" variant="flat">
               {{ stat.badge }}
@@ -107,11 +107,7 @@
                 ? 'background:linear-gradient(135deg,#22d3ee18,#0891b218)'
                 : 'background:linear-gradient(135deg,#8b5cf620,#7c3aed20)'"
             >
-              <component
-                :is="item.itemType === 'service' ? Wrench : Package"
-                :size="22"
-                :style="item.itemType === 'service' ? 'color:#22d3ee' : 'color:#8b5cf6'"
-              />
+              <v-icon :icon="item.itemType === 'service' ? 'mdi-wrench-outline' : 'mdi-package-variant-closed'" size="22" :style="item.itemType === 'service' ? 'color:#22d3ee' : 'color:#8b5cf6'" />
             </v-avatar>
             <div class="d-flex flex-column align-end gap-1">
               <v-chip
@@ -171,7 +167,7 @@
       <v-col v-if="filtered.length === 0" cols="12">
         <v-card class="pa-12 text-center">
           <v-avatar size="80" rounded="xl" color="deep-purple" variant="tonal" class="mb-4 mx-auto">
-            <Package :size="40" style="opacity:0.5" />
+            <v-icon icon="mdi-package-variant-closed" size="40" style="opacity:0.5" />
           </v-avatar>
           <div class="text-h6 font-weight-black mb-1">No items found</div>
           <div class="text-body-2 text-medium-emphasis">
@@ -193,7 +189,7 @@
                 ? 'background:linear-gradient(135deg,#22d3ee,#0891b2)'
                 : 'background:linear-gradient(135deg,#8b5cf6,#7c3aed)'"
             >
-              <component :is="form.itemType === 'service' ? Wrench : Package" :size="18" color="white" />
+              <v-icon :icon="form.itemType === 'service' ? 'mdi-wrench-outline' : 'mdi-package-variant-closed'" size="18" color="white" />
             </v-avatar>
           </template>
           <v-card-title>{{ editingItem ? 'Edit Item' : 'Add Item' }}</v-card-title>
@@ -319,8 +315,6 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Package, Wrench, Printer, AlertTriangle, Plus } from 'lucide-vue-next'
-import { DollarSign } from 'lucide-vue-next'
 import { useToast } from '~/composables/useToast'
 import { useAppStore } from '~/stores/app'
 import { printBarcodeLabel, printBarcodeBatch } from '~/utils/print'
@@ -380,10 +374,10 @@ const stats = computed(() => {
   const products = allItems.value.filter((i: any) => i.itemType === 'product')
   const services = allItems.value.filter((i: any) => i.itemType === 'service')
   return [
-    { label: 'Total Items',  value: allItems.value.length,  color: '#8b5cf6', badge: 'TOTAL',    icon: Package },
-    { label: 'Products',     value: products.length,         color: '#6366f1', badge: 'PRODUCTS', icon: Package },
-    { label: 'Services',     value: services.length,         color: '#22d3ee', badge: 'SERVICES', icon: Wrench  },
-    { label: 'Low Stock',    value: products.filter((i: any) => i.stock <= (i.low||5)).length, color: '#f59e0b', badge: 'ALERT', icon: AlertTriangle },
+    { label: 'Total Items',  value: allItems.value.length,  color: '#8b5cf6', badge: 'TOTAL',    icon: 'mdi-package-variant-closed' },
+    { label: 'Products',     value: products.length,         color: '#6366f1', badge: 'PRODUCTS', icon: 'mdi-package-variant-closed' },
+    { label: 'Services',     value: services.length,         color: '#22d3ee', badge: 'SERVICES', icon: 'mdi-wrench-outline'  },
+    { label: 'Low Stock',    value: products.filter((i: any) => i.stock <= (i.low||5)).length, color: '#f59e0b', badge: 'ALERT', icon: 'mdi-alert-outline' },
   ]
 })
 

@@ -5,7 +5,7 @@
     <Transition name="slide-down">
       <div v-if="ticketMode" class="ticket-banner">
         <div class="ticket-banner-pip" />
-        <div class="ticket-banner-icon"><TicketCheck class="w-4 h-4" /></div>
+        <div class="ticket-banner-icon"><v-icon icon="mdi-ticket-confirmation-outline" size="16" /></div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-black" style="color:#10b981">Ticket #{{ ticketMode.ticketId }} — Collecting Payment</p>
           <p class="text-xs text-muted-foreground font-medium">Completing this sale will mark the ticket as Completed.</p>
@@ -18,7 +18,7 @@
     <div class="pos-header">
       <div class="flex items-center gap-3">
         <div class="pos-header-icon">
-          <ShoppingCart class="w-5 h-5 text-white" />
+          <v-icon icon="mdi-cart-outline" size="20" color="white" />
         </div>
         <div>
           <h1 class="text-xl font-black tracking-tight leading-none">Point of Sale</h1>
@@ -37,7 +37,7 @@
     <!-- ── Mobile Tab Bar ────────────────────────────────────────── -->
     <div class="mob-tabs">
       <button class="mob-tab" :class="{ active: mobileTab === 'products' }" @click="mobileTab = 'products'">
-        <Package class="w-4 h-4" /> Products
+        <v-icon icon="mdi-package-variant-closed" size="16" /> Products
       </button>
       <button class="mob-tab" :class="{ active: mobileTab === 'cart' }" @click="mobileTab = 'cart'">
         <ShoppingBag class="w-4 h-4" />
@@ -45,7 +45,7 @@
         <span v-if="cart.length" class="mob-tab-badge">{{ cart.length }}</span>
       </button>
       <button class="mob-tab" :class="{ active: mobileTab === 'checkout' }" @click="mobileTab = 'checkout'">
-        <CreditCard class="w-4 h-4" /> Checkout
+        <v-icon icon="mdi-credit-card-outline" size="16" /> Checkout
       </button>
     </div>
 
@@ -57,7 +57,7 @@
 
         <!-- Search -->
         <div class="search-wrap">
-          <Search class="search-icon" />
+          <v-icon icon="mdi-magnify" class="search-icon" />
           <input
             v-model="searchQuery"
             placeholder="Search products & services…"
@@ -65,7 +65,7 @@
             @keydown.escape="searchQuery = ''"
           />
           <button v-if="searchQuery" class="search-clear" @click="searchQuery = ''">
-            <X class="w-3.5 h-3.5" />
+            <v-icon icon="mdi-close" size="14" />
           </button>
         </div>
 
@@ -87,7 +87,7 @@
           <button class="product-card akko-card" @click="addAkkoInsurance">
             <div class="product-card-top">
               <div class="product-icon-wrap" style="background:linear-gradient(135deg,#8b5cf620,#3b82f620)">
-                <ShieldCheck class="w-5 h-5" style="color:#8b5cf6" />
+                <v-icon icon="mdi-shield-check-outline" size="20" style="color:#8b5cf6" />
               </div>
               <span class="product-badge akko-badge">PLAN</span>
             </div>
@@ -109,8 +109,7 @@
                 :style="(item.itemType||'product') === 'service'
                   ? 'background:linear-gradient(135deg,#10b98118,#05966918)'
                   : 'background:linear-gradient(135deg,#ec489914,#db277714)'">
-                <component :is="(item.itemType||'product') === 'service' ? Wrench : Package" class="w-5 h-5"
-                  :style="(item.itemType||'product') === 'service' ? 'color:#10b981' : 'color:#ec4899'" />
+                <v-icon :icon="(item.itemType||'product') === 'service' ? 'mdi-wrench-outline' : 'mdi-package-variant-closed'" size="20" :style="(item.itemType||'product') === 'service' ? 'color:#10b981' : 'color:#ec4899'" />
               </div>
               <span class="product-badge"
                 :style="(item.itemType||'product') === 'service'
@@ -130,7 +129,7 @@
           </button>
 
           <div v-if="filteredProducts.length === 0" class="product-empty">
-            <Package class="w-8 h-8 opacity-10" />
+            <v-icon icon="mdi-package-variant-closed" size="32" class="opacity-10" />
             <p class="text-sm font-bold text-muted-foreground">
               {{ searchQuery ? `No results for "${searchQuery}"` : 'No items in catalog' }}
             </p>
@@ -149,7 +148,7 @@
             <span v-if="cart.length" class="cart-count-badge">{{ cart.length }}</span>
           </div>
           <button class="cart-clear-btn" :disabled="!cart.length" @click="clearCart" title="Clear cart">
-            <Trash2 class="w-3.5 h-3.5" />
+            <v-icon icon="mdi-delete-outline" size="14" />
           </button>
         </div>
 
@@ -169,7 +168,7 @@
                 :style="item.isService ? 'background:#10b98112;color:#10b981'
                   : item.isTicket ? 'background:#f59e0b12;color:#f59e0b'
                   : 'background:#ec489912;color:#ec4899'">
-                <component :is="item.isService ? Wrench : item.isTicket ? TicketCheck : Package" class="w-3 h-3" />
+                <v-icon :icon="item.isService ? 'mdi-wrench-outline' : item.isTicket ? 'mdi-ticket-confirmation-outline' : 'mdi-package-variant-closed'" size="12" />
               </div>
               <div class="cart-row-info">
                 <p class="cart-item-name">{{ item.name }}</p>
@@ -177,12 +176,12 @@
               </div>
               <div class="cart-row-qty">
                 <template v-if="!item.isService && !item.isTicket">
-                  <button class="qty-btn" @click="decrementItem(idx)"><Minus class="w-2.5 h-2.5" /></button>
+                  <button class="qty-btn" @click="decrementItem(idx)"><v-icon icon="mdi-minus" size="10" /></button>
                   <span class="qty-num">{{ item.quantity }}</span>
-                  <button class="qty-btn" @click="incrementItem(idx)"><Plus class="w-2.5 h-2.5" /></button>
+                  <button class="qty-btn" @click="incrementItem(idx)"><v-icon icon="mdi-plus" size="10" /></button>
                 </template>
                 <button v-else class="qty-remove-btn" @click="decrementItem(idx)" title="Remove">
-                  <X class="w-2.5 h-2.5" />
+                  <v-icon icon="mdi-close" size="10" />
                 </button>
               </div>
               <span class="cart-row-total">{{ formatCurrency(item.price * item.quantity) }}</span>
@@ -193,7 +192,7 @@
         <!-- Custom amount keypad -->
         <div class="custom-bar">
           <div class="custom-bar-header">
-            <Plus class="w-4 h-4" />
+            <v-icon icon="mdi-plus" size="16" />
             <span>Custom Amount</span>
             <span class="custom-display" :class="{ dim: keypadAmount === '0' }">
               {{ settings.currency || '$' }}{{ (parseFloat(keypadAmount)/100).toFixed(2) }}
@@ -211,7 +210,7 @@
             </button>
           </div>
           <button class="add-custom-btn" :disabled="keypadAmount==='0'" @click="addCustomToCart">
-            <Plus class="w-4 h-4" /> Add {{ keypadAmount !== '0' ? formatCurrency(parseFloat(keypadAmount)/100) : '' }}
+            <v-icon icon="mdi-plus" size="16" /> Add {{ keypadAmount !== '0' ? formatCurrency(parseFloat(keypadAmount)/100) : '' }}
           </button>
         </div>
 
@@ -228,7 +227,7 @@
         <!-- Mobile: proceed to checkout button -->
         <button v-if="cart.length" class="mob-checkout-cta"
           @click="mobileTab = 'checkout'">
-          <CheckCircle class="w-4 h-4" />
+          <v-icon icon="mdi-check-circle-outline" size="16" />
           Proceed to Checkout · {{ formatCurrency(total) }}
         </button>
       </div>
@@ -238,20 +237,20 @@
 
         <!-- Customer -->
         <div class="checkout-card">
-          <p class="card-label"><Users class="w-3 h-3" /> Customer <span class="optional">(optional)</span></p>
+          <p class="card-label"><v-icon icon="mdi-account-group-outline" size="12" /> Customer <span class="optional">(optional)</span></p>
           <CustomerSelect v-model="selectedCustomerId" />
         </div>
 
         <!-- Payment method selector -->
         <div class="checkout-card">
-          <p class="card-label"><CreditCard class="w-3 h-3" /> Payment Method</p>
+          <p class="card-label"><v-icon icon="mdi-credit-card-outline" size="12" /> Payment Method</p>
           <div class="pm-grid">
             <button v-for="m in paymentMethods" :key="m.id"
               class="pm-tile"
               :class="{ active: paymentMethod === m.id }"
               :style="paymentMethod === m.id ? `--accent:${m.color}` : ''"
               @click="paymentMethod = m.id">
-              <component :is="m.icon" class="w-4 h-4" />
+              <v-icon :icon="m.icon" size="16" />
               {{ m.label }}
             </button>
           </div>
@@ -261,7 +260,7 @@
         <!-- Square SDK measures the container at attach time; never remove from DOM -->
         <div class="card-form-card" :class="{ visible: paymentMethod === 'Card' }">
           <p class="card-label">
-            <Lock class="w-3 h-3" /> Card Details
+            <v-icon icon="mdi-lock-outline" size="12" /> Card Details
             <span class="sq-badge">
               <svg width="9" height="9" viewBox="0 0 14 14" fill="none">
                 <rect width="14" height="14" rx="3" fill="currentColor"/>
@@ -293,7 +292,7 @@
 
         <!-- Cash / Other hint -->
         <div v-if="paymentMethod === 'Cash' || paymentMethod === 'Other'" class="checkout-card cash-card">
-          <component :is="paymentMethod === 'Cash' ? Banknote : Wallet" class="w-5 h-5 cash-icon" />
+          <v-icon :icon="paymentMethod === 'Cash' ? 'mdi-cash' : 'mdi-wallet-outline'" size="20" class="cash-icon" />
           <div>
             <p class="text-sm font-black">{{ paymentMethod }} Payment</p>
             <p class="text-xs text-muted-foreground font-medium mt-0.5">
@@ -332,17 +331,17 @@
               <div class="btn-spin" />{{ terminalStatus || 'Processing…' }}
             </span>
             <span v-else-if="!cart.length" key="empty" class="btn-inner">
-              <ShoppingCart class="w-4 h-4" /> Add items to checkout
+              <v-icon icon="mdi-cart-outline" size="16" /> Add items to checkout
             </span>
             <span v-else key="go" class="btn-inner">
-              <CheckCircle class="w-4 h-4" /> {{ ctaLabel }}
+              <v-icon icon="mdi-check-circle-outline" size="16" /> {{ ctaLabel }}
             </span>
           </Transition>
         </button>
 
         <!-- Square config warning -->
         <div v-if="paymentMethod === 'Card' && !squareConfigured" class="sq-warning">
-          <AlertCircle class="w-3.5 h-3.5 flex-shrink-0" />
+          <v-icon icon="mdi-alert-circle" size="14" class="flex-shrink-0" />
           Square credentials missing —
           <button class="sq-warning-link" @click="useRouter().push('/settings')">configure in Settings</button>
         </div>
@@ -355,7 +354,7 @@
       <div v-if="saleResult" class="modal-backdrop" @click="saleResult = null">
         <div class="modal-card" @click.stop>
           <div class="modal-success-ring">
-            <CheckCircle class="w-9 h-9 text-white" />
+            <v-icon icon="mdi-check-circle-outline" size="36" color="white" />
           </div>
           <h2 class="modal-title">Sale Complete!</h2>
           <p class="modal-receipt">Receipt #{{ saleResult.receiptId }}</p>
@@ -383,11 +382,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-  Search, Package, ShoppingCart, ShoppingBag, Trash2, Plus, Minus, X,
-  CheckCircle, CreditCard, TicketCheck, ShieldCheck, Wrench,
-  Banknote, Wallet, Users, Lock, AlertCircle,
-} from 'lucide-vue-next'
 import CustomerSelect from '~/components/CustomerSelect.vue'
 import { printReceipt } from '~/utils/print'
 import { useToast } from '~/composables/useToast'
@@ -449,10 +443,10 @@ const ticketMode         = ref<{ ticketId: number; amount: number } | null>(null
 
 // ── Payment method config ──────────────────────────────────────────
 const paymentMethods = [
-  { id: 'Cash',     label: 'Cash',     icon: Banknote,   color: '#10b981' },
-  { id: 'Card',     label: 'Card',     icon: CreditCard, color: '#6366f1' },
-  { id: 'Afterpay', label: 'Afterpay', icon: Wallet,     color: '#06b6d4' },
-  { id: 'Other',    label: 'Other',    icon: Wallet,     color: '#64748b' },
+  { id: 'Cash',     label: 'Cash',     icon: 'mdi-cash',   color: '#10b981' },
+  { id: 'Card',     label: 'Card',     icon: 'mdi-credit-card-outline', color: '#6366f1' },
+  { id: 'Afterpay', label: 'Afterpay', icon: 'mdi-wallet-outline',     color: '#06b6d4' },
+  { id: 'Other',    label: 'Other',    icon: 'mdi-wallet-outline',     color: '#64748b' },
 ]
 
 // ── Category tabs ──────────────────────────────────────────────────

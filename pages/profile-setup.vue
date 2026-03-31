@@ -6,7 +6,7 @@
     <div class="relative w-full max-w-lg flex flex-col gap-7" style="animation: setupEnter 0.5s cubic-bezier(0.34,1.3,0.64,1) both">
       <div class="text-center flex flex-col items-center gap-4">
         <div class="w-20 h-20 rounded-[32px] flex items-center justify-center shadow-2xl" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); box-shadow: 0 8px 40px #6366f160">
-          <Briefcase class="w-10 h-10 text-white" />
+          <v-icon icon="mdi-briefcase-outline" size="40" color="white" />
         </div>
         <div>
           <h1 class="text-3xl font-black tracking-tight">Welcome to NovaOps!</h1>
@@ -41,7 +41,7 @@
 
         <!-- Error banner -->
         <div v-if="errorMsg" class="flex items-center gap-2.5 px-4 py-3 rounded-[16px] text-sm font-semibold" style="background: #ef444412; color: #ef4444; outline: 1.5px solid #ef444428; outline-offset: 0">
-          <AlertCircle class="w-4 h-4 flex-shrink-0" />
+          <v-icon icon="mdi-alert-circle" size="16" class="flex-shrink-0" />
           {{ errorMsg }}
         </div>
 
@@ -49,7 +49,7 @@
           style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); box-shadow: 0 4px 20px #6366f150"
           :disabled="!isValid || loading" @click="handleSubmit">
           <div v-if="loading" class="w-5 h-5 border-[3px] border-white/40 border-t-white rounded-full animate-spin" />
-          <Briefcase v-else class="w-5 h-5" />
+          <v-icon v-else icon="mdi-briefcase-outline" size="20" />
           {{ loading ? 'Setting up…' : 'Complete Setup' }}
         </button>
         <p class="text-xs text-center text-muted-foreground font-medium">You can update these details anytime in Settings</p>
@@ -59,7 +59,6 @@
 </template>
 
 <script setup lang="ts">
-import { Briefcase, AlertCircle } from 'lucide-vue-next'
 definePageMeta({ layout: 'auth', middleware: ['auth'] })
 
 const { $supabase } = useNuxtApp()

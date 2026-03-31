@@ -1,8 +1,8 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center" style="background: hsl(var(--background))">
-    <div class="text-center flex flex-col items-center gap-4">
-      <div class="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-      <p class="text-sm text-muted-foreground font-medium">{{ status }}</p>
+  <div class="d-flex min-h-screen align-center justify-center" style="background: rgb(var(--v-theme-background))">
+    <div class="d-flex flex-column align-center text-center gap-4">
+      <v-progress-circular indeterminate color="primary" size="40" width="4" />
+      <p class="text-body-2 text-medium-emphasis font-weight-medium">{{ status }}</p>
     </div>
   </div>
 </template>

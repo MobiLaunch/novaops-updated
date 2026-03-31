@@ -3,24 +3,24 @@
     <!-- Settings Menu -->
     <div class="relative">
       <button @click="toggleMenu('settings')" :class="['menubar-trigger', openMenu === 'settings' && 'menubar-trigger-active']">
-        <Settings class="w-3 h-3" />
+        <v-icon icon="mdi-cog-outline" size="12" />
         Settings
       </button>
       <div v-if="openMenu === 'settings'" class="menu-dropdown">
         <div class="menu-section-label">Preferences</div>
         <button class="menu-item" @click="go('/settings')">
-          <Settings class="w-3.5 h-3.5 text-muted-foreground" />
+          <v-icon icon="mdi-cog-outline" size="14" class="text-muted-foreground" />
           Business Settings
           <kbd>⌘,</kbd>
         </button>
         <div class="menu-divider" />
         <div class="menu-section-label">Data</div>
         <button class="menu-item" @click="exportData">
-          <Download class="w-3.5 h-3.5 text-muted-foreground" />
+          <v-icon icon="mdi-download" size="14" class="text-muted-foreground" />
           Export All Data
         </button>
         <button class="menu-item" @click="go('/import')">
-          <Upload class="w-3.5 h-3.5" style="color:#8b5cf6" />
+          <v-icon icon="mdi-upload" size="14" style="color:#8b5cf6" />
           Import CSV
         </button>
       </div>
@@ -34,49 +34,49 @@
       <div v-if="openMenu === 'navigate'" class="menu-dropdown">
         <div class="menu-section-label">Core</div>
         <button class="menu-item" @click="go('/dashboard')">
-          <LayoutDashboard class="w-3.5 h-3.5" style="color:#6366f1" />
+          <v-icon icon="mdi-view-dashboard-outline" size="14" style="color:#6366f1" />
           Dashboard
         </button>
         <button class="menu-item" @click="go('/bookings')">
-          <TicketCheck class="w-3.5 h-3.5" style="color:#f59e0b" />
+          <v-icon icon="mdi-ticket-confirmation-outline" size="14" style="color:#f59e0b" />
           Tickets
         </button>
         <button class="menu-item" @click="go('/customers')">
-          <Users class="w-3.5 h-3.5" style="color:#3b82f6" />
+          <v-icon icon="mdi-account-group-outline" size="14" style="color:#3b82f6" />
           Customers
         </button>
         <button class="menu-item" @click="go('/inventory')">
-          <Package class="w-3.5 h-3.5" style="color:#8b5cf6" />
+          <v-icon icon="mdi-package-variant-closed" size="14" style="color:#8b5cf6" />
           Inventory
         </button>
         <button class="menu-item" @click="go('/calendar')">
-          <Calendar class="w-3.5 h-3.5" style="color:#06b6d4" />
+          <v-icon icon="mdi-calendar" size="14" style="color:#06b6d4" />
           Calendar &amp; House Calls
         </button>
         <button class="menu-item" @click="go('/pos')">
-          <ShoppingCart class="w-3.5 h-3.5" style="color:#ec4899" />
+          <v-icon icon="mdi-cart-outline" size="14" style="color:#ec4899" />
           POS / Register
         </button>
         <button class="menu-item" @click="go('/services')">
-          <Cpu class="w-3.5 h-3.5" style="color:#22d3ee" />
+          <v-icon icon="mdi-chip" size="14" style="color:#22d3ee" />
           Repair Services
         </button>
         <button class="menu-item" @click="go('/messages')">
-          <MessageCircle class="w-3.5 h-3.5" style="color:#ec4899" />
+          <v-icon icon="mdi-message-outline" size="14" style="color:#ec4899" />
           Messages &amp; Email
         </button>
         <div class="menu-divider" />
         <div class="menu-section-label">Tools & Finance</div>
         <button class="menu-item" @click="go('/analytics')">
-          <BarChart3 class="w-3.5 h-3.5" style="color:#10b981" />
+          <v-icon icon="mdi-chart-bar" size="14" style="color:#10b981" />
           Analytics &amp; Accounting
         </button>
         <button class="menu-item" @click="go('/barcodes')">
-          <ScanLine class="w-3.5 h-3.5" style="color:#06b6d4" />
+          <v-icon icon="mdi-barcode-scan" size="14" style="color:#06b6d4" />
           Barcode Scanner
         </button>
         <button class="menu-item" @click="go('/forms')">
-          <FileText class="w-3.5 h-3.5" style="color:#8b5cf6" />
+          <v-icon icon="mdi-file-document-outline" size="14" style="color:#8b5cf6" />
           Invoices & Forms
         </button>
       </div>
@@ -89,38 +89,38 @@
       </button>
       <div v-if="openMenu === 'quickAdd'" class="menu-dropdown">
         <button class="menu-item" @click="quickAction('ticket')">
-          <Plus class="w-3.5 h-3.5 text-amber-500" />
+          <v-icon icon="mdi-plus" size="14" class="text-amber-500" />
           New Ticket
           <kbd>⌘T</kbd>
         </button>
         <button class="menu-item" @click="quickAction('housecall')">
-          <Plus class="w-3.5 h-3.5 text-emerald-500" />
+          <v-icon icon="mdi-plus" size="14" class="text-emerald-500" />
           New House Call
           <kbd>⌘H</kbd>
         </button>
         <button class="menu-item" @click="quickAction('customer')">
-          <Plus class="w-3.5 h-3.5 text-blue-500" />
+          <v-icon icon="mdi-plus" size="14" class="text-blue-500" />
           New Customer
           <kbd>⌘U</kbd>
         </button>
         <button class="menu-item" @click="quickAction('register')">
-          <ShoppingCart class="w-3.5 h-3.5 text-pink-500" />
+          <v-icon icon="mdi-cart-outline" size="14" class="text-pink-500" />
           Open Register
           <kbd>⌘R</kbd>
         </button>
         <div class="menu-divider" />
         <button class="menu-item" @click="quickAction('invoice')">
-          <Plus class="w-3.5 h-3.5 text-emerald-500" />
+          <v-icon icon="mdi-plus" size="14" class="text-emerald-500" />
           New Invoice
           <kbd>⌘I</kbd>
         </button>
         <button class="menu-item" @click="quickAction('scan')">
-          <ScanLine class="w-3.5 h-3.5 text-cyan-500" />
+          <v-icon icon="mdi-barcode-scan" size="14" class="text-cyan-500" />
           Scan Barcode
           <kbd>⌘B</kbd>
         </button>
         <button class="menu-item" @click="quickAction('import')">
-          <Upload class="w-3.5 h-3.5 text-violet-500" />
+          <v-icon icon="mdi-upload" size="14" class="text-violet-500" />
           Import CSV
         </button>
       </div>
@@ -134,29 +134,29 @@
       <div v-if="openMenu === 'view'" class="menu-dropdown">
         <div class="menu-section-label">Theme</div>
         <button class="menu-item" @click="setTheme('system')">
-          <Monitor class="w-3.5 h-3.5 text-muted-foreground" />
+          <v-icon icon="mdi-monitor" size="14" class="text-muted-foreground" />
           System Default
           <span v-if="currentTheme === 'system'" class="ml-auto text-primary text-xs">✓</span>
         </button>
         <button class="menu-item" @click="setTheme('dark')">
-          <Moon class="w-3.5 h-3.5 text-muted-foreground" />
+          <v-icon icon="mdi-weather-night" size="14" class="text-muted-foreground" />
           Dark Mode
           <span v-if="currentTheme === 'dark'" class="ml-auto text-primary text-xs">✓</span>
         </button>
         <button class="menu-item" @click="setTheme('light')">
-          <Sun class="w-3.5 h-3.5 text-muted-foreground" />
+          <v-icon icon="mdi-weather-sunny" size="14" class="text-muted-foreground" />
           Light Mode
           <span v-if="currentTheme === 'light'" class="ml-auto text-primary text-xs">✓</span>
         </button>
         <div class="menu-divider" />
         <div class="menu-section-label">Page</div>
         <button class="menu-item" @click="go('/dashboard')">
-          <LayoutDashboard class="w-3.5 h-3.5 text-muted-foreground" />
+          <v-icon icon="mdi-view-dashboard-outline" size="14" class="text-muted-foreground" />
           Dashboard
           <kbd>⌘D</kbd>
         </button>
         <button class="menu-item" @click="reload">
-          <RefreshCw class="w-3.5 h-3.5 text-muted-foreground" />
+          <v-icon icon="mdi-refresh" size="14" class="text-muted-foreground" />
           Reload
           <kbd>⌘⇧R</kbd>
         </button>
@@ -167,12 +167,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import {
-  Settings, Globe, Download, Upload,
-  LayoutDashboard, TicketCheck, Users, Package, Calendar,
-  ShoppingCart, ScanLine, FileText, BarChart3,
-  Plus, Monitor, Moon, Sun, RefreshCw, Wrench, MessageCircle, Cpu,
-} from 'lucide-vue-next'
 import { useAppStore } from '~/stores/app'
 
 const appStore = useAppStore()

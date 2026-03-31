@@ -25,13 +25,13 @@
           >
             <div class="d-flex align-start gap-3">
               <v-avatar color="primary" size="32" rounded="lg">
-                <component :is="getIcon(item.type)" :size="16" color="white" />
+                <v-icon :icon="getIcon(item.type)" size="16" color="white" />
               </v-avatar>
               <div class="flex-grow-1" style="min-width:0">
                 <p class="text-body-2 font-weight-medium text-truncate mb-0">{{ item.title }}</p>
                 <p class="text-caption text-medium-emphasis text-truncate mb-0">{{ item.subtitle }}</p>
                 <div class="d-flex align-center gap-1 mt-1">
-                  <Clock :size="12" style="color:#8b5cf6" />
+                  <v-icon icon="mdi-clock-outline" size="12" style="color:#8b5cf6" />
                   <span class="text-caption" style="color:#8b5cf6">{{ item.timeFromNow }}</span>
                 </div>
               </div>
@@ -51,7 +51,7 @@
       <v-card-item>
         <template #title>
           <div class="d-flex align-center gap-2 text-body-2 font-weight-bold">
-            <Bell :size="16" style="color:#3b82f6" />
+            <v-icon icon="mdi-bell-outline" size="16" style="color:#3b82f6" />
             Notifications
             <v-chip v-if="unreadCount > 0" color="error" size="x-small" variant="tonal">{{ unreadCount }}</v-chip>
           </div>
@@ -73,7 +73,7 @@
           >
             <div class="d-flex align-start gap-3">
               <v-avatar :color="getNotificationColor(notification.type)" size="32" rounded="lg" variant="tonal">
-                <component :is="getNotificationIcon(notification.type)" :size="16" />
+                <v-icon :icon="getNotificationIcon(notification.type)" size="16" />
               </v-avatar>
               <div class="flex-grow-1" style="min-width:0">
                 <p class="text-body-2 font-weight-medium text-truncate mb-0">{{ notification.title }}</p>
@@ -85,7 +85,7 @@
           </v-card>
 
           <div v-if="notifications.length === 0" class="text-center py-6">
-            <Bell :size="32" class="mx-auto mb-2 text-medium-emphasis" style="opacity:0.5" />
+            <v-icon icon="mdi-bell-outline" size="32" class="mx-auto mb-2 text-medium-emphasis" style="opacity:0.5" />
             <p class="text-caption text-medium-emphasis mb-0">No notifications</p>
           </div>
         </div>
@@ -98,17 +98,6 @@
 import { useAppStore } from '~/stores/app'
 import { storeToRefs } from 'pinia'
 
-import {
-  CalendarClock,
-  Bell,
-  Clock,
-  MapPin,
-  CalendarDays,
-  CheckCircle,
-  AlertCircle,
-  Info,
-  TicketCheck
-} from 'lucide-vue-next'
 import { useNotifications } from '~/composables/useNotifications'
 
 interface UpcomingItem {
@@ -204,19 +193,19 @@ const getTimeFromNow = (date: Date) => {
 
 const getIcon = (type: string) => {
   const icons: Record<string, any> = {
-    'housecall': MapPin,
-    'appointment': CalendarDays,
-    'ticket': TicketCheck
+    'housecall': 'mdi-map-marker-outline',
+    'appointment': 'mdi-calendar',
+    'ticket': 'mdi-ticket-confirmation-outline'
   }
   return icons[type] || CalendarClock
 }
 
 const getNotificationIcon = (type: string) => {
   const icons: Record<string, any> = {
-    'success': CheckCircle,
-    'warning': AlertCircle,
-    'error': AlertCircle,
-    'info': Info
+    'success': 'mdi-check-circle-outline',
+    'warning': 'mdi-alert-circle',
+    'error': 'mdi-alert-circle',
+    'info': 'mdi-information-outline'
   }
   return icons[type] || Info
 }

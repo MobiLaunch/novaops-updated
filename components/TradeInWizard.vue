@@ -7,7 +7,7 @@
         <div class="flex items-center gap-3">
           <div class="w-11 h-11 rounded-[22px] flex items-center justify-center shadow-md flex-shrink-0"
             style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 16px #f59e0b40">
-            <ArrowLeftRight class="w-5 h-5 text-white" />
+            <v-icon icon="mdi-swap-horizontal" size="20" color="white" />
           </div>
           <div class="flex-1">
             <h2 class="text-base font-black">Device Trade-In Evaluator</h2>
@@ -97,7 +97,7 @@
           <!-- Resolved device banner (shown when IMEI/model# resolved the device) -->
           <div v-if="resolvedDevice" class="flex items-center gap-3 p-3 rounded-[14px]"
             style="background: #10b98110; outline: 1.5px solid #10b98130; outline-offset: 0">
-            <CheckCircle2 class="w-4 h-4 flex-shrink-0" style="color: #10b981" />
+            <v-icon icon="mdi-check-circle-outline" size="16" class="flex-shrink-0" style="color: #10b981" />
             <div class="flex-1">
               <p class="text-xs font-black" style="color: #10b981">Device identified via {{ resolvedDevice.method }}</p>
               <p class="text-xs text-muted-foreground">{{ resolvedDevice.brand }} {{ resolvedDevice.model }}{{ resolvedDevice.storage ? ' · ' + resolvedDevice.storage : '' }}</p>
@@ -109,7 +109,7 @@
           <div class="rounded-[18px] p-4 space-y-3" style="background: #f59e0b0c; outline: 1.5px solid #f59e0b28; outline-offset: 0">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <TrendingUp class="w-4 h-4" style="color: #f59e0b" />
+                <v-icon icon="mdi-trending-up" size="16" style="color: #f59e0b" />
                 <p class="text-xs font-black">Live Market Price</p>
               </div>
               <button
@@ -119,7 +119,7 @@
                 @click="fetchMarketPrice"
               >
                 <div v-if="fetchingPrice" class="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                <Search v-else class="w-3 h-3" />
+                <v-icon icon="mdi-magnify" size="12" v-else />
                 {{ fetchingPrice ? fetchingStage : 'Look Up' }}
               </button>
             </div>
@@ -400,7 +400,7 @@
 
           <!-- Warning banners -->
           <div v-if="form.icloud_locked || form.frp_locked" class="flex items-start gap-3 p-3 rounded-[14px]" style="background: #ef444410; outline: 1.5px solid #ef444430; outline-offset: 0">
-            <AlertTriangle class="w-4 h-4 flex-shrink-0 mt-0.5" style="color: #ef4444" />
+            <v-icon icon="mdi-alert-outline" size="16" class="flex-shrink-0 mt-0.5" style="color: #ef4444" />
             <p class="text-xs font-semibold" style="color: #ef4444">
               This device has {{ [form.icloud_locked && 'iCloud Lock', form.frp_locked && 'FRP Lock'].filter(Boolean).join(' + ') }}.
               Ensure the customer can provide proof of ownership and removal before completing the trade-in.
@@ -421,7 +421,7 @@
           class="h-11 px-4 rounded-full text-sm font-bold transition-all hover:scale-[1.03] active:scale-95 flex items-center gap-1.5"
           style="outline: 2px solid hsl(var(--border)); outline-offset: 0"
           @click="currentStep--">
-          <ChevronLeft class="w-4 h-4" /> Back
+          <v-icon icon="mdi-chevron-left" size="16" /> Back
         </button>
         <button class="h-11 px-4 rounded-full text-sm font-bold transition-all hover:scale-[1.03] active:scale-95"
           style="outline: 2px solid hsl(var(--border)); outline-offset: 0"
@@ -436,7 +436,7 @@
             : 'background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); cursor: not-allowed'"
           :disabled="!canProceed"
           @click="nextStep">
-          Next <ChevronRight class="w-4 h-4" />
+          Next <v-icon icon="mdi-chevron-right" size="16" />
         </button>
 
         <button v-else
@@ -445,7 +445,7 @@
           :disabled="saving"
           @click="saveTradeIn">
           <div v-if="saving" class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-          <CheckCircle v-else class="w-4 h-4" />
+          <v-icon icon="mdi-check-circle-outline" size="16" v-else />
           {{ saving ? 'Saving…' : 'Save Trade-In' }}
         </button>
       </div>
@@ -455,11 +455,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-  ArrowLeftRight, ChevronLeft, ChevronRight, Search, TrendingUp,
-  AlertTriangle, CheckCircle, Fingerprint, CheckCircle2,
-} from 'lucide-vue-next'
-
 import CustomerSelect from '~/components/CustomerSelect.vue'
 import { useAppStore } from '~/stores/app'
 import { storeToRefs } from 'pinia'

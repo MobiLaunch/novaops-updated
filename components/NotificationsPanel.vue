@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-btn icon variant="text" @click="open = true" class="position-relative">
-      <Bell :size="20" />
+      <v-icon icon="mdi-bell-outline" size="20" />
       <v-badge
         v-if="unreadCount > 0"
         :content="unreadCount"
@@ -32,10 +32,7 @@
               <div class="d-flex align-start justify-space-between">
                 <div class="flex-grow-1">
                   <div class="d-flex align-center gap-2">
-                    <component
-                      :is="getIcon(notification.type)"
-                      :size="16"
-                    />
+                    <v-icon :icon="getIcon(notification.type)" size="16" />
                     <p class="text-body-2 font-weight-medium mb-0">{{ notification.title }}</p>
                   </div>
                   <p class="text-body-2 text-medium-emphasis mt-1 mb-0">{{ notification.message }}</p>
@@ -46,7 +43,7 @@
             </v-card>
 
             <div v-if="notifications.length === 0" class="text-center py-8">
-              <Bell :size="48" class="mx-auto mb-2 text-medium-emphasis" style="opacity:0.5" />
+              <v-icon icon="mdi-bell-outline" size="48" class="mx-auto mb-2 text-medium-emphasis" style="opacity:0.5" />
               <p class="text-medium-emphasis mb-0">No notifications</p>
             </div>
           </div>
@@ -57,7 +54,6 @@
 </template>
 
 <script setup lang="ts">
-import { Bell, Info, CheckCircle, AlertTriangle, AlertCircle, X } from 'lucide-vue-next'
 import { useNotifications } from '~/composables/useNotifications'
 
 const { notifications, removeNotification, clearAll, markAllAsRead, unreadCount } = useNotifications()
@@ -65,10 +61,10 @@ const open = ref(false)
 
 const getIcon = (type: string) => {
   switch (type) {
-    case 'success': return CheckCircle
-    case 'warning': return AlertTriangle
-    case 'error': return AlertCircle
-    default: return Info
+    case 'success': return 'mdi-check-circle-outline'
+    case 'warning': return 'mdi-alert-outline'
+    case 'error': return 'mdi-alert-circle'
+    default: return 'mdi-information-outline'
   }
 }
 

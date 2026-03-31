@@ -12,7 +12,7 @@
       <!-- Logo & Title -->
       <div class="flex flex-col items-center gap-4">
         <div class="w-20 h-20 rounded-[32px] flex items-center justify-center shadow-2xl" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); box-shadow: 0 8px 40px #8b5cf660">
-          <Zap class="w-9 h-9 text-white" />
+          <v-icon icon="mdi-flash-outline" size="36" color="white" />
         </div>
         <div class="text-center">
           <h1 class="text-3xl font-black tracking-tight">Set Up NovaOps</h1>
@@ -28,7 +28,7 @@
             'step-active': currentStep === i,
             'step-pending': currentStep !== i && !completedSteps.has(i)
           }">
-            <Check v-if="completedSteps.has(i)" class="w-3.5 h-3.5" />
+            <v-icon icon="mdi-check" size="14" v-if="completedSteps.has(i)" />
             <span v-else class="text-xs font-black">{{ i + 1 }}</span>
           </div>
           <span class="text-[9px] font-bold text-center leading-tight" :style="currentStep === i ? 'color: #8b5cf6' : 'color: hsl(var(--muted-foreground))'">{{ step.shortLabel }}</span>
@@ -37,7 +37,7 @@
 
       <!-- Error Banner -->
       <div v-if="globalError" class="flex items-center gap-3 p-4 rounded-[20px]" style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0">
-        <AlertCircle class="w-5 h-5 flex-shrink-0" style="color: #ef4444" />
+        <v-icon icon="mdi-alert-circle" size="20" class="flex-shrink-0" style="color: #ef4444" />
         <p class="text-sm font-semibold" style="color: #ef4444">{{ globalError }}</p>
       </div>
 
@@ -48,15 +48,15 @@
         <div class="step-card" :class="{ 'step-card-active': currentStep === 0, 'step-card-done': completedSteps.has(0) }">
           <div class="step-card-header" @click="goToStep(0)">
             <div class="step-card-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed)">
-              <UserPlus class="w-4 h-4 text-white" />
+              <v-icon icon="mdi-account-plus-outline" size="16" color="white" />
             </div>
             <div class="flex-1">
               <p class="text-sm font-black">Account Credentials</p>
               <p class="text-xs text-muted-foreground font-medium">Email, password, and business name</p>
             </div>
             <div v-if="completedSteps.has(0)" class="done-badge">✓ Done</div>
-            <ChevronDown v-else-if="currentStep !== 0" class="w-4 h-4 text-muted-foreground" />
-            <ChevronUp v-else class="w-4 h-4" style="color: #8b5cf6" />
+            <v-icon icon="mdi-chevron-down" size="16" v-else-if="currentStep !== 0" class="text-muted-foreground" />
+            <v-icon icon="mdi-chevron-up" size="16" v-else  style="color: #8b5cf6" />
           </div>
           <div v-if="currentStep === 0" class="step-card-body">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -91,7 +91,7 @@
                 </div>
               </div>
             </div>
-            <button class="next-btn mt-2" @click="completeStep(0)">Continue <ArrowRight class="w-4 h-4" /></button>
+            <button class="next-btn mt-2" @click="completeStep(0)">Continue <v-icon icon="mdi-arrow-right" size="16" /></button>
           </div>
         </div>
 
@@ -99,7 +99,7 @@
         <div class="step-card" :class="{ 'step-card-active': currentStep === 1, 'step-card-done': completedSteps.has(1) }">
           <div class="step-card-header" @click="goToStep(1)">
             <div class="step-card-icon" style="background: linear-gradient(135deg, #3ecf8e, #10b981)">
-              <Database class="w-4 h-4 text-white" />
+              <v-icon icon="mdi-database-outline" size="16" color="white" />
             </div>
             <div class="flex-1">
               <p class="text-sm font-black">Supabase Database</p>
@@ -107,11 +107,11 @@
             </div>
             <div v-if="completedSteps.has(1)" class="done-badge">✓ Done</div>
             <span v-else-if="currentStep !== 1" class="skip-badge">Optional</span>
-            <ChevronUp v-else class="w-4 h-4" style="color: #3ecf8e" />
+            <v-icon icon="mdi-chevron-up" size="16" v-else  style="color: #3ecf8e" />
           </div>
           <div v-if="currentStep === 1" class="step-card-body">
             <div class="info-box" style="background: #3ecf8e10; border-color: #3ecf8e30">
-              <Info class="w-4 h-4 flex-shrink-0" style="color: #3ecf8e" />
+              <v-icon icon="mdi-information-outline" size="16" class="flex-shrink-0" style="color: #3ecf8e" />
               <p class="text-xs font-medium text-muted-foreground">Find these in your Supabase project under <strong>Settings → API</strong>. NovaOps uses these to store tickets, customers, inventory, and more.</p>
             </div>
             <div class="space-y-1.5">
@@ -128,7 +128,7 @@
             </div>
             <div class="flex gap-3 mt-1">
               <button class="skip-btn" @click="skipStep(1)">Skip for now</button>
-              <button class="next-btn flex-1" @click="completeStep(1)">Save & Continue <ArrowRight class="w-4 h-4" /></button>
+              <button class="next-btn flex-1" @click="completeStep(1)">Save & Continue <v-icon icon="mdi-arrow-right" size="16" /></button>
             </div>
           </div>
         </div>
@@ -137,7 +137,7 @@
         <div class="step-card" :class="{ 'step-card-active': currentStep === 2, 'step-card-done': completedSteps.has(2) }">
           <div class="step-card-header" @click="goToStep(2)">
             <div class="step-card-icon" style="background: linear-gradient(135deg, #1a1a1a, #404040)">
-              <CreditCard class="w-4 h-4 text-white" />
+              <v-icon icon="mdi-credit-card-outline" size="16" color="white" />
             </div>
             <div class="flex-1">
               <p class="text-sm font-black">Square POS Integration</p>
@@ -145,11 +145,11 @@
             </div>
             <div v-if="completedSteps.has(2)" class="done-badge">✓ Done</div>
             <span v-else-if="currentStep !== 2" class="skip-badge">Optional</span>
-            <ChevronUp v-else class="w-4 h-4 text-muted-foreground" />
+            <v-icon icon="mdi-chevron-up" size="16" v-else class="text-muted-foreground" />
           </div>
           <div v-if="currentStep === 2" class="step-card-body">
             <div class="info-box" style="background: hsl(var(--muted)/0.3); border-color: hsl(var(--border)/0.5)">
-              <Info class="w-4 h-4 flex-shrink-0 text-muted-foreground" />
+              <v-icon icon="mdi-information-outline" size="16" class="flex-shrink-0 text-muted-foreground" />
               <p class="text-xs font-medium text-muted-foreground">Get credentials from <strong>developer.squareup.com → Applications → Credentials</strong>. Use Sandbox for testing.</p>
             </div>
             <div class="space-y-1.5">
@@ -174,7 +174,7 @@
             </div>
             <div class="flex gap-3 mt-1">
               <button class="skip-btn" @click="skipStep(2)">Skip for now</button>
-              <button class="next-btn flex-1" @click="completeStep(2)">Save & Continue <ArrowRight class="w-4 h-4" /></button>
+              <button class="next-btn flex-1" @click="completeStep(2)">Save & Continue <v-icon icon="mdi-arrow-right" size="16" /></button>
             </div>
           </div>
         </div>
@@ -183,7 +183,7 @@
         <div class="step-card" :class="{ 'step-card-active': currentStep === 3, 'step-card-done': completedSteps.has(3) }">
           <div class="step-card-header" @click="goToStep(3)">
             <div class="step-card-icon" style="background: linear-gradient(135deg, #ea4335, #fbbc05)">
-              <Mail class="w-4 h-4 text-white" />
+              <v-icon icon="mdi-email-outline" size="16" color="white" />
             </div>
             <div class="flex-1">
               <p class="text-sm font-black">Google Email Support</p>
@@ -191,11 +191,11 @@
             </div>
             <div v-if="completedSteps.has(3)" class="done-badge">✓ Done</div>
             <span v-else-if="currentStep !== 3" class="skip-badge">Optional</span>
-            <ChevronUp v-else class="w-4 h-4" style="color: #ea4335" />
+            <v-icon icon="mdi-chevron-up" size="16" v-else  style="color: #ea4335" />
           </div>
           <div v-if="currentStep === 3" class="step-card-body">
             <div class="info-box" style="background: #ea433510; border-color: #ea433530">
-              <Info class="w-4 h-4 flex-shrink-0" style="color: #ea4335" />
+              <v-icon icon="mdi-information-outline" size="16" class="flex-shrink-0" style="color: #ea4335" />
               <p class="text-xs font-medium text-muted-foreground">Create OAuth 2.0 credentials in <strong>Google Cloud Console → APIs & Services → Credentials</strong>. Enable Gmail API and set your redirect URI.</p>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -214,7 +214,7 @@
             </div>
             <div class="flex gap-3 mt-1">
               <button class="skip-btn" @click="skipStep(3)">Skip for now</button>
-              <button class="next-btn flex-1" @click="completeStep(3)">Save & Continue <ArrowRight class="w-4 h-4" /></button>
+              <button class="next-btn flex-1" @click="completeStep(3)">Save & Continue <v-icon icon="mdi-arrow-right" size="16" /></button>
             </div>
           </div>
         </div>
@@ -223,7 +223,7 @@
         <div class="step-card" :class="{ 'step-card-active': currentStep === 4, 'step-card-done': completedSteps.has(4) }">
           <div class="step-card-header" @click="goToStep(4)">
             <div class="step-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706)">
-              <Upload class="w-4 h-4 text-white" />
+              <v-icon icon="mdi-upload" size="16" color="white" />
             </div>
             <div class="flex-1">
               <p class="text-sm font-black">Import Existing Data</p>
@@ -231,7 +231,7 @@
             </div>
             <div v-if="completedSteps.has(4)" class="done-badge">✓ Done</div>
             <span v-else-if="currentStep !== 4" class="skip-badge">Optional</span>
-            <ChevronUp v-else class="w-4 h-4" style="color: #f59e0b" />
+            <v-icon icon="mdi-chevron-up" size="16" v-else  style="color: #f59e0b" />
           </div>
           <div v-if="currentStep === 4" class="step-card-body">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -239,7 +239,7 @@
                 <input ref="inventoryInput" type="file" accept=".csv,.xlsx" class="hidden" @change="handleInventoryFile" />
                 <div class="flex flex-col items-center gap-2 text-center">
                   <div class="w-10 h-10 rounded-2xl flex items-center justify-center" :style="inventoryFile ? 'background: #f59e0b20' : 'background: hsl(var(--muted)/0.5)'">
-                    <Package class="w-5 h-5" :style="inventoryFile ? 'color: #f59e0b' : 'color: hsl(var(--muted-foreground))'" />
+                    <v-icon icon="mdi-package-variant-closed" size="20" :style="inventoryFile ? 'color: #f59e0b' : 'color: hsl(var(--muted-foreground))'" />
                   </div>
                   <div>
                     <p class="text-xs font-bold" :style="inventoryFile ? 'color: #f59e0b' : ''">{{ inventoryFile ? inventoryFile.name : 'Inventory CSV' }}</p>
@@ -251,7 +251,7 @@
                 <input ref="customersInput" type="file" accept=".csv,.xlsx" class="hidden" @change="handleCustomersFile" />
                 <div class="flex flex-col items-center gap-2 text-center">
                   <div class="w-10 h-10 rounded-2xl flex items-center justify-center" :style="customersFile ? 'background: #f59e0b20' : 'background: hsl(var(--muted)/0.5)'">
-                    <Users class="w-5 h-5" :style="customersFile ? 'color: #f59e0b' : 'color: hsl(var(--muted-foreground))'" />
+                    <v-icon icon="mdi-account-group-outline" size="20" :style="customersFile ? 'color: #f59e0b' : 'color: hsl(var(--muted-foreground))'" />
                   </div>
                   <div>
                     <p class="text-xs font-bold" :style="customersFile ? 'color: #f59e0b' : ''">{{ customersFile ? customersFile.name : 'Customers CSV' }}</p>
@@ -263,7 +263,7 @@
             <p class="text-xs text-muted-foreground text-center">Files are processed after account creation. You can also import later via Settings → Import CSV.</p>
             <div class="flex gap-3 mt-1">
               <button class="skip-btn" @click="skipStep(4)">Skip for now</button>
-              <button class="next-btn flex-1" @click="completeStep(4)">Continue <ArrowRight class="w-4 h-4" /></button>
+              <button class="next-btn flex-1" @click="completeStep(4)">Continue <v-icon icon="mdi-arrow-right" size="16" /></button>
             </div>
           </div>
         </div>
@@ -272,7 +272,7 @@
         <div class="step-card" :class="{ 'step-card-active': currentStep === 5, 'step-card-done': completedSteps.has(5) }">
           <div class="step-card-header" @click="goToStep(5)">
             <div class="step-card-icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5)">
-              <FileText class="w-4 h-4 text-white" />
+              <v-icon icon="mdi-file-document-outline" size="16" color="white" />
             </div>
             <div class="flex-1">
               <p class="text-sm font-black">Legal Documents & Forms</p>
@@ -280,7 +280,7 @@
             </div>
             <div v-if="completedSteps.has(5)" class="done-badge">✓ Done</div>
             <span v-else-if="currentStep !== 5" class="skip-badge">Optional</span>
-            <ChevronUp v-else class="w-4 h-4" style="color: #6366f1" />
+            <v-icon icon="mdi-chevron-up" size="16" v-else  style="color: #6366f1" />
           </div>
           <div v-if="currentStep === 5" class="step-card-body">
             <div class="space-y-3">
@@ -305,7 +305,7 @@
               <!-- Device Trade-In -->
               <div class="doc-section">
                 <div class="doc-section-header">
-                  <Smartphone class="w-4 h-4" style="color: #6366f1" />
+                  <v-icon icon="mdi-cellphone" size="16" style="color: #6366f1" />
                   <p class="text-xs font-black flex-1">Device Trade-In Form</p>
                   <span class="doc-badge">Included</span>
                 </div>
@@ -368,7 +368,7 @@
             </div>
             <div class="flex gap-3 mt-2">
               <button class="skip-btn" @click="skipStep(5)">Skip for now</button>
-              <button class="next-btn flex-1" @click="completeStep(5)">Save & Continue <ArrowRight class="w-4 h-4" /></button>
+              <button class="next-btn flex-1" @click="completeStep(5)">Save & Continue <v-icon icon="mdi-arrow-right" size="16" /></button>
             </div>
           </div>
         </div>
@@ -421,12 +421,6 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import {
-  Zap, UserPlus, AlertCircle, Check, ChevronDown, ChevronUp, ArrowRight, Rocket,
-  Database, CreditCard, Mail, Upload, FileText, Package, Users, Info,
-  ShieldAlert, Smartphone, BadgeCheck, ScrollText
-} from 'lucide-vue-next'
-
 definePageMeta({ layout: 'auth' })
 const { $supabase } = useNuxtApp()
 

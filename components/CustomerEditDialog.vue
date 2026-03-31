@@ -6,7 +6,7 @@
       <v-card-item class="border-b">
         <template #prepend>
           <v-avatar :color="customer ? 'info' : 'primary'" size="44" rounded="lg">
-            <component :is="customer ? Pencil : UserPlus" :size="20" color="white" />
+            <v-icon :icon="customer ? 'mdi-pencil' : 'mdi-account-plus-outline'" size="20" color="white" />
           </v-avatar>
         </template>
         <v-card-title class="text-h6 font-weight-black">{{ customer ? 'Edit Customer' : 'New Customer' }}</v-card-title>
@@ -73,7 +73,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Pencil, UserPlus } from 'lucide-vue-next'
 import type { Customer } from '~/types'
 
 const props = defineProps<{

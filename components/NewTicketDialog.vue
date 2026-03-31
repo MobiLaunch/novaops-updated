@@ -5,7 +5,7 @@
       <v-card-item class="border-b">
         <template #prepend>
           <v-avatar color="primary" rounded="lg">
-            <Wrench :size="20" color="white" />
+            <v-icon icon="mdi-wrench-outline" size="20" color="white" />
           </v-avatar>
         </template>
         <v-card-title class="text-h6 font-weight-black">New Repair Ticket</v-card-title>
@@ -127,7 +127,7 @@
               <v-col v-for="issue in issues" :key="issue.name" cols="12" sm="6">
                 <v-card hover :color="selectedIssue === issue.name ? 'primary' : undefined" :variant="selectedIssue === issue.name ? 'tonal' : 'outlined'" class="pa-3 d-flex align-start gap-3 h-100" @click="selectIssue(issue.name)">
                   <v-avatar :color="selectedIssue === issue.name ? 'primary' : 'grey-lighten-2'" size="32" rounded="lg">
-                    <component :is="issue.icon" :size="16" :class="selectedIssue === issue.name ? 'text-white' : 'text-body-1'" />
+                    <v-icon :icon="issue.icon" size="16" :class="selectedIssue === issue.name ? 'text-white' : 'text-body-1'" />
                   </v-avatar>
                   <div>
                     <div class="text-button font-weight-bold" style="line-height:1.2">{{ issue.name }}</div>
@@ -223,7 +223,7 @@
   <v-dialog v-model="showDeviceMgr" max-width="800" scrollable>
     <v-card class="d-flex flex-column" style="max-height:90dvh">
       <v-card-item class="border-b">
-        <template #prepend><v-avatar color="primary" rounded="lg"><Cpu :size="20" color="white" /></v-avatar></template>
+        <template #prepend><v-avatar color="primary" rounded="lg"><v-icon icon="mdi-chip" size="20" color="white" /></v-avatar></template>
         <v-card-title class="text-h6 font-weight-black">Device Catalog</v-card-title>
         <v-card-subtitle>Manage brands, categories, models</v-card-subtitle>
         <template #append>
@@ -307,7 +307,6 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronLeft, ChevronRight, Search, Zap, Droplets, Volume2, Wifi, Battery, Eye, Wrench, Check, Camera, X, Plus, Settings, Cpu } from 'lucide-vue-next'
 import SignaturePad from '~/components/SignaturePad.vue'
 import CustomerSelect from '~/components/CustomerSelect.vue'
 
@@ -456,14 +455,14 @@ const filteredModels = computed(() => {
 })
 
 const issues = [
-  { name: 'Cracked Screen',    icon: Eye,      description: 'Display is cracked or damaged' },
-  { name: 'Battery Issues',    icon: Battery,  description: "Won't charge or drains quickly" },
-  { name: 'Water Damage',      icon: Droplets, description: 'Exposed to liquid' },
-  { name: "Won't Turn On",     icon: Zap,      description: 'Device is unresponsive' },
-  { name: 'Audio Problems',    icon: Volume2,  description: 'Speaker or microphone issues' },
-  { name: 'WiFi/Connectivity', icon: Wifi,     description: 'Network connection problems' },
-  { name: 'Physical Damage',   icon: Wrench,   description: 'Dents, bends, or broken parts' },
-  { name: 'Other',             icon: Wrench,   description: 'Other issues' }
+  { name: 'Cracked Screen',    icon: 'mdi-eye-outline',      description: 'Display is cracked or damaged' },
+  { name: 'Battery Issues',    icon: 'mdi-battery',  description: "Won't charge or drains quickly" },
+  { name: 'Water Damage',      icon: 'mdi-water', description: 'Exposed to liquid' },
+  { name: "Won't Turn On",     icon: 'mdi-flash-outline',      description: 'Device is unresponsive' },
+  { name: 'Audio Problems',    icon: 'mdi-volume-high',  description: 'Speaker or microphone issues' },
+  { name: 'WiFi/Connectivity', icon: 'mdi-wifi',     description: 'Network connection problems' },
+  { name: 'Physical Damage',   icon: 'mdi-wrench-outline',   description: 'Dents, bends, or broken parts' },
+  { name: 'Other',             icon: 'mdi-wrench-outline',   description: 'Other issues' }
 ]
 
 const selectOtherBrand = () => {

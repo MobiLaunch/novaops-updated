@@ -6,7 +6,7 @@
       <div class="flex items-center gap-4">
         <div class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg"
           style="background: linear-gradient(135deg, #06b6d4, #0891b2); box-shadow: 0 6px 28px #06b6d450">
-          <ScanLine class="w-6 h-6 text-white" />
+          <v-icon icon="mdi-barcode-scan" size="24" color="white" />
         </div>
         <div>
           <h1 class="text-3xl font-black tracking-tight">Barcodes</h1>
@@ -27,7 +27,7 @@
       <div v-if="mode === 'Generate'" class="rounded-[32px] p-7 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
         <div class="flex items-center gap-3 mb-6">
           <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #06b6d420">
-            <Barcode class="w-4 h-4" style="color: #06b6d4" />
+            <v-icon icon="mdi-barcode" size="16" style="color: #06b6d4" />
           </div>
           <h3 class="text-sm font-black">Generate Barcode</h3>
         </div>
@@ -69,7 +69,7 @@
           </div>
 
           <div v-if="!barcodeValue" class="rounded-[24px] p-8 flex flex-col items-center gap-2 text-muted-foreground" style="background: hsl(var(--muted)/0.2); outline: 2px dashed hsl(var(--border)/0.4); outline-offset: 0">
-            <Barcode class="w-8 h-8 opacity-30" />
+            <v-icon icon="mdi-barcode" size="32" class="opacity-30" />
             <p class="text-xs font-bold">Enter a value above to preview your barcode</p>
           </div>
         </div>
@@ -79,7 +79,7 @@
       <div v-if="mode === 'Scan'" class="rounded-[32px] p-7 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
         <div class="flex items-center gap-3 mb-6">
           <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #06b6d420">
-            <ScanLine class="w-4 h-4" style="color: #06b6d4" />
+            <v-icon icon="mdi-barcode-scan" size="16" style="color: #06b6d4" />
           </div>
           <h3 class="text-sm font-black">Scan / Lookup</h3>
         </div>
@@ -95,7 +95,7 @@
             :style="scanResult.found ? 'background: #10b98114; outline: 2px solid #10b98128; outline-offset: 0' : 'background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0'">
             <div v-if="scanResult.found" class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: #10b98120">
-                <Package class="w-5 h-5" style="color: #10b981" />
+                <v-icon icon="mdi-package-variant-closed" size="20" style="color: #10b981" />
               </div>
               <div>
                 <p class="text-sm font-black" style="color: #10b981">{{ scanResult.item?.name }}</p>
@@ -112,7 +112,7 @@
         <div class="flex items-center justify-between mb-6">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #8b5cf620">
-              <Package class="w-4 h-4" style="color: #8b5cf6" />
+              <v-icon icon="mdi-package-variant-closed" size="16" style="color: #8b5cf6" />
             </div>
             <h3 class="text-sm font-black">Inventory Items</h3>
           </div>
@@ -123,18 +123,18 @@
             class="flex items-center gap-3 px-4 py-3 rounded-[20px] hover:bg-muted/20 transition-all cursor-pointer group"
             @click="selectInventoryItem(item)">
             <div class="w-9 h-9 rounded-[18px] flex items-center justify-center flex-shrink-0" style="background: #8b5cf618">
-              <Package class="w-4 h-4" style="color: #8b5cf6" />
+              <v-icon icon="mdi-package-variant-closed" size="16" style="color: #8b5cf6" />
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-bold truncate">{{ item.name }}</p>
               <p class="text-xs text-muted-foreground font-medium font-mono">{{ item.sku || 'No SKU' }}</p>
             </div>
             <span class="text-xs font-black text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-              <Barcode class="w-3 h-3" /> Generate
+              <v-icon icon="mdi-barcode" size="12" /> Generate
             </span>
           </div>
           <div v-if="!inventory.length" class="text-center py-8">
-            <Package class="w-10 h-10 mx-auto mb-2 opacity-20" />
+            <v-icon icon="mdi-package-variant-closed" size="40" class="mx-auto mb-2 opacity-20" />
             <p class="text-sm font-bold text-muted-foreground">No inventory items yet</p>
           </div>
         </div>
@@ -146,7 +146,7 @@
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #06b6d420">
-            <Layers class="w-4 h-4" style="color: #06b6d4" />
+            <v-icon icon="mdi-layers-outline" size="16" style="color: #06b6d4" />
           </div>
           <h3 class="text-sm font-black">Batch Print — Inventory Labels</h3>
         </div>
@@ -164,7 +164,7 @@
             ? 'background: #06b6d424; color: #06b6d4; outline: 1.5px solid #06b6d440; outline-offset:0'
             : 'background: hsl(var(--muted)/0.5); color: hsl(var(--muted-foreground))'"
           @click="toggleSelected(item.id)">
-          <Barcode class="w-3 h-3" />
+          <v-icon icon="mdi-barcode" size="12" />
           {{ item.name }}
         </button>
         <p v-if="!inventory.length" class="text-xs text-muted-foreground font-medium py-2">No inventory items. Add items to batch print labels.</p>
@@ -177,7 +177,6 @@
 </template>
 
 <script setup lang="ts">
-import { ScanLine, Barcode, Package, Layers } from 'lucide-vue-next'
 import { printHtmlContent, printBarcodeLabel, printBarcodeBatch } from '~/utils/print'
 import { useToast } from '~/composables/useToast'
 definePageMeta({ middleware: ['auth'] })

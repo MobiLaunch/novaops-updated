@@ -9,7 +9,7 @@
           rounded="xl"
           style="background: linear-gradient(135deg,#10b981,#059669); box-shadow: 0 4px 20px #10b98150"
         >
-          <BarChart3 :size="22" color="white" />
+          <v-icon icon="mdi-chart-bar" size="22" color="white" />
         </v-avatar>
         <div>
           <h1 class="text-h5 font-weight-black">Analytics</h1>
@@ -53,7 +53,7 @@
               {{ totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(1) : '0' }}%
             </div>
             <v-chip color="white" variant="tonal" size="small" class="mt-2">
-              <component :is="netProfit >= 0 ? TrendingUp : TrendingDown" :size="14" class="mr-1" />
+              <v-icon :icon="netProfit >= 0 ? 'mdi-trending-up' : 'mdi-trending-down'" size="14" class="mr-1" />
               {{ ticketCount }} transactions
             </v-chip>
           </v-col>
@@ -65,7 +65,7 @@
         <v-col cols="6" sm="3">
           <v-card class="pa-5 kpi-card" style="background:#10b98114;outline:2px solid #10b98128;outline-offset:0">
             <div class="d-flex align-center justify-space-between mb-3">
-              <v-avatar size="44" rounded="lg" style="background:#10b98124"><DollarSign :size="20" color="#10b981" /></v-avatar>
+              <v-avatar size="44" rounded="lg" style="background:#10b98124"><v-icon icon="mdi-currency-usd" size="20" color="#10b981" /></v-avatar>
               <v-chip size="x-small" color="success" variant="tonal">REVENUE</v-chip>
             </div>
             <div class="text-caption text-medium-emphasis">Total Revenue</div>
@@ -76,7 +76,7 @@
         <v-col cols="6" sm="3">
           <v-card class="pa-5 kpi-card" style="background:#ef444414;outline:2px solid #ef444428;outline-offset:0">
             <div class="d-flex align-center justify-space-between mb-3">
-              <v-avatar size="44" rounded="lg" style="background:#ef444424"><TrendingDown :size="20" color="#ef4444" /></v-avatar>
+              <v-avatar size="44" rounded="lg" style="background:#ef444424"><v-icon icon="mdi-trending-down" size="20" color="#ef4444" /></v-avatar>
               <v-chip size="x-small" color="error" variant="tonal">COSTS</v-chip>
             </div>
             <div class="text-caption text-medium-emphasis">Total Costs</div>
@@ -87,7 +87,7 @@
         <v-col cols="6" sm="3">
           <v-card class="pa-5 kpi-card" style="background:#f59e0b14;outline:2px solid #f59e0b28;outline-offset:0">
             <div class="d-flex align-center justify-space-between mb-3">
-              <v-avatar size="44" rounded="lg" style="background:#f59e0b24"><Receipt :size="20" color="#f59e0b" /></v-avatar>
+              <v-avatar size="44" rounded="lg" style="background:#f59e0b24"><v-icon icon="mdi-receipt-text-outline" size="20" color="#f59e0b" /></v-avatar>
               <v-chip size="x-small" color="warning" variant="tonal">TAX</v-chip>
             </div>
             <div class="text-caption text-medium-emphasis">Tax Collected</div>
@@ -98,7 +98,7 @@
         <v-col cols="6" sm="3">
           <v-card class="pa-5 kpi-card" style="background:#6366f114;outline:2px solid #6366f128;outline-offset:0">
             <div class="d-flex align-center justify-space-between mb-3">
-              <v-avatar size="44" rounded="lg" style="background:#6366f124"><Target :size="20" color="#6366f1" /></v-avatar>
+              <v-avatar size="44" rounded="lg" style="background:#6366f124"><v-icon icon="mdi-target" size="20" color="#6366f1" /></v-avatar>
               <v-chip size="x-small" color="primary" variant="tonal">AVG</v-chip>
             </div>
             <div class="text-caption text-medium-emphasis">Avg Ticket Value</div>
@@ -113,13 +113,13 @@
         <v-col cols="12" lg="8">
           <v-card class="pa-6">
             <div class="d-flex align-center gap-3 mb-5">
-              <v-avatar size="36" rounded="lg" style="background:#10b98120"><BarChart3 :size="16" color="#10b981" /></v-avatar>
+              <v-avatar size="36" rounded="lg" style="background:#10b98120"><v-icon icon="mdi-chart-bar" size="16" color="#10b981" /></v-avatar>
               <span class="text-subtitle-2 font-weight-black">Revenue Breakdown</span>
             </div>
             <div class="mb-6">
               <div v-for="source in revenueSources" :key="source.label" class="d-flex align-center gap-3 mb-3">
                 <v-avatar size="36" rounded="lg" :style="`background:${source.color}20`">
-                  <component :is="source.icon" :size="16" :style="`color:${source.color}`" />
+                  <v-icon :icon="source.icon" size="16" :style="`color:${source.color}`" />
                 </v-avatar>
                 <div class="flex-grow-1">
                   <div class="d-flex align-center justify-space-between mb-1">
@@ -162,7 +162,7 @@
         <v-col cols="12" lg="4">
           <v-card class="pa-6 mb-4">
             <div class="d-flex align-center gap-3 mb-4">
-              <v-avatar size="36" rounded="lg" style="background:#ef444420"><CreditCard :size="16" color="#ef4444" /></v-avatar>
+              <v-avatar size="36" rounded="lg" style="background:#ef444420"><v-icon icon="mdi-credit-card-outline" size="16" color="#ef4444" /></v-avatar>
               <span class="text-subtitle-2 font-weight-black">Cost Breakdown</span>
             </div>
             <v-list density="compact" class="pa-0">
@@ -175,7 +175,7 @@
               >
                 <template #prepend>
                   <v-avatar size="28" rounded="md" :style="`background:${exp.color}20`">
-                    <component :is="exp.icon" :size="14" :style="`color:${exp.color}`" />
+                    <v-icon :icon="exp.icon" size="14" :style="`color:${exp.color}`" />
                   </v-avatar>
                 </template>
                 <template #title><span class="text-caption font-weight-bold">{{ exp.label }}</span></template>
@@ -192,7 +192,7 @@
           </v-card>
           <v-card class="pa-5">
             <div class="d-flex align-center gap-3 mb-3">
-              <v-avatar size="36" rounded="lg" style="background:#f59e0b20"><Receipt :size="16" color="#f59e0b" /></v-avatar>
+              <v-avatar size="36" rounded="lg" style="background:#f59e0b20"><v-icon icon="mdi-receipt-text-outline" size="16" color="#f59e0b" /></v-avatar>
               <span class="text-subtitle-2 font-weight-black">Tax Summary</span>
             </div>
             <v-list density="compact" class="pa-0">
@@ -220,7 +220,7 @@
       <v-card>
         <v-card-item class="border-b">
           <template #prepend>
-            <v-avatar size="36" rounded="lg" style="background:#8b5cf620"><ClipboardList :size="16" color="#8b5cf6" /></v-avatar>
+            <v-avatar size="36" rounded="lg" style="background:#8b5cf620"><v-icon icon="mdi-clipboard-list-outline" size="16" color="#8b5cf6" /></v-avatar>
           </template>
           <v-card-title class="text-subtitle-2 font-weight-black">Expense Log</v-card-title>
           <template #append>
@@ -230,7 +230,7 @@
         <v-card-text class="pa-4">
           <div v-if="expenses.length === 0" class="py-12 d-flex flex-column align-center gap-3 text-medium-emphasis">
             <v-avatar size="64" rounded="xl" color="deep-purple" variant="tonal">
-              <ClipboardList :size="32" style="opacity:.5" />
+              <v-icon icon="mdi-clipboard-list-outline" size="32" style="opacity:.5" />
             </v-avatar>
             <div class="text-body-2 font-weight-bold">No expenses logged yet</div>
             <div class="text-caption">Track overhead, rent, utilities, and more</div>
@@ -244,7 +244,7 @@
             >
               <template #prepend>
                 <v-avatar size="40" rounded="lg" :style="`background:${expenseCategoryColor(exp.category)}18`">
-                  <component :is="expenseCategoryIcon(exp.category)" :size="20" :style="`color:${expenseCategoryColor(exp.category)}`" />
+                  <v-icon :icon="expenseCategoryIcon(exp.category)" size="20" :style="`color:${expenseCategoryColor(exp.category)}`" />
                 </v-avatar>
               </template>
               <template #title><span class="text-body-2 font-weight-bold">{{ exp.description }}</span></template>
@@ -266,7 +266,7 @@
           <v-card class="pa-5 kpi-card" :style="`background:${kpi.color}12;outline:2px solid ${kpi.color}28;outline-offset:0`">
             <div class="d-flex align-start justify-space-between mb-3">
               <v-avatar size="44" rounded="lg" :style="`background:${kpi.color}24`">
-                <component :is="kpi.icon" :size="20" :style="`color:${kpi.color}`" />
+                <v-icon :icon="kpi.icon" size="20" :style="`color:${kpi.color}`" />
               </v-avatar>
               <v-chip
                 v-if="kpi.change"
@@ -286,7 +286,7 @@
         <v-col cols="12" md="6">
           <v-card class="pa-6">
             <div class="d-flex align-center gap-3 mb-5">
-              <v-avatar size="36" rounded="lg" style="background:#f9731620"><PieChart :size="16" color="#f97316" /></v-avatar>
+              <v-avatar size="36" rounded="lg" style="background:#f9731620"><v-icon icon="mdi-chart-pie" size="16" color="#f97316" /></v-avatar>
               <span class="text-subtitle-2 font-weight-black">Ticket Status Breakdown</span>
             </div>
             <div v-for="stat in statusBreakdown" :key="stat.status" class="d-flex align-center gap-3 mb-3">
@@ -304,7 +304,7 @@
         <v-col cols="12" md="6">
           <v-card class="pa-6">
             <div class="d-flex align-center gap-3 mb-5">
-              <v-avatar size="36" rounded="lg" style="background:#3b82f620"><Users :size="16" color="#3b82f6" /></v-avatar>
+              <v-avatar size="36" rounded="lg" style="background:#3b82f620"><v-icon icon="mdi-account-group-outline" size="16" color="#3b82f6" /></v-avatar>
               <span class="text-subtitle-2 font-weight-black">Top Customers by Revenue</span>
             </div>
             <v-list density="compact" class="pa-0">
@@ -337,7 +337,7 @@
     <template v-if="activeTab === 'square'">
       <v-card v-if="!square.isConfigured.value" class="pa-10 text-center">
         <v-avatar size="64" rounded="xl" color="primary" variant="tonal" class="mb-4 mx-auto">
-          <CreditCard :size="32" style="opacity:.5" />
+          <v-icon icon="mdi-credit-card-outline" size="32" style="opacity:.5" />
         </v-avatar>
         <div class="text-body-2 font-weight-black mb-1">Square Not Connected</div>
         <div class="text-caption text-medium-emphasis">Add your Square Access Token and Location ID in Settings to import financial data.</div>
@@ -354,7 +354,7 @@
             <v-col cols="6" sm="4" lg="">
               <v-card class="pa-5 kpi-card" style="background:#10b98114;outline:2px solid #10b98128;outline-offset:0">
                 <div class="d-flex align-center justify-space-between mb-3">
-                  <v-avatar size="44" rounded="lg" style="background:#10b98124"><DollarSign :size="20" color="#10b981" /></v-avatar>
+                  <v-avatar size="44" rounded="lg" style="background:#10b98124"><v-icon icon="mdi-currency-usd" size="20" color="#10b981" /></v-avatar>
                   <v-chip size="x-small" color="success" variant="tonal">REVENUE</v-chip>
                 </div>
                 <div class="text-caption text-medium-emphasis">Square Revenue</div>
@@ -365,7 +365,7 @@
             <v-col cols="6" sm="4" lg="">
               <v-card class="pa-5 kpi-card" style="background:#ef444414;outline:2px solid #ef444428;outline-offset:0">
                 <div class="d-flex align-center justify-space-between mb-3">
-                  <v-avatar size="44" rounded="lg" style="background:#ef444424"><TrendingDown :size="20" color="#ef4444" /></v-avatar>
+                  <v-avatar size="44" rounded="lg" style="background:#ef444424"><v-icon icon="mdi-trending-down" size="20" color="#ef4444" /></v-avatar>
                   <v-chip size="x-small" color="error" variant="tonal">FEES</v-chip>
                 </div>
                 <div class="text-caption text-medium-emphasis">Processing Fees</div>
@@ -376,7 +376,7 @@
             <v-col cols="6" sm="4" lg="">
               <v-card class="pa-5 kpi-card" style="background:#6366f114;outline:2px solid #6366f128;outline-offset:0">
                 <div class="d-flex align-center justify-space-between mb-3">
-                  <v-avatar size="44" rounded="lg" style="background:#6366f124"><Target :size="20" color="#6366f1" /></v-avatar>
+                  <v-avatar size="44" rounded="lg" style="background:#6366f124"><v-icon icon="mdi-target" size="20" color="#6366f1" /></v-avatar>
                   <v-chip size="x-small" color="primary" variant="tonal">NET</v-chip>
                 </div>
                 <div class="text-caption text-medium-emphasis">Net Revenue</div>
@@ -387,7 +387,7 @@
             <v-col cols="6" sm="4" lg="">
               <v-card class="pa-5 kpi-card" style="background:#f59e0b14;outline:2px solid #f59e0b28;outline-offset:0">
                 <div class="d-flex align-center justify-space-between mb-3">
-                  <v-avatar size="44" rounded="lg" style="background:#f59e0b24"><Receipt :size="20" color="#f59e0b" /></v-avatar>
+                  <v-avatar size="44" rounded="lg" style="background:#f59e0b24"><v-icon icon="mdi-receipt-text-outline" size="20" color="#f59e0b" /></v-avatar>
                   <v-chip size="x-small" color="warning" variant="tonal">TIPS</v-chip>
                 </div>
                 <div class="text-caption text-medium-emphasis">Tips Received</div>
@@ -398,7 +398,7 @@
             <v-col cols="6" sm="4" lg="">
               <v-card class="pa-5 kpi-card" style="background:#06b6d414;outline:2px solid #06b6d428;outline-offset:0">
                 <div class="d-flex align-center justify-space-between mb-3">
-                  <v-avatar size="44" rounded="lg" style="background:#06b6d424"><Truck :size="20" color="#06b6d4" /></v-avatar>
+                  <v-avatar size="44" rounded="lg" style="background:#06b6d424"><v-icon icon="mdi-truck-outline" size="20" color="#06b6d4" /></v-avatar>
                   <v-chip size="x-small" color="info" variant="tonal">DEPOSITS</v-chip>
                 </div>
                 <div class="text-caption text-medium-emphasis">Bank Deposits</div>
@@ -413,7 +413,7 @@
               <v-card>
                 <v-card-item class="border-b">
                   <template #prepend>
-                    <v-avatar size="36" rounded="lg" style="background:#10b98120"><DollarSign :size="16" color="#10b981" /></v-avatar>
+                    <v-avatar size="36" rounded="lg" style="background:#10b98120"><v-icon icon="mdi-currency-usd" size="16" color="#10b981" /></v-avatar>
                   </template>
                   <v-card-title class="text-subtitle-2 font-weight-black">Recent Payments</v-card-title>
                   <template #append>
@@ -431,7 +431,7 @@
                     >
                       <template #prepend>
                         <v-avatar size="36" rounded="lg" :style="`background:${p.status === 'COMPLETED' ? '#10b981' : '#f59e0b'}18`">
-                          <CreditCard :size="16" :style="`color:${p.status === 'COMPLETED' ? '#10b981' : '#f59e0b'}`" />
+                          <v-icon icon="mdi-credit-card-outline" size="16" :style="`color:${p.status === 'COMPLETED' ? '#10b981' : '#f59e0b'}`" />
                         </v-avatar>
                       </template>
                       <template #title>
@@ -456,7 +456,7 @@
               <v-card>
                 <v-card-item class="border-b">
                   <template #prepend>
-                    <v-avatar size="36" rounded="lg" style="background:#06b6d420"><Truck :size="16" color="#06b6d4" /></v-avatar>
+                    <v-avatar size="36" rounded="lg" style="background:#06b6d420"><v-icon icon="mdi-truck-outline" size="16" color="#06b6d4" /></v-avatar>
                   </template>
                   <v-card-title class="text-subtitle-2 font-weight-black">Bank Deposits</v-card-title>
                 </v-card-item>
@@ -471,7 +471,7 @@
                     >
                       <template #prepend>
                         <v-avatar size="36" rounded="lg" :style="`background:${p.status === 'PAID' ? '#06b6d4' : '#f59e0b'}18`">
-                          <Truck :size="16" :style="`color:${p.status === 'PAID' ? '#06b6d4' : '#f59e0b'}`" />
+                          <v-icon icon="mdi-truck-outline" size="16" :style="`color:${p.status === 'PAID' ? '#06b6d4' : '#f59e0b'}`" />
                         </v-avatar>
                       </template>
                       <template #title><span class="text-caption font-weight-bold">{{ p.status === 'PAID' ? 'Deposited' : p.status }}</span></template>
@@ -489,7 +489,7 @@
           <v-card class="mt-4">
             <v-card-item class="border-b">
               <template #prepend>
-                <v-avatar size="36" rounded="lg" style="background:#8b5cf620"><Users :size="16" color="#8b5cf6" /></v-avatar>
+                <v-avatar size="36" rounded="lg" style="background:#8b5cf620"><v-icon icon="mdi-account-group-outline" size="16" color="#8b5cf6" /></v-avatar>
               </template>
               <v-card-title class="text-subtitle-2 font-weight-black">Square Customers</v-card-title>
               <template #append>
@@ -523,7 +523,7 @@
         <v-card-item class="border-b">
           <template #prepend>
             <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
-              <Plus :size="18" color="white" />
+              <v-icon icon="mdi-plus" size="18" color="white" />
             </v-avatar>
           </template>
           <v-card-title>Log Expense</v-card-title>
@@ -589,11 +589,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-  Calculator, DollarSign, TrendingUp, TrendingDown, BarChart3, Receipt,
-  Target, CreditCard, Download, Plus, Trash2, ClipboardList, PieChart,
-  Wrench, ShoppingCart, Home, Zap, Wifi, Package, Truck, Users
-} from 'lucide-vue-next'
 import { useToast } from '~/composables/useToast'
 
 definePageMeta({ middleware: ['auth'] })
@@ -671,18 +666,18 @@ const posRevenue = computed(() => filteredTickets.value.filter(t => t.posOrder).
 const revenueSources = computed(() => {
   const max = Math.max(totalRevenue.value, 1)
   return [
-    { label: 'Repair Tickets', value: repairRevenue.value, pct: (repairRevenue.value / max) * 100, color: '#6366f1', colorDark: '#4f46e5', icon: Wrench },
-    { label: 'POS / Retail', value: posRevenue.value, pct: (posRevenue.value / max) * 100, color: '#ec4899', colorDark: '#db2777', icon: ShoppingCart },
-    { label: 'Parts & Addons', value: partsCost.value, pct: (partsCost.value / max) * 100, color: '#f97316', colorDark: '#ea580c', icon: Package },
+    { label: 'Repair Tickets', value: repairRevenue.value, pct: (repairRevenue.value / max) * 100, color: '#6366f1', colorDark: '#4f46e5', icon: 'mdi-wrench-outline' },
+    { label: 'POS / Retail', value: posRevenue.value, pct: (posRevenue.value / max) * 100, color: '#ec4899', colorDark: '#db2777', icon: 'mdi-cart-outline' },
+    { label: 'Parts & Addons', value: partsCost.value, pct: (partsCost.value / max) * 100, color: '#f97316', colorDark: '#ea580c', icon: 'mdi-package-variant-closed' },
   ].filter(s => s.value > 0)
 })
 
 const expenseItems = computed(() => [
-  { label: 'Parts Cost', value: partsCost.value, color: '#ef4444', icon: Package },
+  { label: 'Parts Cost', value: partsCost.value, color: '#ef4444', icon: 'mdi-package-variant-closed' },
   { label: 'Overhead', value: expenses.value.filter(e => e.category === 'Overhead').reduce((a, e) => a + e.amount, 0), color: '#f97316', icon: Home },
-  { label: 'Utilities', value: expenses.value.filter(e => e.category === 'Utilities').reduce((a, e) => a + e.amount, 0), color: '#f59e0b', icon: Zap },
-  { label: 'Software', value: expenses.value.filter(e => e.category === 'Software').reduce((a, e) => a + e.amount, 0), color: '#8b5cf6', icon: Wifi },
-  { label: 'Other', value: expenses.value.filter(e => !['Overhead','Utilities','Software'].includes(e.category)).reduce((a, e) => a + e.amount, 0), color: '#64748b', icon: ClipboardList },
+  { label: 'Utilities', value: expenses.value.filter(e => e.category === 'Utilities').reduce((a, e) => a + e.amount, 0), color: '#f59e0b', icon: 'mdi-flash-outline' },
+  { label: 'Software', value: expenses.value.filter(e => e.category === 'Software').reduce((a, e) => a + e.amount, 0), color: '#8b5cf6', icon: 'mdi-wifi' },
+  { label: 'Other', value: expenses.value.filter(e => !['Overhead','Utilities','Software'].includes(e.category)).reduce((a, e) => a + e.amount, 0), color: '#64748b', icon: 'mdi-clipboard-list-outline' },
 ].filter(e => e.value > 0))
 
 const monthlyRevenue = computed(() => {
@@ -728,10 +723,10 @@ const topCustomers = computed(() => {
 })
 
 const kpiCards = computed(() => [
-  { label: 'Total Revenue', value: formatCurrency(totalRevenue.value), color: '#10b981', icon: DollarSign, change: null, changePositive: true, sub: `${periodLabel.value}` },
-  { label: 'Active Tickets', value: tickets.value.filter(t => t.status !== 'Closed' && t.status !== 'Delivered').length, color: '#3b82f6', icon: Wrench, change: null, changePositive: true, sub: 'In-progress repairs' },
-  { label: 'Total Customers', value: customers.value.length, color: '#8b5cf6', icon: Users, change: null, changePositive: true, sub: 'All time' },
-  { label: 'Avg Ticket Value', value: formatCurrency(avgTicketValue.value), color: '#f97316', icon: Target, change: null, changePositive: true, sub: 'Per completed job' },
+  { label: 'Total Revenue', value: formatCurrency(totalRevenue.value), color: '#10b981', icon: 'mdi-currency-usd', change: null, changePositive: true, sub: `${periodLabel.value}` },
+  { label: 'Active Tickets', value: tickets.value.filter(t => t.status !== 'Closed' && t.status !== 'Delivered').length, color: '#3b82f6', icon: 'mdi-wrench-outline', change: null, changePositive: true, sub: 'In-progress repairs' },
+  { label: 'Total Customers', value: customers.value.length, color: '#8b5cf6', icon: 'mdi-account-group-outline', change: null, changePositive: true, sub: 'All time' },
+  { label: 'Avg Ticket Value', value: formatCurrency(avgTicketValue.value), color: '#f97316', icon: 'mdi-target', change: null, changePositive: true, sub: 'Per completed job' },
 ])
 
 const { toast } = useToast()
@@ -748,7 +743,7 @@ const expenseCategories = [
 ]
 const expenseCategoryColor = (cat: string) => expenseCategories.find(c => c.label === cat)?.color || '#64748b'
 const expenseCategoryIcon = (cat: string) => {
-  const map: Record<string, any> = { Overhead: Home, Utilities: Zap, Software: Wifi, Supplies: Package, Payroll: Users, Other: ClipboardList }
+  const map: Record<string, any> = { Overhead: Home, Utilities: 'mdi-flash-outline', Software: 'mdi-wifi', Supplies: 'mdi-package-variant-closed', Payroll: 'mdi-account-group-outline', Other: 'mdi-clipboard-list-outline' }
   return map[cat] || ClipboardList
 }
 const logExpense = async () => {

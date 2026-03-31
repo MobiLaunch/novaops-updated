@@ -6,7 +6,7 @@
       <div class="flex items-center gap-4">
         <div class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg"
           style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 6px 28px #f59e0b40">
-          <ArrowLeftRight class="w-6 h-6 text-white" />
+          <v-icon icon="mdi-swap-horizontal" size="24" color="white" />
         </div>
         <div>
           <h1 class="text-3xl font-black tracking-tight">Trade-In Evaluator</h1>
@@ -102,7 +102,7 @@
         <div class="flex items-center gap-3 pb-4 border-b border-border/50">
           <div class="w-9 h-9 rounded-[18px] flex items-center justify-center flex-shrink-0"
             style="background: #f59e0b20">
-            <component :is="stepIcons[currentStep - 1]" class="w-4 h-4" style="color: #f59e0b" />
+            <v-icon :icon="stepIcons[currentStep - 1]" size="16" style="color: #f59e0b" />
           </div>
           <div>
             <p class="text-base font-black">{{ stepTitles[currentStep - 1] }}</p>
@@ -169,7 +169,7 @@
           <!-- Resolved device banner -->
           <div v-if="resolvedDevice" class="flex items-center gap-3 p-3 rounded-[14px]"
             style="background: #10b98110; outline: 1.5px solid #10b98130; outline-offset: 0">
-            <CheckCircle2 class="w-4 h-4 flex-shrink-0" style="color: #10b981" />
+            <v-icon icon="mdi-check-circle-outline" size="16" class="flex-shrink-0" style="color: #10b981" />
             <div class="flex-1">
               <div class="flex items-center gap-2">
                 <p class="text-xs font-black" style="color: #10b981">Device identified</p>
@@ -185,7 +185,7 @@
             style="background: #f59e0b08; outline: 1.5px solid #f59e0b28; outline-offset: 0">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <TrendingUp class="w-4 h-4" style="color: #f59e0b" />
+                <v-icon icon="mdi-trending-up" size="16" style="color: #f59e0b" />
                 <p class="text-sm font-black">Live Market Price</p>
               </div>
               <button
@@ -194,7 +194,7 @@
                 :disabled="(!form.brand && !form.model && !form.imei && !form.model_number) || fetchingPrice"
                 @click="fetchMarketPrice">
                 <div v-if="fetchingPrice" class="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                <Search v-else class="w-3 h-3" />
+                <v-icon icon="mdi-magnify" size="12" v-else />
                 {{ fetchingPrice ? fetchingStage : 'Look Up' }}
               </button>
             </div>
@@ -223,7 +223,7 @@
             </div>
             <div v-else-if="priceError" class="flex items-start gap-2.5 p-3 rounded-[12px]"
               style="background: #ef444410; outline: 1px solid #ef444430; outline-offset: 0">
-              <AlertCircle class="w-4 h-4 flex-shrink-0 mt-0.5" style="color: #ef4444" />
+              <v-icon icon="mdi-alert-circle" size="16" class="flex-shrink-0 mt-0.5" style="color: #ef4444" />
               <div>
                 <p class="text-xs font-semibold" style="color: #ef4444">{{ priceError }}</p>
                 <p class="text-[10px] text-muted-foreground mt-0.5">Try adding an IMEI or model number for a more precise lookup.</p>
@@ -254,7 +254,7 @@
                 :class="form.condition_grade === g.value ? 'grade-chip--active' : ''"
                 :style="form.condition_grade === g.value ? `background: ${g.color}18; outline-color: ${g.color}60; color: ${g.color}` : ''"
                 @click="form.condition_grade = g.value">
-                <component :is="g.icon" class="w-5 h-5 flex-shrink-0" :style="form.condition_grade === g.value ? `color: ${g.color}` : 'color: hsl(var(--muted-foreground))'" />
+                <v-icon :icon="g.icon" size="20" class="flex-shrink-0" :style="form.condition_grade === g.value ? `color: ${g.color}` : 'color: hsl(var(--muted-foreground))'" />
                 <span class="text-xs font-black mt-1">{{ g.label }}</span>
                 <span class="text-[10px] leading-tight text-center" :style="form.condition_grade === g.value ? '' : 'color: hsl(var(--muted-foreground))'">{{ g.desc }}</span>
               </button>
@@ -271,7 +271,7 @@
                     ? `background: ${s.color}18; outline: 1.5px solid ${s.color}50; outline-offset: 0`
                     : 'background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.4); outline-offset: 0'"
                   @click="form.screen_condition = s.value">
-                  <component :is="s.icon" class="w-4 h-4 flex-shrink-0" :style="form.screen_condition === s.value ? `color: ${s.color}` : 'color: hsl(var(--muted-foreground))'" />
+                  <v-icon :icon="s.icon" size="16" class="flex-shrink-0" :style="form.screen_condition === s.value ? `color: ${s.color}` : 'color: hsl(var(--muted-foreground))'" />
                   <div>
                     <p class="text-xs font-bold">{{ s.label }}</p>
                     <p class="text-[10px] text-muted-foreground">{{ s.desc }}</p>
@@ -330,7 +330,7 @@
                   ? 'background: #ef444418; outline: 1.5px solid #ef444440; color: #ef4444; outline-offset: 0'
                   : 'background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.4); outline-offset: 0'"
                 @click="toggleIssue('functional', issue.value)">
-                <component :is="issue.icon" class="w-4 h-4 flex-shrink-0"
+                <v-icon :icon="issue.icon" size="16" class="flex-shrink-0"
                   :style="form.functional_issues.includes(issue.value) ? 'color: #ef4444' : 'color: hsl(var(--muted-foreground))'" />
                 {{ issue.label }}
               </button>
@@ -351,7 +351,7 @@
                   ? 'background: #f59e0b18; outline: 1.5px solid #f59e0b40; color: #d97706; outline-offset: 0'
                   : 'background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.4); outline-offset: 0'"
                 @click="toggleIssue('cosmetic', issue.value)">
-                <component :is="issue.icon" class="w-4 h-4 flex-shrink-0"
+                <v-icon :icon="issue.icon" size="16" class="flex-shrink-0"
                   :style="form.cosmetic_issues.includes(issue.value) ? 'color: #d97706' : 'color: hsl(var(--muted-foreground))'" />
                 {{ issue.label }}
               </button>
@@ -373,7 +373,7 @@
                     ? 'background: #10b98118; outline: 1.5px solid #10b98140; color: #10b981; outline-offset: 0'
                     : 'background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.4); outline-offset: 0'"
                   @click="toggleAccessory(acc.value)">
-                  <component :is="acc.icon" class="w-4 h-4 flex-shrink-0"
+                  <v-icon :icon="acc.icon" size="16" class="flex-shrink-0"
                     :style="form.accessories.includes(acc.value) ? 'color: #10b981' : 'color: hsl(var(--muted-foreground))'" />
                   <span class="flex-1">{{ acc.label }}</span>
                   <span class="pill" style="background: #10b98114; color: #10b981">+{{ currency }}{{ accessoryValueMap[acc.value] }}</span>
@@ -523,7 +523,7 @@
           <div v-if="form.icloud_locked || form.frp_locked"
             class="flex items-start gap-3 p-4 rounded-[16px]"
             style="background: #ef444410; outline: 1.5px solid #ef444430; outline-offset: 0">
-            <AlertTriangle class="w-4 h-4 flex-shrink-0 mt-0.5" style="color: #ef4444" />
+            <v-icon icon="mdi-alert-outline" size="16" class="flex-shrink-0 mt-0.5" style="color: #ef4444" />
             <div>
               <div class="flex items-center gap-2 mb-1">
                 <p class="text-xs font-black" style="color: #ef4444">Device Lock Warning</p>
@@ -546,7 +546,7 @@
             class="flex items-center gap-1.5 h-11 px-4 rounded-full text-sm font-bold transition-all hover:scale-[1.03] active:scale-95"
             style="outline: 2px solid hsl(var(--border)); outline-offset: 0"
             @click="currentStep--">
-            <ChevronLeft class="w-4 h-4" /> Back
+            <v-icon icon="mdi-chevron-left" size="16" /> Back
           </button>
 
           <div class="flex-1" />
@@ -558,7 +558,7 @@
               : 'background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); cursor: not-allowed'"
             :disabled="!canProceed"
             @click="nextStep">
-            Continue <ChevronRight class="w-4 h-4" />
+            Continue <v-icon icon="mdi-chevron-right" size="16" />
           </button>
 
           <button v-else
@@ -567,7 +567,7 @@
             :disabled="saving"
             @click="saveTradeIn">
             <div v-if="saving" class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-            <CheckCircle v-else class="w-4 h-4" />
+            <v-icon icon="mdi-check-circle-outline" size="16" v-else />
             {{ saving ? 'Saving…' : 'Save Trade-In' }}
           </button>
         </div>
@@ -578,16 +578,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-  ArrowLeftRight, ChevronLeft, ChevronRight, Search, TrendingUp,
-  AlertTriangle, AlertCircle, CheckCircle, CheckCircle2, Fingerprint, Check,
-  Smartphone, Star, ThumbsUp, Triangle, XCircle,
-  MonitorSmartphone, ScanLine, Waves, Zap, Camera, Volume2, Wifi,
-  ShieldOff, Droplets, ToggleLeft, Wrench, GlassWater, Hammer, Slash,
-  Telescope, SlidersHorizontal,
-  Package, Plug, Headphones, Shield,
-  Cpu, ClipboardList, ListChecks, BarChart2,
-} from 'lucide-vue-next'
 import CustomerSelect from '~/components/CustomerSelect.vue'
 import { useAppStore } from '~/stores/app'
 import { storeToRefs } from 'pinia'
@@ -610,17 +600,17 @@ const knownBrands = ['Apple', 'Samsung', 'Google', 'Sony', 'LG', 'Microsoft', 'D
 const storageOptions = ['16GB', '32GB', '64GB', '128GB', '256GB', '512GB', '1TB', '2TB']
 
 const conditionGrades = [
-  { value: 'Excellent', label: 'Excellent', icon: Star,       desc: 'Like new, minimal use',         color: '#10b981' },
+  { value: 'Excellent', label: 'Excellent', icon: 'mdi-star-outline',       desc: 'Like new, minimal use',         color: '#10b981' },
   { value: 'Good',      label: 'Good',      icon: ThumbsUp,   desc: 'Normal wear, fully functional', color: '#6366f1' },
   { value: 'Fair',      label: 'Fair',      icon: Triangle,   desc: 'Visible wear, works fine',       color: '#f59e0b' },
-  { value: 'Poor',      label: 'Poor',      icon: XCircle,    desc: 'Heavy damage or issues',         color: '#ef4444' },
+  { value: 'Poor',      label: 'Poor',      icon: 'mdi-close-circle-outline',    desc: 'Heavy damage or issues',         color: '#ef4444' },
 ]
 
 const screenConditions = [
   { value: 'Perfect',         label: 'Perfect',         icon: MonitorSmartphone, desc: 'No scratches or damage',           color: '#10b981' },
-  { value: 'Minor Scratches', label: 'Minor Scratches', icon: ScanLine,          desc: 'Light marks, visible in light',    color: '#6366f1' },
+  { value: 'Minor Scratches', label: 'Minor Scratches', icon: 'mdi-barcode-scan',          desc: 'Light marks, visible in light',    color: '#6366f1' },
   { value: 'Cracked',         label: 'Cracked',         icon: Slash,             desc: 'Cracked, touchscreen still works', color: '#f59e0b' },
-  { value: 'Shattered',       label: 'Shattered',       icon: XCircle,           desc: 'Severely broken, touch issues',   color: '#ef4444' },
+  { value: 'Shattered',       label: 'Shattered',       icon: 'mdi-close-circle-outline',           desc: 'Severely broken, touch issues',   color: '#ef4444' },
 ]
 
 const ageOptions = [
@@ -629,30 +619,30 @@ const ageOptions = [
 ]
 
 const functionalIssues = [
-  { value: 'wont_turn_on',  label: "Won't Turn On",  icon: Zap       },
+  { value: 'wont_turn_on',  label: "Won't Turn On",  icon: 'mdi-flash-outline'       },
   { value: 'charging_port', label: 'Charging Port',  icon: Plug      },
-  { value: 'battery_dead',  label: 'Battery Dead',   icon: AlertCircle },
-  { value: 'camera',        label: 'Camera Issues',  icon: Camera    },
-  { value: 'speaker',       label: 'Speaker / Mic',  icon: Volume2   },
-  { value: 'wifi_bt',       label: 'WiFi / BT',      icon: Wifi      },
+  { value: 'battery_dead',  label: 'Battery Dead',   icon: 'mdi-alert-circle' },
+  { value: 'camera',        label: 'Camera Issues',  icon: 'mdi-camera-outline'    },
+  { value: 'speaker',       label: 'Speaker / Mic',  icon: 'mdi-volume-high'   },
+  { value: 'wifi_bt',       label: 'WiFi / BT',      icon: 'mdi-wifi'      },
   { value: 'face_id',       label: 'Face / Touch ID',icon: ShieldOff },
-  { value: 'water_damage',  label: 'Water Damage',   icon: Droplets  },
+  { value: 'water_damage',  label: 'Water Damage',   icon: 'mdi-water'  },
   { value: 'buttons',       label: 'Buttons Broken', icon: ToggleLeft},
 ]
 
 const cosmeticIssues = [
-  { value: 'back_cracked',  label: 'Back Glass Cracked', icon: Smartphone   },
+  { value: 'back_cracked',  label: 'Back Glass Cracked', icon: 'mdi-cellphone'   },
   { value: 'dents',         label: 'Dents / Bends',       icon: Hammer       },
   { value: 'scratches',     label: 'Deep Scratches',      icon: Slash        },
-  { value: 'camera_lens',   label: 'Camera Lens Crack',   icon: Camera       },
+  { value: 'camera_lens',   label: 'Camera Lens Crack',   icon: 'mdi-camera-outline'       },
   { value: 'missing_parts', label: 'Missing Parts',        icon: SlidersHorizontal },
 ]
 
 const accessoryOptions = [
-  { value: 'original_box', label: 'Original Box',  icon: Package   },
+  { value: 'original_box', label: 'Original Box',  icon: 'mdi-package-variant-closed'   },
   { value: 'charger',      label: 'Charger / Cable', icon: Plug    },
   { value: 'earphones',    label: 'Earphones',      icon: Headphones},
-  { value: 'case',         label: 'Case',           icon: Shield    },
+  { value: 'case',         label: 'Case',           icon: 'mdi-shield-check-outline'    },
 ]
 
 const accessoryValueMap: Record<string, number> = {

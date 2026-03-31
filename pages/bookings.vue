@@ -661,8 +661,6 @@ import TicketDetailDialog from '~/components/TicketDetailDialog.vue'
 import CustomerSelect from '~/components/CustomerSelect.vue'
 import { useToast } from '~/composables/useToast'
 import { printHousecall } from '~/utils/print'
-import { Package, Truck } from 'lucide-vue-next'
-
 definePageMeta({ middleware: ['auth'] })
 
 const appStore = useAppStore()

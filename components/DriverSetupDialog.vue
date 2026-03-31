@@ -7,7 +7,7 @@
           <!-- ── Header ─────────────────────────────────────────────── -->
           <div class="dsd-header">
             <div class="dsd-header-icon">
-              <HardDrive class="w-5 h-5" style="color:#4ade80" />
+              <v-icon icon="mdi-harddisk" size="20" style="color:#4ade80" />
             </div>
             <div style="flex:1">
               <h2 class="dsd-title">Driver &amp; Tool Setup</h2>
@@ -23,7 +23,7 @@
               class="dsd-os-tab" :class="{ active: activeOS === os.id }"
               @click="switchOS(os.id)"
             >
-              <component :is="os.icon" class="w-3.5 h-3.5" />
+              <v-icon :icon="os.icon" size="14" />
               {{ os.label }}
             </button>
           </div>
@@ -116,9 +116,9 @@
 
               <!-- Per-row action -->
               <div class="dsd-row-action">
-                <button v-if="tool.status === 'missing' && tool.autoInstall"   class="dsd-act-btn install" @click="installOne(tool)"><Download class="w-3 h-3"/> Install</button>
-                <button v-else-if="tool.status === 'missing' && !tool.autoInstall" class="dsd-act-btn guide"   @click="openUrl(tool.url)"><ExternalLink class="w-3 h-3"/> Guide</button>
-                <button v-else-if="tool.status === 'failed'"                    class="dsd-act-btn retry"   @click="installOne(tool)"><RefreshCw class="w-3 h-3"/> Retry</button>
+                <button v-if="tool.status === 'missing' && tool.autoInstall"   class="dsd-act-btn install" @click="installOne(tool)"><v-icon icon="mdi-download" size="12" /> Install</button>
+                <button v-else-if="tool.status === 'missing' && !tool.autoInstall" class="dsd-act-btn guide"   @click="openUrl(tool.url)"><v-icon icon="mdi-open-in-new" size="12" /> Guide</button>
+                <button v-else-if="tool.status === 'failed'"                    class="dsd-act-btn retry"   @click="installOne(tool)"><v-icon icon="mdi-refresh" size="12" /> Retry</button>
               </div>
             </div>
 
@@ -141,12 +141,12 @@
           <!-- ── Footer ─────────────────────────────────────────────── -->
           <div class="dsd-footer">
             <div class="dsd-footer-left">
-              <span v-if="allDone"     class="dsd-status-good"><CheckCircle class="w-3.5 h-3.5"/> All tools ready</span>
+              <span v-if="allDone"     class="dsd-status-good"><v-icon icon="mdi-check-circle-outline" size="14" /> All tools ready</span>
               <span v-else-if="missingCount" class="dsd-status-warn">{{ missingCount }} tool{{ missingCount > 1 ? 's' : '' }} missing</span>
             </div>
             <div class="dsd-footer-right">
-              <button v-if="canInstallAll" class="dsd-btn primary"    :disabled="isBusy" @click="installAll"><Download class="w-3.5 h-3.5"/> Install All</button>
-              <button                       class="dsd-btn secondary"  :disabled="isBusy" @click="checkAll"><RefreshCw class="w-3.5 h-3.5"/> Re-check</button>
+              <button v-if="canInstallAll" class="dsd-btn primary"    :disabled="isBusy" @click="installAll"><v-icon icon="mdi-download" size="14" /> Install All</button>
+              <button                       class="dsd-btn secondary"  :disabled="isBusy" @click="checkAll"><v-icon icon="mdi-refresh" size="14" /> Re-check</button>
               <button v-if="allDone"        class="dsd-btn done"                          @click="close(); $emit('done')">Done</button>
             </div>
           </div>
@@ -158,8 +158,6 @@
 </template>
 
 <script setup lang="ts">
-import { HardDrive, Download, RefreshCw, ExternalLink, CheckCircle, Monitor, Laptop, Smartphone } from 'lucide-vue-next'
-
 type ToolStatus = 'idle' | 'checking' | 'installed' | 'missing' | 'installing' | 'failed'
 type OSId = 'windows' | 'macos' | 'linux'
 
@@ -180,9 +178,9 @@ const emit  = defineEmits(['update:modelValue', 'done'])
 
 // ── OS list ────────────────────────────────────────────────────────────────
 const osList = [
-  { id: 'windows' as OSId, label: 'Windows', icon: Monitor   },
-  { id: 'macos'   as OSId, label: 'macOS',   icon: Laptop    },
-  { id: 'linux'   as OSId, label: 'Linux',   icon: Smartphone },
+  { id: 'windows' as OSId, label: 'Windows', icon: 'mdi-monitor'   },
+  { id: 'macos'   as OSId, label: 'macOS',   icon: 'mdi-laptop'    },
+  { id: 'linux'   as OSId, label: 'Linux',   icon: 'mdi-cellphone' },
 ]
 const activeOS = ref<OSId>('windows')
 

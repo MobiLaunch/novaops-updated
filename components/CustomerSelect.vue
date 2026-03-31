@@ -4,7 +4,7 @@
     <div v-if="selectedValue && !isNewCustomer" class="p-3 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <div class="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center">
-          <Check class="w-3 h-3 text-green-500" />
+          <v-icon icon="mdi-check" size="12" class="text-green-500" />
         </div>
         <span class="text-sm font-bold text-green-600 dark:text-green-400">{{ selectedCustomerName }}</span>
       </div>
@@ -13,7 +13,7 @@
     
     <!-- Search / Selecting State -->
     <div v-else-if="!isNewCustomer" class="relative">
-      <Search class="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+      <v-icon icon="mdi-magnify" size="16" class="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
       <input 
         v-model="searchText" 
         @focus="showDropdown = true" 
@@ -65,7 +65,7 @@
         @click.prevent="saveNewCustomer"
       >
         <div v-if="isSaving" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-        <Check v-else class="w-4 h-4" />
+        <v-icon icon="mdi-check" size="16" v-else />
         {{ isSaving ? 'Saving...' : 'Save & Select' }}
       </button>
     </div>
@@ -75,7 +75,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { onClickOutside } from '@vueuse/core'
-import { Search, Check } from 'lucide-vue-next'
 import { useAppStore } from '~/stores/app'
 import { useNotifications } from '~/composables/useNotifications'
 import { useToast } from '~/composables/useToast'

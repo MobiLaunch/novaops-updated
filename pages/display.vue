@@ -15,7 +15,7 @@
       <div class="pair-orb">
         <div class="pair-orb-ring" />
         <div class="pair-orb-ring pair-orb-ring--2" />
-        <Tv class="pair-icon" />
+        <v-icon icon="mdi-television" class="pair-icon" />
       </div>
       <h1 class="pair-title">Customer Display</h1>
       <p class="pair-sub">Waiting for content from your NovaOps dashboard…</p>
@@ -38,7 +38,7 @@
       <div class="top-bar">
         <div class="top-bar-left">
           <div class="top-bar-logo">
-            <Wrench class="w-4 h-4" />
+            <v-icon icon="mdi-wrench-outline" size="16" />
           </div>
           <span class="top-bar-name">{{ displayConfig.shopName || 'NovaOps Repair' }}</span>
         </div>
@@ -47,7 +47,7 @@
         </div>
         <div class="top-bar-right">
           <template v-if="weatherData.loaded">
-            <component :is="weatherIconComponent" class="w-4 h-4" style="opacity:0.7" />
+            <v-icon :icon="weatherIconComponent" size="16" style="opacity:0.7" />
             <span class="top-bar-temp">{{ weatherData.temp }}°F</span>
           </template>
           <span class="top-bar-clock">{{ currentTime }}</span>
@@ -70,7 +70,7 @@
               <!-- MODULE: Ticket Board -->
               <div v-if="slide.type === 'tickets'" class="mod mod-tickets">
                 <div class="mod-head">
-                  <div class="mod-badge"><Wrench class="w-4 h-4" /> Active Repairs</div>
+                  <div class="mod-badge"><v-icon icon="mdi-wrench-outline" size="16" /> Active Repairs</div>
                 </div>
                 <div class="ticket-grid">
                   <div
@@ -87,7 +87,7 @@
                     </div>
                   </div>
                   <div v-if="activeTickets.length === 0" class="t-empty">
-                    <CheckCircle class="w-12 h-12 opacity-20" />
+                    <v-icon icon="mdi-check-circle-outline" size="48" class="opacity-20" />
                     <p>No active repairs right now</p>
                   </div>
                 </div>
@@ -166,7 +166,7 @@
           <div class="sb-card weather-card" v-if="weatherData.loaded">
             <div class="wx-current">
               <div class="wx-icon-wrap">
-                <component :is="weatherIconComponent" class="w-10 h-10" />
+                <v-icon :icon="weatherIconComponent" size="40" />
               </div>
               <div class="wx-info">
                 <p class="wx-temp">{{ weatherData.temp }}°</p>
@@ -178,14 +178,14 @@
             <div class="wx-forecast" v-if="weatherData.forecast.length">
               <div v-for="fc in weatherData.forecast" :key="fc.day" class="wx-fc-day">
                 <span class="wx-fc-name">{{ fc.day }}</span>
-                <component :is="forecastIcon(fc.icon)" class="w-4 h-4 wx-fc-icon" />
+                <v-icon :icon="forecastIcon(fc.icon)" size="16" class="wx-fc-icon" />
                 <span class="wx-fc-hi">{{ fc.high }}°</span>
                 <span class="wx-fc-lo">{{ fc.low }}°</span>
               </div>
             </div>
           </div>
           <div class="sb-card weather-card wx-loading" v-else>
-            <div class="wx-icon-wrap"><Cloud class="w-10 h-10 opacity-30" /></div>
+            <div class="wx-icon-wrap"><v-icon icon="mdi-weather-cloudy" size="40" class="opacity-30" /></div>
             <p class="wx-loading-text">Loading weather…</p>
           </div>
 
@@ -246,10 +246,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-  Wrench, Tv, CheckCircle, Newspaper,
-  Sun, Cloud, CloudRain, CloudSnow, CloudDrizzle, CloudLightning, Snowflake, CloudSun,
-} from 'lucide-vue-next'
 import { useWeather, wmoIconKey } from '~/composables/useWeather'
 import { useNews } from '~/composables/useNews'
 
@@ -295,10 +291,10 @@ const visibleNews = computed(() => {
 
 // Weather icon resolver
 const iconMap: Record<string, any> = {
-  'sun': Sun, 'cloud-sun': CloudSun, 'cloud': Cloud,
-  'cloud-rain': CloudRain, 'snowflake': Snowflake,
-  'cloud-drizzle': CloudDrizzle, 'cloud-snow': CloudSnow,
-  'cloud-lightning': CloudLightning,
+  'sun': 'mdi-weather-sunny', 'cloud-sun': CloudSun, 'cloud': 'mdi-weather-cloudy',
+  'cloud-rain': 'mdi-weather-rainy', 'snowflake': 'mdi-snowflake',
+  'cloud-drizzle': 'mdi-weather-rainy', 'cloud-snow': 'mdi-weather-snowy',
+  'cloud-lightning': 'mdi-weather-lightning',
 }
 const weatherIconComponent = computed(() => iconMap[weatherData.value.icon] || Cloud)
 const forecastIcon = (key: string) => iconMap[key] || Cloud

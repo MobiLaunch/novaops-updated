@@ -16,10 +16,9 @@
           size="28"
           rounded="lg"
         >
-          <component :is="currentPageNav.icon" :size="15" color="white" />
+          <v-icon :icon="currentPageNav.icon" size="15" color="white" />
         </v-avatar>
-        <!-- text-subtitle-2 → text-title-small in MD3 -->
-        <span class="text-title-small font-weight-bold">{{ currentPageTitle }}</span>
+        <span class="text-subtitle-2 font-weight-bold">{{ currentPageTitle }}</span>
       </div>
       <v-spacer />
       <v-btn :icon="theme === 'dark' ? 'mdi-weather-sunny' : 'mdi-weather-night'" variant="text" @click="toggleTheme" />
@@ -68,12 +67,11 @@
               nav
             >
               <div class="d-flex justify-center w-100 py-1 position-relative">
-                <component
-                  :is="item.icon"
-                  :size="20"
+                <v-icon
+                  :icon="item.icon"
+                  size="20"
                   :color="route.path === item.path ? item.color : '#94a3b8'"
                 />
-                <!-- v4: `floating` prop removed from v-badge; use dot + inline offset -->
                 <v-badge
                   v-if="item.badge"
                   :color="item.badge.color"
@@ -157,7 +155,7 @@
                   <v-avatar
                     color="primary"
                     size="32"
-                    class="text-label-medium font-weight-bold"
+                    class="text-caption font-weight-bold"
                   >{{ userInitials }}</v-avatar>
                 </div>
           </v-list-item>
@@ -175,20 +173,18 @@
     >
       <!-- More / Quick Actions drawer -->
       <template v-if="activeDrawer === 'more'">
-        <!-- text-subtitle-2 → text-title-small in MD3 -->
         <v-list-item class="py-4 border-b" :subtitle="userEmail">
-          <template #title><span class="text-title-small font-weight-bold">Quick Actions</span></template>
+          <template #title><span class="text-subtitle-2 font-weight-bold">Quick Actions</span></template>
           <template #append>
             <v-btn icon="mdi-close" variant="text" size="small" @click="activeDrawer = null" />
           </template>
         </v-list-item>
 
         <div class="pa-3">
-          <!-- text-caption → text-label-medium in MD3 -->
-          <p class="text-label-medium font-weight-black text-medium-emphasis text-uppercase mb-2 px-1">Upcoming</p>
+          <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-2 px-1">Upcoming</p>
           <div v-if="upcomingItems.length === 0" class="text-center py-4 text-medium-emphasis">
             <v-icon icon="mdi-calendar-blank" />
-            <p class="text-label-medium mt-1">Nothing coming up</p>
+            <p class="text-caption mt-1">Nothing coming up</p>
           </div>
           <v-list v-else density="compact" nav class="pa-0 mb-3">
             <v-list-item
@@ -199,18 +195,17 @@
             >
               <template #prepend>
                 <v-avatar :color="item.color" size="32" rounded="lg">
-                  <component :is="item.icon" :size="16" color="white" />
+                  <v-icon :icon="item.icon" size="16" color="white" />
                 </v-avatar>
               </template>
               <template #title>
-                <!-- text-caption → text-label-medium -->
-                <span class="text-label-medium font-weight-bold">{{ item.label }}</span>
+                <span class="text-caption font-weight-bold">{{ item.label }}</span>
               </template>
             </v-list-item>
           </v-list>
 
           <v-divider class="mb-3" />
-          <p class="text-label-medium font-weight-black text-medium-emphasis text-uppercase mb-2 px-1">Quick Actions</p>
+          <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-2 px-1">Quick Actions</p>
           <v-list density="compact" nav class="pa-0">
             <v-list-item
               v-for="q in quickItems"
@@ -220,13 +215,12 @@
               @click="navigateTo(q.path); activeDrawer = null"
             >
               <template #prepend>
-                <!-- v4: v-avatar tonal variant still supported -->
                 <v-avatar :color="q.color" size="32" rounded="lg" variant="tonal">
-                  <component :is="q.icon" :size="16" />
+                  <v-icon :icon="q.icon" size="16" />
                 </v-avatar>
               </template>
               <template #title>
-                <span class="text-label-medium font-weight-bold">{{ q.label }}</span>
+                <span class="text-caption font-weight-bold">{{ q.label }}</span>
               </template>
             </v-list-item>
           </v-list>
@@ -236,7 +230,7 @@
       <!-- Tools drawer -->
       <template v-if="activeDrawer === 'tools'">
         <v-list-item class="py-4 border-b">
-          <template #title><span class="text-title-small font-weight-bold">Tools</span></template>
+          <template #title><span class="text-subtitle-2 font-weight-bold">Tools</span></template>
           <template #append>
             <v-btn icon="mdi-close" variant="text" size="small" @click="activeDrawer = null" />
           </template>
@@ -252,12 +246,11 @@
           >
             <template #prepend>
               <v-avatar :color="item.color" size="32" rounded="lg" variant="tonal">
-                <component :is="item.icon" :size="16" />
+                <v-icon :icon="item.icon" size="16" />
               </v-avatar>
             </template>
             <template #title>
-              <!-- text-body-2 → text-body-medium in MD3 -->
-              <span class="text-body-medium font-weight-medium">{{ item.name }}</span>
+              <span class="text-body-2 font-weight-medium">{{ item.name }}</span>
             </template>
             <template #append>
               <v-chip v-if="item.badge" :color="item.badge.color" size="x-small" variant="tonal">
@@ -278,11 +271,11 @@
             >
               <template #prepend>
                 <v-avatar color="primary" size="32">
-                  <span class="text-label-medium font-weight-bold">{{ userInitials }}</span>
+                  <span class="text-caption font-weight-bold">{{ userInitials }}</span>
                 </v-avatar>
               </template>
               <template #title>
-                <span class="text-label-medium font-weight-bold">{{ settings?.businessName || 'NovaOps' }}</span>
+                <span class="text-caption font-weight-bold">{{ settings?.businessName || 'NovaOps' }}</span>
               </template>
             </v-list-item>
         </div>
@@ -297,10 +290,10 @@
       :width="280"
     >
       <v-list-item class="py-4" :subtitle="userEmail">
-        <template #title><span class="text-title-small font-weight-bold">{{ settings?.businessName || 'NovaOps' }}</span></template>
+        <template #title><span class="text-subtitle-2 font-weight-bold">{{ settings?.businessName || 'NovaOps' }}</span></template>
         <template #prepend>
           <v-avatar color="primary" size="36">
-            <span class="text-label-medium font-weight-bold">{{ userInitials }}</span>
+            <span class="text-caption font-weight-bold">{{ userInitials }}</span>
           </v-avatar>
         </template>
       </v-list-item>
@@ -316,11 +309,11 @@
         >
           <template #prepend>
             <v-avatar :color="item.color" size="30" rounded="lg" variant="tonal">
-              <component :is="item.icon" :size="15" />
+              <v-icon :icon="item.icon" size="15" />
             </v-avatar>
           </template>
           <template #title>
-            <span class="text-body-medium font-weight-medium">{{ item.name }}</span>
+            <span class="text-body-2 font-weight-medium">{{ item.name }}</span>
           </template>
           <template #append>
             <v-chip v-if="item.badge" :color="item.badge.color" size="x-small" variant="tonal">
@@ -340,8 +333,6 @@
 
     <!-- ── Main content ─────────────────────────────────────────── -->
     <v-main>
-      <!-- Loading bar -->
-      <!-- v4: v-progress-linear is unchanged; position via style is fine -->
       <v-progress-linear
         v-if="appStore.isLoading && !noLoadingGate"
         indeterminate
@@ -356,10 +347,6 @@
     </v-main>
 
     <!-- ── Global snackbar ──────────────────────────────────────── -->
-    <!--
-      v4: Multiple stacked v-snackbars are still valid.
-      `location` prop values unchanged. `rounded` still accepted.
-    -->
     <v-snackbar
       v-for="t in toasts"
       :key="t.id"
@@ -373,9 +360,8 @@
       <div class="d-flex align-center gap-2">
         <v-icon size="18">{{ snackIcon(t.status) }}</v-icon>
         <div>
-          <!-- text-body-2 → text-body-medium -->
-          <div class="text-body-medium font-weight-bold">{{ t.title }}</div>
-          <div v-if="t.description" class="text-label-medium opacity-80">{{ t.description }}</div>
+          <div class="text-body-2 font-weight-bold">{{ t.title }}</div>
+          <div v-if="t.description" class="text-caption opacity-80">{{ t.description }}</div>
         </div>
       </div>
       <template #actions>
@@ -391,13 +377,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAppStore } from '~/stores/app'
 import { useToast } from '~/composables/useToast'
-// v4: useDisplay API is unchanged; `mobile` still available
 import { useDisplay } from 'vuetify'
-import {
-  LayoutDashboard, TicketCheck, Users, Package, CalendarDays, ShoppingCart,
-  ClipboardList, FileText, ScanLine, Upload, BarChart3, MessageCircle,
-  Tv, ArrowLeftRight, TicketPlus, UserPlus, Tag, Barcode, MapPin,
-} from 'lucide-vue-next'
 import { useScreenLock } from '~/composables/useScreenLock'
 
 const appStore = useAppStore()
@@ -436,21 +416,21 @@ const userInitials = computed(() => {
   return parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : e.slice(0, 2).toUpperCase()
 })
 
-// Navigation definition
+// Navigation definition — MDI icons only
 const navigation = [
-  { name: 'Dashboard',   path: '/dashboard',  icon: LayoutDashboard, color: '#6366f1', badge: null,                         group: 'core' },
-  { name: 'Bookings',    path: '/bookings',   icon: ClipboardList,   color: '#f59e0b', badge: { label: 'New',  color: 'warning' }, group: 'core' },
-  { name: 'Customers',   path: '/customers',  icon: Users,           color: '#3b82f6', badge: null,                         group: 'core' },
-  { name: 'Inventory',   path: '/inventory',  icon: Package,         color: '#8b5cf6', badge: null,                         group: 'core' },
-  { name: 'Calendar',    path: '/calendar',   icon: CalendarDays,    color: '#06b6d4', badge: null,                         group: 'core' },
-  { name: 'POS',         path: '/pos',        icon: ShoppingCart,    color: '#ec4899', badge: { label: 'Live', color: 'success' }, group: 'core' },
-  { name: 'Trade-In',    path: '/tradein',    icon: ArrowLeftRight,  color: '#f59e0b', badge: null,                         group: 'core' },
-  { name: 'Analytics',   path: '/analytics',  icon: BarChart3,       color: '#10b981', badge: null,                         group: 'tools' },
-  { name: 'Messages',    path: '/messages',   icon: MessageCircle,   color: '#ec4899', badge: null,                         group: 'tools' },
-  { name: 'Display',     path: '/display',    icon: Tv,              color: '#06b6d4', badge: null,                         group: 'tools' },
-  { name: 'Barcodes',    path: '/barcodes',   icon: ScanLine,        color: '#06b6d4', badge: null,                         group: 'tools' },
-  { name: 'Import',      path: '/import',     icon: Upload,          color: '#8b5cf6', badge: null,                         group: 'tools' },
-  { name: 'Forms',       path: '/forms',      icon: FileText,        color: '#10b981', badge: null,                         group: 'tools' },
+  { name: 'Dashboard',   path: '/dashboard',  icon: 'mdi-view-dashboard-outline', color: '#6366f1', badge: null,                         group: 'core' },
+  { name: 'Bookings',    path: '/bookings',   icon: 'mdi-clipboard-text-outline', color: '#f59e0b', badge: { label: 'New',  color: 'warning' }, group: 'core' },
+  { name: 'Customers',   path: '/customers',  icon: 'mdi-account-group-outline',  color: '#3b82f6', badge: null,                         group: 'core' },
+  { name: 'Inventory',   path: '/inventory',  icon: 'mdi-package-variant-closed', color: '#8b5cf6', badge: null,                         group: 'core' },
+  { name: 'Calendar',    path: '/calendar',   icon: 'mdi-calendar',               color: '#06b6d4', badge: null,                         group: 'core' },
+  { name: 'POS',         path: '/pos',        icon: 'mdi-cart-outline',           color: '#ec4899', badge: { label: 'Live', color: 'success' }, group: 'core' },
+  { name: 'Trade-In',    path: '/tradein',    icon: 'mdi-swap-horizontal',        color: '#f59e0b', badge: null,                         group: 'core' },
+  { name: 'Analytics',   path: '/analytics',  icon: 'mdi-chart-bar',              color: '#10b981', badge: null,                         group: 'tools' },
+  { name: 'Messages',    path: '/messages',   icon: 'mdi-message-outline',        color: '#ec4899', badge: null,                         group: 'tools' },
+  { name: 'Display',     path: '/display',    icon: 'mdi-television',             color: '#06b6d4', badge: null,                         group: 'tools' },
+  { name: 'Barcodes',    path: '/barcodes',   icon: 'mdi-barcode-scan',           color: '#06b6d4', badge: null,                         group: 'tools' },
+  { name: 'Import',      path: '/import',     icon: 'mdi-upload',                 color: '#8b5cf6', badge: null,                         group: 'tools' },
+  { name: 'Forms',       path: '/forms',      icon: 'mdi-file-document-outline',  color: '#10b981', badge: null,                         group: 'tools' },
 ]
 
 const coreNav  = navigation.filter(n => n.group === 'core')
@@ -470,12 +450,12 @@ watch(() => route.path, () => {
 
 // Quick items for the More drawer
 const quickItems = [
-  { type: 'ticket',    label: 'New Ticket',    icon: TicketPlus,   color: '#f59e0b', path: '/bookings',  kbd: '⌘T' },
-  { type: 'housecall', label: 'House Call',    icon: MapPin,       color: '#10b981', path: '/bookings',  kbd: '⌘H' },
-  { type: 'customer',  label: 'New Customer',  icon: UserPlus,     color: '#3b82f6', path: '/customers', kbd: '⌘U' },
-  { type: 'register',  label: 'Open Register', icon: ShoppingCart, color: '#ec4899', path: '/pos',       kbd: '⌘R' },
-  { type: 'invoice',   label: 'New Invoice',   icon: Tag,          color: '#10b981', path: '/forms',     kbd: '⌘I' },
-  { type: 'scan',      label: 'Scan Barcode',  icon: Barcode,      color: '#06b6d4', path: '/barcodes',  kbd: '⌘B' },
+  { type: 'ticket',    label: 'New Ticket',    icon: 'mdi-ticket-plus-outline',    color: '#f59e0b', path: '/bookings',  kbd: '⌘T' },
+  { type: 'housecall', label: 'House Call',     icon: 'mdi-map-marker-outline',     color: '#10b981', path: '/bookings',  kbd: '⌘H' },
+  { type: 'customer',  label: 'New Customer',   icon: 'mdi-account-plus-outline',   color: '#3b82f6', path: '/customers', kbd: '⌘U' },
+  { type: 'register',  label: 'Open Register',  icon: 'mdi-cart-outline',           color: '#ec4899', path: '/pos',       kbd: '⌘R' },
+  { type: 'invoice',   label: 'New Invoice',    icon: 'mdi-tag-outline',            color: '#10b981', path: '/forms',     kbd: '⌘I' },
+  { type: 'scan',      label: 'Scan Barcode',   icon: 'mdi-barcode',                color: '#06b6d4', path: '/barcodes',  kbd: '⌘B' },
 ]
 
 // Upcoming items
@@ -486,11 +466,11 @@ const upcomingItems = computed(() => {
     .filter((a: any) => a.status === 'scheduled' && a.date >= todayStr)
     .sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time))
     .slice(0, 4)
-    .map((a: any) => ({ id: a.id, label: a.title || 'Appointment', sub: a.date, color: '#06b6d4', icon: CalendarDays }))
+    .map((a: any) => ({ id: a.id, label: a.title || 'Appointment', sub: a.date, color: '#06b6d4', icon: 'mdi-calendar' }))
   const openTickets = (tickets.value || [])
     .filter((t: any) => t.status === 'Open' || t.status === 'In Progress')
     .slice(0, 3)
-    .map((t: any) => ({ id: t.id, label: `#${t.id} ${t.device || ''}`.trim(), sub: t.status, color: '#6366f1', icon: TicketCheck }))
+    .map((t: any) => ({ id: t.id, label: `#${t.id} ${t.device || ''}`.trim(), sub: t.status, color: '#6366f1', icon: 'mdi-ticket-confirmation-outline' }))
   return [...appts, ...openTickets]
 })
 const upcomingCount = computed(() => upcomingItems.value.length)
@@ -539,34 +519,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   font-weight: 700;
 }
 
-/*
-  v4: v-badge `floating` prop is removed.
-  Replicate the old floating dot behavior for rail nav badges.
-*/
+/* Floating dot behavior for rail nav badges */
 .nav-badge-dot {
   position: absolute;
   top: 0;
   right: 0;
   transform: translate(25%, -25%);
   pointer-events: none;
-}
-
-/*
-  v4: MD3 typography additions.
-  If your Vuetify 4 build doesn't expose these utility classes yet,
-  these fallbacks ensure consistent rendering.
-*/
-.text-title-small {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-}
-.text-body-medium {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-}
-.text-label-medium {
-  font-size: 0.75rem;
-  line-height: 1rem;
-  letter-spacing: 0.031em;
 }
 </style>

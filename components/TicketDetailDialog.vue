@@ -6,7 +6,7 @@
       <v-card-item class="border-b">
         <template #prepend>
           <v-avatar :color="ticketStatusColor(ticket?.status)" size="44" rounded="lg">
-            <TicketCheck :size="20" color="white" />
+            <v-icon icon="mdi-ticket-confirmation-outline" size="20" color="white" />
           </v-avatar>
         </template>
         <v-card-title class="text-h6 font-weight-black">Ticket #{{ ticket?.id }}</v-card-title>
@@ -493,7 +493,6 @@
 </template>
 
 <script setup lang="ts">
-import { X, Plus, Search, Clock, DollarSign, Save, Trash2, Loader2, Mail, TicketCheck, Printer, Phone, MapPin, Pencil, Check } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { printBarcodeLabel } from '~/utils/print'
 import { useToast } from '~/composables/useToast'
