@@ -1,114 +1,144 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style="background: hsl(var(--background))">
+  <v-container fluid class="fill-height d-flex flex-column align-center justify-center position-relative overflow-hidden pa-4" style="background: rgb(var(--v-theme-background))">
 
     <!-- Background blobs -->
-    <div class="absolute inset-0 pointer-events-none overflow-hidden">
-      <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full opacity-10 blur-3xl" style="background: radial-gradient(circle, #6366f1, transparent)" />
-      <div class="absolute bottom-0 right-0 w-72 h-72 rounded-full opacity-10 blur-3xl" style="background: radial-gradient(circle, #a855f7, transparent)" />
+    <div class="position-absolute" style="top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; overflow: hidden;">
+      <div style="position: absolute; top: -10rem; left: 50%; transform: translateX(-50%); width: 500px; height: 500px; border-radius: 50%; opacity: 0.1; filter: blur(60px); background: radial-gradient(circle, rgb(var(--v-theme-primary)), transparent)" />
+      <div style="position: absolute; bottom: 0; right: 0; width: 300px; height: 300px; border-radius: 50%; opacity: 0.1; filter: blur(60px); background: radial-gradient(circle, #a855f7, transparent)" />
     </div>
 
-    <div class="relative w-full max-w-xs flex flex-col items-center gap-8" style="animation: lockEnter 0.45s cubic-bezier(0.34,1.3,0.64,1) both">
+    <div class="d-flex flex-column align-center w-100" style="max-width: 320px; z-index: 1; animation: lockEnter 0.45s cubic-bezier(0.34,1.3,0.64,1) both;">
 
       <!-- Header -->
-      <div class="text-center flex flex-col items-center gap-4">
-        <div
-          class="w-20 h-20 rounded-[32px] flex items-center justify-center shadow-xl"
-          style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); box-shadow: 0 8px 32px #6366f140"
+      <div class="text-center d-flex flex-column align-center gap-4 mb-8">
+        <v-sheet
+          rounded="xl"
+          elevation="4"
+          class="d-flex align-center justify-center"
+          height="80"
+          width="80"
+          style="background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, #8b5cf6 100%);"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-9 h-9" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="1.75">
-            <rect x="3" y="11" width="18" height="11" rx="3" ry="3"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
-        </div>
+          <v-icon icon="mdi-shield-lock-outline" size="40" color="white" />
+        </v-sheet>
         <div>
-          <h1 class="text-2xl font-black tracking-tight">Screen Locked</h1>
-          <p class="text-sm text-muted-foreground font-medium mt-1">Enter your PIN to continue</p>
+          <h1 class="text-h5 font-weight-black tracking-tight">Screen Locked</h1>
+          <p class="text-caption text-medium-emphasis font-weight-medium mt-1">Enter your PIN to continue</p>
         </div>
       </div>
 
-      <!-- PIN Dots — squircle M3 style -->
-      <div class="flex justify-center gap-3">
-        <div
+      <!-- PIN Dots -->
+      <div class="d-flex justify-center gap-3 mb-4 w-100">
+        <v-sheet
           v-for="i in 4"
           :key="i"
-          class="w-16 h-16 rounded-[24px] flex items-center justify-center text-2xl font-black select-none transition-all duration-200"
+          rounded="xl"
+          height="64"
+          class="flex-1-1-100 d-flex align-center justify-center font-weight-black transition-all"
           :style="pin.length >= i
-            ? `background: #6366f124; outline: 2.5px solid #6366f170; outline-offset: 0; color: #6366f1; transform: scale(1.08)`
-            : `outline: 2px solid hsl(var(--border)/0.7); outline-offset: 0; color: transparent`"
-        >●</div>
+            ? `background: rgba(var(--v-theme-primary), 0.12); border: 2.5px solid rgba(var(--v-theme-primary), 0.7); color: rgb(var(--v-theme-primary)); transform: scale(1.08)`
+            : `border: 2px solid rgba(var(--v-border-color), var(--v-border-opacity)); color: transparent; background: transparent;`"
+        >
+          <v-icon>mdi-circle-small</v-icon>
+        </v-sheet>
       </div>
 
       <!-- Error message -->
-      <div class="h-6 flex items-center justify-center">
+      <div class="d-flex align-center justify-center mb-4" style="height: 24px">
         <p
           v-if="error"
-          class="text-sm font-bold text-center"
-          style="color: #ef4444; animation: errShake 0.4s cubic-bezier(0.36,0.07,0.19,0.97)"
+          class="text-caption font-weight-bold text-center text-error"
+          style="animation: errShake 0.4s cubic-bezier(0.36,0.07,0.19,0.97)"
         >{{ error }}</p>
       </div>
 
-      <!-- Numpad — M3 jelly bean keys -->
-      <div class="grid grid-cols-3 gap-3 w-full">
-        <button
-          v-for="num in [1,2,3,4,5,6,7,8,9]"
-          :key="num"
-          class="m3-numkey h-16 rounded-[24px] text-xl font-black select-none bg-card"
-          style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0"
-          @click="addDigit(num)"
-        >{{ num }}</button>
+      <!-- Numpad -->
+      <v-row dense class="mb-8 w-100 mx-0">
+        <v-col cols="4" v-for="num in [1,2,3,4,5,6,7,8,9]" :key="num" class="pa-1.5">
+          <v-btn
+            block
+            height="64"
+            rounded="xl"
+            variant="flat"
+            class="text-h6 font-weight-black bg-surface m3-numkey"
+            style="border: 2px solid rgba(var(--v-border-color), 0.6);"
+            @click="addDigit(num)"
+          >
+            {{ num }}
+          </v-btn>
+        </v-col>
 
         <!-- Clear -->
-        <button
-          class="m3-numkey h-16 rounded-[24px] select-none flex items-center justify-center"
-          style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0"
-          @click="clearPin"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="color: #ef4444">
-            <circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>
-          </svg>
-        </button>
+        <v-col cols="4" class="pa-1.5">
+          <v-btn
+            block
+            height="64"
+            rounded="xl"
+            variant="flat"
+            class="m3-numkey"
+            style="color: rgb(var(--v-theme-error)); background: rgba(var(--v-theme-error), 0.1); border: 2px solid rgba(var(--v-theme-error), 0.2)"
+            @click="clearPin"
+          >
+            <v-icon size="24">mdi-close-circle-outline</v-icon>
+          </v-btn>
+        </v-col>
 
         <!-- Zero -->
-        <button
-          class="m3-numkey h-16 rounded-[24px] text-xl font-black select-none bg-card"
-          style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0"
-          @click="addDigit(0)"
-        >0</button>
+        <v-col cols="4" class="pa-1.5">
+          <v-btn
+            block
+            height="64"
+            rounded="xl"
+            variant="flat"
+            class="text-h6 font-weight-black bg-surface m3-numkey"
+            style="border: 2px solid rgba(var(--v-border-color), 0.6);"
+            @click="addDigit(0)"
+          >
+            0
+          </v-btn>
+        </v-col>
 
         <!-- Backspace -->
-        <button
-          class="m3-numkey h-16 rounded-[24px] select-none flex items-center justify-center"
-          style="background: hsl(var(--muted)/0.6); outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0"
-          @click="backspace"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/>
-          </svg>
-        </button>
-      </div>
+        <v-col cols="4" class="pa-1.5">
+          <v-btn
+            block
+            height="64"
+            rounded="xl"
+            variant="flat"
+            class="m3-numkey text-medium-emphasis"
+            style="background: rgba(var(--v-theme-background), 0.8); border: 2px solid rgba(var(--v-border-color), 0.6)"
+            @click="backspace"
+          >
+            <v-icon size="24">mdi-backspace-outline</v-icon>
+          </v-btn>
+        </v-col>
+      </v-row>
 
       <!-- Sign out -->
-      <button
-        class="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4 pb-2 hover:scale-105 active:scale-95 transition-all"
+      <v-btn
+        variant="text"
+        size="small"
+        class="text-caption font-weight-bold text-medium-emphasis text-decoration-underline text-none mt-2"
         @click="logout"
       >
         Sign out instead
-      </button>
+      </v-btn>
     </div>
-  </div>
+  </v-container>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 definePageMeta({ layout: false })
 
+const router = useRouter()
 const pin = ref('')
 const error = ref('')
 const savedPin = ref('1234')
 
 onMounted(async () => {
-  // Read PIN from localStorage as cross-tab fallback
   const storedPin = localStorage.getItem('novaops_pin')
   if (storedPin) savedPin.value = storedPin
   try {
@@ -135,13 +165,13 @@ const checkPin = () => {
   if (pin.value === savedPin.value) {
     localStorage.setItem('screen_locked', 'false')
     localStorage.setItem('last_activity', Date.now().toString())
-    navigateTo('/dashboard')
+    router.push('/dashboard')
   } else {
     error.value = 'Incorrect PIN — try again'
     setTimeout(() => { pin.value = ''; error.value = '' }, 1000)
   }
 }
-const logout = () => { localStorage.removeItem('isAuthenticated'); localStorage.removeItem('screen_locked'); navigateTo('/login') }
+const logout = () => { localStorage.removeItem('isAuthenticated'); localStorage.removeItem('screen_locked'); router.push('/login') }
 </script>
 
 <style scoped>
@@ -158,9 +188,8 @@ const logout = () => { localStorage.removeItem('isAuthenticated'); localStorage.
   80% { transform: translateX(5px); }
 }
 .m3-numkey {
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .m3-numkey:hover  { transform: scale(1.05); }
-.m3-numkey:active { transform: scale(0.88); }
+.m3-numkey:active { transform: scale(0.92); }
 </style>
