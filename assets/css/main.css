@@ -133,6 +133,9 @@ body {
 .text-10 { font-size: 10px; line-height: 1.35; }
 .h-px { height: 1px; }
 .border-spinner { border-width: 3px; border-style: solid; border-color: rgba(255, 255, 255, 0.4); border-top-color: #fff; }
+
+/* Opacity */
+.opacity-10  { opacity: 0.1; }
 .opacity-30  { opacity: 0.3; }
 .opacity-40  { opacity: 0.4; }
 .opacity-50  { opacity: 0.5; }

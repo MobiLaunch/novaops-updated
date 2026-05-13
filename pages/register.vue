@@ -1,9 +1,10 @@
 <template>
+  <v-app class="register-v-app">
   <div class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style="background: hsl(var(--background))">
 
     <!-- Background glows -->
     <div class="absolute inset-0 pointer-events-none overflow-hidden">
-      <div class="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full opacity-10 blur-3xl" style="background: radial-gradient(circle, #8b5cf6, transparent)" />
+      <div class="absolute -top-40 -right-40 w-150 rounded-full opacity-10 blur-3xl" style="background: radial-gradient(circle, #8b5cf6, transparent)" />
       <div class="absolute -bottom-20 -left-20 w-80 h-80 rounded-full opacity-10 blur-3xl" style="background: radial-gradient(circle, #6366f1, transparent)" />
     </div>
 
@@ -11,7 +12,7 @@
 
       <!-- Logo & Title -->
       <div class="flex flex-col items-center gap-4">
-        <div class="w-20 h-20 rounded-[32px] flex items-center justify-center shadow-2xl" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); box-shadow: 0 8px 40px #8b5cf660">
+        <div class="w-20 h-20 rounded-auth-32 flex items-center justify-center shadow-2xl" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); box-shadow: 0 8px 40px #8b5cf660">
           <v-icon icon="mdi-flash-outline" size="36" color="white" />
         </div>
         <div class="text-center">
@@ -31,12 +32,12 @@
             <v-icon icon="mdi-check" size="14" v-if="completedSteps.has(i)" />
             <span v-else class="text-xs font-black">{{ i + 1 }}</span>
           </div>
-          <span class="text-[9px] font-bold text-center leading-tight" :style="currentStep === i ? 'color: #8b5cf6' : 'color: hsl(var(--muted-foreground))'">{{ step.shortLabel }}</span>
+          <span class="text-9 font-bold text-center leading-tight" :style="currentStep === i ? 'color: #8b5cf6' : 'color: hsl(var(--muted-foreground))'">{{ step.shortLabel }}</span>
         </div>
       </div>
 
       <!-- Error Banner -->
-      <div v-if="globalError" class="flex items-center gap-3 p-4 rounded-[20px]" style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0">
+      <div v-if="globalError" class="flex items-center gap-3 p-4 rounded-auth-20" style="background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0">
         <v-icon icon="mdi-alert-circle" size="20" class="flex-shrink-0" style="color: #ef4444" />
         <p class="text-sm font-semibold" style="color: #ef4444">{{ globalError }}</p>
       </div>
@@ -243,7 +244,7 @@
                   </div>
                   <div>
                     <p class="text-xs font-bold" :style="inventoryFile ? 'color: #f59e0b' : ''">{{ inventoryFile ? inventoryFile.name : 'Inventory CSV' }}</p>
-                    <p class="text-[10px] text-muted-foreground">{{ inventoryFile ? 'Ready to import' : 'Drop or click to browse' }}</p>
+                    <p class="text-10 text-muted-foreground">{{ inventoryFile ? 'Ready to import' : 'Drop or click to browse' }}</p>
                   </div>
                 </div>
               </div>
@@ -255,7 +256,7 @@
                   </div>
                   <div>
                     <p class="text-xs font-bold" :style="customersFile ? 'color: #f59e0b' : ''">{{ customersFile ? customersFile.name : 'Customers CSV' }}</p>
-                    <p class="text-[10px] text-muted-foreground">{{ customersFile ? 'Ready to import' : 'Drop or click to browse' }}</p>
+                    <p class="text-10 text-muted-foreground">{{ customersFile ? 'Ready to import' : 'Drop or click to browse' }}</p>
                   </div>
                 </div>
               </div>
@@ -376,7 +377,7 @@
       </div>
 
       <!-- Final Submit CTA -->
-      <div class="rounded-[28px] p-6 flex flex-col gap-4 shadow-xl" style="background: hsl(var(--card)); outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+      <div class="rounded-auth-28 p-6 flex flex-col gap-4 shadow-xl" style="background: hsl(var(--card)); outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-black">Ready to launch?</p>
@@ -393,12 +394,12 @@
           :disabled="loading || !completedSteps.has(0)"
           @click="handleRegister"
         >
-          <div v-if="loading" class="w-5 h-5 border-[3px] border-white/40 border-t-white rounded-full animate-spin" />
+          <div v-if="loading" class="w-5 h-5 border-spinner rounded-full animate-spin" />
           <Rocket v-else class="w-5 h-5" />
           {{ loading ? 'Creating your shop…' : 'Create Account & Launch NovaOps' }}
         </button>
 
-        <p class="text-[10px] text-center text-muted-foreground font-medium">
+        <p class="text-10 text-center text-muted-foreground font-medium">
           By creating an account you agree to our Terms of Service and Privacy Policy. Optional sections can be completed anytime from Settings.
         </p>
 
@@ -417,6 +418,7 @@
 
     </div>
   </div>
+  </v-app>
 </template>
 
 <script setup lang="ts">
@@ -524,6 +526,10 @@ const handleRegister = async () => {
 </script>
 
 <style scoped>
+.register-v-app {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
 .m3-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.375rem; }
 @keyframes registerEnter {
   0%   { transform: scale(0.94) translateY(20px); opacity: 0; }
