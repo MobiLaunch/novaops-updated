@@ -42,9 +42,9 @@
           rounded="xl"
           @click="toggleDrawer('more')"
         >
-          <div class="d-flex justify-center w-100 py-1">
+          <template #prepend>
             <v-icon color="primary" size="22">mdi-plus-circle</v-icon>
-          </div>
+          </template>
         </v-list-item>
 
         <v-divider class="mb-2" />
@@ -373,7 +373,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAppStore } from '~/stores/app'
 import { useToast } from '~/composables/useToast'
@@ -398,6 +398,40 @@ onMounted(() => {
   appStore.setupAuthListener()
   checkLockStatus()
   setupActivityListeners()
+
+  // #region agent log
+  if (import.meta.client) {
+    nextTick(() => {
+      nextTick(() => {
+        const rail = document.querySelector('.rail-drawer')
+        const first = rail?.querySelector('.v-list-item') as HTMLElement | null
+        const content = first?.querySelector('.v-list-item__content') as HTMLElement | null
+        const prep = first?.querySelector('.v-list-item__prepend') as HTMLElement | null
+        const iconN = first?.querySelectorAll('.v-icon').length ?? 0
+        fetch('http://127.0.0.1:7628/ingest/8a2eff8e-ad07-4aa6-be73-2d843e8eb3d7', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '99a5f1' },
+          body: JSON.stringify({
+            sessionId: '99a5f1',
+            hypothesisId: 'H-rail-content',
+            location: 'layouts/default.vue:onMounted',
+            message: 'rail first v-list-item slot visibility',
+            data: {
+              railFound: !!rail,
+              contentDisplay: content ? getComputedStyle(content).display : null,
+              contentVisibility: content ? getComputedStyle(content).visibility : null,
+              prependFound: !!prep,
+              prependDisplay: prep ? getComputedStyle(prep).display : null,
+              iconCount: iconN,
+            },
+            timestamp: Date.now(),
+            runId: 'pre-fix',
+          }),
+        }).catch(() => {})
+      })
+    })
+  }
+  // #endregion
 })
 const { checkLockStatus, setupActivityListeners, cleanup } = useScreenLock()
 onUnmounted(cleanup)

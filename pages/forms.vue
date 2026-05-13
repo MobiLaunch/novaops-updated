@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-8">
+  <div ref="formsRootRef" class="flex flex-col gap-8">
 
     <!-- Header -->
     <div class="flex items-center justify-between flex-wrap gap-4">
@@ -267,7 +267,45 @@
 
 <script setup lang="ts">
 import TradeInWizard from '~/components/TradeInWizard.vue'
+import { onMounted, nextTick, ref } from 'vue'
+
 definePageMeta({ middleware: ['auth'] })
+
+const formsRootRef = ref<HTMLElement | null>(null)
+
+// #region agent log
+onMounted(() => {
+  if (!import.meta.client) return
+  nextTick(() => {
+    const root = formsRootRef.value
+    let bracketClassElems = 0
+    let responsivePrefixed = 0
+    let bgCardElems = 0
+    if (root) {
+      root.querySelectorAll('*').forEach((node) => {
+        const c = (node as HTMLElement).className
+        const s = typeof c === 'string' ? c : ''
+        if (s.includes('[')) bracketClassElems++
+        if (/\b(sm:|md:|lg:|xl:|dark:)/.test(s)) responsivePrefixed++
+        if (/\bbg-card\b/.test(s)) bgCardElems++
+      })
+    }
+    fetch('http://127.0.0.1:7628/ingest/8a2eff8e-ad07-4aa6-be73-2d843e8eb3d7', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '99a5f1' },
+      body: JSON.stringify({
+        sessionId: '99a5f1',
+        hypothesisId: 'H-forms-classes',
+        location: 'pages/forms.vue:onMounted',
+        message: 'forms page class pattern counts',
+        data: { bracketClassElems, responsivePrefixed, bgCardElems, rootFound: !!root },
+        timestamp: Date.now(),
+        runId: 'pre-fix',
+      }),
+    }).catch(() => {})
+  })
+})
+// #endregion
 
 const appStore   = useAppStore()
 const customers  = computed(() => appStore.customers ?? [])

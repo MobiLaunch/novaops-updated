@@ -1,82 +1,168 @@
 <template>
-  <div class="space-y-2 relative" ref="dropdownContainer">
+  <div ref="dropdownContainer">
     <!-- Selected State -->
-    <div v-if="selectedValue && !isNewCustomer" class="p-3 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <div class="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center">
-          <v-icon icon="mdi-check" size="12" class="text-green-500" />
+    <v-card
+      v-if="selectedValue && !isNewCustomer"
+      variant="tonal"
+      color="success"
+      rounded="xl"
+      class="pa-3"
+    >
+      <div class="d-flex align-center justify-space-between">
+        <div class="d-flex align-center gap-2">
+          <v-avatar size="24" color="success" variant="tonal">
+            <v-icon icon="mdi-check" size="14" />
+          </v-avatar>
+          <span class="text-body-2 font-weight-bold">{{ selectedCustomerName }}</span>
         </div>
-        <span class="text-sm font-bold text-green-600 dark:text-green-400">{{ selectedCustomerName }}</span>
-      </div>
-      <button type="button" class="text-[10px] font-bold text-muted-foreground hover:text-foreground" @click.prevent="clearSelection">CHANGE</button>
-    </div>
-    
-    <!-- Search / Selecting State -->
-    <div v-else-if="!isNewCustomer" class="relative">
-      <v-icon icon="mdi-magnify" size="16" class="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-      <input 
-        v-model="searchText" 
-        @focus="showDropdown = true" 
-        placeholder="Search customers..." 
-        class="w-full h-11 pl-11 pr-20 rounded-[20px] text-sm font-medium bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-indigo-400/50 transition-all" 
-      />
-      <button 
-        type="button"
-        class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold bg-muted text-foreground px-3 py-1.5 rounded-full transition-all hover:bg-muted-foreground/30 shadow-sm" 
-        @click.prevent="openNewCustomer"
-      >
-        + NEW
-      </button>
-
-      <!-- Dropdown Results -->
-      <div v-if="showDropdown && filteredCustomers.length > 0" class="absolute z-50 w-full mt-1 bg-background border border-border/50 rounded-xl shadow-xl max-h-48 overflow-y-auto">
-        <button 
-          v-for="c in filteredCustomers" :key="c.id" 
-          type="button"
-          class="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-muted/50 transition-colors border-b border-border/30 last:border-0" 
-          @click.prevent="selectCustomer(c)"
+        <v-btn
+          variant="text"
+          size="x-small"
+          class="text-10 font-weight-black text-medium-emphasis"
+          @click.prevent="clearSelection"
         >
-          {{ c.name }} <span class="text-[10px] text-muted-foreground ml-2">{{ c.email || c.phone }}</span>
-        </button>
+          CHANGE
+        </v-btn>
       </div>
+    </v-card>
 
-      <!-- No Results -->
-      <div v-if="showDropdown && filteredCustomers.length === 0" class="absolute z-50 w-full mt-1 bg-background border border-border/50 rounded-xl shadow-xl p-4 text-center">
-        <p class="text-sm font-medium text-muted-foreground">No customers match "{{ searchText }}"</p>
-        <button type="button" class="mt-2 text-xs font-bold text-indigo-500 hover:text-indigo-400" @click.prevent="openNewCustomer">+ Add as New Customer</button>
-      </div>
+    <!-- Search / Selecting State -->
+    <div v-else-if="!isNewCustomer" class="position-relative">
+      <v-text-field
+        v-model="searchText"
+        class="customer-select-search"
+        placeholder="Search customers..."
+        prepend-inner-icon="mdi-magnify"
+        variant="outlined"
+        density="comfortable"
+        hide-details
+        single-line
+        rounded="xl"
+        @focus="showDropdown = true"
+      >
+        <template #append-inner>
+          <v-btn
+            size="x-small"
+            variant="tonal"
+            class="font-weight-black text-10"
+            @click.stop.prevent="openNewCustomer"
+          >
+            + NEW
+          </v-btn>
+        </template>
+      </v-text-field>
+
+      <v-card
+        v-if="showDropdown && filteredCustomers.length > 0"
+        variant="outlined"
+        rounded="lg"
+        elevation="4"
+        class="position-absolute w-100 mt-1 overflow-y-auto"
+        style="z-index: 12; max-height: 12rem"
+      >
+        <v-list density="compact" class="pa-0">
+          <v-list-item
+            v-for="c in filteredCustomers"
+            :key="c.id"
+            :title="c.name"
+            :subtitle="c.email || c.phone || undefined"
+            @click.prevent="selectCustomer(c)"
+          />
+        </v-list>
+      </v-card>
+
+      <v-card
+        v-if="showDropdown && filteredCustomers.length === 0"
+        variant="outlined"
+        rounded="lg"
+        elevation="4"
+        class="position-absolute w-100 mt-1 pa-4 text-center"
+        style="z-index: 12"
+      >
+        <p class="text-body-2 font-weight-medium text-medium-emphasis">
+          No customers match "{{ searchText }}"
+        </p>
+        <v-btn
+          variant="text"
+          color="primary"
+          size="small"
+          class="font-weight-black mt-2"
+          @click.prevent="openNewCustomer"
+        >
+          + Add as New Customer
+        </v-btn>
+      </v-card>
     </div>
 
     <!-- New Customer Form -->
-    <div v-if="isNewCustomer" class="mt-2 p-5 rounded-[20px] bg-muted/20 border-2 border-border/50 space-y-3 relative group transition-all">
-      <div class="flex items-center justify-between mb-1">
-        <span class="text-xs font-black uppercase tracking-widest text-indigo-500">Create New Customer</span>
-        <button type="button" class="text-[10px] font-bold text-muted-foreground hover:text-foreground bg-muted px-2 py-1 rounded-md" @click.prevent="cancelNewCustomer">CANCEL</button>
+    <v-card
+      v-if="isNewCustomer"
+      variant="outlined"
+      rounded="xl"
+      class="mt-2 pa-4"
+    >
+      <div class="d-flex align-center justify-space-between mb-2">
+        <span class="text-caption font-black text-uppercase text-primary" style="letter-spacing: 0.08em">
+          Create New Customer
+        </span>
+        <v-btn
+          variant="tonal"
+          size="x-small"
+          class="text-10 font-weight-black text-medium-emphasis"
+          @click.prevent="cancelNewCustomer"
+        >
+          CANCEL
+        </v-btn>
       </div>
-      <input v-model="newCustomerForm.name" placeholder="Full Name *" class="w-full h-11 px-4 rounded-[16px] text-sm font-medium bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-indigo-400/50 transition-all" />
-      <input v-model="newCustomerForm.email" placeholder="Email Address" type="email" class="w-full h-11 px-4 rounded-[16px] text-sm font-medium bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-indigo-400/50 transition-all" />
-      <input v-model="newCustomerForm.phone" placeholder="Phone Number" type="tel" class="w-full h-11 px-4 rounded-[16px] text-sm font-medium bg-muted/50 border-2 border-border/60 focus:outline-none focus:border-indigo-400/50 transition-all" />
-      
-      <button 
-        type="button"
-        class="w-full h-11 mt-2 rounded-[16px] text-sm font-bold text-white flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-        style="background: linear-gradient(135deg, #6366f1, #8b5cf6);"
-        :disabled="!newCustomerForm.name || isSaving"
-        @click.prevent="saveNewCustomer"
-      >
-        <div v-if="isSaving" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-        <v-icon icon="mdi-check" size="16" v-else />
-        {{ isSaving ? 'Saving...' : 'Save & Select' }}
-      </button>
-    </div>
+      <div class="d-flex flex-column gap-3">
+        <v-text-field
+          v-model="newCustomerForm.name"
+          placeholder="Full Name *"
+          variant="outlined"
+          density="comfortable"
+          hide-details
+          rounded="lg"
+        />
+        <v-text-field
+          v-model="newCustomerForm.email"
+          placeholder="Email Address"
+          type="email"
+          variant="outlined"
+          density="comfortable"
+          hide-details
+          rounded="lg"
+        />
+        <v-text-field
+          v-model="newCustomerForm.phone"
+          placeholder="Phone Number"
+          type="tel"
+          variant="outlined"
+          density="comfortable"
+          hide-details
+          rounded="lg"
+        />
+        <v-btn
+          variant="flat"
+          size="large"
+          rounded="lg"
+          class="font-weight-black mt-1 text-white"
+          style="background: linear-gradient(135deg, #6366f1, #8b5cf6)"
+          :disabled="!newCustomerForm.name || isSaving"
+          @click.prevent="saveNewCustomer"
+        >
+          <v-progress-circular v-if="isSaving" indeterminate size="18" width="2" class="mr-2" color="white" />
+          <v-icon v-else icon="mdi-check" start />
+          {{ isSaving ? 'Saving...' : 'Save & Select' }}
+        </v-btn>
+      </div>
+    </v-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { onClickOutside } from '@vueuse/core'
 import { useAppStore } from '~/stores/app'
-import { useNotifications } from '~/composables/useNotifications'
 import { useToast } from '~/composables/useToast'
 
 const props = defineProps<{
@@ -86,25 +172,71 @@ const props = defineProps<{
 const emit = defineEmits(['update:modelValue'])
 
 const appStore = useAppStore()
-const { addNotification } = useNotifications()
 const { toast } = useToast()
 
-const dropdownContainer = ref(null)
+const dropdownContainer = ref<HTMLElement | null>(null)
 const searchText = ref('')
+
+// #region agent log
+onMounted(() => {
+  if (!import.meta.client) return
+  nextTick(() => {
+    const root = dropdownContainer.value
+    let bracketClassElems = 0
+    let slashOpacityElems = 0
+    let spaceYElems = 0
+    if (root) {
+      root.querySelectorAll('*').forEach((node) => {
+        const c = (node as HTMLElement).className
+        const s = typeof c === 'string' ? c : ''
+        if (s.includes('[')) bracketClassElems++
+        if (/\/\d{1,3}\b/.test(s)) slashOpacityElems++
+        if (/\bspace-y-/.test(s)) spaceYElems++
+      })
+    }
+    const input = root?.querySelector(
+      '.customer-select-search input',
+    ) as HTMLInputElement | null
+    const cs = input ? getComputedStyle(input) : null
+    const payload = {
+      sessionId: '99a5f1',
+      hypothesisId: 'H-customerselect-classes',
+      location: 'components/CustomerSelect.vue:onMounted',
+      message: 'CustomerSelect class patterns and search input computed style',
+      data: {
+        bracketClassElems,
+        slashOpacityElems,
+        spaceYElems,
+        rootFound: !!root,
+        inputBorderRadius: cs?.borderRadius ?? null,
+        inputPaddingLeft: cs?.paddingLeft ?? null,
+      },
+      timestamp: Date.now(),
+      runId: 'post-fix',
+    }
+    $fetch('/api/debug-session-log', { method: 'POST', body: payload }).catch(() => {})
+    fetch('http://127.0.0.1:7628/ingest/8a2eff8e-ad07-4aa6-be73-2d843e8eb3d7', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '99a5f1' },
+      body: JSON.stringify(payload),
+    }).catch(() => {})
+  })
+})
+// #endregion
+
 const showDropdown = ref(false)
 const isNewCustomer = ref(false)
 const isSaving = ref(false)
 
 const newCustomerForm = ref({ name: '', email: '', phone: '' })
 
-// Automatically close dropdown when clicking outside
 onClickOutside(dropdownContainer, () => {
   showDropdown.value = false
 })
 
 const selectedValue = computed({
   get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val)
+  set: (val) => emit('update:modelValue', val),
 })
 
 const customers = computed(() => appStore.customers || [])
@@ -117,11 +249,14 @@ const selectedCustomerName = computed(() => {
 const filteredCustomers = computed(() => {
   const q = searchText.value.toLowerCase().trim()
   if (!q) return customers.value.slice(0, 8)
-  return customers.value.filter((c: any) => 
-    c.name?.toLowerCase().includes(q) || 
-    c.email?.toLowerCase().includes(q) || 
-    c.phone?.includes(q)
-  ).slice(0, 15) // Limit results for performance
+  return customers.value
+    .filter(
+      (c: any) =>
+        c.name?.toLowerCase().includes(q) ||
+        c.email?.toLowerCase().includes(q) ||
+        c.phone?.includes(q),
+    )
+    .slice(0, 15)
 })
 
 const selectCustomer = (customer: any) => {
@@ -140,7 +275,6 @@ const clearSelection = () => {
 const openNewCustomer = () => {
   isNewCustomer.value = true
   showDropdown.value = false
-  // Pre-fill name if user already typed something
   if (searchText.value) {
     if (searchText.value.includes('@')) {
       newCustomerForm.value.email = searchText.value
@@ -150,7 +284,7 @@ const openNewCustomer = () => {
       newCustomerForm.value.name = searchText.value
     }
   } else {
-      newCustomerForm.value = { name: '', email: '', phone: '' }
+    newCustomerForm.value = { name: '', email: '', phone: '' }
   }
 }
 
@@ -161,7 +295,7 @@ const cancelNewCustomer = () => {
 
 const saveNewCustomer = async () => {
   if (!newCustomerForm.value.name) return
-  
+
   isSaving.value = true
   try {
     const newCust = await appStore.createCustomer({ ...newCustomerForm.value })
