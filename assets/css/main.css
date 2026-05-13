@@ -160,6 +160,27 @@ body {
   font-weight: 700;
 }
 
+/* Center icons in compact rail (prepend margin otherwise offsets them) */
+.rail-drawer .v-list-item {
+  justify-content: center;
+  padding-inline: 4px !important;
+}
+.rail-drawer .v-list-item__spacer {
+  display: none !important;
+}
+.rail-drawer .v-list-item__prepend {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-inline-end: 0 !important;
+}
+.rail-drawer .v-list-item__content {
+  display: none !important;
+}
+.rail-drawer .v-list-item__append {
+  display: none !important;
+}
+
 /* Data table — zebra rows on hover */
 .v-data-table__tr:hover td { background: rgba(99,102,241,0.04) !important; }
 
