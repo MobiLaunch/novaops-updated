@@ -9,6 +9,16 @@
 
 html, body { height: 100%; margin: 0; }
 
+/* HSL tokens (space-separated) for legacy `hsl(var(--…))` auth / marketing pages */
+:root {
+  --background: 210 20% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --border: 214 32% 91%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+}
+
 body {
   font-family: 'Google Sans', 'Nunito', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -32,6 +42,7 @@ body {
 .w-8    { width:  2rem; }
 .w-10   { width:  2.5rem; }
 .w-100  { width:  100%; }
+.w-full { width:  100%; }
 
 .h-2    { height: 0.5rem; }
 .h-2\.5 { height: 0.625rem; }
@@ -78,6 +89,7 @@ body {
 
 /* Min / Max */
 .min-h-screen { min-height: 100vh; }
+.max-w-sm     { max-width: 24rem; }
 .max-w-md     { max-width: 28rem; }
 .max-w-lg     { max-width: 32rem; }
 .max-w-xl     { max-width: 36rem; }
@@ -96,8 +108,31 @@ body {
 .border-t    { border-top-width: 1px; border-top-style: solid; }
 .border-b    { border-bottom-width: 1px; border-bottom-style: solid; }
 
-/* Opacity */
-.opacity-10  { opacity: 0.1; }
+/* Padding / margin shims (auth & register) */
+.p-4   { padding: 1rem; }
+.px-1  { padding-left: 0.25rem; padding-right: 0.25rem; }
+.mb-2  { margin-bottom: 0.5rem; }
+.w-20  { width: 5rem; }
+.h-20  { height: 5rem; }
+.w-80  { width: 20rem; }
+.h-80  { height: 20rem; }
+.blur-3xl { filter: blur(64px); }
+.shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+.items-end { align-items: flex-end; }
+.leading-tight { line-height: 1.25; }
+.tracking-tight { letter-spacing: -0.025em; }
+.-top-40 { top: -10rem; }
+.-right-40 { right: -10rem; }
+.-bottom-20 { bottom: -5rem; }
+.-left-20 { left: -5rem; }
+.w-150 { width: 37.5rem; height: 37.5rem; }
+.rounded-auth-20 { border-radius: 20px; }
+.rounded-auth-28 { border-radius: 28px; }
+.rounded-auth-32 { border-radius: 32px; }
+.text-9 { font-size: 9px; line-height: 1.2; }
+.text-10 { font-size: 10px; line-height: 1.35; }
+.h-px { height: 1px; }
+.border-spinner { border-width: 3px; border-style: solid; border-color: rgba(255, 255, 255, 0.4); border-top-color: #fff; }
 .opacity-30  { opacity: 0.3; }
 .opacity-40  { opacity: 0.4; }
 .opacity-50  { opacity: 0.5; }
