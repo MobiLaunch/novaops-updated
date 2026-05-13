@@ -2,8 +2,7 @@
  * GET /api/fetch-emails
  *
  * Fetches both inbox and sent emails from Gmail API for the authenticated user,
- * then upserts them into the Supabase `messages` table so the Messages page
- * shows true two-way conversation threads.
+ * then upserts them into the Supabase `messages` table for CRM / automation use.
  *
  * Query params:
  *   profileId  — Supabase user ID (required)

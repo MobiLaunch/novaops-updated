@@ -1,5 +1,5 @@
 // composables/useToast.ts
-// HeroUI-style toast notification system for NovaOps
+// Global snackbar queue for NovaOps (consumed by the default layout).
 
 import { ref, readonly } from 'vue'
 

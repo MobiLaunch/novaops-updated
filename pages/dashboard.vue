@@ -392,7 +392,7 @@ const quickActions = computed(() => [
   { label: 'Inventory',sub: 'Stock',         color: '#f59e0b', icon: 'mdi-package-variant-closed',  onClick: () => navigateTo('/inventory') },
   { label: 'Bookings', sub: 'Repairs',       color: '#3b82f6', icon: 'mdi-clipboard-check-outline', onClick: () => navigateTo('/bookings') },
   { label: 'Customers',sub: 'Clients',       color: '#06b6d4', icon: 'mdi-account-plus-outline',    onClick: () => navigateTo('/customers') },
-  { label: 'Messages', sub: 'Email & chat',  color: '#10b981', icon: 'mdi-message-outline',         onClick: () => navigateTo('/messages') },
+  { label: 'Trade-In', sub: 'Quotes',        color: '#f59e0b', icon: 'mdi-swap-horizontal',         onClick: () => navigateTo('/tradein') },
 ])
 
 // Today summary

@@ -150,7 +150,7 @@
             </template>
           </v-tooltip>
 
-          <v-list-item rounded="xl" @click="navigateTo('/settings')">
+          <v-list-item rounded="xl" :to="'/settings'" :active="route.path === '/settings'">
                 <template #prepend>
                   <v-avatar
                     color="primary"
@@ -426,8 +426,6 @@ const navigation = [
   { name: 'POS',         path: '/pos',        icon: 'mdi-cart-outline',           color: '#ec4899', badge: { label: 'Live', color: 'success' }, group: 'core' },
   { name: 'Trade-In',    path: '/tradein',    icon: 'mdi-swap-horizontal',        color: '#f59e0b', badge: null,                         group: 'core' },
   { name: 'Analytics',   path: '/analytics',  icon: 'mdi-chart-bar',              color: '#10b981', badge: null,                         group: 'tools' },
-  { name: 'Messages',    path: '/messages',   icon: 'mdi-message-outline',        color: '#ec4899', badge: null,                         group: 'tools' },
-  { name: 'Display',     path: '/display',    icon: 'mdi-television',             color: '#06b6d4', badge: null,                         group: 'tools' },
   { name: 'Barcodes',    path: '/barcodes',   icon: 'mdi-barcode-scan',           color: '#06b6d4', badge: null,                         group: 'tools' },
   { name: 'Import',      path: '/import',     icon: 'mdi-upload',                 color: '#8b5cf6', badge: null,                         group: 'tools' },
   { name: 'Forms',       path: '/forms',      icon: 'mdi-file-document-outline',  color: '#10b981', badge: null,                         group: 'tools' },
@@ -476,7 +474,7 @@ const upcomingItems = computed(() => {
 const upcomingCount = computed(() => upcomingItems.value.length)
 
 // No-loading-gate pages
-const NO_LOADING_GATE_PATHS = ['/settings', '/barcodes', '/tradein', '/forms', '/import', '/display', '/analytics', '/messages']
+const NO_LOADING_GATE_PATHS = ['/settings', '/barcodes', '/tradein', '/forms', '/import', '/analytics']
 const noLoadingGate = computed(() => NO_LOADING_GATE_PATHS.includes(route.path))
 
 // Snackbar helpers
@@ -493,7 +491,7 @@ function onKeydown(e: KeyboardEvent) {
   const map: Record<string, string> = {
     't': '/bookings', 'h': '/bookings', 'u': '/customers',
     'r': '/pos', 'i': '/forms', 'b': '/barcodes',
-    'd': '/dashboard', ',': '/settings', 'm': '/messages',
+    'd': '/dashboard', ',': '/settings', 'a': '/analytics',
   }
   const path = map[e.key.toLowerCase()]
   if (path) { e.preventDefault(); navigateTo(path) }

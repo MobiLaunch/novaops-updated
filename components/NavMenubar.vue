@@ -57,13 +57,9 @@
           <v-icon icon="mdi-cart-outline" size="14" style="color:#ec4899" />
           POS / Register
         </button>
-        <button class="menu-item" @click="go('/services')">
+        <button class="menu-item" @click="go('/settings?section=services')">
           <v-icon icon="mdi-chip" size="14" style="color:#22d3ee" />
           Repair Services
-        </button>
-        <button class="menu-item" @click="go('/messages')">
-          <v-icon icon="mdi-message-outline" size="14" style="color:#ec4899" />
-          Messages &amp; Email
         </button>
         <div class="menu-divider" />
         <div class="menu-section-label">Tools & Finance</div>

@@ -16,40 +16,65 @@ const loadJsBarcode = () => {
   return jsBarcodePromise;
 };
 
-// Creates or gets the hidden print iframe
-function getPrintIframe(): HTMLIFrameElement {
-  let iframe = document.getElementById('print-iframe') as HTMLIFrameElement;
-  if (!iframe) {
-    iframe = document.createElement('iframe');
-    iframe.id = 'print-iframe';
-    iframe.style.position = 'fixed';
-    iframe.style.right = '100%';
-    iframe.style.bottom = '100%';
-    iframe.style.width = '1px';
-    iframe.style.height = '1px';
-    iframe.style.border = '0';
-    iframe.style.opacity = '0';
-    iframe.style.pointerEvents = 'none';
-    document.body.appendChild(iframe);
-  }
-  return iframe;
+/** Safari / WebKit (incl. iOS) needs a real load boundary before print(). */
+function isWebKitPrintQuirk(): boolean {
+  if (typeof navigator === 'undefined') return false
+  const ua = navigator.userAgent || ''
+  if (/iPhone|iPad|iPod/i.test(ua)) return true
+  const isSafari = /Safari/i.test(ua) && !/Chrome|Chromium|CriOS|Edg/i.test(ua)
+  return isSafari
 }
 
-// Injects HTML into the iframe and calls print
+/**
+ * Injects HTML into a fresh iframe and calls print().
+ * Uses `srcdoc` + `onload` so macOS Safari reliably paints before the print dialog.
+ */
 export function printHtmlContent(html: string) {
-  const iframe = getPrintIframe();
-  const doc = iframe.contentWindow?.document;
-  if (!doc) return;
+  if (typeof document === 'undefined') return
 
-  doc.open();
-  doc.write(html);
-  doc.close();
+  const webKitQuirk = isWebKitPrintQuirk()
+  const delayMs = webKitQuirk ? 500 : 220
 
-  // Wait for images/fonts to load, then print
+  document.getElementById('print-iframe')?.remove()
+
+  const iframe = document.createElement('iframe')
+  iframe.id = 'print-iframe'
+  iframe.title = 'Print'
+  iframe.style.cssText =
+    'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0;pointer-events:none;'
+  document.body.appendChild(iframe)
+
+  let printed = false
+  const runPrint = () => {
+    if (printed) return
+    printed = true
+    const w = iframe.contentWindow
+    if (!w) return
+    try {
+      w.focus()
+      w.print()
+    } catch (e) {
+      console.warn('[print]', e)
+    }
+  }
+
+  iframe.addEventListener(
+    'load',
+    () => {
+      requestAnimationFrame(() => setTimeout(runPrint, delayMs))
+    },
+    { once: true },
+  )
+
+  iframe.srcdoc = html
+
+  // Fallback if `load` does not fire as expected for srcdoc
   setTimeout(() => {
-    iframe.contentWindow?.focus();
-    iframe.contentWindow?.print();
-  }, 250); // Small delay to ensure rendering
+    if (printed) return
+    if (iframe.contentDocument?.readyState === 'complete') {
+      requestAnimationFrame(() => setTimeout(runPrint, delayMs))
+    }
+  }, 2000)
 }
 
 async function sendWebUSB(deviceDataRaw: string, payload: Uint8Array): Promise<boolean> {
@@ -173,6 +198,10 @@ export async function printReceipt(data: ReceiptData) {
       <title>Receipt</title>
       <meta charset="utf-8">
       <style>
+        html, body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
         body {
           font-family: 'Courier New', Courier, monospace; /* Classic receipt font */
           font-size: 13px;
@@ -198,8 +227,8 @@ export async function printReceipt(data: ReceiptData) {
         
         /* Print-specific overrides */
         @media print {
-          @page { margin: 0; }
-          body { margin: 0; padding: 10mm 5mm; } 
+          @page { margin: 0; size: auto; }
+          body { margin: 0; padding: 8mm 4mm; max-width: none; }
         }
       </style>
     </head>
@@ -372,9 +401,11 @@ export async function printBarcodeLabel(data: BarcodeLabelData) {
         }
         
         @media print {
-          @page { margin: 0; size: 2in 1in; }
-          body { width: 2in; height: 1in; min-height: 1in; overflow: hidden; display: block; }
-          .container { width: 100%; height: 100%; border: none; padding: 0.05in; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+          /* mm sizes are more reliable on macOS / Safari than in-only rules */
+          @page { margin: 0; size: 50.8mm 25.4mm; }
+          html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          body { width: 50.8mm; height: 25.4mm; min-height: 25.4mm; overflow: hidden; display: block; }
+          .container { width: 100%; height: 100%; border: none; padding: 1mm; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         }
       </style>
     </head>
@@ -462,16 +493,17 @@ export async function printBarcodeBatch(items: BarcodeLabelData[]) {
     img { max-width:100%; } 
     p { margin:4px 0 0; font-size:11px; font-weight:700; color:#000; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
     @media print {
-      @page { margin: 0; size: 2in 1in; }
+      @page { margin: 0; size: 50.8mm 25.4mm; }
+      html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       body { min-height: 100vh; }
       .grid { display: block; padding: 0; gap: 0; }
       .label { 
-        width: 2in; height: 1in; box-sizing: border-box; 
-        border: none; border-radius: 0; padding: 0.05in; 
+        width: 50.8mm; height: 25.4mm; box-sizing: border-box; 
+        border: none; border-radius: 0; padding: 1mm; 
         display: flex; flex-direction: column; align-items: center; justify-content: center; 
         page-break-after: always; break-after: page; 
       }
-      img { max-height: 0.5in; width: auto; }
+      img { max-height: 12mm; width: auto; }
     }
   </style></head><body><div class="grid">${htmlParts.join('')}</div></body></html>`
 

@@ -7,7 +7,8 @@
       <div class="d-flex align-center gap-4 mb-2">
         <div class="position-relative">
           <v-avatar color="primary" size="80" class="text-h5 font-weight-bold">
-            {{ getInitials(accountForm.name) }}
+            <v-img v-if="avatarUrl" :src="avatarUrl" alt="" cover />
+            <span v-else>{{ getInitials(accountForm.name) }}</span>
           </v-avatar>
           <v-btn
             icon="mdi-camera"
@@ -15,8 +16,15 @@
             variant="outlined"
             class="position-absolute"
             style="bottom:-4px;right:-4px"
-            @click="changeAvatar"
+            @click="openAvatarPicker"
           />
+          <input
+            ref="avatarFileInput"
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            class="d-none"
+            @change="onAvatarSelected"
+          >
         </div>
         <div>
           <p class="text-body-2 text-medium-emphasis">Profile Picture</p>
@@ -50,9 +58,14 @@
 <script setup lang="ts">
 import { useToast } from '~/composables/useToast'
 
-const { addNotification } = useNotifications()
+const AVATAR_STORAGE_KEY = 'novaops_account_avatar'
+const MAX_AVATAR_BYTES = 4 * 1024 * 1024
+const MAX_AVATAR_EDGE = 256
+
 const { toast } = useToast()
 const validationAlert = ref('')
+const avatarUrl = ref('')
+const avatarFileInput = ref<HTMLInputElement | null>(null)
 
 const accountForm = ref({
   name: '',
@@ -65,16 +78,22 @@ const accountForm = ref({
 
 onMounted(() => {
   if (process.client) {
-    const saved = localStorage.getItem('accountData')
-    if (saved) {
-      const data = JSON.parse(saved)
-      accountForm.value.name = data.name || 'Demo User'
-      accountForm.value.email = data.email || 'demo@novaops.com'
-      accountForm.value.role = data.role || 'owner'
-    } else {
+    try {
+      const saved = localStorage.getItem('accountData')
+      if (saved) {
+        const data = JSON.parse(saved)
+        accountForm.value.name = data.name || 'Demo User'
+        accountForm.value.email = data.email || 'demo@novaops.com'
+        accountForm.value.role = data.role || 'owner'
+      } else {
+        accountForm.value.name = 'Demo User'
+        accountForm.value.email = 'demo@novaops.com'
+      }
+    } catch {
       accountForm.value.name = 'Demo User'
       accountForm.value.email = 'demo@novaops.com'
     }
+    avatarUrl.value = localStorage.getItem(AVATAR_STORAGE_KEY) || ''
   }
 })
 
@@ -85,8 +104,73 @@ const getInitials = (name: string) => {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
 }
 
-const changeAvatar = () => {
-  toast.info('Coming Soon', 'Avatar upload will be available in a future update')
+function openAvatarPicker() {
+  avatarFileInput.value?.click()
+}
+
+function dataUrlFromImageFile(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl)
+      try {
+        let { width, height } = img
+        if (width < 1 || height < 1) {
+          reject(new Error('Invalid image dimensions'))
+          return
+        }
+        if (width > MAX_AVATAR_EDGE || height > MAX_AVATAR_EDGE) {
+          const scale = Math.min(MAX_AVATAR_EDGE / width, MAX_AVATAR_EDGE / height)
+          width = Math.round(width * scale)
+          height = Math.round(height * scale)
+        }
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')
+        if (!ctx) {
+          reject(new Error('Could not read image'))
+          return
+        }
+        ctx.drawImage(img, 0, 0, width, height)
+        resolve(canvas.toDataURL('image/jpeg', 0.88))
+      } catch (e) {
+        reject(e)
+      }
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      reject(new Error('Could not load image'))
+    }
+    img.src = objectUrl
+  })
+}
+
+async function onAvatarSelected(ev: Event) {
+  const input = ev.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+
+  if (!file.type.startsWith('image/')) {
+    toast.warning('Unsupported file', 'Choose a JPEG, PNG, WebP, or GIF image.')
+    return
+  }
+  if (file.size > MAX_AVATAR_BYTES) {
+    toast.warning('File too large', 'Use an image under 4 MB.')
+    return
+  }
+
+  try {
+    const dataUrl = await dataUrlFromImageFile(file)
+    avatarUrl.value = dataUrl
+    localStorage.setItem(AVATAR_STORAGE_KEY, dataUrl)
+    toast.success('Profile photo saved', 'Shown on this device only.')
+  } catch (err: any) {
+    console.warn('[AccountSettings] avatar:', err)
+    toast.danger('Could not use image', err?.message || 'Try a different file.')
+  }
 }
 
 const saveAccount = () => {

@@ -46,7 +46,7 @@ export const useSupabaseConnect = () => {
   /** Extract the project ref from a Supabase URL for display */
   const projectRef = computed(() => {
     try {
-      const hostname = new URL(url.value).hostname // xxx.supabase.co
+      const hostname = new URL(url.value).hostname // e.g. project-ref.supabase.co
       return hostname.split('.')[0]
     } catch { return null }
   })

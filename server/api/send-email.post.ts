@@ -123,7 +123,7 @@ export default defineEventHandler(async (event) => {
         return {
             ok: true,
             delivered: false,
-            message: 'Email provider not configured. Message saved but not sent. Connect Gmail in Messages or set SMTP_HOST in .env.',
+            message: 'Email provider not configured. Message saved but not sent. Connect Gmail under Settings → Integrations or set SMTP_HOST in .env.',
         }
     }
 

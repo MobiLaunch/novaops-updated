@@ -118,7 +118,7 @@
               variant="text"
               color="info"
               :disabled="!item.email && !item.phone"
-              @click.stop="messageCustomer(item)"
+              @click.stop="contactCustomer(item)"
             />
             <v-btn icon="mdi-delete-outline" size="x-small" variant="text" color="error" @click.stop="deleteCustomer(item)" />
           </div>
@@ -154,7 +154,7 @@
           <!-- Contact info -->
           <v-list density="compact" class="mb-4">
             <v-list-item v-if="selected.phone" prepend-icon="mdi-phone-outline" :title="selected.phone" :href="`tel:${selected.phone}`" />
-            <v-list-item v-if="selected.email" prepend-icon="mdi-email-outline" :title="selected.email" @click="messageCustomer(selected)" />
+            <v-list-item v-if="selected.email" prepend-icon="mdi-email-outline" :title="selected.email" @click="contactCustomer(selected)" />
             <v-list-item v-if="selected.address" prepend-icon="mdi-map-marker-outline" :title="selected.address" />
             <v-list-item v-if="selected.driversLicense" prepend-icon="mdi-card-account-details-outline" :title="selected.driversLicense" subtitle="Driver's License" />
           </v-list>
@@ -208,7 +208,7 @@
           <v-btn color="error" variant="text" prepend-icon="mdi-delete-outline" @click="deleteCustomer(selected); detailOpen = false">Delete</v-btn>
           <v-spacer />
           <v-btn variant="outlined" prepend-icon="mdi-pencil-outline" @click="startEdit()">Edit</v-btn>
-          <v-btn color="info" prepend-icon="mdi-email-outline" :disabled="!selected.email && !selected.phone" @click="messageCustomer(selected)">Message</v-btn>
+          <v-btn color="info" prepend-icon="mdi-email-outline" :disabled="!selected.email && !selected.phone" @click="contactCustomer(selected)">Contact</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -297,12 +297,10 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { useToast } from '~/composables/useToast'
+import { openCustomerContact } from '~/utils/contact'
 
 definePageMeta({ middleware: ['auth'] })
 
-const router   = useRouter()
 const appStore = useAppStore()
 const customers = computed(() => appStore.customers ?? [])
 const tickets   = computed(() => appStore.tickets ?? [])
@@ -413,8 +411,8 @@ async function executeDeleteCustomer() {
   detailOpen.value = false
 }
 
-function messageCustomer(c: any) {
+function contactCustomer(c: any) {
   detailOpen.value = false
-  router.push({ path: '/messages', query: { compose: '1', customerId: String(c.id) } })
+  if (!openCustomerContact(c)) toast.warning('No contact method', 'Add an email or phone for this customer.')
 }
 </script>

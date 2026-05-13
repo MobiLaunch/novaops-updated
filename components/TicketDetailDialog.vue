@@ -495,6 +495,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { printBarcodeLabel } from '~/utils/print'
+import { openMailto } from '~/utils/contact'
 import { useToast } from '~/composables/useToast'
 
 const props = defineProps<{
@@ -768,23 +769,15 @@ const saveField = async (field: string, value: any) => {
   await appStore.updateTicket(props.ticket.id, { [key]: value, price: total })
 }
 
-const router = useRouter()
-
-const ticketCustomer = computed(() =>
-  customers.value?.find((c: any) => c.id === props.ticket?.customerId)
-)
-
 function emailCustomer() {
   if (!ticketCustomer.value?.email) return
   isOpen.value = false
-  router.push({
-    path: '/messages',
-    query: {
-      compose: '1',
-      ticketId: String(props.ticket.id),
-      customerId: String(props.ticket.customerId),
-    }
-  })
+  const t = props.ticket
+  openMailto(
+    ticketCustomer.value.email,
+    `Ticket #${t.id} — ${t.device || 'Repair'}`,
+    `Hello,\n\nRegarding service for ticket #${t.id}:\n\n`,
+  )
 }
 
 function printIntakeLabel() {

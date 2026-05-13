@@ -65,7 +65,7 @@
         </v-card>
 
         <!-- Services Management -->
-        <v-card class="mb-4">
+        <v-card id="settings-services" class="mb-4">
           <v-card-item class="border-b" style="background:#10b98108">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#10b981,#059669)">
@@ -656,6 +656,7 @@ definePageMeta({ middleware: ['auth'] })
 
 const appStore  = useAppStore()
 const router    = useRouter()
+const route     = useRoute()
 const { $supabase } = useNuxtApp()
 const { settings, notificationPrefs, services: svcList, expenses: expensesList } = storeToRefs(appStore)
 
@@ -877,7 +878,7 @@ const notificationSettings = computed(() => ({
   newSale:     { label: 'New Sale',      desc: 'Alert when POS sale completes',   color: '#10b981', icon: 'mdi-cart-outline', enabled: notificationPrefs.value.newSale },
   newCustomer: { label: 'New Customer',  desc: 'Alert when customer is added',    color: '#3b82f6', icon: 'mdi-account-plus-outline',     enabled: notificationPrefs.value.newCustomer },
   appointment: { label: 'Appointments', desc: 'Alert for upcoming appointments', color: '#8b5cf6', icon: 'mdi-calendar',     enabled: notificationPrefs.value.appointment },
-  newMessage:  { label: 'New Message',   desc: 'Alert when a customer emails you', color: '#ec4899', icon: 'mdi-message-outline', enabled: notificationPrefs.value.newMessage },
+  newMessage:  { label: 'Customer email', desc: 'Alert when a customer emails you', color: '#ec4899', icon: 'mdi-email-outline', enabled: notificationPrefs.value.newMessage },
 }))
 
 function toggleNotif(key: string) {
@@ -915,7 +916,15 @@ onMounted(() => {
     
     const savedLabel = localStorage.getItem('novaops_label_printer')
     if (savedLabel) pairedLabelPrinter.value = JSON.parse(savedLabel)
-  } catch (e) {}
+  } catch (e) {
+    console.warn('[settings] Could not restore printer settings from storage:', e)
+  }
+
+  if (route.query.section === 'services') {
+    nextTick(() => {
+      document.getElementById('settings-services')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }
 })
 
 function savePrinterSettings() {
@@ -930,7 +939,14 @@ function showPrinterMsg(type: 'success' | 'error', text: string) {
 
 async function pairUSBPrinter(type: 'thermal' | 'label') {
   if (!(navigator as any).usb) {
-    showPrinterMsg('error', 'WebUSB is not supported in this browser.')
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : ''
+    const safari = /Safari/i.test(ua) && !/Chrome|Chromium|CriOS|Edg/i.test(ua)
+    showPrinterMsg(
+      'error',
+      safari
+        ? 'WebUSB is not available in Safari. Use Chrome or Edge to pair a USB printer, or use Print from receipts/labels (macOS print dialog).'
+        : 'WebUSB is not supported in this browser.',
+    )
     return
   }
   try {
