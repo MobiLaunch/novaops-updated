@@ -32,7 +32,7 @@
       :rail-width="72"
       class="rail-drawer"
     >
-      <v-list nav density="compact" class="px-1 py-2">
+      <v-list nav density="compact" class="rail-nav-list py-2">
 
         <!-- Logo / More FAB -->
         <v-list-item
@@ -110,7 +110,7 @@
 
       <!-- Bottom: theme + settings + avatar -->
       <template #append>
-        <v-list nav density="compact" class="px-1 pb-3">
+        <v-list nav density="compact" class="rail-nav-list pb-3">
           <!-- Upcoming -->
           <v-tooltip text="Upcoming" location="end">
             <template #activator="{ props }">
@@ -215,8 +215,8 @@
               @click="navigateTo(q.path); activeDrawer = null"
             >
               <template #prepend>
-                <v-avatar :color="q.color" size="32" rounded="lg" variant="tonal">
-                  <v-icon :icon="q.icon" size="16" />
+                <v-avatar :color="q.color" size="32" rounded="lg">
+                  <v-icon :icon="q.icon" size="16" color="white" />
                 </v-avatar>
               </template>
               <template #title>
@@ -245,8 +245,8 @@
             @click="activeDrawer = null"
           >
             <template #prepend>
-              <v-avatar :color="item.color" size="32" rounded="lg" variant="tonal">
-                <v-icon :icon="item.icon" size="16" />
+              <v-avatar :color="item.color" size="32" rounded="lg">
+                <v-icon :icon="item.icon" size="16" color="white" />
               </v-avatar>
             </template>
             <template #title>
@@ -448,7 +448,7 @@ watch(() => route.path, () => {
 
 // Quick items for the More drawer
 const quickItems = [
-  { type: 'ticket',    label: 'New Ticket',    icon: 'mdi-ticket-plus-outline',    color: '#f59e0b', path: '/bookings',  kbd: '⌘T' },
+  { type: 'ticket',    label: 'New Ticket',    icon: 'mdi-ticket-outline',           color: '#f59e0b', path: '/bookings',  kbd: '⌘T' },
   { type: 'housecall', label: 'House Call',     icon: 'mdi-map-marker-outline',     color: '#10b981', path: '/bookings',  kbd: '⌘H' },
   { type: 'customer',  label: 'New Customer',   icon: 'mdi-account-plus-outline',   color: '#3b82f6', path: '/customers', kbd: '⌘U' },
   { type: 'register',  label: 'Open Register',  icon: 'mdi-cart-outline',           color: '#ec4899', path: '/pos',       kbd: '⌘R' },

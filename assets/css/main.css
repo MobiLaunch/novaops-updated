@@ -199,18 +199,32 @@ body {
 }
 
 /* Center icons in compact rail (prepend margin otherwise offsets them) */
+.rail-drawer .rail-nav-list {
+  padding-inline: 0 !important;
+  align-items: stretch;
+}
 .rail-drawer .v-list-item {
-  justify-content: center;
-  padding-inline: 4px !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding-inline: 0 !important;
+  min-height: 48px;
 }
 .rail-drawer .v-list-item__spacer {
   display: none !important;
 }
 .rail-drawer .v-list-item__prepend {
-  width: 100%;
+  width: auto !important;
+  min-width: 0;
   display: flex;
   justify-content: center;
-  margin-inline-end: 0 !important;
+  align-items: center;
+  margin-inline: 0 !important;
+}
+.rail-drawer .v-list-item__prepend > .position-relative {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .rail-drawer .v-list-item__content {
   display: none !important;
