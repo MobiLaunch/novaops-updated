@@ -29,13 +29,17 @@ export default defineEventHandler(async (event) => {
 
   // ── 2. Sandbox / production detection ────────────────────────────────────
   const config = useRuntimeConfig()
-  const appId: string = process.env.SQUARE_APPLICATION_ID || ''
-  const sandboxByEnv = process.env.SQUARE_SANDBOX === 'true'
+  const headerAppId = (getHeader(event, 'x-square-application-id') || '').trim()
+  const appId =
+    headerAppId ||
+    String((config.public as any).squareApplicationId || '').trim() ||
+    process.env.SQUARE_APPLICATION_ID ||
+    ''
+  const sandboxByEnv =
+    process.env.SQUARE_SANDBOX === 'true' || (config.public as any).squareSandbox === true
   const sandboxByAppId = appId.startsWith('sandbox-')
-  const isSandbox = sandboxByEnv || sandboxByAppId
-  const baseUrl = isSandbox
-    ? 'https://connect.squareupsandbox.com/v2'
-    : 'https://connect.squareup.com/v2'
+  const headerSandbox = getHeader(event, 'x-square-sandbox') === 'true'
+  const isSandbox = sandboxByEnv || sandboxByAppId || headerSandbox
 
   checks.push({
     name: 'Mode',
@@ -47,7 +51,12 @@ export default defineEventHandler(async (event) => {
   if (appId) {
     checks.push({ name: 'Application ID', ok: true, detail: `${appId.slice(0, 12)}…` })
   } else {
-    checks.push({ name: 'Application ID', ok: false, detail: 'SQUARE_APPLICATION_ID env var missing — browser card form will fail to init' })
+    checks.push({
+      name: 'Application ID',
+      ok: false,
+      detail:
+        'Missing — set SQUARE_APPLICATION_ID / NUXT_PUBLIC env, or paste Application ID in Settings (saved to profile), or send x-square-application-id header',
+    })
   }
 
   // ── 4. Live API reachability (fetch location details) ────────────────────

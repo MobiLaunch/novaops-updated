@@ -293,6 +293,19 @@
                   @blur="debouncedSquareCheck"
                 />
               </v-col>
+              <v-col cols="12">
+                <v-text-field
+                  v-model="form.squareApplicationId"
+                  label="Application ID (required for card form in POS)"
+                  placeholder="sandbox-sq0idb… or sq0idb…"
+                  variant="outlined"
+                  density="comfortable"
+                  hint="Square Developer Dashboard → Your application → Application ID (public, not the access token)"
+                  persistent-hint
+                  style="font-family:monospace"
+                  autocomplete="off"
+                />
+              </v-col>
             </v-row>
             <v-card variant="tonal" color="surface-variant" rounded="lg" class="pa-4 mb-4">
               <div class="d-flex align-center justify-space-between">
@@ -672,7 +685,7 @@ const userInitials = computed(() => {
 const form = ref({
   businessName: '', phone: '', email: '', address: '',
   currency: '$', taxRate: 0, statuses: 'Open, In Progress, Waiting for Parts, Completed, Delivered',
-  pin: '', squareAccessToken: '', squareLocationId: '', squareSandbox: false,
+  pin: '', squareAccessToken: '', squareLocationId: '', squareApplicationId: '', squareSandbox: false,
 })
 
 watch(settings, (s) => { if (s) form.value = { ...form.value, ...s } }, { immediate: true, deep: true })
@@ -837,7 +850,9 @@ const testSquareConnection = async () => {
       headers: {
         'x-square-access-token': form.value.squareAccessToken,
         'x-square-location-id': form.value.squareLocationId,
-      }
+        'x-square-application-id': form.value.squareApplicationId || '',
+        'x-square-sandbox': form.value.squareSandbox ? 'true' : 'false',
+      },
     })
     
     squareStatus.value  = 'connected'
@@ -852,6 +867,12 @@ const testSquareConnection = async () => {
 const saveSquareSettings = async () => {
   savingSquare.value = true
   try {
+    Object.assign(settings.value, {
+      squareAccessToken: form.value.squareAccessToken,
+      squareLocationId: form.value.squareLocationId,
+      squareApplicationId: form.value.squareApplicationId,
+      squareSandbox: form.value.squareSandbox,
+    })
     await appStore.saveSquareConfig()
     await testSquareConnection()
   } catch (e: any) {
@@ -1098,7 +1119,9 @@ const runDiagnostics = async () => {
     // Send square credentials in headers to ensure it works even if not yet saved in DB
     const headers = {
       'x-square-access-token': form.value.squareAccessToken,
-      'x-square-location-id': form.value.squareLocationId
+      'x-square-location-id': form.value.squareLocationId,
+      'x-square-application-id': form.value.squareApplicationId || '',
+      'x-square-sandbox': form.value.squareSandbox ? 'true' : 'false',
     }
     const res = await $fetch('/api/square/connection-test', { headers })
     updateDiagLog('Square Backend API', 'success', `Square responded: ${JSON.stringify(res)}`)
@@ -1111,7 +1134,9 @@ const runDiagnostics = async () => {
   try {
     const headers = {
       'x-square-access-token': form.value.squareAccessToken,
-      'x-square-location-id': form.value.squareLocationId
+      'x-square-location-id': form.value.squareLocationId,
+      'x-square-application-id': form.value.squareApplicationId || '',
+      'x-square-sandbox': form.value.squareSandbox ? 'true' : 'false',
     }
     const res: any = await $fetch('/api/square/payment-readiness', { headers })
     if (res.ok) {

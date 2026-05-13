@@ -160,7 +160,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed } from 'vue'
 import { onClickOutside } from '@vueuse/core'
 import { useAppStore } from '~/stores/app'
 import { useToast } from '~/composables/useToast'
@@ -176,53 +176,6 @@ const { toast } = useToast()
 
 const dropdownContainer = ref<HTMLElement | null>(null)
 const searchText = ref('')
-
-// #region agent log
-onMounted(() => {
-  if (!import.meta.client) return
-  nextTick(() => {
-    const root = dropdownContainer.value
-    let bracketClassElems = 0
-    let slashOpacityElems = 0
-    let spaceYElems = 0
-    if (root) {
-      root.querySelectorAll('*').forEach((node) => {
-        const c = (node as HTMLElement).className
-        const s = typeof c === 'string' ? c : ''
-        if (s.includes('[')) bracketClassElems++
-        if (/\/\d{1,3}\b/.test(s)) slashOpacityElems++
-        if (/\bspace-y-/.test(s)) spaceYElems++
-      })
-    }
-    const input = root?.querySelector(
-      '.customer-select-search input',
-    ) as HTMLInputElement | null
-    const cs = input ? getComputedStyle(input) : null
-    const payload = {
-      sessionId: '99a5f1',
-      hypothesisId: 'H-customerselect-classes',
-      location: 'components/CustomerSelect.vue:onMounted',
-      message: 'CustomerSelect class patterns and search input computed style',
-      data: {
-        bracketClassElems,
-        slashOpacityElems,
-        spaceYElems,
-        rootFound: !!root,
-        inputBorderRadius: cs?.borderRadius ?? null,
-        inputPaddingLeft: cs?.paddingLeft ?? null,
-      },
-      timestamp: Date.now(),
-      runId: 'post-fix',
-    }
-    $fetch('/api/debug-session-log', { method: 'POST', body: payload }).catch(() => {})
-    fetch('http://127.0.0.1:7628/ingest/8a2eff8e-ad07-4aa6-be73-2d843e8eb3d7', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '99a5f1' },
-      body: JSON.stringify(payload),
-    }).catch(() => {})
-  })
-})
-// #endregion
 
 const showDropdown = ref(false)
 const isNewCustomer = ref(false)

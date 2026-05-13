@@ -293,9 +293,14 @@
                </v-overlay>
             </div>
             
-            <div v-if="!squareConfigured" class="d-flex align-center gap-2 mt-4 pa-2 rounded-lg bg-warning-lighten-4">
+            <div v-if="!squareCardSdkReady" class="d-flex align-center gap-2 mt-4 pa-2 rounded-lg bg-warning-lighten-4">
               <v-icon icon="mdi-alert-circle" color="warning" size="16" />
-              <span class="text-caption font-weight-bold text-warning">Square credentials missing — </span>
+              <span v-if="!squareConfigured" class="text-caption font-weight-bold text-warning">
+                Square credentials missing —
+              </span>
+              <span v-else class="text-caption font-weight-bold text-warning">
+                Add your Square Application ID in Settings (required for the card field) —
+              </span>
               <v-btn variant="text" density="compact" size="small" class="text-caption font-weight-black px-1" color="warning" to="/settings">configure in Settings</v-btn>
             </div>
           </v-card-text>
@@ -440,24 +445,47 @@ const { toast } = useToast()
 const isSandbox = computed(() =>
   (config.public as any).squareSandbox ||
   appStore.settings?.squareSandbox ||
-  config.public.squareApplicationId?.startsWith('sandbox-')
+  config.public.squareApplicationId?.startsWith('sandbox-') ||
+  (settings.value as any).squareApplicationId?.startsWith?.('sandbox-')
 )
 
-useHead({
-  script: [{
-    src: isSandbox.value
-      ? 'https://sandbox.web.squarecdn.com/v1/square.js'
-      : 'https://web.squarecdn.com/v1/square.js',
-    async: true,
-  }]
-})
+useHead(() => ({
+  script: [
+    {
+      key: 'square-web-payments-sdk',
+      src: isSandbox.value
+        ? 'https://sandbox.web.squarecdn.com/v1/square.js'
+        : 'https://web.squarecdn.com/v1/square.js',
+      async: true,
+    },
+  ],
+}))
 
 const inventory = computed(() => appStore.inventory ?? [])
 const settings  = computed(() => appStore.settings ?? { currency: '$', taxRate: 0 })
 const customers = computed(() => appStore.customers ?? [])
 
-const squareConfigured = computed(() =>
-  !!(settings.value.squareAccessToken && settings.value.squareLocationId)
+const squareClientApplicationId = computed(
+  () =>
+    String((settings.value as any).squareApplicationId || '').trim() ||
+    String(config.public.squareApplicationId || '').trim(),
+)
+const squareClientLocationId = computed(
+  () =>
+    String(settings.value.squareLocationId || '').trim() ||
+    String(config.public.squareLocationId || '').trim(),
+)
+
+const squareConfigured = computed(
+  () => !!(settings.value.squareAccessToken && settings.value.squareLocationId),
+)
+
+/** Public Application ID + location — required by Square.payments() in the browser */
+const squareCardSdkReady = computed(
+  () =>
+    squareConfigured.value &&
+    !!squareClientApplicationId.value &&
+    !!squareClientLocationId.value,
 )
 
 // ── State ──────────────────────────────────────────────────────────
@@ -716,20 +744,38 @@ async function loadSquarePayments(): Promise<boolean> {
     await new Promise(r => setTimeout(r, 400))
   }
   if (!(window as any).Square) return false
+  const appId = squareClientApplicationId.value
+  const locId = squareClientLocationId.value
+  if (!appId || !locId) {
+    console.error('[Square] Missing application ID or location ID for Web Payments SDK')
+    return false
+  }
   try {
-    squarePayments.value = await (window as any).Square.payments(
-      config.public.squareApplicationId,
-      config.public.squareLocationId
-    )
+    squarePayments.value = await (window as any).Square.payments(appId, locId)
     return true
-  } catch (e) { console.error('Square init:', e); return false }
+  } catch (e) {
+    console.error('Square init:', e)
+    return false
+  }
 }
 
 async function initCardForm() {
   cardLoading.value = true
   try {
+    if (!squareCardSdkReady.value) {
+      toast.warning(
+        'Square setup',
+        !squareConfigured.value
+          ? 'Add your Square access token and location in Settings.'
+          : 'Add your Square Application ID in Settings (Developer Dashboard → Application → Application ID).',
+      )
+      return
+    }
     const ok = await loadSquarePayments()
-    if (!ok) { toast.danger('Square Error', 'SDK failed to load.'); return }
+    if (!ok) {
+      toast.danger('Square Error', 'SDK failed to load or initialize. Check Application ID, location, and sandbox mode.')
+      return
+    }
     if (cardInstance.value) {
       try { await cardInstance.value.destroy() } catch {}
       cardInstance.value = null; cardAttached.value = false
@@ -752,7 +798,7 @@ async function initCardForm() {
 }
 
 async function initAfterpayButton(amount: number) {
-  if (!squareConfigured.value) return
+  if (!squareCardSdkReady.value) return
   try {
     const ok = await loadSquarePayments()
     if (!ok) return
@@ -846,16 +892,20 @@ async function handleCardPayment() {
 
 async function handleRemoteSuccess(sourceId: string, method: 'Card' | 'Afterpay') {
   try {
-    // Route through Nitro server API — Square blocks direct browser fetch (CORS).
-    // The server reads credentials from environment variables, never from the client.
+    const headers: Record<string, string> = {}
+    if (settings.value.squareAccessToken && settings.value.squareLocationId) {
+      headers['x-square-access-token'] = settings.value.squareAccessToken
+      headers['x-square-location-id'] = settings.value.squareLocationId
+    }
     const res = await $fetch('/api/square/payment', {
       method: 'POST',
+      headers: Object.keys(headers).length ? headers : undefined,
       body: {
         sourceId,
         amountCents: Math.round(total.value * 100),
         referenceId: `novaops-${method.toLowerCase()}-${Date.now()}`,
         note: cart.value.map((i: any) => `${i.quantity}× ${i.name}`).join(', '),
-      }
+      },
     })
     
     // We already checked res.success. Some endpoints might not return 'status'.

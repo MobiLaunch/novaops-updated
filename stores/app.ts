@@ -57,6 +57,7 @@ export const useAppStore = defineStore('app', () => {
     pin: '1234',
     squareAccessToken: '',
     squareLocationId: '',
+    squareApplicationId: '',
     squareSandbox: false,
   })
   const settingsRowId = ref<number | null>(null)  // id from the `settings` table
@@ -244,11 +245,17 @@ export const useAppStore = defineStore('app', () => {
           ...settings.value,
           squareAccessToken: sqData.access_token || '',
           squareLocationId: sqData.location_id || '',
+          squareApplicationId: sqData.application_id || '',
           squareSandbox: sqData.sandbox ?? false,
         }
         if (typeof localStorage !== 'undefined') {
           try {
-            localStorage.setItem('novaops_square_config', JSON.stringify({ access_token: sqData.access_token, location_id: sqData.location_id, sandbox: sqData.sandbox }))
+            localStorage.setItem('novaops_square_config', JSON.stringify({
+              access_token: sqData.access_token,
+              location_id: sqData.location_id,
+              application_id: sqData.application_id || '',
+              sandbox: sqData.sandbox,
+            }))
           } catch { /* ignore */ }
         }
       } else if (typeof localStorage !== 'undefined') {
@@ -261,6 +268,7 @@ export const useAppStore = defineStore('app', () => {
                 ...settings.value,
                 squareAccessToken: parsed.access_token || '',
                 squareLocationId: parsed.location_id || '',
+                squareApplicationId: parsed.application_id || '',
                 squareSandbox: parsed.sandbox ?? false,
               }
             }
@@ -723,6 +731,7 @@ export const useAppStore = defineStore('app', () => {
       profile_id: user.value.id,
       access_token: settings.value.squareAccessToken,
       location_id: settings.value.squareLocationId,
+      application_id: settings.value.squareApplicationId || '',
       sandbox: settings.value.squareSandbox,
     }
     const { error } = await ($supabase as any).from('square_config').upsert(payload, { onConflict: 'profile_id' })
@@ -732,7 +741,12 @@ export const useAppStore = defineStore('app', () => {
     }
     if (typeof localStorage !== 'undefined' && payload.access_token && payload.location_id) {
       try {
-        localStorage.setItem('novaops_square_config', JSON.stringify({ access_token: payload.access_token, location_id: payload.location_id, sandbox: payload.sandbox }))
+        localStorage.setItem('novaops_square_config', JSON.stringify({
+          access_token: payload.access_token,
+          location_id: payload.location_id,
+          application_id: payload.application_id || '',
+          sandbox: payload.sandbox,
+        }))
       } catch { /* ignore */ }
     }
   }
