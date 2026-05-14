@@ -449,17 +449,7 @@ const isSandbox = computed(() =>
   (settings.value as any).squareApplicationId?.startsWith?.('sandbox-')
 )
 
-useHead(() => ({
-  script: [
-    {
-      key: 'square-web-payments-sdk',
-      src: isSandbox.value
-        ? 'https://sandbox.web.squarecdn.com/v1/square.js'
-        : 'https://web.squarecdn.com/v1/square.js',
-      async: true,
-    },
-  ],
-}))
+
 
 const inventory = computed(() => appStore.inventory ?? [])
 const settings  = computed(() => appStore.settings ?? { currency: '$', taxRate: 0 })
@@ -475,6 +465,23 @@ const squareClientLocationId = computed(
     String(settings.value.squareLocationId || '').trim() ||
     String(config.public.squareLocationId || '').trim(),
 )
+
+const squareScriptUrl = computed(() => {
+  if (!squareClientApplicationId.value) return null
+  return isSandbox.value
+    ? 'https://sandbox.web.squarecdn.com/v1/square.js'
+    : 'https://web.squarecdn.com/v1/square.js'
+})
+
+useHead(() => ({
+  script: squareScriptUrl.value ? [
+    {
+      key: 'square-web-payments-sdk',
+      src: squareScriptUrl.value,
+      async: true,
+    },
+  ] : [],
+}))
 
 const squareConfigured = computed(
   () => !!(settings.value.squareAccessToken && settings.value.squareLocationId),
