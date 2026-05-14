@@ -34,18 +34,43 @@
     >
       <v-list nav density="compact" class="rail-nav-list py-2">
 
-        <!-- Logo / More FAB -->
-        <v-list-item
-          class="mb-1 text-center"
-          :active="activeDrawer === 'more'"
-          :base-color="activeDrawer === 'more' ? 'primary' : undefined"
-          rounded="xl"
-          @click="toggleDrawer('more')"
-        >
-          <template #prepend>
-            <v-icon color="primary" size="22">mdi-plus-circle</v-icon>
+        <!-- + New FAB -->
+        <v-menu location="end" :close-on-content-click="true" offset="10">
+          <template #activator="{ props }">
+            <v-list-item
+              class="mb-1 text-center"
+              rounded="xl"
+              v-bind="props"
+            >
+              <template #prepend>
+                <v-icon color="primary" size="22">mdi-plus-circle</v-icon>
+              </template>
+            </v-list-item>
           </template>
-        </v-list-item>
+          
+          <v-list density="compact" min-width="200" class="pa-2" rounded="xl" elevation="3">
+            <div class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-2 px-3 pt-1">Quick Actions</div>
+            <v-list-item
+              v-for="q in quickItems"
+              :key="q.type"
+              rounded="lg"
+              class="mb-1"
+              @click="triggerAction(q.type)"
+            >
+              <template #prepend>
+                <v-avatar :color="q.color" size="28" rounded="lg" class="mr-3">
+                  <v-icon :icon="q.icon" size="14" color="white" />
+                </v-avatar>
+              </template>
+              <template #title>
+                <span class="text-body-2 font-weight-bold">{{ q.label }}</span>
+              </template>
+              <template #append>
+                <span class="text-caption text-medium-emphasis ml-2">{{ q.kbd }}</span>
+              </template>
+            </v-list-item>
+          </v-list>
+        </v-menu>
 
         <v-divider class="mb-2" />
 
@@ -86,26 +111,6 @@
         </v-tooltip>
 
         <v-divider class="my-2" />
-
-        <!-- Tools toggle -->
-        <v-tooltip text="Tools" location="end">
-          <template #activator="{ props }">
-            <v-list-item
-              v-bind="props"
-              :active="activeDrawer === 'tools'"
-              rounded="xl"
-              @click="toggleDrawer('tools')"
-            >
-              <template #prepend>
-                <v-icon
-                  :color="activeDrawer === 'tools' ? 'secondary' : '#94a3b8'"
-                  size="24"
-                  :icon="activeDrawer === 'tools' ? 'mdi-chevron-right' : 'mdi-dots-horizontal'"
-                />
-              </template>
-            </v-list-item>
-          </template>
-        </v-tooltip>
       </v-list>
 
       <!-- Bottom: theme + settings + avatar -->
@@ -163,124 +168,7 @@
       </template>
     </v-navigation-drawer>
 
-    <!-- ── Desktop Contextual Drawer ───────────────────────────── -->
-    <v-navigation-drawer
-      v-if="!isMobile && activeDrawer"
-      :model-value="!!activeDrawer"
-      permanent
-      :width="264"
-      style="left: 72px"
-    >
-      <!-- More / Quick Actions drawer -->
-      <template v-if="activeDrawer === 'more'">
-        <v-list-item class="py-4 border-b" :subtitle="userEmail">
-          <template #title><span class="text-subtitle-2 font-weight-bold">Quick Actions</span></template>
-          <template #append>
-            <v-btn icon="mdi-close" variant="text" size="small" @click="activeDrawer = null" />
-          </template>
-        </v-list-item>
 
-        <div class="pa-3">
-          <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-2 px-1">Upcoming</p>
-          <div v-if="upcomingItems.length === 0" class="text-center py-4 text-medium-emphasis">
-            <v-icon icon="mdi-calendar-blank" />
-            <p class="text-caption mt-1">Nothing coming up</p>
-          </div>
-          <v-list v-else density="compact" nav class="pa-0 mb-3">
-            <v-list-item
-              v-for="item in upcomingItems.slice(0, 5)"
-              :key="item.id"
-              :subtitle="item.sub"
-              rounded="lg"
-            >
-              <template #prepend>
-                <v-avatar :color="item.color" size="32" rounded="lg">
-                  <v-icon :icon="item.icon" size="16" color="white" />
-                </v-avatar>
-              </template>
-              <template #title>
-                <span class="text-caption font-weight-bold">{{ item.label }}</span>
-              </template>
-            </v-list-item>
-          </v-list>
-
-          <v-divider class="mb-3" />
-          <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-2 px-1">Quick Actions</p>
-          <v-list density="compact" nav class="pa-0">
-            <v-list-item
-              v-for="q in quickItems"
-              :key="q.type"
-              :subtitle="q.kbd"
-              rounded="lg"
-              @click="navigateTo(q.path); activeDrawer = null"
-            >
-              <template #prepend>
-                <v-avatar :color="q.color" size="32" rounded="lg">
-                  <v-icon :icon="q.icon" size="16" color="white" />
-                </v-avatar>
-              </template>
-              <template #title>
-                <span class="text-caption font-weight-bold">{{ q.label }}</span>
-              </template>
-            </v-list-item>
-          </v-list>
-        </div>
-      </template>
-
-      <!-- Tools drawer -->
-      <template v-if="activeDrawer === 'tools'">
-        <v-list-item class="py-4 border-b">
-          <template #title><span class="text-subtitle-2 font-weight-bold">Tools</span></template>
-          <template #append>
-            <v-btn icon="mdi-close" variant="text" size="small" @click="activeDrawer = null" />
-          </template>
-        </v-list-item>
-        <v-list nav density="compact" class="pa-3">
-          <v-list-item
-            v-for="item in toolsNav"
-            :key="item.path"
-            :to="item.path"
-            :value="item.path"
-            rounded="lg"
-            @click="activeDrawer = null"
-          >
-            <template #prepend>
-              <v-avatar :color="item.color" size="32" rounded="lg">
-                <v-icon :icon="item.icon" size="16" color="white" />
-              </v-avatar>
-            </template>
-            <template #title>
-              <span class="text-body-2 font-weight-medium">{{ item.name }}</span>
-            </template>
-            <template #append>
-              <v-chip v-if="item.badge" :color="item.badge.color" size="x-small" variant="tonal">
-                {{ item.badge.label }}
-              </v-chip>
-            </template>
-          </v-list-item>
-        </v-list>
-      </template>
-
-      <template v-if="activeDrawer === 'tools'" #append>
-        <div class="pa-3 border-t">
-          <v-list-item
-              :subtitle="userEmail"
-              rounded="lg"
-              class="cursor-pointer"
-              @click="navigateTo('/settings'); activeDrawer = null"
-            >
-              <template #prepend>
-                <v-avatar color="primary" size="32">
-                  <span class="text-caption font-weight-bold">{{ userInitials }}</span>
-                </v-avatar>
-              </template>
-              <template #title>
-                <span class="text-caption font-weight-bold">{{ settings?.businessName || 'NovaOps' }}</span>
-              </template>
-            </v-list-item>
-        </div>
-      </template>
-    </v-navigation-drawer>
 
     <!-- ── Mobile drawer (full sidebar) ────────────────────────── -->
     <v-navigation-drawer
@@ -324,12 +212,7 @@
       </v-list>
     </v-navigation-drawer>
 
-    <!-- ── Backdrop for desktop contextual drawer ───────────────── -->
-    <div
-      v-if="!isMobile && activeDrawer"
-      class="drawer-overlay"
-      @click="activeDrawer = null"
-    />
+
 
     <!-- ── Main content ─────────────────────────────────────────── -->
     <v-main class="d-flex flex-column h-screen" style="overflow: hidden">
@@ -369,6 +252,10 @@
       </template>
     </v-snackbar>
 
+    <!-- ── Global Dialogs ──────────────────────────────────────── -->
+    <NewTicketDialog v-model="newTicketOpen" />
+    <CustomerEditDialog v-model="newCustomerOpen" />
+
   </v-app>
 </template>
 
@@ -377,6 +264,8 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAppStore } from '~/stores/app'
 import { useToast } from '~/composables/useToast'
+import NewTicketDialog from '~/components/NewTicketDialog.vue'
+import CustomerEditDialog from '~/components/CustomerEditDialog.vue'
 import { useDisplay } from 'vuetify'
 import { useScreenLock } from '~/composables/useScreenLock'
 
@@ -416,23 +305,17 @@ const userInitials = computed(() => {
   return parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : e.slice(0, 2).toUpperCase()
 })
 
-// Navigation definition — MDI icons only
 const navigation = [
   { name: 'Dashboard',   path: '/dashboard',  icon: 'mdi-view-dashboard-outline', color: '#6366f1', badge: null,                         group: 'core' },
   { name: 'Bookings',    path: '/bookings',   icon: 'mdi-clipboard-text-outline', color: '#f59e0b', badge: { label: 'New',  color: 'warning' }, group: 'core' },
   { name: 'Customers',   path: '/customers',  icon: 'mdi-account-group-outline',  color: '#3b82f6', badge: null,                         group: 'core' },
   { name: 'Inventory',   path: '/inventory',  icon: 'mdi-package-variant-closed', color: '#8b5cf6', badge: null,                         group: 'core' },
-  { name: 'Calendar',    path: '/calendar',   icon: 'mdi-calendar',               color: '#06b6d4', badge: null,                         group: 'core' },
   { name: 'POS',         path: '/pos',        icon: 'mdi-cart-outline',           color: '#ec4899', badge: { label: 'Live', color: 'success' }, group: 'core' },
-  { name: 'Trade-In',    path: '/tradein',    icon: 'mdi-swap-horizontal',        color: '#f59e0b', badge: null,                         group: 'core' },
-  { name: 'Analytics',   path: '/analytics',  icon: 'mdi-chart-bar',              color: '#10b981', badge: null,                         group: 'tools' },
-  { name: 'Barcodes',    path: '/barcodes',   icon: 'mdi-barcode-scan',           color: '#06b6d4', badge: null,                         group: 'tools' },
-  { name: 'Import',      path: '/import',     icon: 'mdi-upload',                 color: '#8b5cf6', badge: null,                         group: 'tools' },
-  { name: 'Forms',       path: '/forms',      icon: 'mdi-file-document-outline',  color: '#10b981', badge: null,                         group: 'tools' },
+  { name: 'Analytics',   path: '/analytics',  icon: 'mdi-chart-bar',              color: '#10b981', badge: null,                         group: 'core' },
+  { name: 'Tools',       path: '/tools',      icon: 'mdi-toolbox-outline',        color: '#06b6d4', badge: null,                         group: 'core' },
 ]
 
 const coreNav  = navigation.filter(n => n.group === 'core')
-const toolsNav = navigation.filter(n => n.group === 'tools')
 
 const currentPageNav   = computed(() => navigation.find(n => n.path === route.path))
 const currentPageTitle = computed(() => currentPageNav.value?.name || 'NovaOps')
@@ -446,15 +329,22 @@ watch(() => route.path, () => {
   activeDrawer.value = null
 })
 
-// Quick items for the More drawer
+// Quick items for the New popover
 const quickItems = [
-  { type: 'ticket',    label: 'New Ticket',    icon: 'mdi-ticket-outline',           color: '#f59e0b', path: '/bookings',  kbd: '⌘T' },
-  { type: 'housecall', label: 'House Call',     icon: 'mdi-map-marker-outline',     color: '#10b981', path: '/bookings',  kbd: '⌘H' },
-  { type: 'customer',  label: 'New Customer',   icon: 'mdi-account-plus-outline',   color: '#3b82f6', path: '/customers', kbd: '⌘U' },
-  { type: 'register',  label: 'Open Register',  icon: 'mdi-cart-outline',           color: '#ec4899', path: '/pos',       kbd: '⌘R' },
-  { type: 'invoice',   label: 'New Invoice',    icon: 'mdi-tag-outline',            color: '#10b981', path: '/forms',     kbd: '⌘I' },
-  { type: 'scan',      label: 'Scan Barcode',   icon: 'mdi-barcode',                color: '#06b6d4', path: '/barcodes',  kbd: '⌘B' },
+  { type: 'ticket',    label: 'New Ticket',    icon: 'mdi-ticket-outline',           color: '#f59e0b', kbd: '⌘T' },
+  { type: 'housecall', label: 'House Call',     icon: 'mdi-map-marker-outline',     color: '#10b981', kbd: '⌘H' },
+  { type: 'customer',  label: 'New Customer',   icon: 'mdi-account-plus-outline',   color: '#3b82f6', kbd: '⌘U' },
+  { type: 'register',  label: 'Open Register',  icon: 'mdi-cart-outline',           color: '#ec4899', kbd: '⌘R' },
 ]
+
+const newTicketOpen = ref(false)
+const newCustomerOpen = ref(false)
+
+function triggerAction(type: string) {
+  if (type === 'ticket' || type === 'housecall') newTicketOpen.value = true
+  else if (type === 'customer') newCustomerOpen.value = true
+  else if (type === 'register') navigateTo('/pos')
+}
 
 // Upcoming items
 const upcomingItems = computed(() => {
@@ -473,8 +363,7 @@ const upcomingItems = computed(() => {
 })
 const upcomingCount = computed(() => upcomingItems.value.length)
 
-// No-loading-gate pages
-const NO_LOADING_GATE_PATHS = ['/settings', '/barcodes', '/tradein', '/forms', '/import', '/analytics']
+const NO_LOADING_GATE_PATHS = ['/settings', '/tools', '/analytics']
 const noLoadingGate = computed(() => NO_LOADING_GATE_PATHS.includes(route.path))
 
 // Snackbar helpers
@@ -488,12 +377,16 @@ function snackIcon(status: string) {
 // Keyboard shortcuts
 function onKeydown(e: KeyboardEvent) {
   if (!e.metaKey && !e.ctrlKey) return
+  const key = e.key.toLowerCase()
+  if (key === 't' || key === 'h') { e.preventDefault(); triggerAction(key === 't' ? 'ticket' : 'housecall'); return }
+  if (key === 'u') { e.preventDefault(); triggerAction('customer'); return }
+  if (key === 'r') { e.preventDefault(); navigateTo('/pos'); return }
+
   const map: Record<string, string> = {
-    't': '/bookings', 'h': '/bookings', 'u': '/customers',
-    'r': '/pos', 'i': '/forms', 'b': '/barcodes',
+    'i': '/tools', 'b': '/tools',
     'd': '/dashboard', ',': '/settings', 'a': '/analytics',
   }
-  const path = map[e.key.toLowerCase()]
+  const path = map[key]
   if (path) { e.preventDefault(); navigateTo(path) }
 }
 onMounted(() => window.addEventListener('keydown', onKeydown))

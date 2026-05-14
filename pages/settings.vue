@@ -493,7 +493,7 @@
           </v-card-item>
           <v-card-text class="pa-6 d-flex flex-column gap-3">
             <v-btn block color="info" variant="tonal" prepend-icon="mdi-download" @click="handleExport">Export All Data</v-btn>
-            <v-btn block variant="tonal" prepend-icon="mdi-upload" @click="router.push('/import')">Import Data</v-btn>
+            <v-btn block variant="tonal" prepend-icon="mdi-upload" @click="router.push('/tools')">Import Data</v-btn>
           </v-card-text>
         </v-card>
 

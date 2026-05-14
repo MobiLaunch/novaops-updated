@@ -179,7 +179,6 @@
 <script setup lang="ts">
 import { printHtmlContent, printBarcodeLabel, printBarcodeBatch } from '~/utils/print'
 import { useToast } from '~/composables/useToast'
-definePageMeta({ middleware: ['auth'] })
 
 const appStore  = useAppStore()
 const inventory = computed(() => appStore.inventory ?? [])

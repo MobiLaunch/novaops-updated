@@ -28,8 +28,22 @@
       </div>
     </div>
 
-    <!-- ── Stat Cards ───────────────────────────────────────────── -->
-    <v-row dense class="mb-5">
+    <!-- ── Tabs ─────────────────────────────────────────────────── -->
+    <v-tabs v-model="activeTab" color="deep-purple" class="mb-4">
+      <v-tab value="stock">
+        <v-icon start>mdi-package-variant-closed</v-icon>
+        Stock & Services
+      </v-tab>
+      <v-tab value="tradein">
+        <v-icon start>mdi-swap-horizontal</v-icon>
+        Trade-In
+      </v-tab>
+    </v-tabs>
+
+    <v-tabs-window v-model="activeTab" style="overflow: visible;">
+      <v-tabs-window-item value="stock">
+        <!-- ── Stat Cards ───────────────────────────────────────────── -->
+        <v-row dense class="mb-5">
       <v-col v-for="stat in stats" :key="stat.label" cols="6" sm="3">
         <v-card
           class="pa-4 stat-card"
@@ -176,6 +190,28 @@
         </v-card>
       </v-col>
     </v-row>
+      </v-tabs-window-item>
+
+      <v-tabs-window-item value="tradein">
+        <v-card class="pa-12 text-center" variant="outlined" style="border-color: rgba(var(--v-theme-warning), 0.3)">
+          <v-avatar size="80" rounded="xl" color="warning" variant="tonal" class="mb-4 mx-auto">
+            <v-icon icon="mdi-swap-horizontal" size="40" style="opacity:0.8" />
+          </v-avatar>
+          <div class="text-h5 font-weight-black mb-2">Trade-In Evaluator</div>
+          <div class="text-body-1 text-medium-emphasis mb-6 max-w-md mx-auto" style="max-width: 500px">
+            Assess customer devices, calculate condition-based offers, and automatically add purchased devices to your inventory.
+          </div>
+          <v-btn
+            color="warning"
+            size="large"
+            prepend-icon="mdi-calculator"
+            @click="tradeInWizardOpen = true"
+          >
+            Start New Evaluation
+          </v-btn>
+        </v-card>
+      </v-tabs-window-item>
+    </v-tabs-window>
 
     <!-- ── Add/Edit Dialog ─────────────────────────────────────── -->
     <v-dialog v-model="newOpen" max-width="520" scrollable>
@@ -310,6 +346,8 @@
       </v-card>
     </v-dialog>
 
+    <TradeInWizard v-model="tradeInWizardOpen" @saved="handleTradeInSaved" />
+
   </div>
 </template>
 
@@ -318,6 +356,7 @@ import { ref, computed } from 'vue'
 import { useToast } from '~/composables/useToast'
 import { useAppStore } from '~/stores/app'
 import { printBarcodeLabel, printBarcodeBatch } from '~/utils/print'
+import TradeInWizard from '~/components/TradeInWizard.vue'
 
 definePageMeta({ middleware: ['auth'] })
 
@@ -337,6 +376,15 @@ const typeFilterIdx = ref(0)
 const newOpen      = ref(false)
 const editingItem  = ref<any>(null)
 const isSaving     = ref(false)
+
+const activeTab = ref('stock')
+const tradeInWizardOpen = ref(false)
+
+const handleTradeInSaved = () => {
+  toast.success('Trade-In Complete', 'Device added to inventory')
+  tradeInWizardOpen.value = false
+  activeTab.value = 'stock'
+}
 
 const typeOptions = [
   { label: 'All', value: null },

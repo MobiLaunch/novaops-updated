@@ -381,18 +381,18 @@ const kpiStats = computed(() => [
   },
   {
     label: 'Upcoming', value: upcomingAppointments.value, icon: 'mdi-calendar-clock',
-    color: '#06b6d4', path: '/calendar', chip: null, chipColor: '',
+    color: '#06b6d4', path: '/bookings', chip: null, chipColor: '',
   },
 ])
 
 // Quick actions
 const quickActions = computed(() => [
   { label: 'New Sale',  sub: 'POS',          color: '#ec4899', icon: 'mdi-cart-outline',           onClick: () => navigateTo('/pos') },
-  { label: 'Schedule', sub: 'Calendar',      color: '#8b5cf6', icon: 'mdi-calendar',               onClick: () => navigateTo('/calendar') },
+  { label: 'Schedule', sub: 'Calendar',      color: '#8b5cf6', icon: 'mdi-calendar',               onClick: () => navigateTo('/bookings') },
   { label: 'Inventory',sub: 'Stock',         color: '#f59e0b', icon: 'mdi-package-variant-closed',  onClick: () => navigateTo('/inventory') },
   { label: 'Bookings', sub: 'Repairs',       color: '#3b82f6', icon: 'mdi-clipboard-check-outline', onClick: () => navigateTo('/bookings') },
   { label: 'Customers',sub: 'Clients',       color: '#06b6d4', icon: 'mdi-account-plus-outline',    onClick: () => navigateTo('/customers') },
-  { label: 'Trade-In', sub: 'Quotes',        color: '#f59e0b', icon: 'mdi-swap-horizontal',         onClick: () => navigateTo('/tradein') },
+  { label: 'Trade-In', sub: 'Quotes',        color: '#f59e0b', icon: 'mdi-swap-horizontal',         onClick: () => navigateTo('/inventory') },
 ])
 
 // Today summary

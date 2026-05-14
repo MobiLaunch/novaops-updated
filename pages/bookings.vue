@@ -51,6 +51,10 @@
           {{ activeVendorCount }}
         </v-chip>
       </v-tab>
+      <v-tab value="calendar">
+        <v-icon start>mdi-calendar</v-icon>
+        Calendar
+      </v-tab>
     </v-tabs>
 
     <v-tabs-window v-model="activeTab">
@@ -401,6 +405,13 @@
           <v-btn color="secondary" variant="tonal" @click="openNewVendorRepair">New Vendor Repair</v-btn>
         </v-card>
       </v-tabs-window-item>
+
+      <!-- ══════════════════════════════════════════════════════════ -->
+      <!-- TAB: CALENDAR                                             -->
+      <!-- ══════════════════════════════════════════════════════════ -->
+      <v-tabs-window-item value="calendar">
+        <CalendarTab />
+      </v-tabs-window-item>
     </v-tabs-window>
 
     <!-- ══════════════════════════════════════════════════════════ -->
@@ -659,6 +670,7 @@ import type { Ticket } from '~/types'
 import NewTicketDialog from '~/components/NewTicketDialog.vue'
 import TicketDetailDialog from '~/components/TicketDetailDialog.vue'
 import CustomerSelect from '~/components/CustomerSelect.vue'
+import CalendarTab from '~/components/CalendarTab.vue'
 import { useToast } from '~/composables/useToast'
 import { printHousecall } from '~/utils/print'
 definePageMeta({ middleware: ['auth'] })

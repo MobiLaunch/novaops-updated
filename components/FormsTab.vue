@@ -268,8 +268,6 @@
 <script setup lang="ts">
 import TradeInWizard from '~/components/TradeInWizard.vue'
 
-definePageMeta({ middleware: ['auth'] })
-
 const appStore   = useAppStore()
 const customers  = computed(() => appStore.customers ?? [])
 const tickets    = computed(() => appStore.tickets ?? [])

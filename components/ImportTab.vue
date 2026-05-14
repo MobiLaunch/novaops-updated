@@ -157,7 +157,6 @@
 <script setup lang="ts">
 import { useToast } from '~/composables/useToast'
 
-definePageMeta({ middleware: ['auth'] })
 const appStore = useAppStore()
 const { toast } = useToast()
 const fileInputs = ref<Record<string, HTMLInputElement>>({})

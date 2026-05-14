@@ -157,7 +157,7 @@ const upcomingItems = computed<UpcomingItem[]>(() => {
         subtitle: getCustomerName(apt.customerId),
         date: aptDate,
         timeFromNow: getTimeFromNow(aptDate),
-        route: '/calendar'
+        route: '/bookings'
       })
     }
   })

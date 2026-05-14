@@ -230,8 +230,6 @@ import { ref, computed } from 'vue'
 import { useAppStore } from '~/stores/app'
 import { storeToRefs } from 'pinia'
 
-definePageMeta({ middleware: ['auth'] })
-
 const appStore = useAppStore()
 const { appointments, tickets } = storeToRefs(appStore)
 
