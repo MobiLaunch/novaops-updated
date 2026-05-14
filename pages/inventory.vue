@@ -34,6 +34,10 @@
         <v-icon start>mdi-package-variant-closed</v-icon>
         Stock & Services
       </v-tab>
+      <v-tab value="services">
+        <v-icon start>mdi-wrench-outline</v-icon>
+        Service Pricing
+      </v-tab>
       <v-tab value="tradein">
         <v-icon start>mdi-swap-horizontal</v-icon>
         Trade-In
@@ -190,6 +194,50 @@
         </v-card>
       </v-col>
     </v-row>
+      </v-tabs-window-item>
+
+      <v-tabs-window-item value="services">
+        <v-card>
+          <v-card-item class="border-b" style="background:#10b98108">
+            <template #prepend>
+              <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#10b981,#059669)">
+                <v-icon icon="mdi-wrench-outline" size="18" color="white" />
+              </v-avatar>
+            </template>
+            <v-card-title class="text-body-1 font-weight-black">Service Pricing</v-card-title>
+            <v-card-subtitle>Manage your repair services, prices, and time estimates</v-card-subtitle>
+          </v-card-item>
+          <v-card-text class="pa-6">
+            <div v-if="servicesList.length === 0" class="d-flex flex-column align-center gap-3 py-10 text-medium-emphasis">
+              <v-avatar size="64" rounded="xl" color="success" variant="tonal">
+                <v-icon icon="mdi-wrench-outline" size="32" style="opacity:.5" />
+              </v-avatar>
+              <div class="text-body-2 font-weight-bold">No services yet</div>
+              <div class="text-caption">Use the "Add Item" button above with type "Service" to add one</div>
+            </div>
+            <v-row v-else dense>
+              <v-col v-for="svc in servicesList" :key="svc.id" cols="12" sm="6" lg="4">
+                <v-card variant="outlined" class="pa-4 h-100 item-card" style="border-color:#10b98130; cursor:pointer" @click="openEdit(svc)">
+                  <div class="d-flex align-center gap-3 mb-3">
+                    <v-avatar size="40" rounded="lg" style="background:#10b98118">
+                      <v-icon icon="mdi-wrench-outline" size="20" color="#10b981" />
+                    </v-avatar>
+                    <div class="flex-grow-1 min-w-0">
+                      <div class="text-body-2 font-weight-bold text-truncate">{{ svc.name }}</div>
+                      <div class="text-caption text-medium-emphasis text-truncate">{{ svc.category || 'Services' }}</div>
+                    </div>
+                  </div>
+                  <div class="d-flex align-center justify-space-between">
+                    <span class="text-h6 font-weight-black" style="color:#10b981">{{ formatCurrency(svc.price) }}</span>
+                    <v-chip v-if="svc.estimated_minutes" size="x-small" color="success" variant="tonal">
+                      {{ svc.estimated_minutes }} min
+                    </v-chip>
+                  </div>
+                </v-card>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
       </v-tabs-window-item>
 
       <v-tabs-window-item value="tradein">
@@ -368,6 +416,8 @@ const allItems = computed(() => {
   const services = (appStore.services ?? []).map((s: any) => ({ ...s, itemType: 'service', stock: 9999, low: 0, sku: s.sku || '' }))
   return [...products, ...services]
 })
+
+const servicesList = computed(() => allItems.value.filter((i: any) => i.itemType === 'service'))
 
 const q            = ref('')
 const selectedCat  = ref<string|null>(null)

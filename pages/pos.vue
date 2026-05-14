@@ -270,7 +270,7 @@
           class="mb-3 position-relative overflow-hidden"
           :style="paymentMethod === 'Card' ? 'border: 2px solid rgb(var(--v-theme-primary))' : 'border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity))'"
         >
-          <div v-if="paymentMethod !== 'Card'" class="position-absolute bg-surface-variant w-100 h-100 d-flex align-center justify-center" style="z-index: 5; opacity: 0.9 cursor: pointer" @click="paymentMethod = 'Card'">
+          <div v-if="paymentMethod !== 'Card'" class="position-absolute bg-surface-variant w-100 h-100 d-flex align-center justify-center" style="z-index: 5; opacity: 0.9; cursor: pointer" @click="paymentMethod = 'Card'">
             <v-btn variant="tonal" color="primary" rounded="pill"><v-icon start icon="mdi-credit-card-outline"/> Use Card</v-btn>
           </div>
           
@@ -842,6 +842,24 @@ watch(paymentMethod, async (method, prev) => {
   }
   if (method === 'Card') { await nextTick(); await initCardForm() }
   if (method === 'Afterpay' && total.value > 0) { await nextTick(); await initAfterpayButton(total.value) }
+})
+
+// Auto-init the card form as soon as Square credentials become available
+// This handles the case where settings load after the page mounts
+watch(squareCardSdkReady, async (ready) => {
+  if (ready && !cardAttached.value) {
+    // Pre-init the card form even if "Cash" is selected so it's ready when the user clicks Card
+    await nextTick()
+    await initCardForm()
+  }
+}, { immediate: true })
+
+// Also try to init on mount after a short delay for settings to arrive
+onMounted(async () => {
+  await new Promise(r => setTimeout(r, 1500))
+  if (squareCardSdkReady.value && !cardAttached.value) {
+    await initCardForm()
+  }
 })
 
 // Re-init Afterpay when total changes
