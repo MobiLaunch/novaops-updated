@@ -1,5 +1,5 @@
 <template>
-  <div class="pos-root d-flex flex-column h-100 min-h-[560px] pb-4">
+  <div class="pos-root d-flex flex-column px-2 px-lg-4 pb-2" style="height: 100%; max-height: 100%; overflow: hidden;">
     <!-- Ticket Banner -->
     <v-slide-y-transition>
       <v-alert
@@ -65,13 +65,14 @@
     </v-btn-toggle>
 
     <!-- 3-Column Body -->
-    <v-row class="flex-1-1-100 overflow-hidden mx-0" :class="{ 'd-flex pb-16': $vuetify.display.mdAndDown }">
+    <v-row class="flex-1-1-100 overflow-hidden ma-0">
 
       <!-- COL 1: Products -->
       <v-col
         cols="12" lg="5" xl="6"
         v-show="!$vuetify.display.mdAndDown || mobileTab === 'products'"
         class="d-flex flex-column h-100 overflow-hidden pa-0 pr-lg-2"
+        style="min-height: 0;"
       >
         <v-text-field
           v-model="searchQuery"
@@ -150,6 +151,7 @@
         cols="12" lg="3" xl="3"
         v-show="!$vuetify.display.mdAndDown || mobileTab === 'cart'"
         class="pa-0 px-lg-2 h-100 d-flex flex-column"
+        style="min-height: 0;"
       >
         <v-card class="d-flex flex-column h-100" variant="outlined" rounded="xl">
           <!-- Cart Header -->
@@ -253,6 +255,7 @@
         cols="12" lg="4" xl="3"
         v-show="!$vuetify.display.mdAndDown || mobileTab === 'checkout'"
         class="pa-0 pl-lg-2 h-100 d-flex flex-column overflow-y-auto"
+        style="min-height: 0;"
       >
         <v-card variant="outlined" rounded="xl" class="mb-3">
           <v-card-text class="pa-3">
