@@ -264,6 +264,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { navigateTo } from '#imports'
 import { storeToRefs } from 'pinia'
 import { useAppStore } from '~/stores/app'
 import { useToast } from '~/composables/useToast'
@@ -442,3 +444,4 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   pointer-events: none;
 }
 </style>
+//just to update//

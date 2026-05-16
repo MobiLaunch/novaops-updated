@@ -508,7 +508,12 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { definePageMeta, useNuxtApp } from '#imports'
 import { storeToRefs } from 'pinia'
+import { useAppStore } from '~/stores/app'
+import { useSupabaseConnect } from '~/composables/useSupabaseConnect'
 import { useToast } from '~/composables/useToast'
 
 // ── Toast ─────────────────────────────────────────────────────────────
@@ -521,7 +526,7 @@ const confirmSbDisconnect = ref(false)
 const sbForm = ref({ url: '', key: '' })
 const sbUrl  = computed(() => sbConn.url.value)
 
-watch(showSbModal, (open) => {
+watch(showSbModal, (open: boolean) => {
   if (open) {
     sbForm.value = { url: sbConn.url.value, key: '' }
     sbConn.status.error = null
@@ -556,7 +561,7 @@ const form = ref({
   pin: '', squareAccessToken: '', squareLocationId: '', squareApplicationId: '', squareSandbox: false,
 })
 
-watch(settings, (s) => { if (s) form.value = { ...form.value, ...s } }, { immediate: true, deep: true })
+watch(settings, (s: any) => { if (s) form.value = { ...form.value, ...s } }, { immediate: true, deep: true })
 
 // ── Business save ─────────────────────────────────────────────────────
 const saveMsg = ref<{ ok: boolean; text: string } | null>(null)
@@ -818,7 +823,7 @@ const logDiag = (step: string, status: 'pending' | 'success' | 'error', message?
 }
 
 const updateDiagLog = (step: string, status: 'success' | 'error', message: string) => {
-  const item = diagResults.value.find(r => r.step === step && r.status === 'pending')
+  const item = diagResults.value.find((r: any) => r.step === step && r.status === 'pending')
   if (item) {
     item.status = status
     item.message = message

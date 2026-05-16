@@ -11,18 +11,21 @@
       <v-btn
         v-if="activeTab === 'tickets'"
         color="warning"
+        variant="flat"
         prepend-icon="mdi-plus"
         @click="newTicketOpen = true"
       >New Ticket</v-btn>
       <v-btn
         v-else-if="activeTab === 'housecalls'"
         color="success"
+        variant="flat"
         prepend-icon="mdi-plus"
         @click="openNewHousecall"
       >Schedule Call</v-btn>
       <v-btn
         v-else-if="activeTab === 'thirdparty'"
         color="secondary"
+        variant="flat"
         prepend-icon="mdi-plus"
         @click="openNewVendorRepair"
       >New Vendor Repair</v-btn>
