@@ -4,7 +4,7 @@
     <!-- ── Page header ─────────────────────────────────────────── -->
     <div class="d-flex align-center justify-space-between flex-wrap gap-3 mb-6">
       <div>
-        <p class="text-caption text-medium-emphasis mb-0">Mobicare Device Recovery</p>
+        <p class="text-caption text-medium-emphasis mb-0">{{ settings.businessName || 'Your Business' }}</p>
         <h1 class="text-h5 font-weight-black">Customers</h1>
         <p class="text-body-2 text-medium-emphasis">{{ customers.length }} total clients</p>
       </div>
@@ -207,6 +207,7 @@
         <v-card-actions class="pa-4">
           <v-btn color="error" variant="text" prepend-icon="mdi-delete-outline" @click="deleteCustomer(selected); detailOpen = false">Delete</v-btn>
           <v-spacer />
+          <v-btn variant="tonal" color="warning" prepend-icon="mdi-ticket-outline" @click="createTicketForCustomer">New Ticket</v-btn>
           <v-btn variant="outlined" prepend-icon="mdi-pencil-outline" @click="startEdit()">Edit</v-btn>
           <v-btn color="info" prepend-icon="mdi-email-outline" :disabled="!selected.email && !selected.phone" @click="contactCustomer(selected)">Contact</v-btn>
         </v-card-actions>
@@ -247,7 +248,7 @@
               <v-text-field v-model="form.name" label="Full Name *" placeholder="Jane Smith" />
             </v-col>
             <v-col cols="6">
-              <v-text-field v-model="form.phone" label="Phone" placeholder="(555) 123-4567" />
+              <v-text-field v-model="form.phone" label="Phone" placeholder="(555) 123-4567" @input="form.phone = formatPhone(form.phone)" />
             </v-col>
             <v-col cols="6">
               <v-text-field v-model="form.email" label="Email" type="email" placeholder="jane@email.com" />
@@ -292,12 +293,16 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <!-- New Ticket for specific customer -->
+    <NewTicketDialog v-model="ticketDialogOpen" :customers="customers" @create="handleCreateTicket" />
 
   </div>
 </template>
 
 <script setup lang="ts">
 import { openCustomerContact } from '~/utils/contact'
+import { formatPhoneNumber as formatPhone } from '~/utils/phone'
+import NewTicketDialog from '~/components/NewTicketDialog.vue'
 
 definePageMeta({ middleware: ['auth'] })
 
@@ -414,5 +419,35 @@ async function executeDeleteCustomer() {
 function contactCustomer(c: any) {
   detailOpen.value = false
   if (!openCustomerContact(c)) toast.warning('No contact method', 'Add an email or phone for this customer.')
+}
+
+// ── New Ticket for Customer ───────────────────────────────────────
+const ticketDialogOpen = ref(false)
+
+function createTicketForCustomer() {
+  detailOpen.value = false
+  ticketDialogOpen.value = true
+}
+
+const { sendTicketEmail, sendInternalAlert } = useEmailNotifications()
+
+async function handleCreateTicket(ticketData: any) {
+  const toastId = toast.loading('Creating ticket…')
+  try {
+    let customerId = ticketData.customerId || selected.value?.id
+    if (ticketData.newCustomer?.name) {
+      const nc = await appStore.createCustomer(ticketData.newCustomer)
+      customerId = nc.id
+    }
+    const ticket = await appStore.createTicket({ ...ticketData, customerId, status: 'Open', price: 0, services: [], parts: [], payments: [], notes: [], timeLog: [] })
+    toast.dismiss(toastId)
+    toast.success('Ticket Created', `Ticket #${ticket.id} created successfully`)
+    ticketDialogOpen.value = false
+    sendTicketEmail({ ...ticket, customerId }).catch(() => {})
+    sendInternalAlert({ eventType: 'New Ticket', eventSummary: `Ticket #${ticket.id} created`, customerName: selected.value?.name || '', deviceName: ticketData.device || '', issueDescription: ticketData.issue || '', ticketNumber: String(ticket.id) }).catch(() => {})
+  } catch (err: any) {
+    toast.dismiss(toastId)
+    toast.danger('Error', err.message || 'Failed to create ticket')
+  }
 }
 </script>

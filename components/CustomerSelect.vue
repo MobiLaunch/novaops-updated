@@ -140,6 +140,7 @@
           density="comfortable"
           hide-details
           rounded="lg"
+          @input="newCustomerForm.phone = formatPhone(newCustomerForm.phone)"
         />
         <v-btn
           variant="flat"
@@ -164,6 +165,7 @@ import { ref, computed } from 'vue'
 import { onClickOutside } from '@vueuse/core'
 import { useAppStore } from '~/stores/app'
 import { useToast } from '~/composables/useToast'
+import { formatPhoneNumber as formatPhone } from '~/utils/phone'
 
 const props = defineProps<{
   modelValue: number | null

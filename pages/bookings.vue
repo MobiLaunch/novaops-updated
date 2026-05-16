@@ -227,17 +227,28 @@
           </v-col>
         </v-row>
 
-        <!-- Filter chips -->
-        <div class="d-flex gap-2 flex-wrap mb-4">
-          <v-chip
-            v-for="f in housecallFilterOptions"
-            :key="f"
-            :color="housecallFilter === f ? 'success' : undefined"
-            :variant="housecallFilter === f ? 'tonal' : 'outlined'"
-            size="small"
-            clickable
-            @click="housecallFilter = f"
-          >{{ f }}</v-chip>
+        <!-- Search & Filter chips -->
+        <div class="d-flex align-center gap-3 flex-wrap mb-4">
+          <v-text-field
+            v-model="housecallSearch"
+            placeholder="Search name, address or issue…"
+            prepend-inner-icon="mdi-magnify"
+            hide-details
+            density="compact"
+            rounded="pill"
+            style="max-width:320px;min-width:200px"
+          />
+          <div class="d-flex gap-2 flex-wrap">
+            <v-chip
+              v-for="f in housecallFilterOptions"
+              :key="f"
+              :color="housecallFilter === f ? 'success' : undefined"
+              :variant="housecallFilter === f ? 'tonal' : 'outlined'"
+              size="small"
+              clickable
+              @click="housecallFilter = f"
+            >{{ f }}</v-chip>
+          </div>
         </div>
 
         <!-- House call cards grid -->
@@ -454,146 +465,10 @@
     </v-dialog>
 
     <!-- House Call Form -->
-    <v-dialog v-model="housecallFormOpen" max-width="720" scrollable>
-      <v-card>
-        <v-card-item class="border-b">
-          <template #prepend>
-            <v-avatar color="success" size="40" rounded="lg">
-              <v-icon color="white">mdi-map-marker</v-icon>
-            </v-avatar>
-          </template>
-          <v-card-title>{{ editingHousecall ? 'Edit House Call' : 'Schedule House Call' }}</v-card-title>
-          <v-card-subtitle>On-site repair appointment</v-card-subtitle>
-          <template #append>
-            <v-btn icon="mdi-close" variant="text" @click="housecallFormOpen = false" />
-          </template>
-        </v-card-item>
-
-        <v-card-text class="pa-6">
-          <v-row>
-            <!-- Left: form fields -->
-            <v-col cols="12" md="6">
-              <div class="d-flex flex-column gap-4">
-                <CustomerSelect v-model="housecallForm.customerId" />
-
-                <!-- Address with autocomplete -->
-                <div class="position-relative">
-                  <v-text-field
-                    v-model="housecallForm.address"
-                    label="Address"
-                    placeholder="123 Main St, City, State"
-                    @input="onAddressInput"
-                  >
-                    <template #append-inner>
-                      <v-btn icon="mdi-navigation" size="x-small" variant="text" color="info" @click="openMaps" />
-                    </template>
-                  </v-text-field>
-                  <v-list v-if="showSuggestions && addressSuggestions.length" class="position-absolute elevation-4 rounded-lg" style="z-index:100;top:100%;left:0;right:0;max-height:180px;overflow-y:auto">
-                    <v-list-item
-                      v-for="sug in addressSuggestions"
-                      :key="sug.place_id"
-                      :title="sug.display_name"
-                      density="compact"
-                      @click="selectSuggestion(sug)"
-                    />
-                  </v-list>
-                </div>
-
-                <v-row dense>
-                  <v-col cols="6">
-                    <v-text-field v-model="housecallForm.date" label="Date" type="date" />
-                  </v-col>
-                  <v-col cols="6">
-                    <v-text-field v-model="housecallForm.time" label="Time" type="time" />
-                  </v-col>
-                </v-row>
-
-                <v-textarea v-model="housecallForm.issue" label="Issue / Description" rows="3" />
-
-                <v-select
-                  v-if="editingHousecall"
-                  v-model="housecallForm.status"
-                  label="Status"
-                  :items="['Scheduled','In Progress','Completed','Cancelled']"
-                />
-
-                <v-card color="success" variant="tonal" rounded="lg" class="pa-3">
-                  <div class="d-flex align-center justify-space-between">
-                    <span class="text-caption font-weight-black text-uppercase">Call Estimate</span>
-                    <span class="text-h6 font-weight-black text-success">${{ housecallEstimate.toFixed(2) }}</span>
-                  </div>
-                </v-card>
-              </div>
-            </v-col>
-
-            <!-- Right: map + calculator -->
-            <v-col cols="12" md="6">
-              <div class="d-flex flex-column gap-4">
-                <!-- Map preview -->
-                <div>
-                  <p class="text-caption font-weight-bold text-medium-emphasis mb-2">Location Preview</p>
-                  <div class="rounded-lg overflow-hidden" style="height:160px">
-                    <iframe v-if="mapsUrl" :src="mapsUrl" width="100%" height="100%" style="border:0" />
-                    <div v-else class="d-flex align-center justify-center h-100 text-medium-emphasis" style="background:rgba(0,0,0,0.04)">
-                      <div class="text-center">
-                        <v-icon size="32" class="opacity-40">mdi-map</v-icon>
-                        <p class="text-caption mt-1">Enter address to preview</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Calculator -->
-                <v-card variant="tonal" rounded="lg" class="pa-4">
-                  <p class="text-caption font-weight-black text-uppercase mb-3">
-                    <v-icon size="14" class="me-1">mdi-calculator</v-icon> Job Calculator
-                  </p>
-                  <v-row dense>
-                    <v-col cols="6">
-                      <v-text-field v-model.number="calc.labor"   label="Labor ($)"   type="number" density="compact" />
-                    </v-col>
-                    <v-col cols="6">
-                      <v-text-field v-model.number="calc.parts"   label="Parts ($)"   type="number" density="compact" />
-                    </v-col>
-                    <v-col cols="6">
-                      <v-text-field v-model.number="calc.travel"  label="Travel ($)"  type="number" density="compact" />
-                    </v-col>
-                    <v-col cols="6">
-                      <v-text-field v-model.number="calc.taxRate" label="Tax (%)"     type="number" density="compact" />
-                    </v-col>
-                  </v-row>
-                  <v-divider class="my-2" />
-                  <div class="d-flex justify-space-between text-caption text-medium-emphasis">
-                    <span>Subtotal</span><span>${{ calcSubtotal.toFixed(2) }}</span>
-                  </div>
-                  <div class="d-flex justify-space-between text-caption text-medium-emphasis">
-                    <span>Tax</span><span>${{ calcTax.toFixed(2) }}</span>
-                  </div>
-                  <div class="d-flex justify-space-between text-body-2 font-weight-black text-success mt-1">
-                    <span>Total</span><span>${{ calcTotal.toFixed(2) }}</span>
-                  </div>
-                  <v-btn color="success" variant="tonal" size="small" block class="mt-3" @click="applyCalcEstimate">
-                    Apply as Estimate
-                  </v-btn>
-                </v-card>
-              </div>
-            </v-col>
-          </v-row>
-        </v-card-text>
-
-        <v-divider />
-        <v-card-actions class="pa-4">
-          <v-btn v-if="editingHousecall" variant="outlined" prepend-icon="mdi-printer" @click="printCurrentHousecall">
-            Print
-          </v-btn>
-          <v-spacer />
-          <v-btn variant="text" @click="housecallFormOpen = false">Cancel</v-btn>
-          <v-btn color="success" @click="saveHousecall">
-            {{ editingHousecall ? 'Save Changes' : 'Schedule' }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <HouseCallDialog
+      v-model="housecallFormOpen"
+      :editing-call="editingHousecall"
+    />
 
     <!-- Delete House Call confirm -->
     <v-dialog v-model="deleteHousecallDialogOpen" max-width="400">
@@ -669,15 +544,14 @@ import { storeToRefs } from 'pinia'
 import type { Ticket } from '~/types'
 import NewTicketDialog from '~/components/NewTicketDialog.vue'
 import TicketDetailDialog from '~/components/TicketDetailDialog.vue'
+import HouseCallDialog from '~/components/HouseCallDialog.vue'
 import CustomerSelect from '~/components/CustomerSelect.vue'
 import CalendarTab from '~/components/CalendarTab.vue'
-import { useToast } from '~/composables/useToast'
-import { printHousecall } from '~/utils/print'
 definePageMeta({ middleware: ['auth'] })
 
 const appStore = useAppStore()
 const { tickets, customers, settings, houseCalls: housecalls, vendorRepairs } = storeToRefs(appStore)
-const { sendTicketEmail, sendHousecallEmail, sendVendorRepairEmail, sendInternalAlert } = useEmailNotifications()
+const { sendTicketEmail, sendVendorRepairEmail, sendInternalAlert } = useEmailNotifications()
 const { toast } = useToast()
 
 // ── Tabs ──────────────────────────────────────────────────────────
@@ -783,28 +657,25 @@ const housecallFilter      = ref('All')
 const housecallFilterOptions = ['All', 'Scheduled', 'In Progress', 'Completed', 'Cancelled']
 const housecallFormOpen    = ref(false)
 const editingHousecall     = ref<any>(null)
-const housecallForm        = ref({ customerId: null as any, address: '', date: '', time: '', issue: '', status: 'Scheduled' })
 const pendingDeleteHousecall = ref<any>(null)
 const deleteHousecallDialogOpen = computed({ get: () => !!pendingDeleteHousecall.value, set: v => { if (!v) pendingDeleteHousecall.value = null } })
-const mapsUrl   = ref('')
-const latLonCache = ref<Record<string, any>>({})
-const calc      = ref({ labor: 0, parts: 0, travel: 0, taxRate: 0 })
-const housecallEstimate = ref(0)
 
-onMounted(() => {
-  try { latLonCache.value = JSON.parse(localStorage.getItem('osm_cache') || '{}') } catch {}
+const housecallSearch      = ref('')
+const countHousecallByStatus = (s: string) => housecalls.value.filter((c: any) => c.status === s).length
+const filteredHousecalls = computed(() => {
+  return housecalls.value.filter((c: any) => {
+    const q = housecallSearch.value.toLowerCase()
+    const matchSearch = !q ||
+      getCustomerName(c.customerId).toLowerCase().includes(q) ||
+      (c.address || '').toLowerCase().includes(q) ||
+      (c.issue || '').toLowerCase().includes(q)
+    const matchStatus = housecallFilter.value === 'All' || c.status === housecallFilter.value
+    return matchSearch && matchStatus
+  })
 })
 
-const calcSubtotal = computed(() => (calc.value.labor || 0) + (calc.value.parts || 0) + (calc.value.travel || 0))
-const calcTax      = computed(() => calcSubtotal.value * ((calc.value.taxRate || 0) / 100))
-const calcTotal    = computed(() => calcSubtotal.value + calcTax.value)
-const applyCalcEstimate = () => { housecallEstimate.value = calcTotal.value }
-
-const countHousecallByStatus = (s: string) => housecalls.value.filter((c: any) => c.status === s).length
-const filteredHousecalls = computed(() => housecallFilter.value === 'All' ? housecalls.value : housecalls.value.filter((c: any) => c.status === housecallFilter.value))
-
-function openNewHousecall() { editingHousecall.value = null; housecallForm.value = { customerId: null, address: '', date: '', time: '', issue: '', status: 'Scheduled' }; calc.value = { labor: 0, parts: 0, travel: 0, taxRate: 0 }; housecallEstimate.value = 0; mapsUrl.value = ''; housecallFormOpen.value = true }
-function viewHousecall(call: any) { editingHousecall.value = call; housecallForm.value = { ...call }; housecallFormOpen.value = true }
+function openNewHousecall() { editingHousecall.value = null; housecallFormOpen.value = true }
+function viewHousecall(call: any) { editingHousecall.value = call; housecallFormOpen.value = true }
 
 async function executeDeleteHousecall() {
   if (!pendingDeleteHousecall.value) return
@@ -812,53 +683,11 @@ async function executeDeleteHousecall() {
   catch { toast.danger('Error', 'Failed to delete house call') }
   pendingDeleteHousecall.value = null
 }
-async function saveHousecall() {
-  try {
-    const isNew = !editingHousecall.value
-    if (editingHousecall.value) await appStore.updateHouseCall(editingHousecall.value.id, { ...housecallForm.value })
-    else await appStore.createHouseCall({ ...housecallForm.value, status: 'Scheduled' })
-    housecallFormOpen.value = false; editingHousecall.value = null
-    toast.success('Saved', isNew ? 'House call scheduled' : 'House call updated')
-    if (isNew) { sendHousecallEmail(housecallForm.value).catch(() => {}); sendInternalAlert({ eventType: 'House Call', eventSummary: 'New house call scheduled', customerName: getCustomerName(housecallForm.value.customerId), deviceName: '', issueDescription: housecallForm.value.issue || '' }).catch(() => {}) }
-  } catch (e: any) { toast.danger('Error', e.message || 'Failed to save house call') }
-}
+
 async function advanceHousecallStatus(call: any) {
   try { await appStore.updateHouseCall(call.id, { status: call.status === 'Scheduled' ? 'In Progress' : 'Completed' }) }
   catch { toast.danger('Error', 'Failed to update status') }
 }
-
-const printCurrentHousecall = () => {
-  if (!housecallForm.value) return
-  const customerEmail = customers.value.find((c: any) => c.id === housecallForm.value.customerId)?.email || ''
-  let displayTime = housecallForm.value.time || 'TBD'
-  if (displayTime !== 'TBD' && displayTime.includes(':')) {
-    const [h, m] = displayTime.split(':'); const hour = parseInt(h, 10); displayTime = `${hour % 12 || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`
-  }
-  printHousecall({ businessName: settings.value?.businessName || 'NovaOps', businessAddress: settings.value?.address || '', businessPhone: settings.value?.phone || '', customerName: getCustomerName(housecallForm.value.customerId), customerPhone: getCustomerPhone(housecallForm.value.customerId), customerEmail, serviceAddress: housecallForm.value.address, date: housecallForm.value.date ? formatDate(housecallForm.value.date) : 'TBD', time: displayTime, issue: housecallForm.value.issue || 'No details provided.', status: housecallForm.value.status, estimate: housecallEstimate.value ? `${settings.value?.currency || '$'}${housecallEstimate.value.toFixed(2)}` : undefined })
-}
-
-const selectSuggestion = (pt: any, fromCache = false) => {
-  if (!fromCache) housecallForm.value.address = pt.display_name
-  showSuggestions.value = false
-  if (pt.boundingbox) {
-    const [lat1, lat2, lon1, lon2] = pt.boundingbox
-    mapsUrl.value = `https://www.openstreetmap.org/export/embed.html?bbox=${lon1}%2C${lat1}%2C${lon2}%2C${lat2}&layer=mapnik&marker=${pt.lat}%2C${pt.lon}`
-    latLonCache.value[housecallForm.value.address] = { lat: pt.lat, lon: pt.lon, boundingbox: pt.boundingbox }
-    try { localStorage.setItem('osm_cache', JSON.stringify(latLonCache.value)) } catch {}
-  }
-}
-
-let mapsTimer: ReturnType<typeof setTimeout> | null = null
-const onAddressInput = () => {
-  if (mapsTimer) clearTimeout(mapsTimer)
-  mapsTimer = setTimeout(async () => {
-    const q = housecallForm.value.address?.trim()
-    if (!q || q.length < 4) { addressSuggestions.value = []; showSuggestions.value = false; mapsUrl.value = ''; return }
-    const cached = latLonCache.value[q]; if (cached && !cached.notfound) { selectSuggestion(cached, true); return }
-    try { const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=5&countrycodes=us,ca`); const data = await res.json(); addressSuggestions.value = data; showSuggestions.value = data.length > 0 } catch {}
-  }, 600)
-}
-const openMaps = () => { const addr = housecallForm.value.address?.trim(); if (addr) window.open(`https://www.openstreetmap.org/search?query=${encodeURIComponent(addr)}`, '_blank') }
 
 const osmQueue = ref<string[]>([]); let processingOsm = false
 const processOsmQueue = async () => {

@@ -254,7 +254,10 @@
 
     <!-- ── Global Dialogs ──────────────────────────────────────── -->
     <NewTicketDialog v-model="newTicketOpen" />
+    <HouseCallDialog v-model="newHousecallOpen" @saved="appStore.initializeData" />
     <CustomerEditDialog v-model="newCustomerOpen" />
+    <CommandPalette v-model="commandPaletteOpen" />
+    <KeyboardShortcutsOverlay v-model="shortcutsOverlayOpen" />
 
   </v-app>
 </template>
@@ -265,7 +268,10 @@ import { storeToRefs } from 'pinia'
 import { useAppStore } from '~/stores/app'
 import { useToast } from '~/composables/useToast'
 import NewTicketDialog from '~/components/NewTicketDialog.vue'
+import HouseCallDialog from '~/components/HouseCallDialog.vue'
 import CustomerEditDialog from '~/components/CustomerEditDialog.vue'
+import CommandPalette from '~/components/CommandPalette.vue'
+import KeyboardShortcutsOverlay from '~/components/KeyboardShortcutsOverlay.vue'
 import { useDisplay } from 'vuetify'
 import { useScreenLock } from '~/composables/useScreenLock'
 
@@ -338,10 +344,14 @@ const quickItems = [
 ]
 
 const newTicketOpen = ref(false)
+const newHousecallOpen = ref(false)
 const newCustomerOpen = ref(false)
+const commandPaletteOpen = ref(false)
+const shortcutsOverlayOpen = ref(false)
 
 function triggerAction(type: string) {
-  if (type === 'ticket' || type === 'housecall') newTicketOpen.value = true
+  if (type === 'ticket') newTicketOpen.value = true
+  else if (type === 'housecall') newHousecallOpen.value = true
   else if (type === 'customer') newCustomerOpen.value = true
   else if (type === 'register') navigateTo('/pos')
 }
@@ -376,8 +386,21 @@ function snackIcon(status: string) {
 
 // Keyboard shortcuts
 function onKeydown(e: KeyboardEvent) {
+  // '?' key (no modifier) — toggle shortcuts overlay
+  if (e.key === '?' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    const target = e.target as HTMLElement
+    if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable) return
+    e.preventDefault()
+    shortcutsOverlayOpen.value = !shortcutsOverlayOpen.value
+    return
+  }
+
   if (!e.metaKey && !e.ctrlKey) return
   const key = e.key.toLowerCase()
+
+  // ⌘K — Command palette
+  if (key === 'k') { e.preventDefault(); commandPaletteOpen.value = true; return }
+
   if (key === 't' || key === 'h') { e.preventDefault(); triggerAction(key === 't' ? 'ticket' : 'housecall'); return }
   if (key === 'u') { e.preventDefault(); triggerAction('customer'); return }
   if (key === 'r') { e.preventDefault(); navigateTo('/pos'); return }

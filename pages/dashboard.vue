@@ -11,6 +11,9 @@
         <v-chip color="primary" variant="tonal" prepend-icon="mdi-calendar" size="small">
           {{ todayLabel }}
         </v-chip>
+        <v-chip v-if="lastSyncedLabel" variant="text" size="x-small" prepend-icon="mdi-sync" class="opacity-50">
+          {{ lastSyncedLabel }}
+        </v-chip>
         <v-btn
           color="primary"
           size="small"
@@ -237,15 +240,23 @@
 
             <!-- Status column -->
             <template #item.status="{ item }">
-              <v-chip
-                :color="ticketStatusColor(item.status)"
-                size="x-small"
-                variant="tonal"
-                rounded="pill"
-              >
-                <v-icon start size="8">mdi-circle</v-icon>
-                {{ item.status }}
-              </v-chip>
+              <div class="d-flex align-center gap-2">
+                <v-chip
+                  :color="ticketStatusColor(item.status)"
+                  size="x-small"
+                  variant="tonal"
+                  rounded="pill"
+                >
+                  <v-icon start size="8">mdi-circle</v-icon>
+                  {{ item.status }}
+                </v-chip>
+                <v-chip
+                  v-if="ticketAge(item) >= 3 && item.status !== 'Completed' && item.status !== 'Delivered'"
+                  :color="ticketAge(item) >= 7 ? 'error' : 'warning'"
+                  size="x-small"
+                  variant="tonal"
+                >{{ ticketAge(item) }}d</v-chip>
+              </div>
             </template>
 
             <!-- Price column -->
@@ -294,9 +305,11 @@ const { toast } = useToast()
 const navigateTo = (path: string) => router.push(path)
 
 const newTicketOpen = ref(false)
+const lastSynced = ref<Date | null>(null)
 
 onMounted(() => {
   if (!weather.value.loaded && !weather.value.loading) fetchWeather().catch(() => {})
+  lastSynced.value = new Date()
 })
 const loadWeather = async () => { if (!weather.value.loaded) await fetchWeather() }
 
@@ -334,6 +347,17 @@ const lowStockItems        = computed(() => (inventory.value || []).filter((i: a
 const upcomingAppointments = computed(() => (appointments.value || []).filter((a: any) => a.status === 'scheduled').length)
 const recentTickets        = computed(() => [...(tickets.value || [])].sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 8))
 const waitingForParts      = computed(() => (tickets.value || []).filter(t => t.status === 'Waiting for Parts'))
+const ticketAge = (t: any) => {
+  if (!t.createdAt) return 0
+  return Math.floor((Date.now() - new Date(t.createdAt).getTime()) / 86400000)
+}
+const lastSyncedLabel = computed(() => {
+  if (!lastSynced.value) return ''
+  const diff = Math.floor((Date.now() - lastSynced.value.getTime()) / 60000)
+  if (diff < 1) return 'Just now'
+  if (diff < 60) return `${diff}m ago`
+  return `${Math.floor(diff / 60)}h ago`
+})
 const warrantyExpiringSoon = computed(() => {
   const now = new Date()
   return (tickets.value || [])

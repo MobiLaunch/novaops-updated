@@ -224,7 +224,7 @@
                     @click="addCatalogService(svc)"
                   >
                     <template #title><span class="text-body-2 font-weight-medium">{{ svc.name }}</span></template>
-                    <template #append><span class="text-body-2 font-weight-bold text-success ms-4">{{ formatCurrency(svc.flat_rate) }}</span></template>
+                    <template #append><span class="text-body-2 font-weight-bold text-success ms-4">{{ formatCurrency(svc.price) }}</span></template>
                   </v-list-item>
                   <v-list-item v-if="filteredCatalog.length === 0" class="text-center text-caption text-medium-emphasis">No services match</v-list-item>
                 </v-list>
@@ -482,6 +482,13 @@
       <v-card-actions class="pa-4 flex-wrap gap-2">
         <v-btn color="error" variant="tonal" prepend-icon="mdi-delete-outline" @click="$emit('delete', ticket)">Delete</v-btn>
         <v-spacer />
+        <v-btn
+          v-if="ticket?.status === 'Completed' || balance > 0"
+          color="pink"
+          variant="tonal"
+          prepend-icon="mdi-credit-card-outline"
+          @click="collectPayment"
+        >Collect Payment</v-btn>
         <v-btn variant="outlined" prepend-icon="mdi-email-outline" :disabled="!ticketCustomer?.email" @click="emailCustomer">Email</v-btn>
         <v-btn variant="outlined" prepend-icon="mdi-printer" @click="printIntakeLabel">Print Label</v-btn>
         <v-btn variant="text" @click="isOpen = false">Close</v-btn>
@@ -494,6 +501,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
+import confetti from 'canvas-confetti'
 import { printBarcodeLabel } from '~/utils/print'
 import { openMailto } from '~/utils/contact'
 import { useToast } from '~/composables/useToast'
@@ -655,10 +663,10 @@ const filteredInventory = computed(() => {
 const addCatalogService = (svc: any) => {
   localServices.value.push({
     name: svc.name,
-    rate: svc.flat_rate,
+    rate: svc.price || svc.flat_rate || 0,
     hourlyRate: svc.hourly_rate || HOURLY_RATE.value,
-    minutes: svc.estimated_minutes || 0,
-    actualMinutes: svc.estimated_minutes || 0,
+    minutes: svc.estimated_minutes || svc.duration || 0,
+    actualMinutes: svc.estimated_minutes || svc.duration || 0,
     useTime: false,
     catalogId: svc.id,
   })
@@ -753,6 +761,9 @@ const removeNote = (idx: number) => {
 const saveStatus = async (status: string) => {
   await appStore.updateTicket(props.ticket.id, { status })
   toast.success('Status Updated', `Ticket #${props.ticket.id} → ${status}`)
+  if (status === 'Completed') {
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#10b981', '#3b82f6', '#8b5cf6'] })
+  }
 }
 
 const saveField = async (field: string, value: any) => {
@@ -778,6 +789,11 @@ function emailCustomer() {
     `Ticket #${t.id} — ${t.device || 'Repair'}`,
     `Hello,\n\nRegarding service for ticket #${t.id}:\n\n`,
   )
+}
+
+function collectPayment() {
+  isOpen.value = false
+  navigateTo(`/pos?ticket=${props.ticket.id}`)
 }
 
 function printIntakeLabel() {

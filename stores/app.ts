@@ -800,7 +800,11 @@ export const useAppStore = defineStore('app', () => {
     customers.value = []
     inventory.value = []
     houseCalls.value = []
+    vendorRepairs.value = []
     appointments.value = []
+    services.value = []
+    expenses.value = []
+    quickSales.value = []
     isLoaded.value = false
     navigateTo('/login')
   }
