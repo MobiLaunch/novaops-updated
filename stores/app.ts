@@ -326,9 +326,11 @@ export const useAppStore = defineStore('app', () => {
     if (!target) return
 
     switch (eventType) {
-      case 'INSERT':
-        target.array.value.unshift(target.normalize(newRecord))
+      case 'INSERT': {
+        const exists = target.array.value.some((item: any) => item.id === newRecord.id)
+        if (!exists) target.array.value.unshift(target.normalize(newRecord))
         break
+      }
       case 'UPDATE': {
         const index = target.array.value.findIndex((item: any) => item.id === newRecord.id)
         if (index !== -1) target.array.value[index] = target.normalize(newRecord)
