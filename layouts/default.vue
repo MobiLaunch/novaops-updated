@@ -314,13 +314,13 @@ const userInitials = computed(() => {
 })
 
 const navigation = [
-  { name: 'Dashboard',   path: '/dashboard',  icon: 'mdi-view-dashboard-outline', color: '#6366f1', badge: null,                         group: 'core' },
-  { name: 'Bookings',    path: '/bookings',   icon: 'mdi-clipboard-text-outline', color: '#f59e0b', badge: { label: 'New',  color: 'warning' }, group: 'core' },
-  { name: 'Customers',   path: '/customers',  icon: 'mdi-account-group-outline',  color: '#3b82f6', badge: null,                         group: 'core' },
-  { name: 'Inventory',   path: '/inventory',  icon: 'mdi-package-variant-closed', color: '#8b5cf6', badge: null,                         group: 'core' },
-  { name: 'POS',         path: '/pos',        icon: 'mdi-cart-outline',           color: '#ec4899', badge: { label: 'Live', color: 'success' }, group: 'core' },
-  { name: 'Analytics',   path: '/analytics',  icon: 'mdi-chart-bar',              color: '#10b981', badge: null,                         group: 'core' },
-  { name: 'Tools',       path: '/tools',      icon: 'mdi-toolbox-outline',        color: '#06b6d4', badge: null,                         group: 'core' },
+  { name: 'Dashboard',   path: '/dashboard',  icon: 'mdi-rocket-launch-outline', color: '#6366f1', badge: null,                         group: 'core' },
+  { name: 'Bookings',    path: '/bookings',   icon: 'mdi-calendar-star-outline', color: '#f59e0b', badge: { label: 'New',  color: 'warning' }, group: 'core' },
+  { name: 'Customers',   path: '/customers',  icon: 'mdi-account-heart-outline',  color: '#3b82f6', badge: null,                         group: 'core' },
+  { name: 'Inventory',   path: '/inventory',  icon: 'mdi-treasure-chest-outline', color: '#8b5cf6', badge: null,                         group: 'core' },
+  { name: 'POS',         path: '/pos',        icon: 'mdi-cash-register',           color: '#ec4899', badge: { label: 'Live', color: 'success' }, group: 'core' },
+  { name: 'Analytics',   path: '/analytics',  icon: 'mdi-chart-donut-variant',              color: '#10b981', badge: null,                         group: 'core' },
+  { name: 'Tools',       path: '/tools',      icon: 'mdi-magic-staff',        color: '#06b6d4', badge: null,                         group: 'core' },
 ]
 
 const coreNav  = navigation.filter(n => n.group === 'core')
@@ -339,10 +339,10 @@ watch(() => route.path, () => {
 
 // Quick items for the New popover
 const quickItems = [
-  { type: 'ticket',    label: 'New Ticket',    icon: 'mdi-ticket-outline',           color: '#f59e0b', kbd: '⌘T' },
-  { type: 'housecall', label: 'House Call',     icon: 'mdi-map-marker-outline',     color: '#10b981', kbd: '⌘H' },
-  { type: 'customer',  label: 'New Customer',   icon: 'mdi-account-plus-outline',   color: '#3b82f6', kbd: '⌘U' },
-  { type: 'register',  label: 'Open Register',  icon: 'mdi-cart-outline',           color: '#ec4899', kbd: '⌘R' },
+  { type: 'ticket',    label: 'New Ticket',    icon: 'mdi-ticket-confirmation',           color: '#f59e0b', kbd: '⌘T' },
+  { type: 'housecall', label: 'House Call',     icon: 'mdi-car-estate',     color: '#10b981', kbd: '⌘H' },
+  { type: 'customer',  label: 'New Customer',   icon: 'mdi-account-star-outline',   color: '#3b82f6', kbd: '⌘U' },
+  { type: 'register',  label: 'Open Register',  icon: 'mdi-basket-outline',           color: '#ec4899', kbd: '⌘R' },
 ]
 
 const newTicketOpen = ref(false)
