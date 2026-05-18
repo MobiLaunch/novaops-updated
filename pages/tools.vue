@@ -15,47 +15,39 @@
     </div>
 
     <!-- ── Tabs ─────────────────────────────────────────────── -->
-    <v-card class="rounded-xl border" elevation="0">
-      <v-tabs v-model="activeTab" color="cyan" class="border-b">
-        <v-tab value="barcodes">
-          <v-icon start>mdi-barcode-scan</v-icon>
-          Barcodes
-        </v-tab>
-        <v-tab value="import">
-          <v-icon start>mdi-upload</v-icon>
-          Import / Export
-        </v-tab>
-        <v-tab value="forms">
-          <v-icon start>mdi-file-document-outline</v-icon>
-          Forms
-        </v-tab>
-      </v-tabs>
+    <v-tabs v-model="activeTab" color="cyan" class="border-b mb-6">
+      <v-tab value="barcodes">
+        <v-icon start>mdi-barcode-scan</v-icon>
+        Barcodes
+      </v-tab>
+      <v-tab value="import">
+        <v-icon start>mdi-upload</v-icon>
+        Import / Export
+      </v-tab>
+      <v-tab value="forms">
+        <v-icon start>mdi-file-document-outline</v-icon>
+        Forms
+      </v-tab>
+    </v-tabs>
 
-      <v-tabs-window v-model="activeTab" style="overflow: visible">
+    <v-tabs-window v-model="activeTab" style="overflow: visible">
 
-        <!-- ══ Barcodes Tab ══════════════════════════════════════ -->
-        <v-tabs-window-item value="barcodes">
-          <div class="pa-4 pa-md-6">
-            <BarcodesTab />
-          </div>
-        </v-tabs-window-item>
+      <!-- ══ Barcodes Tab ══════════════════════════════════════ -->
+      <v-tabs-window-item value="barcodes">
+        <BarcodesTab />
+      </v-tabs-window-item>
 
-        <!-- ══ Import / Export Tab ═══════════════════════════════ -->
-        <v-tabs-window-item value="import">
-          <div class="pa-4 pa-md-6">
-            <ImportTab />
-          </div>
-        </v-tabs-window-item>
+      <!-- ══ Import / Export Tab ═══════════════════════════════ -->
+      <v-tabs-window-item value="import">
+        <ImportTab />
+      </v-tabs-window-item>
 
-        <!-- ══ Forms Tab ════════════════════════════════════════= -->
-        <v-tabs-window-item value="forms">
-          <div class="pa-4 pa-md-6">
-            <FormsTab />
-          </div>
-        </v-tabs-window-item>
+      <!-- ══ Forms Tab ════════════════════════════════════════= -->
+      <v-tabs-window-item value="forms">
+        <FormsTab />
+      </v-tabs-window-item>
 
-      </v-tabs-window>
-    </v-card>
+    </v-tabs-window>
   </div>
 </template>
 
