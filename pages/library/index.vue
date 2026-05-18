@@ -12,36 +12,22 @@
     </div>
 
     <!-- Search -->
-    <v-card class="rounded-xl pa-4 elevation-2 border mb-4">
-      <v-row align="center" no-gutters>
-        <v-col cols="12" sm="9" md="10">
-          <v-text-field
-            v-model="searchQuery"
-            prepend-inner-icon="mdi-magnify"
-            placeholder="Search for a device (e.g., iPhone 13, Galaxy S21)..."
-            variant="outlined"
-            hide-details
-            clearable
-            density="comfortable"
-            @keyup.enter="performSearch"
-          />
-        </v-col>
-        <v-col cols="12" sm="3" md="2" class="pl-sm-3 pt-3 pt-sm-0">
-          <v-btn
-            color="primary"
-            variant="flat"
-            class="rounded-lg text-none w-100"
-            size="large"
-            height="48"
-            :loading="loading"
-            @click="performSearch"
-          >
-            <v-icon start>mdi-magnify</v-icon>
-            Search
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-card>
+    <v-text-field
+      v-model="searchQuery"
+      prepend-inner-icon="mdi-magnify"
+      append-inner-icon="mdi-arrow-right-circle"
+      placeholder="Search for a device (e.g., iPhone 13, Galaxy S21)..."
+      variant="solo-filled"
+      flat
+      hide-details
+      clearable
+      rounded="xl"
+      density="comfortable"
+      class="search-field mb-4"
+      :loading="loading"
+      @keyup.enter="performSearch"
+      @click:append-inner="performSearch"
+    />
 
     <!-- Results -->
     <div v-if="loading" class="d-flex justify-center align-center my-12 py-12 flex-1-1-100">
@@ -201,6 +187,22 @@ function formatTime(seconds: number) {
 </script>
 
 <style scoped>
+.search-field {
+  box-shadow: 0 4px 16px -4px rgba(0,0,0,0.08);
+  transition: box-shadow 0.2s ease;
+}
+.search-field:focus-within {
+  box-shadow: 0 8px 24px -6px rgba(var(--v-theme-primary), 0.2);
+}
+.search-field :deep(.v-field__append-inner) {
+  cursor: pointer;
+  color: rgb(var(--v-theme-primary));
+  font-size: 28px;
+  padding-inline-start: 8px;
+}
+.search-field :deep(.v-field__append-inner:hover) {
+  opacity: 0.8;
+}
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
