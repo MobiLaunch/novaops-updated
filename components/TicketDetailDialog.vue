@@ -484,7 +484,7 @@
                
                <v-row v-else-if="guides.length > 0" dense>
                   <v-col v-for="guide in guides" :key="guide.guideid" cols="12" sm="6">
-                     <v-card hover :href="guide.url" target="_blank" class="pa-3 d-flex flex-column h-100" variant="outlined">
+                     <v-card hover :to="'/library/' + guide.guideid" @click="isOpen = false" class="pa-3 d-flex flex-column h-100" variant="outlined">
                         <div class="d-flex gap-3 mb-2">
                            <v-img v-if="guide.image?.thumbnail" :src="guide.image.thumbnail" width="64" height="64" class="rounded flex-shrink-0" cover></v-img>
                            <div v-else class="rounded d-flex align-center justify-center bg-grey-lighten-3 flex-shrink-0" style="width:64px;height:64px">
