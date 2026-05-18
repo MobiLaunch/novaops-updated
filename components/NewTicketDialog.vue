@@ -373,12 +373,28 @@ const brandLogoUrl = (brand: string): string => {
 
 // Merge DB devices table brands + custom catalog brands + known brands (deduped)
 const allBrands = computed(() => {
-  const fromDevicesTable = brands.value
-  const fromCatalog = catalogBrandNames.value
-  const combined = [...new Set([...fromDevicesTable, ...fromCatalog].map(b => b))]
-  const dbSet = new Set(combined.map(b => b.toLowerCase()))
-  const extra = KNOWN_BRANDS.filter(b => !dbSet.has(b.toLowerCase()))
-  return [...combined, ...extra].sort((a, b) => a.localeCompare(b))
+  const fromDevicesTable = brands.value || []
+  const fromCatalog = catalogBrandNames.value || []
+  const combinedNames = [...fromDevicesTable, ...fromCatalog]
+  
+  const uniqueMap = new Map<string, string>()
+  
+  // Add known brands first so they provide a nice fallback casing
+  KNOWN_BRANDS.forEach(b => uniqueMap.set(b.toLowerCase(), b))
+  
+  // Add DB/Catalog brands, overriding if they already exist to use the exact DB casing or keeping them if they don't
+  combinedNames.forEach(b => {
+    if (!b) return
+    const lower = b.toLowerCase()
+    // We prefer the case provided in the DB if it is actually used, 
+    // or we can just only add if missing to prefer KNOWN_BRANDS casing. Let's prefer KNOWN_BRANDS casing for consistency,
+    // so we only set if missing:
+    if (!uniqueMap.has(lower)) {
+      uniqueMap.set(lower, b)
+    }
+  })
+  
+  return Array.from(uniqueMap.values()).sort((a, b) => a.localeCompare(b))
 })
 
 // Other / custom brand state

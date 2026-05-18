@@ -474,6 +474,41 @@
             </div>
           </v-tabs-window-item>
 
+          <!-- ── Repair Guides Tab ──────────────────────────────────── -->
+          <v-tabs-window-item value="guides">
+            <div class="d-flex flex-column gap-4 py-2">
+               <v-card variant="outlined" class="pa-4 text-center" v-if="loadingGuides">
+                  <v-progress-circular indeterminate color="primary"></v-progress-circular>
+                  <p class="mt-2 text-medium-emphasis">Fetching repair guides for {{ ticket?.deviceModel }}...</p>
+               </v-card>
+               
+               <v-row v-else-if="guides.length > 0" dense>
+                  <v-col v-for="guide in guides" :key="guide.guideid" cols="12" sm="6">
+                     <v-card hover :href="guide.url" target="_blank" class="pa-3 d-flex flex-column h-100" variant="outlined">
+                        <div class="d-flex gap-3 mb-2">
+                           <v-img v-if="guide.image?.thumbnail" :src="guide.image.thumbnail" width="64" height="64" class="rounded flex-shrink-0" cover></v-img>
+                           <div v-else class="rounded d-flex align-center justify-center bg-grey-lighten-3 flex-shrink-0" style="width:64px;height:64px">
+                              <v-icon icon="mdi-wrench" color="grey" />
+                           </div>
+                           <div>
+                              <p class="text-subtitle-2 font-weight-bold mb-1" style="line-height:1.2">{{ guide.title }}</p>
+                              <v-chip size="x-small" :color="guide.difficulty === 'Easy' ? 'success' : guide.difficulty === 'Moderate' ? 'warning' : 'error'" variant="tonal">
+                                 {{ guide.difficulty || 'Unknown' }}
+                              </v-chip>
+                           </div>
+                        </div>
+                        <p class="text-caption text-medium-emphasis text-truncate mt-auto mb-0">{{ guide.summary }}</p>
+                     </v-card>
+                  </v-col>
+               </v-row>
+               
+               <v-card v-else variant="outlined" class="pa-6 text-center text-body-2 text-medium-emphasis" style="border-style:dashed">
+                  No repair guides found for "{{ ticket?.deviceModel }}" on iFixit.
+               </v-card>
+               <p v-if="!loadingGuides && guides.length > 0" class="text-caption text-center text-medium-emphasis">Guides provided by <a href="https://www.ifixit.com" target="_blank">iFixit</a></p>
+            </div>
+          </v-tabs-window-item>
+
         </v-tabs-window>
       </v-card-text>
 
@@ -563,11 +598,39 @@ const tabs = computed(() => [
   { id: 'parts',    label: 'Parts',    count: localParts.value.length },
   { id: 'payments', label: 'Payments', count: localPayments.value.length },
   { id: 'notes',    label: 'Notes',    count: localNotes.value.length },
+  { id: 'guides',   label: 'Repair Guides' },
 ])
 
 const statusList = computed(() =>
   (settings.value?.statuses || 'Open,In Progress,Completed').split(',').map((s: string) => s.trim())
 )
+
+// ── Repair Guides ──────────────────────────────────────────────────
+const guides = ref<any[]>([])
+const loadingGuides = ref(false)
+
+const fetchGuides = async (deviceModel: string) => {
+  if (!deviceModel) {
+    guides.value = []
+    return
+  }
+  loadingGuides.value = true
+  guides.value = []
+  try {
+    const modelStr = deviceModel.trim().replace(/\s+/g, '_')
+    const res = await fetch(`https://www.ifixit.com/api/2.0/wikis/CATEGORY/${modelStr}`)
+    if (res.ok) {
+      const data = await res.json()
+      if (data && data.guides && Array.isArray(data.guides)) {
+        guides.value = data.guides
+      }
+    }
+  } catch (err) {
+    console.error('Failed to fetch iFixit guides', err)
+  } finally {
+    loadingGuides.value = false
+  }
+}
 
 // ── Watch ticket prop ─────────────────────────────────────────────
 watch(() => props.ticket, (t) => {
@@ -589,6 +652,8 @@ watch(() => props.ticket, (t) => {
   activeTab.value              = 'info'
   serviceSearch.value          = ''
   partSearch.value             = ''
+  
+  fetchGuides(t.deviceModel)
 }, { immediate: true })
 
 // Fetch service catalog once
