@@ -12,30 +12,33 @@
     </div>
 
     <!-- Search -->
-    <v-card class="rounded-xl pa-2 elevation-2 border mb-4">
-      <v-text-field
-        v-model="searchQuery"
-        prepend-inner-icon="mdi-magnify"
-        placeholder="Search for a device (e.g., iPhone 13, Galaxy S21)..."
-        variant="solo"
-        flat
-        hide-details
-        clearable
-        @keyup.enter="performSearch"
-      >
-        <template #append-inner>
-          <v-btn
-            color="primary"
-            variant="flat"
-            class="rounded-lg ml-2 text-none px-6"
-            size="large"
-            :loading="loading"
-            @click="performSearch"
-          >
-            Search
-          </v-btn>
-        </template>
-      </v-text-field>
+    <v-card class="rounded-xl pa-3 elevation-2 border mb-4">
+      <div class="d-flex align-center gap-3">
+        <v-text-field
+          v-model="searchQuery"
+          prepend-inner-icon="mdi-magnify"
+          placeholder="Search for a device (e.g., iPhone 13, Galaxy S21)..."
+          variant="solo"
+          flat
+          hide-details
+          clearable
+          density="comfortable"
+          class="flex-grow-1"
+          @keyup.enter="performSearch"
+        />
+        <v-btn
+          color="primary"
+          variant="flat"
+          class="rounded-lg text-none px-6 flex-shrink-0"
+          size="large"
+          height="48"
+          :loading="loading"
+          @click="performSearch"
+        >
+          <v-icon start>mdi-magnify</v-icon>
+          Search
+        </v-btn>
+      </div>
     </v-card>
 
     <!-- Results -->

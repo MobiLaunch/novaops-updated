@@ -36,7 +36,8 @@
               v-if="guide.image"
               :src="guide.image.standard || guide.image.medium"
               cover
-              class="w-100 h-100 min-h-[250px]"
+              class="w-100"
+              max-height="350"
               style="min-height: 250px;"
             ></v-img>
             <div class="position-absolute bottom-0 left-0 pa-4" style="z-index: 1;">
@@ -95,14 +96,12 @@
         >
           <div class="d-flex flex-column flex-md-row">
             <!-- Step Images -->
-            <div class="step-media bg-surface-variant flex-shrink-0" style="flex-basis: 45%; max-width: 100%;">
+            <div class="step-media bg-surface-variant flex-shrink-0">
               <v-carousel 
                 v-if="step.media?.data?.length > 0"
                 hide-delimiters
                 :show-arrows="step.media.data.length > 1 ? 'hover' : false"
-                height="100%"
-                class="h-100 min-h-[300px]"
-                style="min-height: 300px;"
+                height="350"
               >
                 <v-carousel-item
                   v-for="(media, mIndex) in step.media.data"
@@ -111,7 +110,7 @@
                   cover
                 ></v-carousel-item>
               </v-carousel>
-              <div v-else class="h-100 d-flex align-center justify-center min-h-[300px]" style="min-height: 300px;">
+              <div v-else class="d-flex align-center justify-center" style="height: 200px;">
                 <v-icon size="48" color="medium-emphasis">mdi-image-outline</v-icon>
               </div>
             </div>
@@ -298,5 +297,14 @@ function scrollToTop() {
 }
 .max-w-md {
   max-width: 600px;
+}
+.step-media {
+  flex-basis: 40%;
+  max-width: 100%;
+}
+@media (min-width: 960px) {
+  .step-media {
+    max-width: 450px;
+  }
 }
 </style>
