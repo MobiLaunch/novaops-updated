@@ -1,155 +1,170 @@
 <template>
-  <div class="flex flex-col gap-8">
+  <div class="d-flex flex-column gap-6">
 
     <!-- ── Page Header ─────────────────────────────────────────── -->
-    <div class="flex items-center justify-between flex-wrap gap-4">
-      <div class="flex items-center gap-4">
-        <div
-          class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg"
-          style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); box-shadow: 0 6px 28px #8b5cf650"
-        >
-          <v-icon icon="mdi-upload" size="24" color="white" />
-        </div>
+    <div class="d-flex align-center justify-space-between flex-wrap gap-4 mb-2">
+      <div class="d-flex align-center gap-4">
+        <v-avatar size="56" color="deep-purple-accent-2" variant="tonal" class="rounded-xl">
+          <v-icon icon="mdi-upload" size="28" color="deep-purple-accent-2" />
+        </v-avatar>
         <div>
-          <h1 class="text-3xl font-black tracking-tight">Import & Export</h1>
-          <p class="text-sm text-muted-foreground font-medium mt-0.5">Import and export customers, inventory, and tickets</p>
+          <h1 class="text-h4 font-weight-black">Import & Export</h1>
+          <p class="text-body-2 text-medium-emphasis mb-0 mt-1">Import and export customers, inventory, and tickets</p>
         </div>
       </div>
     </div>
 
     <!-- ── Mode Tabs ─────────────────────────────────────────── -->
-    <div class="flex gap-1.5 rounded-full p-1 self-start" style="background: hsl(var(--muted)/0.5)">
-      <button
+    <div class="bg-surface-variant rounded-pill pa-1 d-flex gap-1 align-self-start">
+      <v-btn
         v-for="m in ['Import', 'Export']"
         :key="m"
-        class="px-5 py-2 rounded-full text-xs font-black transition-all"
-        :style="activeTab === m
-          ? 'background: white; color: #8b5cf6; box-shadow: 0 2px 8px rgba(0,0,0,0.1)'
-          : 'color: hsl(var(--muted-foreground))'"
+        :variant="activeTab === m ? 'flat' : 'text'"
+        :color="activeTab === m ? 'deep-purple-accent-2' : undefined"
+        class="rounded-pill text-none px-6 font-weight-bold"
+        size="small"
         @click="activeTab = m"
-      >{{ m }}</button>
+      >
+        {{ m }}
+      </v-btn>
     </div>
 
     <!-- ── Import Section ─────────────────────────────────────── -->
-    <div v-if="activeTab === 'Import'" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
-      <div v-for="type in importTypes" :key="type.label" class="rounded-[32px] p-7 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
-        <div class="flex items-center gap-3 mb-5">
-          <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" :style="`background: ${type.color}20`">
-            <v-icon :icon="type.icon" size="20" :style="`color: ${type.color}`" />
+    <v-row v-if="activeTab === 'Import'">
+      <v-col v-for="type in importTypes" :key="type.label" cols="12" lg="6" xl="4">
+        <v-card class="rounded-xl border pa-6 h-100 d-flex flex-column" elevation="0">
+          <div class="d-flex align-center gap-3 mb-6">
+            <v-avatar size="44" :color="type.color" variant="tonal" class="rounded-lg">
+              <v-icon :icon="type.icon" size="24" :color="type.color" />
+            </v-avatar>
+            <div>
+              <h3 class="text-subtitle-1 font-weight-black mb-0">Import {{ type.label }}</h3>
+              <p class="text-caption font-weight-medium text-medium-emphasis">{{ type.desc }}</p>
+            </div>
           </div>
-          <div>
-            <h3 class="text-sm font-black">Import {{ type.label }}</h3>
-            <p class="text-xs text-muted-foreground font-medium">{{ type.desc }}</p>
-          </div>
-        </div>
 
-        <!-- Drop zone -->
-        <div
-          class="rounded-[24px] border-2 border-dashed p-8 flex flex-col items-center gap-4 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.98]"
-          :style="`border-color: ${type.color}40; background: ${type.color}06`"
-          @dragover.prevent
-          @drop.prevent="handleDrop($event, type.key)"
-          @click="triggerUpload(type.key)"
-        >
-          <div class="w-14 h-14 rounded-[26px] flex items-center justify-center" :style="`background: ${type.color}20`">
-            <v-icon icon="mdi-file-upload-outline" size="28" :style="`color: ${type.color}; opacity: 0.8`" />
-          </div>
-          <div class="text-center">
-            <p class="text-sm font-black">Drop file here or click</p>
-            <p class="text-xs text-muted-foreground font-medium mt-1">Supports CSV and JSON</p>
-          </div>
-          <button class="px-5 py-2 rounded-full text-xs font-black text-white" :style="`background: linear-gradient(135deg, ${type.color}, ${type.colorDark})`">
-            Choose File
-          </button>
-        </div>
-        <input :ref="el => fileInputs[type.key] = el as HTMLInputElement" type="file" accept=".csv,.json" class="hidden" @change="handleFileUpload($event, type.key)" />
+          <!-- Drop zone -->
+          <v-card
+            class="rounded-xl pa-8 d-flex flex-column align-center gap-4 cursor-pointer flex-grow-1"
+            :style="`border: 2px dashed ${type.color}40; background-color: ${type.color}06`"
+            elevation="0"
+            @dragover.prevent
+            @drop.prevent="handleDrop($event, type.key)"
+            @click="triggerUpload(type.key)"
+          >
+            <v-avatar size="56" :color="type.color" variant="tonal" class="rounded-xl">
+              <v-icon icon="mdi-file-upload-outline" size="28" :color="type.color" class="opacity-80" />
+            </v-avatar>
+            <div class="text-center">
+              <p class="text-body-2 font-weight-black">Drop file here or click</p>
+              <p class="text-caption text-medium-emphasis font-weight-medium mt-1">Supports CSV and JSON</p>
+            </div>
+            <v-btn
+              :color="type.color"
+              variant="flat"
+              class="rounded-pill text-none px-6 mt-2 font-weight-bold"
+            >
+              Choose File
+            </v-btn>
+          </v-card>
+          <input :ref="el => fileInputs[type.key] = el as HTMLInputElement" type="file" accept=".csv,.json" class="d-none" @change="handleFileUpload($event, type.key)" />
 
-        <!-- Result -->
-        <div v-if="importResults[type.key]" class="mt-4 p-4 rounded-[20px]" :style="importResults[type.key].startsWith('✅') ? `background: ${type.color}14; outline: 2px solid ${type.color}28; outline-offset: 0` : 'background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0'">
-          <p class="text-sm font-black" :style="importResults[type.key].startsWith('✅') ? `color: ${type.color}` : 'color: #ef4444'">{{ importResults[type.key] }}</p>
-        </div>
+          <!-- Result -->
+          <v-card v-if="importResults[type.key]" class="mt-4 pa-4 rounded-lg" :color="importResults[type.key].startsWith('✅') ? 'success' : 'error'" variant="tonal" elevation="0">
+            <p class="text-body-2 font-weight-black" :class="importResults[type.key].startsWith('✅') ? 'text-success' : 'text-error'">
+              {{ importResults[type.key] }}
+            </p>
+          </v-card>
 
-        <!-- Template download -->
-        <button
-          class="mt-3 w-full flex items-center justify-center gap-2 h-10 rounded-full text-xs font-bold transition-all hover:scale-[1.01] active:scale-95"
-          style="background: hsl(var(--muted)/0.5); color: hsl(var(--muted-foreground))"
-          @click="downloadTemplate(type)"
-        >
-          <v-icon icon="mdi-download" size="14" /> Download {{ type.label }} Template
-        </button>
-      </div>
-    </div>
+          <!-- Template download -->
+          <v-btn
+            variant="tonal"
+            color="surface-variant"
+            class="mt-4 w-100 rounded-pill text-none font-weight-bold"
+            @click="downloadTemplate(type)"
+          >
+            <v-icon start>mdi-download</v-icon> Download {{ type.label }} Template
+          </v-btn>
+        </v-card>
+      </v-col>
+    </v-row>
 
     <!-- ── Export Section ─────────────────────────────────────── -->
-    <div v-if="activeTab === 'Export'" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
-      <div v-for="type in importTypes" :key="type.label" class="rounded-[32px] p-7 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
-        <div class="flex items-center gap-3 mb-5">
-          <div class="w-11 h-11 rounded-[22px] flex items-center justify-center" :style="`background: ${type.color}20`">
-            <v-icon :icon="type.icon" size="20" :style="`color: ${type.color}`" />
+    <v-row v-if="activeTab === 'Export'">
+      <v-col v-for="type in importTypes" :key="type.label" cols="12" lg="6" xl="4">
+        <v-card class="rounded-xl border pa-6 h-100 d-flex flex-column" elevation="0">
+          <div class="d-flex align-center gap-3 mb-6">
+            <v-avatar size="44" :color="type.color" variant="tonal" class="rounded-lg">
+              <v-icon :icon="type.icon" size="24" :color="type.color" />
+            </v-avatar>
+            <div>
+              <h3 class="text-subtitle-1 font-weight-black mb-0">Export {{ type.label }}</h3>
+              <p class="text-caption font-weight-medium text-medium-emphasis">{{ exportCount(type.key) }} records</p>
+            </div>
           </div>
-          <div>
-            <h3 class="text-sm font-black">Export {{ type.label }}</h3>
-            <p class="text-xs text-muted-foreground font-medium">{{ exportCount(type.key) }} records</p>
-          </div>
-        </div>
 
-        <div class="rounded-[24px] p-5 flex flex-col items-center gap-4 mb-4" :style="`background: ${type.color}08; outline: 2px solid ${type.color}18; outline-offset: 0`">
-          <div class="w-12 h-12 rounded-[22px] flex items-center justify-center" :style="`background: ${type.color}20`">
-            <v-icon icon="mdi-download" size="24" :style="`color: ${type.color}`" />
-          </div>
-          <div class="text-center">
-            <p class="text-2xl font-black" :style="`color: ${type.color}`">{{ exportCount(type.key) }}</p>
-            <p class="text-xs text-muted-foreground font-medium">records available</p>
-          </div>
-        </div>
+          <v-card class="rounded-xl pa-6 d-flex flex-column align-center gap-4 mb-4 flex-grow-1" :style="`background-color: ${type.color}08; border: 2px solid ${type.color}18`" elevation="0">
+            <v-avatar size="48" :color="type.color" variant="tonal" class="rounded-xl">
+              <v-icon icon="mdi-download" size="24" :color="type.color" />
+            </v-avatar>
+            <div class="text-center">
+              <p class="text-h4 font-weight-black" :style="`color: ${type.color}`">{{ exportCount(type.key) }}</p>
+              <p class="text-caption text-medium-emphasis font-weight-medium">records available</p>
+            </div>
+          </v-card>
 
-        <div class="flex gap-2">
-          <button
-            class="flex-1 h-11 rounded-full text-xs font-black text-white transition-all hover:scale-[1.02] active:scale-95"
-            :style="`background: linear-gradient(135deg, ${type.color}, ${type.colorDark})`"
-            @click="exportData(type.key, 'csv')"
-          >
-            Export CSV
-          </button>
-          <button
-            class="flex-1 h-11 rounded-full text-xs font-black text-white transition-all hover:scale-[1.02] active:scale-95"
-            style="background: linear-gradient(135deg, #374151, #111827)"
-            @click="exportData(type.key, 'json')"
-          >
-            Export JSON
-          </button>
-        </div>
-      </div>
-    </div>
+          <div class="d-flex gap-3">
+            <v-btn
+              :color="type.color"
+              variant="flat"
+              class="flex-grow-1 rounded-pill text-none font-weight-bold"
+              @click="exportData(type.key, 'csv')"
+            >
+              Export CSV
+            </v-btn>
+            <v-btn
+              color="secondary"
+              variant="flat"
+              class="flex-grow-1 rounded-pill text-none font-weight-bold"
+              @click="exportData(type.key, 'json')"
+            >
+              Export JSON
+            </v-btn>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
 
     <!-- ── Import History ─────────────────────────────────────── -->
-    <div v-if="importLog.length > 0" class="rounded-[28px] p-6 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
-      <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #8b5cf620">
-            <v-icon icon="mdi-clock-outline" size="16" style="color: #8b5cf6" />
-          </div>
-          <h3 class="text-sm font-black">Import History</h3>
+    <v-card v-if="importLog.length > 0" class="rounded-xl border pa-6 mt-2" elevation="0">
+      <div class="d-flex align-center justify-space-between mb-4">
+        <div class="d-flex align-center gap-3">
+          <v-avatar size="36" color="deep-purple-accent-2" variant="tonal" class="rounded-lg">
+            <v-icon icon="mdi-clock-outline" size="20" color="deep-purple-accent-2" />
+          </v-avatar>
+          <h3 class="text-subtitle-1 font-weight-black mb-0">Import History</h3>
         </div>
-        <button class="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors" @click="importLog = []">Clear</button>
+        <v-btn variant="text" size="small" color="medium-emphasis" class="font-weight-bold text-none" @click="importLog = []">
+          Clear
+        </v-btn>
       </div>
-      <div class="space-y-2">
-        <div
+      
+      <v-list lines="two" bg-color="transparent" class="pa-0">
+        <v-list-item
           v-for="log in importLog"
           :key="log.id"
-          class="flex items-center gap-3 px-4 py-3 rounded-[20px]"
-          style="background: hsl(var(--muted)/0.4)"
+          class="rounded-xl mb-2 bg-surface-variant"
         >
-          <div class="w-8 h-8 rounded-[16px] flex items-center justify-center flex-shrink-0" style="background: #10b98120">
-            <v-icon icon="mdi-check-circle-outline" size="16" style="color: #10b981" />
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-bold">{{ log.message }}</p>
-            <p class="text-xs text-muted-foreground font-medium">{{ log.time }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
+          <template #prepend>
+            <v-avatar size="40" color="success" variant="tonal" class="rounded-lg">
+              <v-icon icon="mdi-check-circle-outline" size="20" />
+            </v-avatar>
+          </template>
+          <v-list-item-title class="font-weight-bold text-body-2">{{ log.message }}</v-list-item-title>
+          <v-list-item-subtitle class="font-weight-medium text-caption">{{ log.time }}</v-list-item-subtitle>
+        </v-list-item>
+      </v-list>
+    </v-card>
 
   </div>
 </template>
