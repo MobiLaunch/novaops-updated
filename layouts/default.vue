@@ -314,13 +314,14 @@ const userInitials = computed(() => {
 })
 
 const navigation = [
-  { name: 'Dashboard',   path: '/dashboard',  icon: 'mdi-view-dashboard-outline', color: '#6366f1', badge: null,                         group: 'core' },
-  { name: 'Bookings',    path: '/bookings',   icon: 'mdi-clipboard-text-outline', color: '#f59e0b', badge: { label: 'New',  color: 'warning' }, group: 'core' },
-  { name: 'Customers',   path: '/customers',  icon: 'mdi-account-group-outline',  color: '#3b82f6', badge: null,                         group: 'core' },
-  { name: 'Inventory',   path: '/inventory',  icon: 'mdi-package-variant-closed', color: '#8b5cf6', badge: null,                         group: 'core' },
-  { name: 'POS',         path: '/pos',        icon: 'mdi-cart-outline',           color: '#ec4899', badge: { label: 'Live', color: 'success' }, group: 'core' },
-  { name: 'Analytics',   path: '/analytics',  icon: 'mdi-chart-bar',              color: '#10b981', badge: null,                         group: 'core' },
-  { name: 'Tools',       path: '/tools',      icon: 'mdi-toolbox-outline',        color: '#06b6d4', badge: null,                         group: 'core' },
+  { name: 'Dashboard',   path: '/dashboard',  icon: 'mdi-rocket-launch-outline',          color: '#6366f1', badge: null,                         group: 'core' },
+  { name: 'Bookings',    path: '/bookings',   icon: 'mdi-calendar-star-outline',          color: '#f59e0b', badge: { label: 'New',  color: 'warning' }, group: 'core' },
+  { name: 'Customers',   path: '/customers',  icon: 'mdi-account-heart-outline',          color: '#3b82f6', badge: null,                         group: 'core' },
+  { name: 'Inventory',   path: '/inventory',  icon: 'mdi-treasure-chest-outline',         color: '#8b5cf6', badge: null,                         group: 'core' },
+  { name: 'POS',         path: '/pos',        icon: 'mdi-cash-register',                  color: '#ec4899', badge: { label: 'Live', color: 'success' }, group: 'core' },
+  { name: 'Library',     path: '/library',    icon: 'mdi-book-open-page-variant-outline', color: '#f43f5e', badge: null,                         group: 'core' },
+  { name: 'Analytics',   path: '/analytics',  icon: 'mdi-chart-donut-variant',            color: '#10b981', badge: null,                         group: 'core' },
+  { name: 'Tools',       path: '/tools',      icon: 'mdi-magic-staff',                    color: '#06b6d4', badge: null,                         group: 'core' },
 ]
 
 const coreNav  = navigation.filter(n => n.group === 'core')

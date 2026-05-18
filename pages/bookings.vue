@@ -555,7 +555,11 @@ definePageMeta({ middleware: ['auth'] })
 const appStore = useAppStore()
 const { tickets, customers, settings, houseCalls: housecalls, vendorRepairs } = storeToRefs(appStore)
 const { sendTicketEmail, sendVendorRepairEmail, sendInternalAlert } = useEmailNotifications()
-const { toast } = useToast()
+const { toast, dismiss } = useToast()
+const latLonCache = ref<Record<string, any>>({})
+if (typeof window !== 'undefined') {
+  try { latLonCache.value = JSON.parse(localStorage.getItem('osm_cache') || '{}') } catch {}
+}
 
 // ── Tabs ──────────────────────────────────────────────────────────
 const activeTab = ref<'tickets' | 'housecalls' | 'thirdparty'>('tickets')
@@ -646,11 +650,11 @@ async function handleCreateTicket(ticketData: any) {
     let customerId = ticketData.customerId
     if (ticketData.newCustomer?.name) { const nc = await appStore.createCustomer(ticketData.newCustomer); customerId = nc.id }
     const ticket = await appStore.createTicket({ ...ticketData, customerId, status: 'Open', price: 0, services: [], parts: [], payments: [], notes: [], timeLog: [] })
-    toast.dismiss(id); toast.success('Ticket Created', `Ticket #${ticket.id} created`)
+    dismiss(id); toast.success('Ticket Created', `Ticket #${ticket.id} created`)
     newTicketOpen.value = false
     sendTicketEmail({ ...ticket, customerId }).catch(() => {})
     sendInternalAlert({ eventType: 'New Ticket', eventSummary: `Ticket #${ticket.id} created`, customerName: getCustomerName(customerId), customerPhone: getCustomerPhone(customerId), deviceName: ticketData.device || '', issueDescription: ticketData.issue || '', ticketNumber: String(ticket.id) }).catch(() => {})
-  } catch (err: any) { toast.dismiss(id); toast.danger('Error', err.message || 'Failed to create ticket') }
+  } catch (err: any) { dismiss(id); toast.danger('Error', err.message || 'Failed to create ticket') }
 }
 
 // ── HOUSE CALLS ───────────────────────────────────────────────────

@@ -34,7 +34,7 @@
               </v-col>
               <v-col cols="6" sm="4" md="3">
                 <v-card hover :color="isOtherBrand ? 'primary' : undefined" :variant="isOtherBrand ? 'tonal' : 'outlined'" class="pa-3 d-flex align-center gap-2 h-100" @click="selectOtherBrand">
-                  <span class="w-6 h-6 d-flex align-center justify-center opacity-70" v-html="otherBrandIcon"></span>
+                  <v-icon size="22" class="opacity-70">mdi-dots-horizontal-circle-outline</v-icon>
                   <span class="text-button font-weight-bold">Other</span>
                 </v-card>
               </v-col>
@@ -193,7 +193,7 @@
 
             <div class="mt-6 mb-2">
               <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-2">Customer Signature (Optional)</p>
-              <SignaturePad v-model="ticketData.signature" :width="Math.min(550, typeof window !== 'undefined' ? window.innerWidth - 80 : 550)" :height="150" />
+              <SignaturePad v-model="ticketData.signature" :width="550" :height="150" />
             </div>
           </v-window-item>
         </v-window>
@@ -445,14 +445,14 @@ const loadingModels = ref(false)
 const fetchBrands = async () => {
   loadingBrands.value = true
   const { data } = await from('devices').select('brand').order('brand')
-  if (data) brands.value = [...new Set(data.map((r: any) => String(r.brand)))]
+  if (data) brands.value = [...new Set(data.map((r: any) => String(r.brand)))] as string[]
   loadingBrands.value = false
 }
 
 const fetchCategories = async (brand: string) => {
   loadingCategories.value = true
   const { data } = await from('devices').select('category').eq('brand', brand).order('category')
-  if (data) categories.value = [...new Set(data.map((r: any) => String(r.category)))]
+  if (data) categories.value = [...new Set(data.map((r: any) => String(r.category)))] as string[]
   loadingCategories.value = false
 }
 

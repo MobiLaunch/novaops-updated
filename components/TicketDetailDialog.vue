@@ -560,6 +560,16 @@ const isOpen = computed({
   set: val => emit('update:modelValue', val)
 })
 
+// ── Derived customer record ───────────────────────────────────────
+const ticketCustomer = computed(() =>
+  (customers.value || []).find((c: any) => c.id === props.ticket?.customerId) ?? null
+)
+
+// Helper used in footer actions and print label
+function getCustomerName(id: number) {
+  return (customers.value || []).find((c: any) => c.id === id)?.name || 'Unknown'
+}
+
 // ── Local editable copies ─────────────────────────────────────────
 const localStatus      = ref('')
 const localWarrantyDays = ref(0)
