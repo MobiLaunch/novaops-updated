@@ -1,178 +1,244 @@
 <template>
-  <div class="flex flex-col gap-8">
+  <div class="d-flex flex-column gap-6">
 
     <!-- Header -->
-    <div class="flex items-center justify-between flex-wrap gap-4">
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-[24px] flex items-center justify-center shadow-lg"
-          style="background: linear-gradient(135deg, #06b6d4, #0891b2); box-shadow: 0 6px 28px #06b6d450">
-          <v-icon icon="mdi-barcode-scan" size="24" color="white" />
-        </div>
+    <div class="d-flex align-center justify-space-between flex-wrap gap-4 mb-2">
+      <div class="d-flex align-center gap-4">
+        <v-avatar size="56" color="cyan" variant="tonal" class="rounded-xl">
+          <v-icon icon="mdi-barcode-scan" size="28" color="cyan" />
+        </v-avatar>
         <div>
-          <h1 class="text-3xl font-black tracking-tight">Barcodes</h1>
-          <p class="text-sm text-muted-foreground font-medium mt-0.5">Generate and scan barcodes for inventory</p>
+          <h1 class="text-h4 font-weight-black">Barcodes</h1>
+          <p class="text-body-2 text-medium-emphasis mb-0 mt-1">Generate and scan barcodes for inventory</p>
         </div>
       </div>
-      <div class="flex gap-1.5 rounded-full p-1" style="background: hsl(var(--muted)/0.5)">
-        <button v-for="m in ['Generate', 'Scan']" :key="m"
-          class="px-4 py-2 rounded-full text-xs font-black transition-all"
-          :style="mode === m ? 'background: white; color: #06b6d4; box-shadow: 0 2px 8px rgba(0,0,0,0.1)' : 'color: hsl(var(--muted-foreground))'"
-          @click="mode = m">{{ m }}</button>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-      <!-- Generate Panel -->
-      <div v-if="mode === 'Generate'" class="rounded-[32px] p-7 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
-        <div class="flex items-center gap-3 mb-6">
-          <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #06b6d420">
-            <v-icon icon="mdi-barcode" size="16" style="color: #06b6d4" />
-          </div>
-          <h3 class="text-sm font-black">Generate Barcode</h3>
-        </div>
-        <div class="space-y-4">
-          <div class="space-y-2">
-            <label class="m3-label">Content / SKU</label>
-            <input v-model="barcodeValue" placeholder="Enter SKU or item code…" class="m3-input" @input="debouncedGenerate" />
-          </div>
-          <div class="space-y-2">
-            <label class="m3-label">Label (optional)</label>
-            <input v-model="barcodeLabel" placeholder="Product name or description" class="m3-input" />
-          </div>
-          <div class="space-y-2">
-            <label class="m3-label">Format</label>
-            <div class="flex flex-wrap gap-2">
-              <button v-for="t in barcodeFormats" :key="t.value"
-                class="px-3 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-105"
-                :style="barcodeFormat === t.value ? 'background: #06b6d424; color: #06b6d4; outline: 1.5px solid #06b6d440; outline-offset:0' : 'background: hsl(var(--muted)/0.5); color: hsl(var(--muted-foreground))'"
-                @click="barcodeFormat = t.value; debouncedGenerate()">{{ t.label }}</button>
-            </div>
-          </div>
-
-          <!-- Live barcode preview -->
-          <div v-if="barcodeValue" class="rounded-[24px] p-6 flex flex-col items-center gap-4" style="background: white; outline: 2px solid #06b6d420; outline-offset: 0">
-            <div v-show="barcodeFormat === 'QR'">
-              <canvas ref="qrCanvas" class="rounded-[12px]" />
-            </div>
-            <svg v-show="barcodeFormat !== 'QR'" ref="barcodeSvg" class="max-w-full" />
-            <p class="text-xs font-bold text-gray-500">{{ barcodeLabel || barcodeValue }}</p>
-            <p v-if="barcodeError" class="text-xs font-bold text-red-500">{{ barcodeError }}</p>
-            <div class="flex gap-2">
-              <button class="px-4 py-2 rounded-full text-xs font-bold transition-all hover:scale-105" style="background: #06b6d420; color: #06b6d4" @click="printBarcode">
-                🖨 Print Label
-              </button>
-              <button class="px-4 py-2 rounded-full text-xs font-bold transition-all hover:scale-105" style="background: hsl(var(--muted)/0.5); color: hsl(var(--foreground))" @click="downloadBarcode">
-                ⬇ Download
-              </button>
-            </div>
-          </div>
-
-          <div v-if="!barcodeValue" class="rounded-[24px] p-8 flex flex-col items-center gap-2 text-muted-foreground" style="background: hsl(var(--muted)/0.2); outline: 2px dashed hsl(var(--border)/0.4); outline-offset: 0">
-            <v-icon icon="mdi-barcode" size="32" class="opacity-30" />
-            <p class="text-xs font-bold">Enter a value above to preview your barcode</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Scan Panel -->
-      <div v-if="mode === 'Scan'" class="rounded-[32px] p-7 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
-        <div class="flex items-center gap-3 mb-6">
-          <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #06b6d420">
-            <v-icon icon="mdi-barcode-scan" size="16" style="color: #06b6d4" />
-          </div>
-          <h3 class="text-sm font-black">Scan / Lookup</h3>
-        </div>
-        <div class="space-y-4">
-          <div class="space-y-2">
-            <label class="m3-label">Scan or type SKU</label>
-            <input ref="scanInput" v-model="scanValue" placeholder="Scan barcode or enter SKU…" class="m3-input" autofocus @keyup.enter="lookupScan" />
-          </div>
-          <button class="w-full h-12 rounded-full text-sm font-black text-white transition-all hover:scale-[1.02] active:scale-95" style="background: linear-gradient(135deg, #06b6d4, #0891b2)" @click="lookupScan">
-            Lookup Item
-          </button>
-          <div v-if="scanResult" class="rounded-[24px] p-5 flex flex-col gap-2"
-            :style="scanResult.found ? 'background: #10b98114; outline: 2px solid #10b98128; outline-offset: 0' : 'background: #ef444414; outline: 2px solid #ef444428; outline-offset: 0'">
-            <div v-if="scanResult.found" class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-[20px] flex items-center justify-center" style="background: #10b98120">
-                <v-icon icon="mdi-package-variant-closed" size="20" style="color: #10b981" />
-              </div>
-              <div>
-                <p class="text-sm font-black" style="color: #10b981">{{ scanResult.item?.name }}</p>
-                <p class="text-xs text-muted-foreground font-medium">SKU: {{ scanResult.item?.sku }} · Stock: {{ scanResult.item?.stock ?? '—' }} · {{ formatCurrency(scanResult.item?.price) }}</p>
-              </div>
-            </div>
-            <p v-else class="text-sm font-bold" style="color: #ef4444">❌ No item found for "{{ scanValue }}"</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Inventory Items — click to auto-populate generator -->
-      <div class="rounded-[32px] p-7 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
-        <div class="flex items-center justify-between mb-6">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #8b5cf620">
-              <v-icon icon="mdi-package-variant-closed" size="16" style="color: #8b5cf6" />
-            </div>
-            <h3 class="text-sm font-black">Inventory Items</h3>
-          </div>
-          <span class="text-xs font-black px-2.5 py-1 rounded-full" style="background: #8b5cf618; color: #8b5cf6">{{ inventory.length }}</span>
-        </div>
-        <div class="space-y-1.5 max-h-96 overflow-y-auto">
-          <div v-for="item in inventory" :key="item.id"
-            class="flex items-center gap-3 px-4 py-3 rounded-[20px] hover:bg-muted/20 transition-all cursor-pointer group"
-            @click="selectInventoryItem(item)">
-            <div class="w-9 h-9 rounded-[18px] flex items-center justify-center flex-shrink-0" style="background: #8b5cf618">
-              <v-icon icon="mdi-package-variant-closed" size="16" style="color: #8b5cf6" />
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-bold truncate">{{ item.name }}</p>
-              <p class="text-xs text-muted-foreground font-medium font-mono">{{ item.sku || 'No SKU' }}</p>
-            </div>
-            <span class="text-xs font-black text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-              <v-icon icon="mdi-barcode" size="12" /> Generate
-            </span>
-          </div>
-          <div v-if="!inventory.length" class="text-center py-8">
-            <v-icon icon="mdi-package-variant-closed" size="40" class="mx-auto mb-2 opacity-20" />
-            <p class="text-sm font-bold text-muted-foreground">No inventory items yet</p>
-          </div>
-        </div>
+      <div class="bg-surface-variant rounded-pill pa-1 d-flex gap-1">
+        <v-btn
+          v-for="m in ['Generate', 'Scan']"
+          :key="m"
+          :variant="mode === m ? 'flat' : 'text'"
+          :color="mode === m ? 'cyan' : undefined"
+          class="rounded-pill text-none px-6 font-weight-bold"
+          size="small"
+          @click="mode = m"
+        >
+          {{ m }}
+        </v-btn>
       </div>
     </div>
+
+    <v-row>
+      <!-- Left Panel: Generate or Scan -->
+      <v-col cols="12" lg="6">
+        
+        <!-- Generate Panel -->
+        <v-card v-if="mode === 'Generate'" class="rounded-xl border pa-6 h-100" elevation="0">
+          <div class="d-flex align-center gap-3 mb-6">
+            <v-avatar size="36" color="cyan" variant="tonal" class="rounded-lg">
+              <v-icon icon="mdi-barcode" size="20" color="cyan" />
+            </v-avatar>
+            <h3 class="text-subtitle-1 font-weight-black mb-0">Generate Barcode</h3>
+          </div>
+          
+          <div class="d-flex flex-column gap-4">
+            <v-text-field
+              v-model="barcodeValue"
+              label="Content / SKU"
+              placeholder="Enter SKU or item code..."
+              variant="outlined"
+              hide-details
+              density="comfortable"
+              @input="debouncedGenerate"
+            />
+            
+            <v-text-field
+              v-model="barcodeLabel"
+              label="Label (optional)"
+              placeholder="Product name or description"
+              variant="outlined"
+              hide-details
+              density="comfortable"
+            />
+            
+            <div>
+              <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-2">Format</p>
+              <div class="d-flex flex-wrap gap-2">
+                <v-chip
+                  v-for="t in barcodeFormats"
+                  :key="t.value"
+                  :color="barcodeFormat === t.value ? 'cyan' : undefined"
+                  :variant="barcodeFormat === t.value ? 'flat' : 'tonal'"
+                  class="font-weight-bold cursor-pointer"
+                  @click="barcodeFormat = t.value; debouncedGenerate()"
+                >
+                  {{ t.label }}
+                </v-chip>
+              </div>
+            </div>
+
+            <!-- Live barcode preview -->
+            <v-card v-if="barcodeValue" class="mt-4 pa-6 d-flex flex-column align-center gap-4 bg-surface" variant="outlined" style="border-color: rgba(6,182,212,0.2)">
+              <div v-show="barcodeFormat === 'QR'">
+                <canvas ref="qrCanvas" class="rounded-lg" />
+              </div>
+              <svg v-show="barcodeFormat !== 'QR'" ref="barcodeSvg" class="max-w-100" />
+              
+              <p class="text-body-2 font-weight-bold text-medium-emphasis">{{ barcodeLabel || barcodeValue }}</p>
+              <p v-if="barcodeError" class="text-caption font-weight-bold text-error">{{ barcodeError }}</p>
+              
+              <div class="d-flex gap-3 mt-2">
+                <v-btn color="cyan" variant="tonal" class="rounded-pill text-none" @click="printBarcode">
+                  <v-icon start>mdi-printer</v-icon> Print Label
+                </v-btn>
+                <v-btn color="surface-variant" variant="flat" class="rounded-pill text-none" @click="downloadBarcode">
+                  <v-icon start>mdi-download</v-icon> Download
+                </v-btn>
+              </div>
+            </v-card>
+
+            <v-card v-if="!barcodeValue" class="mt-4 pa-8 d-flex flex-column align-center gap-2 bg-surface-variant" variant="flat" style="border: 2px dashed rgba(var(--v-theme-on-surface), 0.1)">
+              <v-icon icon="mdi-barcode" size="48" color="medium-emphasis" class="opacity-50" />
+              <p class="text-body-2 font-weight-bold text-medium-emphasis">Enter a value above to preview your barcode</p>
+            </v-card>
+          </div>
+        </v-card>
+
+        <!-- Scan Panel -->
+        <v-card v-if="mode === 'Scan'" class="rounded-xl border pa-6 h-100" elevation="0">
+          <div class="d-flex align-center gap-3 mb-6">
+            <v-avatar size="36" color="cyan" variant="tonal" class="rounded-lg">
+              <v-icon icon="mdi-barcode-scan" size="20" color="cyan" />
+            </v-avatar>
+            <h3 class="text-subtitle-1 font-weight-black mb-0">Scan / Lookup</h3>
+          </div>
+          
+          <div class="d-flex flex-column gap-4">
+            <v-text-field
+              ref="scanInput"
+              v-model="scanValue"
+              label="Scan or type SKU"
+              placeholder="Scan barcode or enter SKU..."
+              variant="outlined"
+              hide-details
+              density="comfortable"
+              autofocus
+              @keyup.enter="lookupScan"
+            >
+              <template #append-inner>
+                <v-btn color="cyan" variant="flat" class="rounded-lg text-none" size="small" @click="lookupScan">
+                  Lookup
+                </v-btn>
+              </template>
+            </v-text-field>
+
+            <v-card v-if="scanResult" class="pa-5 mt-2 rounded-xl" :color="scanResult.found ? 'success' : 'error'" :variant="'tonal'">
+              <div v-if="scanResult.found" class="d-flex align-center gap-4">
+                <v-avatar size="48" color="success" class="rounded-lg" variant="flat">
+                  <v-icon icon="mdi-package-variant-closed" color="white" />
+                </v-avatar>
+                <div>
+                  <p class="text-subtitle-1 font-weight-black text-success">{{ scanResult.item?.name }}</p>
+                  <p class="text-caption font-weight-bold mt-1">
+                    SKU: {{ scanResult.item?.sku }} • Stock: {{ scanResult.item?.stock ?? '—' }} • {{ formatCurrency(scanResult.item?.price) }}
+                  </p>
+                </div>
+              </div>
+              <p v-else class="text-body-2 font-weight-bold d-flex align-center gap-2">
+                <v-icon icon="mdi-close-circle" size="20" /> No item found for "{{ scanValue }}"
+              </p>
+            </v-card>
+          </div>
+        </v-card>
+      </v-col>
+
+      <!-- Right Panel: Inventory Items -->
+      <v-col cols="12" lg="6">
+        <v-card class="rounded-xl border pa-6 h-100 d-flex flex-column" elevation="0">
+          <div class="d-flex align-center justify-space-between mb-6">
+            <div class="d-flex align-center gap-3">
+              <v-avatar size="36" color="deep-purple-accent-2" variant="tonal" class="rounded-lg">
+                <v-icon icon="mdi-package-variant-closed" size="20" color="deep-purple-accent-2" />
+              </v-avatar>
+              <h3 class="text-subtitle-1 font-weight-black mb-0">Inventory Items</h3>
+            </div>
+            <v-chip size="small" color="deep-purple-accent-2" class="font-weight-bold" variant="tonal">
+              {{ inventory.length }}
+            </v-chip>
+          </div>
+          
+          <div class="flex-grow-1 overflow-y-auto" style="max-height: 500px">
+            <v-list lines="two" bg-color="transparent" class="pa-0">
+              <v-list-item
+                v-for="item in inventory"
+                :key="item.id"
+                class="rounded-xl mb-2 border"
+                :class="{'bg-surface-variant': false}"
+                @click="selectInventoryItem(item)"
+              >
+                <template #prepend>
+                  <v-avatar size="40" color="deep-purple-accent-2" variant="tonal" class="rounded-lg">
+                    <v-icon icon="mdi-package-variant-closed" size="20" />
+                  </v-avatar>
+                </template>
+                <v-list-item-title class="font-weight-bold text-body-2">{{ item.name }}</v-list-item-title>
+                <v-list-item-subtitle class="font-weight-medium text-caption text-mono">{{ item.sku || 'No SKU' }}</v-list-item-subtitle>
+                <template #append>
+                  <v-btn size="small" variant="text" color="deep-purple-accent-2" class="text-none">
+                    <v-icon start>mdi-barcode</v-icon> Generate
+                  </v-btn>
+                </template>
+              </v-list-item>
+            </v-list>
+            
+            <div v-if="!inventory.length" class="text-center py-12">
+              <v-icon icon="mdi-package-variant-closed" size="64" color="medium-emphasis" class="opacity-20 mb-4" />
+              <p class="text-body-2 font-weight-bold text-medium-emphasis">No inventory items yet</p>
+            </div>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
 
     <!-- Batch generator -->
-    <div class="rounded-[28px] p-6 bg-card" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
-      <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-[18px] flex items-center justify-center" style="background: #06b6d420">
-            <v-icon icon="mdi-layers-outline" size="16" style="color: #06b6d4" />
-          </div>
-          <h3 class="text-sm font-black">Batch Print — Inventory Labels</h3>
+    <v-card class="rounded-xl border pa-6 mt-2" elevation="0">
+      <div class="d-flex align-center justify-space-between mb-4 flex-wrap gap-4">
+        <div class="d-flex align-center gap-3">
+          <v-avatar size="36" color="cyan" variant="tonal" class="rounded-lg">
+            <v-icon icon="mdi-layers-outline" size="20" color="cyan" />
+          </v-avatar>
+          <h3 class="text-subtitle-1 font-weight-black mb-0">Batch Print — Inventory Labels</h3>
         </div>
-        <button
-          class="h-9 px-5 rounded-full text-xs font-black text-white transition-all hover:scale-105 active:scale-95 disabled:opacity-40"
-          style="background: linear-gradient(135deg, #06b6d4, #0891b2)"
+        <v-btn
+          color="cyan"
+          variant="flat"
+          class="rounded-pill text-none px-6"
           :disabled="selectedItems.length === 0"
           @click="printBatch"
-        >Print {{ selectedItems.length > 0 ? selectedItems.length : '' }} Label{{ selectedItems.length !== 1 ? 's' : '' }}</button>
+        >
+          Print {{ selectedItems.length > 0 ? selectedItems.length : '' }} Label{{ selectedItems.length !== 1 ? 's' : '' }}
+        </v-btn>
       </div>
-      <div class="flex flex-wrap gap-2">
-        <button v-for="item in inventory" :key="item.id"
-          class="flex items-center gap-2 px-3 py-2 rounded-[14px] text-xs font-bold transition-all hover:scale-[1.02]"
-          :style="selectedItems.includes(item.id)
-            ? 'background: #06b6d424; color: #06b6d4; outline: 1.5px solid #06b6d440; outline-offset:0'
-            : 'background: hsl(var(--muted)/0.5); color: hsl(var(--muted-foreground))'"
-          @click="toggleSelected(item.id)">
-          <v-icon icon="mdi-barcode" size="12" />
+      
+      <div class="d-flex flex-wrap gap-2">
+        <v-chip
+          v-for="item in inventory"
+          :key="item.id"
+          :color="selectedItems.includes(item.id) ? 'cyan' : undefined"
+          :variant="selectedItems.includes(item.id) ? 'flat' : 'tonal'"
+          class="font-weight-bold cursor-pointer"
+          @click="toggleSelected(item.id)"
+        >
+          <v-icon start>mdi-barcode</v-icon>
           {{ item.name }}
-        </button>
-        <p v-if="!inventory.length" class="text-xs text-muted-foreground font-medium py-2">No inventory items. Add items to batch print labels.</p>
+        </v-chip>
+        <p v-if="!inventory.length" class="text-caption font-weight-medium text-medium-emphasis py-2">
+          No inventory items. Add items to batch print labels.
+        </p>
       </div>
-    </div>
+    </v-card>
 
     <!-- Hidden print frame for batch -->
-    <iframe ref="printFrame" class="hidden" />
+    <iframe ref="printFrame" class="d-none" />
   </div>
 </template>
 
