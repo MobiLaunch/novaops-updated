@@ -700,8 +700,6 @@ const formatMinutes = (m: number) => {
 const timeRate = (minutes: number, hourly = HOURLY_RATE.value) =>
   Math.round(((minutes || 0) / 60) * hourly * 100) / 100
 
-const getCustomerName = (id: number) =>
-  customers.value?.find((c: any) => c.id === id)?.name || 'Unknown'
 
 const ticketStatusColor = (status?: string) => ({
   'Open': '#3b82f6', 'In Progress': '#f59e0b', 'Waiting for Parts': '#f97316',
