@@ -75,7 +75,7 @@
           <div class="flex flex-col gap-5">
             <!-- Business info (auto-filled from settings) -->
             <div class="rounded-xl p-4 flex items-center gap-3 bg-muted/50 border">
-              <i class="mdi mdi-office-building-outline text-lg text-muted"></i>
+              <i class="mdi mdi-office-building-outline text-lg text-muted-foreground"></i>
               <div>
                 <p class="font-bold text-xs">{{ settings.businessName || 'Your Business' }}</p>
                 <p class="text-[10px] text-muted-foreground mt-0.5">{{ [settings.phone, settings.email].filter(Boolean).join(' · ') || 'Set phone & email in Settings' }}</p>

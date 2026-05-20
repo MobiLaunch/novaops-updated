@@ -1,589 +1,522 @@
 <template>
-  <div>
+  <div class="page-shell">
 
-    <!-- ── Page Header ─────────────────────────────────────────── -->
-    <div class="d-flex align-center justify-space-between flex-wrap gap-3 mb-6">
-      <div class="d-flex align-center gap-4">
-        <v-avatar
-          size="48"
-          rounded="xl"
+    <header class="flex items-center justify-between flex-wrap gap-3">
+      <div class="flex items-center gap-4">
+        <div
+          class="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md shrink-0"
           style="background: linear-gradient(135deg,#10b981,#059669); box-shadow: 0 4px 20px #10b98150"
         >
-          <i class="mdi mdi-chart-bar"></i>
-        </v-avatar>
+          <i class="mdi mdi-chart-bar text-xl"></i>
+        </div>
         <div>
-          <h1 class="text-h5 font-weight-black">Analytics</h1>
-          <p class="text-body-2 text-medium-emphasis">Financial overview, P&L, and business performance</p>
+          <h1 class="text-xl font-black m-0">Analytics</h1>
+          <p class="text-sm text-muted-foreground m-0">Financial overview, P&L, and business performance</p>
         </div>
       </div>
-      <div class="d-flex align-center gap-3 flex-wrap">
-        <v-btn-toggle v-model="activeTab" mandatory rounded="pill" density="compact" color="success" divided>
-          <v-btn v-for="t in tabs" :key="t.value" :value="t.value" size="small">{{ t.label }}</v-btn>
-        </v-btn-toggle>
-        <v-btn-toggle v-model="dateRange" mandatory rounded="pill" density="compact" color="success" divided>
-          <v-btn v-for="r in dateRanges" :key="r.value" :value="r.value" size="small">{{ r.label }}</v-btn>
-        </v-btn-toggle>
-        <v-btn color="success" prepend-icon="mdi-download" @click="exportReport">Export</v-btn>
+      <div class="flex items-center gap-3 flex-wrap">
+        <SelectButton
+          v-model="activeTab"
+          :options="tabs"
+          option-label="label"
+          option-value="value"
+          :allow-empty="false"
+        />
+        <SelectButton
+          v-model="dateRange"
+          :options="dateRanges"
+          option-label="label"
+          option-value="value"
+          :allow-empty="false"
+        />
+        <Button label="Export" severity="success" class="font-bold text-none" @click="exportReport">
+          <i class="mdi mdi-download mr-1"></i>
+        </Button>
       </div>
-    </div>
+    </header>
 
     <!-- ── OVERVIEW TAB ─────────────────────────────────────────── -->
     <template v-if="activeTab === 'overview'">
 
-      <!-- P&L Hero -->
-      <v-card
-        class="pa-8 mb-5 hero-card overflow-hidden"
-        :color="netProfit >= 0 ? 'success' : 'error'"
-        variant="flat"
-        style="background: linear-gradient(135deg,#10b981,#059669,#047857)"
+      <div
+        class="rounded-xl p-8 mb-5 hero-card overflow-hidden text-white"
+        :style="netProfit >= 0
+          ? 'background: linear-gradient(135deg,#10b981,#059669,#047857)'
+          : 'background: linear-gradient(135deg,#ef4444,#dc2626,#b91c1c)'"
       >
-        <v-row align="center">
-          <v-col>
-            <div class="text-caption text-white font-weight-black text-uppercase mb-1" style="opacity:.75;letter-spacing:.1em">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+          <div>
+            <div class="text-xs font-black uppercase mb-1 opacity-75 tracking-widest">
               {{ netProfit >= 0 ? '🎉 Net Profit' : '📉 Net Loss' }} — {{ periodLabel }}
             </div>
-            <div class="text-h3 font-weight-black text-white">{{ formatCurrency(Math.abs(netProfit)) }}</div>
-            <div class="text-body-2 text-white mt-1" style="opacity:.7">
+            <div class="text-3xl font-black">{{ formatCurrency(Math.abs(netProfit)) }}</div>
+            <div class="text-sm mt-1 opacity-70">
               Revenue {{ formatCurrency(totalRevenue) }} — Expenses {{ formatCurrency(totalExpenses) }}
             </div>
-          </v-col>
-          <v-col cols="auto" class="text-right">
-            <div class="text-caption text-white font-weight-black text-uppercase" style="opacity:.7">Margin</div>
-            <div class="text-h4 font-weight-black text-white">
+          </div>
+          <div class="md:text-right">
+            <div class="text-xs font-black uppercase opacity-70">Margin</div>
+            <div class="text-3xl font-black">
               {{ totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(1) : '0' }}%
             </div>
-            <v-chip color="white" variant="tonal" size="small" class="mt-2">
-              <v-icon :icon="netProfit >= 0 ? 'mdi-trending-up' : 'mdi-trending-down'" size="14" class="mr-1" />
+            <Tag class="mt-2" severity="secondary">
+              <i class="mdi mr-1" :class="netProfit >= 0 ? 'mdi-trending-up' : 'mdi-trending-down'"></i>
               {{ ticketCount }} transactions
-            </v-chip>
-          </v-col>
-        </v-row>
-      </v-card>
+            </Tag>
+          </div>
+        </div>
+      </div>
 
-      <!-- KPI Row -->
-      <v-row dense class="mb-4">
-        <v-col cols="6" sm="3">
-          <v-card class="pa-5 kpi-card" style="background:#10b98114;outline:2px solid #10b98128;outline-offset:0">
-            <div class="d-flex align-center justify-space-between mb-3">
-              <v-avatar size="44" rounded="lg" style="background:#10b98124"><i class="mdi mdi-currency-usd"></i></v-avatar>
-              <v-chip size="x-small" color="success" variant="tonal">REVENUE</v-chip>
-            </div>
-            <div class="text-caption text-medium-emphasis">Total Revenue</div>
-            <div class="text-h5 font-weight-black" style="color:#10b981">{{ formatCurrency(totalRevenue) }}</div>
-            <div class="text-caption text-medium-emphasis" style="font-size:10px">{{ completedCount }} paid tickets</div>
-          </v-card>
-        </v-col>
-        <v-col cols="6" sm="3">
-          <v-card class="pa-5 kpi-card" style="background:#ef444414;outline:2px solid #ef444428;outline-offset:0">
-            <div class="d-flex align-center justify-space-between mb-3">
-              <v-avatar size="44" rounded="lg" style="background:#ef444424"><i class="mdi mdi-trending-down"></i></v-avatar>
-              <v-chip size="x-small" color="error" variant="tonal">COSTS</v-chip>
-            </div>
-            <div class="text-caption text-medium-emphasis">Total Costs</div>
-            <div class="text-h5 font-weight-black" style="color:#ef4444">{{ formatCurrency(totalExpenses) }}</div>
-            <div class="text-caption text-medium-emphasis" style="font-size:10px">Parts + overhead</div>
-          </v-card>
-        </v-col>
-        <v-col cols="6" sm="3">
-          <v-card class="pa-5 kpi-card" style="background:#f59e0b14;outline:2px solid #f59e0b28;outline-offset:0">
-            <div class="d-flex align-center justify-space-between mb-3">
-              <v-avatar size="44" rounded="lg" style="background:#f59e0b24"><i class="mdi mdi-receipt-text-outline"></i></v-avatar>
-              <v-chip size="x-small" color="warning" variant="tonal">TAX</v-chip>
-            </div>
-            <div class="text-caption text-medium-emphasis">Tax Collected</div>
-            <div class="text-h5 font-weight-black" style="color:#f59e0b">{{ formatCurrency(totalTax) }}</div>
-            <div class="text-caption text-medium-emphasis" style="font-size:10px">{{ taxRate }}% rate applied</div>
-          </v-card>
-        </v-col>
-        <v-col cols="6" sm="3">
-          <v-card class="pa-5 kpi-card" style="background:#6366f114;outline:2px solid #6366f128;outline-offset:0">
-            <div class="d-flex align-center justify-space-between mb-3">
-              <v-avatar size="44" rounded="lg" style="background:#6366f124"><i class="mdi mdi-target"></i></v-avatar>
-              <v-chip size="x-small" color="primary" variant="tonal">AVG</v-chip>
-            </div>
-            <div class="text-caption text-medium-emphasis">Avg Ticket Value</div>
-            <div class="text-h5 font-weight-black" style="color:#6366f1">{{ formatCurrency(avgTicketValue) }}</div>
-            <div class="text-caption text-medium-emphasis" style="font-size:10px">Per completed job</div>
-          </v-card>
-        </v-col>
-      </v-row>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <div class="kpi-card rounded-xl p-5" style="background:#10b98114;outline:2px solid #10b98128;outline-offset:0">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-11 h-11 rounded-lg flex items-center justify-center" style="background:#10b98124;color:#10b981"><i class="mdi mdi-currency-usd text-xl"></i></div>
+            <Tag value="REVENUE" severity="success" class="text-[9px]" />
+          </div>
+          <div class="text-xs text-muted-foreground">Total Revenue</div>
+          <div class="text-2xl font-black" style="color:#10b981">{{ formatCurrency(totalRevenue) }}</div>
+          <div class="text-[10px] text-muted-foreground">{{ completedCount }} paid tickets</div>
+        </div>
+        <div class="kpi-card rounded-xl p-5" style="background:#ef444414;outline:2px solid #ef444428;outline-offset:0">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-11 h-11 rounded-lg flex items-center justify-center" style="background:#ef444424;color:#ef4444"><i class="mdi mdi-trending-down text-xl"></i></div>
+            <Tag value="COSTS" severity="danger" class="text-[9px]" />
+          </div>
+          <div class="text-xs text-muted-foreground">Total Costs</div>
+          <div class="text-2xl font-black" style="color:#ef4444">{{ formatCurrency(totalExpenses) }}</div>
+          <div class="text-[10px] text-muted-foreground">Parts + overhead</div>
+        </div>
+        <div class="kpi-card rounded-xl p-5" style="background:#f59e0b14;outline:2px solid #f59e0b28;outline-offset:0">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-11 h-11 rounded-lg flex items-center justify-center" style="background:#f59e0b24;color:#f59e0b"><i class="mdi mdi-receipt-text-outline text-xl"></i></div>
+            <Tag value="TAX" severity="warn" class="text-[9px]" />
+          </div>
+          <div class="text-xs text-muted-foreground">Tax Collected</div>
+          <div class="text-2xl font-black" style="color:#f59e0b">{{ formatCurrency(totalTax) }}</div>
+          <div class="text-[10px] text-muted-foreground">{{ taxRate }}% rate applied</div>
+        </div>
+        <div class="kpi-card rounded-xl p-5" style="background:#6366f114;outline:2px solid #6366f128;outline-offset:0">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-11 h-11 rounded-lg flex items-center justify-center" style="background:#6366f124;color:#6366f1"><i class="mdi mdi-target text-xl"></i></div>
+            <Tag value="AVG" severity="info" class="text-[9px]" />
+          </div>
+          <div class="text-xs text-muted-foreground">Avg Ticket Value</div>
+          <div class="text-2xl font-black" style="color:#6366f1">{{ formatCurrency(avgTicketValue) }}</div>
+          <div class="text-[10px] text-muted-foreground">Per completed job</div>
+        </div>
+      </div>
 
-      <!-- Revenue + Cost Side-by-Side -->
-      <v-row>
-        <v-col cols="12" lg="8">
-          <v-card class="pa-6">
-            <div class="d-flex align-center gap-3 mb-5">
-              <v-avatar size="36" rounded="lg" style="background:#10b98120"><i class="mdi mdi-chart-bar"></i></v-avatar>
-              <span class="text-subtitle-2 font-weight-black">Revenue Breakdown</span>
-            </div>
-            <div class="mb-6">
-              <div v-for="source in revenueSources" :key="source.label" class="d-flex align-center gap-3 mb-3">
-                <v-avatar size="36" rounded="lg" :style="`background:${source.color}20`">
-                  <i class="mdi text-lg" :class="source.icon"></i>
-                </v-avatar>
-                <div class="flex-grow-1">
-                  <div class="d-flex align-center justify-space-between mb-1">
-                    <span class="text-caption font-weight-bold">{{ source.label }}</span>
-                    <span class="text-caption font-weight-black" :style="`color:${source.color}`">{{ formatCurrency(source.value) }}</span>
-                  </div>
-                  <v-progress-linear
-                    :model-value="source.pct"
-                    :color="source.color"
-                    rounded
-                    height="10"
-                    bg-color="rgba(0,0,0,0.06)"
-                  />
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div class="lg:col-span-8 bg-surface border border-border rounded-xl p-6">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:#10b98120;color:#10b981"><i class="mdi mdi-chart-bar"></i></div>
+            <span class="text-sm font-black">Revenue Breakdown</span>
+          </div>
+          <div class="mb-6">
+            <div v-for="source in revenueSources" :key="source.label" class="flex items-center gap-3 mb-3">
+              <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" :style="`background:${source.color}20;color:${source.color}`">
+                <i class="mdi text-lg" :class="source.icon"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-bold">{{ source.label }}</span>
+                  <span class="text-xs font-black" :style="`color:${source.color}`">{{ formatCurrency(source.value) }}</span>
                 </div>
-                <span class="text-caption text-medium-emphasis" style="min-width:32px;text-align:right">{{ source.pct.toFixed(0) }}%</span>
+                <div class="h-2.5 rounded-full overflow-hidden" style="background:rgba(0,0,0,0.06)">
+                  <div class="h-full rounded-full transition-all" :style="{ width: source.pct + '%', backgroundColor: source.color }"></div>
+                </div>
               </div>
+              <span class="text-xs text-muted-foreground shrink-0" style="min-width:32px;text-align:right">{{ source.pct.toFixed(0) }}%</span>
             </div>
-            <v-divider class="mb-4" />
-            <div class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-4" style="letter-spacing:.1em">Monthly Revenue</div>
-            <div class="d-flex align-end gap-1" style="height:96px">
+          </div>
+          <hr class="border-border mb-4" />
+          <div class="text-xs font-black text-muted-foreground uppercase mb-4 tracking-widest">Monthly Revenue</div>
+          <div class="flex items-end gap-1" style="height:96px">
+            <div
+              v-for="month in monthlyRevenue"
+              :key="month.label"
+              class="flex flex-col items-center gap-1 flex-1 min-w-0"
+            >
               <div
-                v-for="month in monthlyRevenue"
-                :key="month.label"
-                class="d-flex flex-column align-center gap-1 flex-grow-1"
-              >
-                <v-tooltip :text="formatCurrency(month.value)" location="top">
-                  <template #activator="{ props }">
-                    <div
-                      v-bind="props"
-                      class="w-100 rounded-t"
-                      :style="`height:${month.pct}%;min-height:4px;background:linear-gradient(180deg,#10b981,#059669);cursor:pointer;transition:opacity .2s`"
-                    />
-                  </template>
-                </v-tooltip>
-                <span class="text-caption text-medium-emphasis" style="font-size:9px">{{ month.label }}</span>
-              </div>
+                :title="formatCurrency(month.value)"
+                class="w-full rounded-t"
+                :style="`height:${month.pct}%;min-height:4px;background:linear-gradient(180deg,#10b981,#059669);cursor:pointer;transition:opacity .2s`"
+              />
+              <span class="text-[9px] text-muted-foreground">{{ month.label }}</span>
             </div>
-          </v-card>
-        </v-col>
-        <v-col cols="12" lg="4">
-          <v-card class="pa-6 mb-4">
-            <div class="d-flex align-center gap-3 mb-4">
-              <v-avatar size="36" rounded="lg" style="background:#ef444420"><i class="mdi mdi-credit-card-outline"></i></v-avatar>
-              <span class="text-subtitle-2 font-weight-black">Cost Breakdown</span>
+          </div>
+        </div>
+
+        <div class="lg:col-span-4 flex flex-col gap-4">
+          <div class="bg-surface border border-border rounded-xl p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:#ef444420;color:#ef4444"><i class="mdi mdi-credit-card-outline"></i></div>
+              <span class="text-sm font-black">Cost Breakdown</span>
             </div>
-            <v-list density="compact" class="pa-0">
-              <v-list-item
+            <div class="flex flex-col gap-1">
+              <div
                 v-for="exp in expenseItems"
                 :key="exp.label"
-                rounded="lg"
-                class="mb-1"
-                :style="`background:rgba(0,0,0,0.03)`"
+                class="flex items-center gap-3 p-2 rounded-lg"
+                style="background:rgba(0,0,0,0.03)"
               >
-                <template #prepend>
-                  <v-avatar size="28" rounded="md" :style="`background:${exp.color}20`">
-                    <i class="mdi text-lg" :class="exp.icon"></i>
-                  </v-avatar>
-                </template>
-                <template #title><span class="text-caption font-weight-bold">{{ exp.label }}</span></template>
-                <template #append>
-                  <span class="text-caption font-weight-black" :style="`color:${exp.color}`">{{ formatCurrency(exp.value) }}</span>
-                </template>
-              </v-list-item>
-            </v-list>
-            <v-divider class="my-3" />
-            <div class="d-flex justify-space-between">
-              <span class="text-body-2 font-weight-black">Total Costs</span>
-              <span class="text-body-2 font-weight-black" style="color:#ef4444">{{ formatCurrency(totalExpenses) }}</span>
+                <div class="w-7 h-7 rounded-md flex items-center justify-center shrink-0" :style="`background:${exp.color}20;color:${exp.color}`">
+                  <i class="mdi text-base" :class="exp.icon"></i>
+                </div>
+                <span class="text-xs font-bold flex-1">{{ exp.label }}</span>
+                <span class="text-xs font-black" :style="`color:${exp.color}`">{{ formatCurrency(exp.value) }}</span>
+              </div>
             </div>
-          </v-card>
-          <v-card class="pa-5">
-            <div class="d-flex align-center gap-3 mb-3">
-              <v-avatar size="36" rounded="lg" style="background:#f59e0b20"><i class="mdi mdi-receipt-text-outline"></i></v-avatar>
-              <span class="text-subtitle-2 font-weight-black">Tax Summary</span>
+            <hr class="border-border my-3" />
+            <div class="flex justify-between">
+              <span class="text-sm font-black">Total Costs</span>
+              <span class="text-sm font-black" style="color:#ef4444">{{ formatCurrency(totalExpenses) }}</span>
             </div>
-            <v-list density="compact" class="pa-0">
-              <v-list-item class="px-0">
-                <template #title><span class="text-caption text-medium-emphasis">Pre-tax Revenue</span></template>
-                <template #append><span class="text-caption font-weight-bold">{{ formatCurrency(totalRevenue - totalTax) }}</span></template>
-              </v-list-item>
-              <v-list-item class="px-0">
-                <template #title><span class="text-caption text-medium-emphasis">Tax Rate</span></template>
-                <template #append><span class="text-caption font-weight-bold">{{ taxRate }}%</span></template>
-              </v-list-item>
-              <v-divider class="my-1" />
-              <v-list-item class="px-0">
-                <template #title><span class="text-caption font-weight-black">Tax Liability</span></template>
-                <template #append><span class="text-caption font-weight-black" style="color:#f59e0b">{{ formatCurrency(totalTax) }}</span></template>
-              </v-list-item>
-            </v-list>
-          </v-card>
-        </v-col>
-      </v-row>
+          </div>
+
+          <div class="bg-surface border border-border rounded-xl p-5">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:#f59e0b20;color:#f59e0b"><i class="mdi mdi-receipt-text-outline"></i></div>
+              <span class="text-sm font-black">Tax Summary</span>
+            </div>
+            <div class="flex flex-col gap-2">
+              <div class="flex justify-between items-center">
+                <span class="text-xs text-muted-foreground">Pre-tax Revenue</span>
+                <span class="text-xs font-bold">{{ formatCurrency(totalRevenue - totalTax) }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-xs text-muted-foreground">Tax Rate</span>
+                <span class="text-xs font-bold">{{ taxRate }}%</span>
+              </div>
+              <hr class="border-border my-1" />
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-black">Tax Liability</span>
+                <span class="text-xs font-black" style="color:#f59e0b">{{ formatCurrency(totalTax) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </template>
 
     <!-- ── EXPENSE LOG TAB ──────────────────────────────────────── -->
     <template v-if="activeTab === 'expenses'">
-      <v-card>
-        <v-card-item class="border-b">
-          <template #prepend>
-            <v-avatar size="36" rounded="lg" style="background:#8b5cf620"><i class="mdi mdi-clipboard-list-outline"></i></v-avatar>
-          </template>
-          <v-card-title class="text-subtitle-2 font-weight-black">Expense Log</v-card-title>
-          <template #append>
-            <v-btn color="deep-purple" size="small" prepend-icon="mdi-plus" @click="addExpenseOpen = true">Log Expense</v-btn>
-          </template>
-        </v-card-item>
-        <v-card-text class="pa-4">
-          <div v-if="expenses.length === 0" class="py-12 d-flex flex-column align-center gap-3 text-medium-emphasis">
-            <v-avatar size="64" rounded="xl" color="deep-purple" variant="tonal">
-              <i class="mdi mdi-clipboard-list-outline"></i>
-            </v-avatar>
-            <div class="text-body-2 font-weight-bold">No expenses logged yet</div>
-            <div class="text-caption">Track overhead, rent, utilities, and more</div>
+      <div class="bg-surface border border-border rounded-xl overflow-hidden">
+        <div class="flex items-center justify-between gap-3 p-4 border-b border-border flex-wrap">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:#8b5cf620;color:#8b5cf6"><i class="mdi mdi-clipboard-list-outline"></i></div>
+            <span class="text-sm font-black">Expense Log</span>
           </div>
-          <v-list v-else density="compact" class="pa-0">
-            <v-list-item
+          <Button label="Log Expense" size="small" class="text-none font-bold" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none;color:white" @click="addExpenseOpen = true">
+            <i class="mdi mdi-plus mr-1"></i>
+          </Button>
+        </div>
+        <div class="p-4">
+          <div v-if="expenses.length === 0" class="py-12 flex flex-col items-center gap-3 text-muted-foreground">
+            <div class="w-16 h-16 rounded-xl flex items-center justify-center" style="background:#8b5cf620;color:#8b5cf6">
+              <i class="mdi mdi-clipboard-list-outline text-3xl"></i>
+            </div>
+            <div class="text-sm font-bold">No expenses logged yet</div>
+            <div class="text-xs">Track overhead, rent, utilities, and more</div>
+          </div>
+          <div v-else class="flex flex-col gap-1">
+            <div
               v-for="exp in expenses"
               :key="exp.id"
-              rounded="xl"
-              class="mb-1 px-4"
+              class="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50"
             >
-              <template #prepend>
-                <v-avatar size="40" rounded="lg" :style="`background:${expenseCategoryColor(exp.category)}18`">
-                  <i class="mdi mdi-expenseCategoryIcon(exp.category)"></i>
-                </v-avatar>
-              </template>
-              <template #title><span class="text-body-2 font-weight-bold">{{ exp.description }}</span></template>
-              <template #subtitle><span class="text-caption">{{ formatDate(exp.date) }}</span></template>
-              <template #append>
-                <span class="text-body-2 font-weight-black mr-3" style="color:#ef4444">{{ formatCurrency(exp.amount) }}</span>
-                <v-btn icon="mdi-delete-outline" size="x-small" variant="text" color="error" @click="deleteExpense(exp.id)" />
-              </template>
-            </v-list-item>
-          </v-list>
-        </v-card-text>
-      </v-card>
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" :style="`background:${expenseCategoryColor(exp.category)}18;color:${expenseCategoryColor(exp.category)}`">
+                <i class="mdi" :class="expenseCategoryIcon(exp.category)"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-bold truncate">{{ exp.description }}</div>
+                <div class="text-xs text-muted-foreground">{{ formatDate(exp.date) }}</div>
+              </div>
+              <span class="text-sm font-black shrink-0" style="color:#ef4444">{{ formatCurrency(exp.amount) }}</span>
+              <Button variant="text" size="small" severity="danger" class="!w-8 !h-8 shrink-0" @click="deleteExpense(exp.id)">
+                <i class="mdi mdi-delete-outline text-sm"></i>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
     </template>
 
     <!-- ── PERFORMANCE TAB ──────────────────────────────────────── -->
     <template v-if="activeTab === 'performance'">
-      <v-row dense class="mb-4">
-        <v-col v-for="kpi in kpiCards" :key="kpi.label" cols="6" sm="3">
-          <v-card class="pa-5 kpi-card" :style="`background:${kpi.color}12;outline:2px solid ${kpi.color}28;outline-offset:0`">
-            <div class="d-flex align-start justify-space-between mb-3">
-              <v-avatar size="44" rounded="lg" :style="`background:${kpi.color}24`">
-                <i class="mdi text-lg" :class="kpi.icon"></i>
-              </v-avatar>
-              <v-chip
-                v-if="kpi.change"
-                size="x-small"
-                :color="kpi.changePositive ? 'success' : 'error'"
-                variant="tonal"
-              >{{ kpi.changePositive ? '↑' : '↓' }} {{ kpi.change }}</v-chip>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <div
+          v-for="kpi in kpiCards"
+          :key="kpi.label"
+          class="kpi-card rounded-xl p-5"
+          :style="`background:${kpi.color}12;outline:2px solid ${kpi.color}28;outline-offset:0`"
+        >
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-11 h-11 rounded-lg flex items-center justify-center" :style="`background:${kpi.color}24;color:${kpi.color}`">
+              <i class="mdi text-lg" :class="kpi.icon"></i>
             </div>
-            <div class="text-caption text-medium-emphasis">{{ kpi.label }}</div>
-            <div class="text-h5 font-weight-black" :style="`color:${kpi.color}`">{{ kpi.value }}</div>
-            <div v-if="kpi.sub" class="text-caption text-medium-emphasis" style="font-size:10px">{{ kpi.sub }}</div>
-          </v-card>
-        </v-col>
-      </v-row>
+            <Tag
+              v-if="kpi.change"
+              :value="`${kpi.changePositive ? '↑' : '↓'} ${kpi.change}`"
+              :severity="kpi.changePositive ? 'success' : 'danger'"
+              class="text-[9px]"
+            />
+          </div>
+          <div class="text-xs text-muted-foreground">{{ kpi.label }}</div>
+          <div class="text-2xl font-black" :style="`color:${kpi.color}`">{{ kpi.value }}</div>
+          <div v-if="kpi.sub" class="text-[10px] text-muted-foreground">{{ kpi.sub }}</div>
+        </div>
+      </div>
 
-      <v-row>
-        <v-col cols="12" md="6">
-          <v-card class="pa-6">
-            <div class="d-flex align-center gap-3 mb-5">
-              <v-avatar size="36" rounded="lg" style="background:#f9731620"><i class="mdi mdi-chart-pie"></i></v-avatar>
-              <span class="text-subtitle-2 font-weight-black">Ticket Status Breakdown</span>
-            </div>
-            <div v-for="stat in statusBreakdown" :key="stat.status" class="d-flex align-center gap-3 mb-3">
-              <div class="rounded-circle flex-shrink-0" :style="`width:12px;height:12px;background:${stat.color}`" />
-              <div class="flex-grow-1">
-                <div class="d-flex align-center justify-space-between mb-1">
-                  <span class="text-caption font-weight-bold">{{ stat.status }}</span>
-                  <span class="text-caption font-weight-black" :style="`color:${stat.color}`">{{ stat.count }}</span>
-                </div>
-                <v-progress-linear :model-value="stat.pct" :color="stat.color" rounded height="8" bg-color="rgba(0,0,0,0.06)" />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-surface border border-border rounded-xl p-6">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:#f9731620;color:#f97316"><i class="mdi mdi-chart-pie"></i></div>
+            <span class="text-sm font-black">Ticket Status Breakdown</span>
+          </div>
+          <div v-for="stat in statusBreakdown" :key="stat.status" class="flex items-center gap-3 mb-3">
+            <div class="rounded-full shrink-0" :style="`width:12px;height:12px;background:${stat.color}`" />
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-bold">{{ stat.status }}</span>
+                <span class="text-xs font-black" :style="`color:${stat.color}`">{{ stat.count }}</span>
+              </div>
+              <div class="h-2 rounded-full overflow-hidden" style="background:rgba(0,0,0,0.06)">
+                <div class="h-full rounded-full" :style="{ width: stat.pct + '%', backgroundColor: stat.color }"></div>
               </div>
             </div>
-          </v-card>
-        </v-col>
-        <v-col cols="12" md="6">
-          <v-card class="pa-6">
-            <div class="d-flex align-center gap-3 mb-5">
-              <v-avatar size="36" rounded="lg" style="background:#3b82f620"><i class="mdi mdi-account-group-outline"></i></v-avatar>
-              <span class="text-subtitle-2 font-weight-black">Top Customers by Revenue</span>
+          </div>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl p-6">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:#3b82f620;color:#3b82f6"><i class="mdi mdi-account-group-outline"></i></div>
+            <span class="text-sm font-black">Top Customers by Revenue</span>
+          </div>
+          <div class="flex flex-col gap-1">
+            <div
+              v-for="(cust, i) in topCustomers"
+              :key="cust.name"
+              class="flex items-center gap-3 p-2 rounded-lg"
+              style="background:rgba(0,0,0,0.03)"
+            >
+              <div class="w-7 h-7 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-black shrink-0">{{ i + 1 }}</div>
+              <div class="flex-1 min-w-0">
+                <div class="text-xs font-bold truncate">{{ cust.name }}</div>
+                <div class="text-xs text-muted-foreground">{{ cust.count }} tickets</div>
+              </div>
+              <span class="text-xs font-black shrink-0" style="color:#10b981">{{ formatCurrency(cust.revenue) }}</span>
             </div>
-            <v-list density="compact" class="pa-0">
-              <v-list-item
-                v-for="(cust, i) in topCustomers"
-                :key="cust.name"
-                rounded="lg"
-                class="mb-1"
-                style="background:rgba(0,0,0,0.03)"
-              >
-                <template #prepend>
-                  <v-avatar size="26" color="primary" variant="tonal" class="text-caption font-weight-black mr-2">{{ i + 1 }}</v-avatar>
-                </template>
-                <template #title><span class="text-caption font-weight-bold">{{ cust.name }}</span></template>
-                <template #subtitle><span class="text-caption">{{ cust.count }} tickets</span></template>
-                <template #append>
-                  <span class="text-caption font-weight-black" style="color:#10b981">{{ formatCurrency(cust.revenue) }}</span>
-                </template>
-              </v-list-item>
-              <v-list-item v-if="topCustomers.length === 0">
-                <template #title><span class="text-caption text-medium-emphasis">No customer data yet</span></template>
-              </v-list-item>
-            </v-list>
-          </v-card>
-        </v-col>
-      </v-row>
+            <div v-if="topCustomers.length === 0" class="p-2 text-xs text-muted-foreground">No customer data yet</div>
+          </div>
+        </div>
+      </div>
     </template>
 
     <!-- ── SQUARE TAB ────────────────────────────────────────────── -->
     <template v-if="activeTab === 'square'">
-      <v-card v-if="!square.isConfigured.value" class="pa-10 text-center">
-        <v-avatar size="64" rounded="xl" color="primary" variant="tonal" class="mb-4 mx-auto">
-          <i class="mdi mdi-credit-card-outline"></i>
-        </v-avatar>
-        <div class="text-body-2 font-weight-black mb-1">Square Not Connected</div>
-        <div class="text-caption text-medium-emphasis">Add your Square Access Token and Location ID in Settings to import financial data.</div>
-      </v-card>
+      <div v-if="!square.isConfigured.value" class="bg-surface border border-border rounded-xl p-10 text-center">
+        <div class="w-16 h-16 rounded-xl bg-primary/15 text-primary flex items-center justify-center mx-auto mb-4">
+          <i class="mdi mdi-credit-card-outline text-3xl"></i>
+        </div>
+        <div class="text-sm font-black mb-1">Square Not Connected</div>
+        <div class="text-xs text-muted-foreground">Add your Square Access Token and Location ID in Settings to import financial data.</div>
+      </div>
 
       <template v-else>
-        <div v-if="square.isLoading.value" class="d-flex align-center justify-center py-16 gap-3">
-          <v-progress-circular indeterminate color="primary" size="32" />
-          <span class="text-body-2 font-weight-bold text-medium-emphasis">Loading Square data…</span>
+        <div v-if="square.isLoading.value" class="flex items-center justify-center py-16 gap-3">
+          <ProgressSpinner style="width: 32px; height: 32px" stroke-width="4" />
+          <span class="text-sm font-bold text-muted-foreground">Loading Square data…</span>
         </div>
 
         <template v-else>
-          <v-row dense class="mb-4">
-            <v-col cols="6" sm="4" lg="">
-              <v-card class="pa-5 kpi-card" style="background:#10b98114;outline:2px solid #10b98128;outline-offset:0">
-                <div class="d-flex align-center justify-space-between mb-3">
-                  <v-avatar size="44" rounded="lg" style="background:#10b98124"><i class="mdi mdi-currency-usd"></i></v-avatar>
-                  <v-chip size="x-small" color="success" variant="tonal">REVENUE</v-chip>
-                </div>
-                <div class="text-caption text-medium-emphasis">Square Revenue</div>
-                <div class="text-h6 font-weight-black" style="color:#10b981">{{ formatCurrency(square.totalRevenue.value) }}</div>
-                <div class="text-caption text-medium-emphasis" style="font-size:10px">{{ square.payments.value.length }} payments</div>
-              </v-card>
-            </v-col>
-            <v-col cols="6" sm="4" lg="">
-              <v-card class="pa-5 kpi-card" style="background:#ef444414;outline:2px solid #ef444428;outline-offset:0">
-                <div class="d-flex align-center justify-space-between mb-3">
-                  <v-avatar size="44" rounded="lg" style="background:#ef444424"><i class="mdi mdi-trending-down"></i></v-avatar>
-                  <v-chip size="x-small" color="error" variant="tonal">FEES</v-chip>
-                </div>
-                <div class="text-caption text-medium-emphasis">Processing Fees</div>
-                <div class="text-h6 font-weight-black" style="color:#ef4444">{{ formatCurrency(square.totalFees.value) }}</div>
-                <div class="text-caption text-medium-emphasis" style="font-size:10px">Deducted by Square</div>
-              </v-card>
-            </v-col>
-            <v-col cols="6" sm="4" lg="">
-              <v-card class="pa-5 kpi-card" style="background:#6366f114;outline:2px solid #6366f128;outline-offset:0">
-                <div class="d-flex align-center justify-space-between mb-3">
-                  <v-avatar size="44" rounded="lg" style="background:#6366f124"><i class="mdi mdi-target"></i></v-avatar>
-                  <v-chip size="x-small" color="primary" variant="tonal">NET</v-chip>
-                </div>
-                <div class="text-caption text-medium-emphasis">Net Revenue</div>
-                <div class="text-h6 font-weight-black" style="color:#6366f1">{{ formatCurrency(square.netRevenue.value) }}</div>
-                <div class="text-caption text-medium-emphasis" style="font-size:10px">After fees</div>
-              </v-card>
-            </v-col>
-            <v-col cols="6" sm="4" lg="">
-              <v-card class="pa-5 kpi-card" style="background:#f59e0b14;outline:2px solid #f59e0b28;outline-offset:0">
-                <div class="d-flex align-center justify-space-between mb-3">
-                  <v-avatar size="44" rounded="lg" style="background:#f59e0b24"><i class="mdi mdi-receipt-text-outline"></i></v-avatar>
-                  <v-chip size="x-small" color="warning" variant="tonal">TIPS</v-chip>
-                </div>
-                <div class="text-caption text-medium-emphasis">Tips Received</div>
-                <div class="text-h6 font-weight-black" style="color:#f59e0b">{{ formatCurrency(square.totalTips.value) }}</div>
-                <div class="text-caption text-medium-emphasis" style="font-size:10px">From customers</div>
-              </v-card>
-            </v-col>
-            <v-col cols="6" sm="4" lg="">
-              <v-card class="pa-5 kpi-card" style="background:#06b6d414;outline:2px solid #06b6d428;outline-offset:0">
-                <div class="d-flex align-center justify-space-between mb-3">
-                  <v-avatar size="44" rounded="lg" style="background:#06b6d424"><i class="mdi mdi-truck-outline"></i></v-avatar>
-                  <v-chip size="x-small" color="info" variant="tonal">DEPOSITS</v-chip>
-                </div>
-                <div class="text-caption text-medium-emphasis">Bank Deposits</div>
-                <div class="text-h6 font-weight-black" style="color:#06b6d4">{{ formatCurrency(square.totalPayouts.value) }}</div>
-                <div class="text-caption text-medium-emphasis" style="font-size:10px">{{ square.payouts.value.length }} payouts</div>
-              </v-card>
-            </v-col>
-          </v-row>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+            <div class="kpi-card rounded-xl p-5" style="background:#10b98114;outline:2px solid #10b98128;outline-offset:0">
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-lg flex items-center justify-center" style="background:#10b98124;color:#10b981"><i class="mdi mdi-currency-usd text-xl"></i></div>
+                <Tag value="REVENUE" severity="success" class="text-[9px]" />
+              </div>
+              <div class="text-xs text-muted-foreground">Square Revenue</div>
+              <div class="text-xl font-black" style="color:#10b981">{{ formatCurrency(square.totalRevenue.value) }}</div>
+              <div class="text-[10px] text-muted-foreground">{{ square.payments.value.length }} payments</div>
+            </div>
+            <div class="kpi-card rounded-xl p-5" style="background:#ef444414;outline:2px solid #ef444428;outline-offset:0">
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-lg flex items-center justify-center" style="background:#ef444424;color:#ef4444"><i class="mdi mdi-trending-down text-xl"></i></div>
+                <Tag value="FEES" severity="danger" class="text-[9px]" />
+              </div>
+              <div class="text-xs text-muted-foreground">Processing Fees</div>
+              <div class="text-xl font-black" style="color:#ef4444">{{ formatCurrency(square.totalFees.value) }}</div>
+              <div class="text-[10px] text-muted-foreground">Deducted by Square</div>
+            </div>
+            <div class="kpi-card rounded-xl p-5" style="background:#6366f114;outline:2px solid #6366f128;outline-offset:0">
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-lg flex items-center justify-center" style="background:#6366f124;color:#6366f1"><i class="mdi mdi-target text-xl"></i></div>
+                <Tag value="NET" severity="info" class="text-[9px]" />
+              </div>
+              <div class="text-xs text-muted-foreground">Net Revenue</div>
+              <div class="text-xl font-black" style="color:#6366f1">{{ formatCurrency(square.netRevenue.value) }}</div>
+              <div class="text-[10px] text-muted-foreground">After fees</div>
+            </div>
+            <div class="kpi-card rounded-xl p-5" style="background:#f59e0b14;outline:2px solid #f59e0b28;outline-offset:0">
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-lg flex items-center justify-center" style="background:#f59e0b24;color:#f59e0b"><i class="mdi mdi-receipt-text-outline text-xl"></i></div>
+                <Tag value="TIPS" severity="warn" class="text-[9px]" />
+              </div>
+              <div class="text-xs text-muted-foreground">Tips Received</div>
+              <div class="text-xl font-black" style="color:#f59e0b">{{ formatCurrency(square.totalTips.value) }}</div>
+              <div class="text-[10px] text-muted-foreground">From customers</div>
+            </div>
+            <div class="kpi-card rounded-xl p-5" style="background:#06b6d414;outline:2px solid #06b6d428;outline-offset:0">
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-lg flex items-center justify-center" style="background:#06b6d424;color:#06b6d4"><i class="mdi mdi-truck-outline text-xl"></i></div>
+                <Tag value="DEPOSITS" severity="info" class="text-[9px]" />
+              </div>
+              <div class="text-xs text-muted-foreground">Bank Deposits</div>
+              <div class="text-xl font-black" style="color:#06b6d4">{{ formatCurrency(square.totalPayouts.value) }}</div>
+              <div class="text-[10px] text-muted-foreground">{{ square.payouts.value.length }} payouts</div>
+            </div>
+          </div>
 
-          <v-row>
-            <v-col cols="12" lg="8">
-              <v-card>
-                <v-card-item class="border-b">
-                  <template #prepend>
-                    <v-avatar size="36" rounded="lg" style="background:#10b98120"><i class="mdi mdi-currency-usd"></i></v-avatar>
-                  </template>
-                  <v-card-title class="text-subtitle-2 font-weight-black">Recent Payments</v-card-title>
-                  <template #append>
-                    <span class="text-caption text-medium-emphasis">{{ square.payments.value.length }} total</span>
-                  </template>
-                </v-card-item>
-                <v-card-text class="pa-3" style="max-height:420px;overflow-y:auto">
-                  <div v-if="square.payments.value.length === 0" class="py-12 text-center text-caption text-medium-emphasis">No payments found for this period</div>
-                  <v-list density="compact" class="pa-0">
-                    <v-list-item
-                      v-for="p in square.payments.value"
-                      :key="p.id"
-                      rounded="lg"
-                      class="mb-1"
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <div class="lg:col-span-8 bg-surface border border-border rounded-xl overflow-hidden">
+              <div class="flex items-center justify-between gap-3 p-4 border-b border-border">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:#10b98120;color:#10b981"><i class="mdi mdi-currency-usd"></i></div>
+                  <span class="text-sm font-black">Recent Payments</span>
+                </div>
+                <span class="text-xs text-muted-foreground">{{ square.payments.value.length }} total</span>
+              </div>
+              <div class="p-3 overflow-y-auto" style="max-height:420px">
+                <div v-if="square.payments.value.length === 0" class="py-12 text-center text-xs text-muted-foreground">No payments found for this period</div>
+                <div v-else class="flex flex-col gap-1">
+                  <div
+                    v-for="p in square.payments.value"
+                    :key="p.id"
+                    class="flex items-center gap-3 p-2 rounded-lg"
+                  >
+                    <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" :style="`background:${p.status === 'COMPLETED' ? '#10b981' : '#f59e0b'}18;color:${p.status === 'COMPLETED' ? '#10b981' : '#f59e0b'}`">
+                      <i class="mdi mdi-credit-card-outline"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-xs font-bold truncate">{{ p.cardBrand || 'Payment' }} {{ p.lastFour ? `••••${p.lastFour}` : '' }}</div>
+                      <div class="text-xs text-muted-foreground truncate">{{ formatDate(p.createdAt) }}{{ p.note ? ` — ${p.note}` : '' }}</div>
+                    </div>
+                    <div class="text-right shrink-0">
+                      <div class="text-xs font-black" style="color:#10b981">{{ formatCurrency(p.amount) }}</div>
+                      <div v-if="p.tip > 0" class="text-xs font-bold" style="color:#f59e0b">+{{ formatCurrency(p.tip) }} tip</div>
+                    </div>
+                    <a
+                      v-if="p.receiptUrl"
+                      :href="p.receiptUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="inline-flex items-center justify-center w-8 h-8 shrink-0 rounded-lg text-muted-foreground hover:bg-muted"
                     >
-                      <template #prepend>
-                        <v-avatar size="36" rounded="lg" :style="`background:${p.status === 'COMPLETED' ? '#10b981' : '#f59e0b'}18`">
-                          <i class="mdi mdi-credit-card-outline"></i>
-                        </v-avatar>
-                      </template>
-                      <template #title>
-                        <span class="text-caption font-weight-bold">{{ p.cardBrand || 'Payment' }} {{ p.lastFour ? `••••${p.lastFour}` : '' }}</span>
-                      </template>
-                      <template #subtitle>
-                        <span class="text-caption">{{ formatDate(p.createdAt) }}{{ p.note ? ` — ${p.note}` : '' }}</span>
-                      </template>
-                      <template #append>
-                        <div class="text-right">
-                          <div class="text-caption font-weight-black" style="color:#10b981">{{ formatCurrency(p.amount) }}</div>
-                          <div v-if="p.tip > 0" class="text-caption font-weight-bold" style="color:#f59e0b">+{{ formatCurrency(p.tip) }} tip</div>
-                        </div>
-                        <v-btn v-if="p.receiptUrl" :href="p.receiptUrl" target="_blank" icon="mdi-download" size="x-small" variant="text" class="ml-1" />
-                      </template>
-                    </v-list-item>
-                  </v-list>
-                </v-card-text>
-              </v-card>
-            </v-col>
-            <v-col cols="12" lg="4">
-              <v-card>
-                <v-card-item class="border-b">
-                  <template #prepend>
-                    <v-avatar size="36" rounded="lg" style="background:#06b6d420"><i class="mdi mdi-truck-outline"></i></v-avatar>
-                  </template>
-                  <v-card-title class="text-subtitle-2 font-weight-black">Bank Deposits</v-card-title>
-                </v-card-item>
-                <v-card-text class="pa-3" style="max-height:420px;overflow-y:auto">
-                  <div v-if="square.payouts.value.length === 0" class="py-12 text-center text-caption text-medium-emphasis">No payouts found</div>
-                  <v-list density="compact" class="pa-0">
-                    <v-list-item
-                      v-for="p in square.payouts.value"
-                      :key="p.id"
-                      rounded="lg"
-                      class="mb-1"
-                    >
-                      <template #prepend>
-                        <v-avatar size="36" rounded="lg" :style="`background:${p.status === 'PAID' ? '#06b6d4' : '#f59e0b'}18`">
-                          <i class="mdi mdi-truck-outline"></i>
-                        </v-avatar>
-                      </template>
-                      <template #title><span class="text-caption font-weight-bold">{{ p.status === 'PAID' ? 'Deposited' : p.status }}</span></template>
-                      <template #subtitle><span class="text-caption">{{ p.arrivalDate || formatDate(p.createdAt) }}</span></template>
-                      <template #append>
-                        <span class="text-caption font-weight-black" style="color:#06b6d4">{{ formatCurrency(p.amount) }}</span>
-                      </template>
-                    </v-list-item>
-                  </v-list>
-                </v-card-text>
-              </v-card>
-            </v-col>
-          </v-row>
+                      <i class="mdi mdi-download text-sm"></i>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-          <v-card class="mt-4">
-            <v-card-item class="border-b">
-              <template #prepend>
-                <v-avatar size="36" rounded="lg" style="background:#8b5cf620"><i class="mdi mdi-account-group-outline"></i></v-avatar>
-              </template>
-              <v-card-title class="text-subtitle-2 font-weight-black">Square Customers</v-card-title>
-              <template #append>
-                <span class="text-caption text-medium-emphasis">{{ square.sqCustomers.value.length }} total</span>
-              </template>
-            </v-card-item>
-            <v-card-text class="pa-3" style="max-height:320px;overflow-y:auto">
-              <div v-if="square.sqCustomers.value.length === 0" class="py-10 text-center text-caption text-medium-emphasis">No customers found in Square</div>
-              <v-row dense>
-                <v-col v-for="c in square.sqCustomers.value" :key="c.id" cols="12" sm="6" lg="4">
-                  <v-list-item rounded="lg" style="background:rgba(0,0,0,0.03)">
-                    <template #prepend>
-                      <v-avatar size="32" color="deep-purple" variant="tonal" class="text-caption font-weight-black">
-                        {{ c.name?.charAt(0) || '?' }}
-                      </v-avatar>
-                    </template>
-                    <template #title><span class="text-caption font-weight-bold">{{ c.name }}</span></template>
-                    <template #subtitle><span class="text-caption">{{ c.email || c.phone || 'No contact' }}</span></template>
-                  </v-list-item>
-                </v-col>
-              </v-row>
-            </v-card-text>
-          </v-card>
+            <div class="lg:col-span-4 bg-surface border border-border rounded-xl overflow-hidden">
+              <div class="flex items-center gap-3 p-4 border-b border-border">
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:#06b6d420;color:#06b6d4"><i class="mdi mdi-truck-outline"></i></div>
+                <span class="text-sm font-black">Bank Deposits</span>
+              </div>
+              <div class="p-3 overflow-y-auto" style="max-height:420px">
+                <div v-if="square.payouts.value.length === 0" class="py-12 text-center text-xs text-muted-foreground">No payouts found</div>
+                <div v-else class="flex flex-col gap-1">
+                  <div
+                    v-for="p in square.payouts.value"
+                    :key="p.id"
+                    class="flex items-center gap-3 p-2 rounded-lg"
+                  >
+                    <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" :style="`background:${p.status === 'PAID' ? '#06b6d4' : '#f59e0b'}18;color:${p.status === 'PAID' ? '#06b6d4' : '#f59e0b'}`">
+                      <i class="mdi mdi-truck-outline"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-xs font-bold">{{ p.status === 'PAID' ? 'Deposited' : p.status }}</div>
+                      <div class="text-xs text-muted-foreground">{{ p.arrivalDate || formatDate(p.createdAt) }}</div>
+                    </div>
+                    <span class="text-xs font-black shrink-0" style="color:#06b6d4">{{ formatCurrency(p.amount) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-surface border border-border rounded-xl overflow-hidden mt-4">
+            <div class="flex items-center justify-between gap-3 p-4 border-b border-border">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:#8b5cf620;color:#8b5cf6"><i class="mdi mdi-account-group-outline"></i></div>
+                <span class="text-sm font-black">Square Customers</span>
+              </div>
+              <span class="text-xs text-muted-foreground">{{ square.sqCustomers.value.length }} total</span>
+            </div>
+            <div class="p-3 overflow-y-auto" style="max-height:320px">
+              <div v-if="square.sqCustomers.value.length === 0" class="py-10 text-center text-xs text-muted-foreground">No customers found in Square</div>
+              <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                <div
+                  v-for="c in square.sqCustomers.value"
+                  :key="c.id"
+                  class="flex items-center gap-3 p-3 rounded-lg"
+                  style="background:rgba(0,0,0,0.03)"
+                >
+                  <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 text-white" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
+                    {{ c.name?.charAt(0) || '?' }}
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-xs font-bold truncate">{{ c.name }}</div>
+                    <div class="text-xs text-muted-foreground truncate">{{ c.email || c.phone || 'No contact' }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </template>
       </template>
     </template>
 
     <!-- ── Add Expense Dialog ─────────────────────────────────── -->
-    <v-dialog v-model="addExpenseOpen" max-width="480">
-      <v-card>
-        <v-card-item class="border-b">
-          <template #prepend>
-            <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
-              <i class="mdi mdi-plus"></i>
-            </v-avatar>
-          </template>
-          <v-card-title>Log Expense</v-card-title>
-          <v-card-subtitle>Track overhead and business costs</v-card-subtitle>
-          <template #append>
-            <v-btn icon="mdi-close" variant="text" size="small" @click="addExpenseOpen = false" />
-          </template>
-        </v-card-item>
-        <v-card-text class="pa-6">
-          <v-text-field
-            v-model="expenseForm.description"
-            label="Description"
-            placeholder="Monthly rent, supplies, utilities…"
-            variant="outlined"
-            density="comfortable"
-            class="mb-3"
-          />
-          <v-row dense class="mb-3">
-            <v-col cols="6">
-              <v-text-field
-                v-model.number="expenseForm.amount"
-                type="number"
-                label="Amount"
-                placeholder="0.00"
-                variant="outlined"
-                density="comfortable"
-                prefix="$"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                v-model="expenseForm.date"
-                type="date"
-                label="Date"
-                variant="outlined"
-                density="comfortable"
-              />
-            </v-col>
-          </v-row>
-          <div class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-2" style="letter-spacing:.1em">Category</div>
-          <div class="d-flex flex-wrap gap-2">
-            <v-chip
+    <Dialog v-model:visible="addExpenseOpen" modal header="Log Expense" class="w-full max-w-md mx-4" :draggable="false">
+      <p class="text-xs text-muted-foreground mt-0 mb-4">Track overhead and business costs</p>
+      <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[10px] font-bold text-muted-foreground uppercase">Description</label>
+          <InputText v-model="expenseForm.description" placeholder="Monthly rent, supplies, utilities…" class="w-full rounded-xl" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[10px] font-bold text-muted-foreground uppercase">Amount</label>
+            <InputText v-model.number="expenseForm.amount" type="number" placeholder="0.00" class="w-full rounded-xl" />
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[10px] font-bold text-muted-foreground uppercase">Date</label>
+            <InputText v-model="expenseForm.date" type="date" class="w-full rounded-xl" />
+          </div>
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-2">Category</label>
+          <div class="flex flex-wrap gap-2">
+            <button
               v-for="cat in expenseCategories"
               :key="cat.label"
-              :color="expenseForm.category === cat.label ? cat.vuetifyColor : undefined"
-              :variant="expenseForm.category === cat.label ? 'tonal' : 'outlined'"
-              size="small"
-              clickable
+              type="button"
+              class="filter-chip"
+              :class="{ 'filter-chip--active': expenseForm.category === cat.label }"
+              :style="expenseForm.category === cat.label ? { borderColor: cat.color, color: cat.color, background: cat.color + '18' } : {}"
               @click="expenseForm.category = cat.label"
-            >{{ cat.label }}</v-chip>
+            >{{ cat.label }}</button>
           </div>
-        </v-card-text>
-        <v-divider />
-        <v-card-actions class="pa-4">
-          <v-spacer />
-          <v-btn variant="text" @click="addExpenseOpen = false">Cancel</v-btn>
-          <v-btn color="deep-purple" @click="logExpense">Log Expense</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+        </div>
+      </div>
+      <template #footer>
+        <Button label="Cancel" variant="text" class="text-none" @click="addExpenseOpen = false" />
+        <Button label="Log Expense" class="text-none font-bold text-white" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none" @click="logExpense" />
+      </template>
+    </Dialog>
 
   </div>
 </template>
@@ -674,7 +607,7 @@ const revenueSources = computed(() => {
 
 const expenseItems = computed(() => [
   { label: 'Parts Cost', value: partsCost.value, color: '#ef4444', icon: 'mdi-package-variant-closed' },
-  { label: 'Overhead', value: expenses.value.filter(e => e.category === 'Overhead').reduce((a, e) => a + e.amount, 0), color: '#f97316', icon: Home },
+  { label: 'Overhead', value: expenses.value.filter(e => e.category === 'Overhead').reduce((a, e) => a + e.amount, 0), color: '#f97316', icon: 'mdi-home' },
   { label: 'Utilities', value: expenses.value.filter(e => e.category === 'Utilities').reduce((a, e) => a + e.amount, 0), color: '#f59e0b', icon: 'mdi-flash-outline' },
   { label: 'Software', value: expenses.value.filter(e => e.category === 'Software').reduce((a, e) => a + e.amount, 0), color: '#8b5cf6', icon: 'mdi-wifi' },
   { label: 'Other', value: expenses.value.filter(e => !['Overhead','Utilities','Software'].includes(e.category)).reduce((a, e) => a + e.amount, 0), color: '#64748b', icon: 'mdi-clipboard-list-outline' },
@@ -743,8 +676,8 @@ const expenseCategories = [
 ]
 const expenseCategoryColor = (cat: string) => expenseCategories.find(c => c.label === cat)?.color || '#64748b'
 const expenseCategoryIcon = (cat: string) => {
-  const map: Record<string, any> = { Overhead: Home, Utilities: 'mdi-flash-outline', Software: 'mdi-wifi', Supplies: 'mdi-package-variant-closed', Payroll: 'mdi-account-group-outline', Other: 'mdi-clipboard-list-outline' }
-  return map[cat] || ClipboardList
+  const map: Record<string, string> = { Overhead: 'mdi-home', Utilities: 'mdi-flash-outline', Software: 'mdi-wifi', Supplies: 'mdi-package-variant-closed', Payroll: 'mdi-account-group-outline', Other: 'mdi-clipboard-list-outline' }
+  return map[cat] || 'mdi-clipboard-list-outline'
 }
 const logExpense = async () => {
   if (!expenseForm.value.description || !expenseForm.value.amount) return

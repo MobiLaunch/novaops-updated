@@ -427,7 +427,7 @@
         <button v-if="currentStep > 1"
           class="h-11 px-5 rounded-full text-xs font-bold transition-all hover:scale-[1.03] active:scale-95 flex items-center gap-1.5 border"
           @click="currentStep--">
-          <i class="mdi mdi-chevron left-text"></i> Back
+          <i class="mdi mdi-chevron-left text-base"></i> Back
         </button>
         <button class="h-11 px-5 rounded-full text-xs font-bold transition-all hover:scale-[1.03] active:scale-95 border"
           @click="handleClose">Cancel</button>
@@ -443,7 +443,7 @@
           ]"
           :disabled="!canProceed"
           @click="nextStep">
-          Next <i class="mdi mdi-chevron right-text"></i>
+          Next <i class="mdi mdi-chevron-right text-base"></i>
         </button>
 
         <button v-else

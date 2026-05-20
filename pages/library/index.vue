@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-6 h-full">
+  <div class="page-shell h-full">
 
     <header class="flex flex-col gap-2 mb-2">
       <div class="flex items-center gap-3">
@@ -25,7 +25,7 @@
         style="top: 50%; transform: translateY(-50%);"
         @click="performSearch"
       >
-        <i class="mdi mdi-arrow right-circle text"></i>
+        <i class="mdi mdi-arrow-right-circle"></i>
       </button>
     </div>
 

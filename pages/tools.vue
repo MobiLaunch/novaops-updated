@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-6">
+  <div class="page-shell">
 
     <!-- Page Header -->
     <div class="flex flex-col gap-2">

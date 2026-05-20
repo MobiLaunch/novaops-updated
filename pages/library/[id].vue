@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-4 h-full">
+  <div class="page-shell h-full flex flex-col gap-4">
 
     <div class="flex items-center gap-3 mb-2">
       <Button variant="text" rounded class="!w-10 !h-10" @click="router.back()">
