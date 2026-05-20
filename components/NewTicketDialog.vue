@@ -5,7 +5,7 @@
       <v-card-item class="border-b">
         <template #prepend>
           <v-avatar color="primary" rounded="lg">
-            <v-icon icon="mdi-wrench-outline" size="20" color="white" />
+            <i class="mdi mdi-wrench-outline"></i>
           </v-avatar>
         </template>
         <v-card-title class="text-h6 font-weight-black">New Repair Ticket</v-card-title>
@@ -34,7 +34,7 @@
               </v-col>
               <v-col cols="6" sm="4" md="3">
                 <v-card hover :color="isOtherBrand ? 'primary' : undefined" :variant="isOtherBrand ? 'tonal' : 'outlined'" class="pa-3 d-flex align-center gap-2 h-100" @click="selectOtherBrand">
-                  <v-icon size="22" class="opacity-70">mdi-dots-horizontal-circle-outline</v-icon>
+                  <i class="mdi mdi-dots-horizontal-circle-outline"></i>
                   <span class="text-button font-weight-bold">Other</span>
                 </v-card>
               </v-col>
@@ -127,7 +127,7 @@
               <v-col v-for="issue in issues" :key="issue.name" cols="12" sm="6">
                 <v-card hover :color="selectedIssue === issue.name ? 'primary' : undefined" :variant="selectedIssue === issue.name ? 'tonal' : 'outlined'" class="pa-3 d-flex align-start gap-3 h-100" @click="selectIssue(issue.name)">
                   <v-avatar :color="selectedIssue === issue.name ? 'primary' : 'grey-lighten-2'" size="32" rounded="lg">
-                    <v-icon :icon="issue.icon" size="16" :class="selectedIssue === issue.name ? 'text-white' : 'text-body-1'" />
+                    <i class="mdi text-lg" :class="issue.icon"></i>
                   </v-avatar>
                   <div>
                     <div class="text-button font-weight-bold" style="line-height:1.2">{{ issue.name }}</div>
@@ -175,7 +175,7 @@
             <v-card variant="outlined" class="pa-4" :class="isDragging ? 'border-primary' : 'border-dashed'" @dragover.prevent="isDragging = true" @dragleave.prevent="isDragging = false" @drop.prevent="handlePhotoDrop" @click="triggerPhotoInput" hover>
               <input ref="photoInputRef" type="file" accept="image/*" multiple class="d-none" @change="handlePhotoSelect" />
               <div v-if="photoAttachments.length === 0" class="text-center py-4 text-medium-emphasis">
-                <v-icon size="36" class="mb-2">mdi-camera-outline</v-icon>
+                <i class="mdi mdi-camera-outline"></i>
                 <div class="text-button font-weight-bold text-none">Drop photos here or click to browse</div>
                 <div class="text-caption mt-1">JPG, PNG, HEIC up to 10 MB each</div>
               </div>
@@ -204,13 +204,13 @@
       <!-- Footer actions -->
       <v-card-actions class="pa-4 bg-muted/10">
         <v-btn variant="tonal" color="secondary" @click="showDeviceMgr = true">
-          <v-icon start>mdi-cog</v-icon> Devices
+          <i class="mdi mdi-cog"></i> Devices
         </v-btn>
         <v-spacer />
         <v-btn variant="text" color="secondary" class="mr-3" @click="handleCancel">Cancel</v-btn>
         
         <v-btn v-if="currentStep < 5" color="primary" variant="flat" :disabled="!canProceed" @click="nextStep" min-width="100">
-          Next <v-icon end>mdi-chevron-right</v-icon>
+          Next <i class="mdi mdi-chevron-right"></i>
         </v-btn>
         <v-btn v-else color="primary" variant="flat" :disabled="!canCreate || creating" :loading="creating" @click="createTicket" min-width="120">
           Create Ticket
@@ -223,7 +223,7 @@
   <v-dialog v-model="showDeviceMgr" max-width="800" scrollable>
     <v-card class="d-flex flex-column" style="max-height:90dvh">
       <v-card-item class="border-b">
-        <template #prepend><v-avatar color="primary" rounded="lg"><v-icon icon="mdi-chip" size="20" color="white" /></v-avatar></template>
+        <template #prepend><v-avatar color="primary" rounded="lg"><i class="mdi mdi-chip"></i></v-avatar></template>
         <v-card-title class="text-h6 font-weight-black">Device Catalog</v-card-title>
         <v-card-subtitle>Manage brands, categories, models</v-card-subtitle>
         <template #append>

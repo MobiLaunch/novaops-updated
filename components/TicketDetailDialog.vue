@@ -6,7 +6,7 @@
       <v-card-item class="border-b">
         <template #prepend>
           <v-avatar :color="ticketStatusColor(ticket?.status)" size="44" rounded="lg">
-            <v-icon icon="mdi-ticket-confirmation-outline" size="20" color="white" />
+            <i class="mdi mdi-ticket-confirmation-outline"></i>
           </v-avatar>
         </template>
         <v-card-title class="text-h6 font-weight-black">Ticket #{{ ticket?.id }}</v-card-title>
@@ -210,7 +210,7 @@
                     class="flex-grow-1"
                   />
                   <v-btn variant="outlined" size="small" @click="showCustomService = !showCustomService">
-                    <v-icon start size="14">mdi-plus</v-icon> Custom
+                    <i class="mdi mdi-plus"></i> Custom
                   </v-btn>
                 </div>
 
@@ -261,7 +261,7 @@
                         :color="svc.useTime ? 'info' : undefined"
                         @click="toggleTimeOverride(idx)"
                       >
-                        <v-icon start size="12">mdi-clock-outline</v-icon>{{ svc.useTime ? 'Time' : 'Flat' }}
+                        <i class="mdi mdi-clock-outline"></i>{{ svc.useTime ? 'Time' : 'Flat' }}
                       </v-btn>
                       <v-text-field
                         v-if="svc.useTime"
@@ -327,7 +327,7 @@
                   <v-col cols="4"><v-text-field v-model.number="manualPart.price" type="number" placeholder="Price $" density="compact" hide-details /></v-col>
                   <v-col cols="12">
                     <v-btn variant="outlined" size="small" block @click="addManualPart" :disabled="!manualPart.name">
-                      <v-icon start size="14">mdi-plus</v-icon> Add Manual Part
+                      <i class="mdi mdi-plus"></i> Add Manual Part
                     </v-btn>
                   </v-col>
                 </v-row>
@@ -416,7 +416,7 @@
                   </v-col>
                 </v-row>
                 <v-btn block color="success" :disabled="!newPayment.amount || !newPayment.method" @click="addPayment">
-                  <v-icon start>mdi-currency-usd</v-icon> Record Payment
+                  <i class="mdi mdi-currency-usd"></i> Record Payment
                 </v-btn>
               </v-card>
 
@@ -430,7 +430,7 @@
                 >
                   <div class="d-flex align-center gap-3">
                     <v-avatar color="success" size="32" rounded="lg" variant="tonal">
-                      <v-icon size="16">mdi-currency-usd</v-icon>
+                      <i class="mdi mdi-currency-usd"></i>
                     </v-avatar>
                     <div class="flex-grow-1" style="min-width:0">
                       <p class="text-body-2 font-weight-medium text-capitalize mb-0">{{ payment.method }}</p>
@@ -488,7 +488,7 @@
                         <div class="d-flex gap-3 mb-2">
                            <v-img v-if="guide.image?.thumbnail" :src="guide.image.thumbnail" width="64" height="64" class="rounded flex-shrink-0" cover></v-img>
                            <div v-else class="rounded d-flex align-center justify-center bg-grey-lighten-3 flex-shrink-0" style="width:64px;height:64px">
-                              <v-icon icon="mdi-wrench" color="grey" />
+                              <i class="mdi mdi-wrench"></i>
                            </div>
                            <div>
                               <p class="text-subtitle-2 font-weight-bold mb-1" style="line-height:1.2">{{ guide.title }}</p>

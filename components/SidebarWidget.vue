@@ -1,103 +1,110 @@
 <template>
-  <div class="d-flex flex-column gap-4">
+  <div class="flex flex-col gap-4">
     <!-- Upcoming Appointments Section -->
-    <v-card variant="outlined" style="border-color:rgba(139,92,246,0.2)">
-      <v-card-item>
-        <template #title>
-          <div class="d-flex align-center gap-2 text-body-2 font-weight-bold">
-            <CalendarClock :size="16" style="color:#8b5cf6" />
-            Upcoming
+    <div class="bg-surface border border-violet-500/20 rounded-xl overflow-hidden shadow-sm">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/10">
+        <div class="flex items-center gap-2 text-xs font-bold">
+          <i class="mdi mdi-calendar-clock-text-violet-500-text-sm"></i>
+          Upcoming
+        </div>
+        <Button 
+          label="View All" 
+          variant="text" 
+          severity="secondary" 
+          class="text-[10px] font-bold text-none !py-0.5 !px-2" 
+          @click="navigateTo('/bookings')" 
+        />
+      </div>
+      
+      <div class="p-4 flex flex-col gap-2">
+        <div
+          v-for="item in upcomingItems.slice(0, 5)"
+          :key="item.id"
+          class="p-3 bg-muted/40 hover:bg-muted/70 transition-colors border border-border/50 rounded-xl cursor-pointer flex items-start gap-3"
+          @click="navigateToItem(item)"
+        >
+          <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0">
+            <i class="mdi mdi-text-sm" :class="getIcon(item.type)"></i>
           </div>
-        </template>
-        <template #append>
-          <v-btn variant="text" size="small" @click="navigateTo('/bookings')">View All</v-btn>
-        </template>
-      </v-card-item>
-      <v-card-text>
-        <div class="d-flex flex-column gap-2">
-          <v-card
-            v-for="item in upcomingItems.slice(0, 5)"
-            :key="item.id"
-            variant="tonal"
-            rounded="lg"
-            class="pa-3 cursor-pointer"
-            @click="navigateToItem(item)"
-          >
-            <div class="d-flex align-start gap-3">
-              <v-avatar color="primary" size="32" rounded="lg">
-                <v-icon :icon="getIcon(item.type)" size="16" color="white" />
-              </v-avatar>
-              <div class="flex-grow-1" style="min-width:0">
-                <p class="text-body-2 font-weight-medium text-truncate mb-0">{{ item.title }}</p>
-                <p class="text-caption text-medium-emphasis text-truncate mb-0">{{ item.subtitle }}</p>
-                <div class="d-flex align-center gap-1 mt-1">
-                  <v-icon icon="mdi-clock-outline" size="12" style="color:#8b5cf6" />
-                  <span class="text-caption" style="color:#8b5cf6">{{ item.timeFromNow }}</span>
-                </div>
-              </div>
+          <div class="flex-grow min-w-0">
+            <p class="text-xs font-semibold truncate leading-tight">{{ item.title }}</p>
+            <p class="text-[10px] text-muted-foreground truncate mt-0.5">{{ item.subtitle }}</p>
+            <div class="flex items-center gap-1 mt-1">
+              <i class="mdi mdi-clock-outline-text-[10px]-text-violet-500"></i>
+              <span class="text-[10px] font-semibold text-violet-500">{{ item.timeFromNow }}</span>
             </div>
-          </v-card>
-
-          <div v-if="upcomingItems.length === 0" class="text-center py-6">
-            <CalendarClock :size="32" class="mx-auto mb-2 text-medium-emphasis" style="opacity:0.5" />
-            <p class="text-caption text-medium-emphasis mb-0">No upcoming items</p>
           </div>
         </div>
-      </v-card-text>
-    </v-card>
+
+        <div v-if="upcomingItems.length === 0" class="text-center py-6 flex flex-col items-center gap-1">
+          <i class="mdi mdi-calendar-clock-text-3xl-text-muted-foreground/30"></i>
+          <p class="text-xs text-muted-foreground">No upcoming items</p>
+        </div>
+      </div>
+    </div>
 
     <!-- Notifications Section -->
-    <v-card variant="outlined" style="border-color:rgba(59,130,246,0.2)">
-      <v-card-item>
-        <template #title>
-          <div class="d-flex align-center gap-2 text-body-2 font-weight-bold">
-            <v-icon icon="mdi-bell-outline" size="16" style="color:#3b82f6" />
-            Notifications
-            <v-chip v-if="unreadCount > 0" color="error" size="x-small" variant="tonal">{{ unreadCount }}</v-chip>
-          </div>
-        </template>
-        <template #append>
-          <v-btn variant="text" size="small" @click="markAllRead">Clear All</v-btn>
-        </template>
-      </v-card-item>
-      <v-card-text>
-        <div class="d-flex flex-column gap-2">
-          <v-card
-            v-for="notification in notifications.slice(0, 5)"
-            :key="notification.id"
-            :variant="notification.read ? 'flat' : 'tonal'"
-            rounded="lg"
-            class="pa-3 cursor-pointer"
-            :style="notification.read ? 'opacity:0.6' : ''"
-            @click="handleNotificationClick(notification)"
+    <div class="bg-surface border border-blue-500/20 rounded-xl overflow-hidden shadow-sm">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/10">
+        <div class="flex items-center gap-2 text-xs font-bold">
+          <i class="mdi mdi-bell-outline-text-blue-500-text-sm"></i>
+          Notifications
+          <span 
+            v-slot="{}"
+            v-if="unreadCount > 0" 
+            class="bg-red-500/10 text-red-500 text-[9px] px-1.5 py-0.5 rounded-full font-bold"
           >
-            <div class="d-flex align-start gap-3">
-              <v-avatar :color="getNotificationColor(notification.type)" size="32" rounded="lg" variant="tonal">
-                <v-icon :icon="getNotificationIcon(notification.type)" size="16" />
-              </v-avatar>
-              <div class="flex-grow-1" style="min-width:0">
-                <p class="text-body-2 font-weight-medium text-truncate mb-0">{{ notification.title }}</p>
-                <p class="text-caption text-medium-emphasis mb-0" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ notification.message }}</p>
-                <p class="text-caption text-medium-emphasis mt-1 mb-0">{{ formatTime(notification.timestamp) }}</p>
-              </div>
-              <div v-if="!notification.read" class="rounded-circle bg-info" style="width:8px;height:8px;margin-top:4px;flex-shrink:0"></div>
-            </div>
-          </v-card>
-
-          <div v-if="notifications.length === 0" class="text-center py-6">
-            <v-icon icon="mdi-bell-outline" size="32" class="mx-auto mb-2 text-medium-emphasis" style="opacity:0.5" />
-            <p class="text-caption text-medium-emphasis mb-0">No notifications</p>
-          </div>
+            {{ unreadCount }}
+          </span>
         </div>
-      </v-card-text>
-    </v-card>
+        <Button 
+          label="Clear All" 
+          variant="text" 
+          severity="secondary" 
+          class="text-[10px] font-bold text-none !py-0.5 !px-2" 
+          @click="markAllRead" 
+        />
+      </div>
+
+      <div class="p-4 flex flex-col gap-2">
+        <div
+          v-for="notification in notifications.slice(0, 5)"
+          :key="notification.id"
+          class="p-3 border rounded-xl cursor-pointer flex items-start gap-3 transition-colors"
+          :class="[
+            notification.read 
+              ? 'bg-surface border-border/40 opacity-60 hover:bg-muted/30' 
+              : 'bg-muted/40 border-border/80 hover:bg-muted/70'
+          ]"
+          @click="handleNotificationClick(notification)"
+        >
+          <div 
+            class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+            :class="getNotificationBgClass(notification.type)"
+          >
+            <i class="mdi mdi-text-sm" :class="getNotificationIcon(notification.type)"></i>
+          </div>
+          <div class="flex-grow min-w-0">
+            <p class="text-xs font-semibold truncate leading-tight">{{ notification.title }}</p>
+            <p class="text-[10px] text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">{{ notification.message }}</p>
+            <p class="text-[9px] text-muted-foreground/75 mt-1">{{ formatTime(notification.timestamp) }}</p>
+          </div>
+          <div v-if="!notification.read" class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0"></div>
+        </div>
+
+        <div v-if="notifications.length === 0" class="text-center py-6 flex flex-col items-center gap-1">
+          <i class="mdi mdi-bell-outline-text-3xl-text-muted-foreground/30"></i>
+          <p class="text-xs text-muted-foreground">No notifications</p>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useAppStore } from '~/stores/app'
 import { storeToRefs } from 'pinia'
-
 import { useNotifications } from '~/composables/useNotifications'
 
 interface UpcomingItem {
@@ -192,32 +199,32 @@ const getTimeFromNow = (date: Date) => {
 }
 
 const getIcon = (type: string) => {
-  const icons: Record<string, any> = {
+  const icons: Record<string, string> = {
     'housecall': 'mdi-map-marker-outline',
     'appointment': 'mdi-calendar',
     'ticket': 'mdi-ticket-confirmation-outline'
   }
-  return icons[type] || CalendarClock
+  return icons[type] || 'mdi-calendar-clock'
 }
 
 const getNotificationIcon = (type: string) => {
-  const icons: Record<string, any> = {
+  const icons: Record<string, string> = {
     'success': 'mdi-check-circle-outline',
-    'warning': 'mdi-alert-circle',
-    'error': 'mdi-alert-circle',
+    'warning': 'mdi-alert-circle-outline',
+    'error': 'mdi-alert-circle-outline',
     'info': 'mdi-information-outline'
   }
-  return icons[type] || Info
+  return icons[type] || 'mdi-information-outline'
 }
 
-const getNotificationColor = (type: string) => {
-  const colors: Record<string, string> = {
-    'success': 'success',
-    'warning': 'warning',
-    'error': 'error',
-    'info': 'info'
+const getNotificationBgClass = (type: string) => {
+  const classes: Record<string, string> = {
+    'success': 'bg-emerald-500/10 text-emerald-500 dark:bg-emerald-500/15',
+    'warning': 'bg-amber-500/10 text-amber-500 dark:bg-amber-500/15',
+    'error': 'bg-red-500/10 text-red-500 dark:bg-red-500/15',
+    'info': 'bg-blue-500/10 text-blue-500 dark:bg-blue-500/15'
   }
-  return colors[type] || 'secondary'
+  return classes[type] || 'bg-muted text-muted-foreground'
 }
 
 const formatTime = (timestamp: string) => {

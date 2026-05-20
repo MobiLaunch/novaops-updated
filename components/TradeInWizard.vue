@@ -1,22 +1,29 @@
 <template>
-  <v-dialog v-model="isOpen" max-width="800" scrollable>
-    <v-card class="d-flex flex-column" style="max-height:90dvh">
+  <Dialog
+    v-model:visible="isOpen"
+    modal
+    :draggable="false"
+    class="w-full max-w-[800px] mx-4"
+    :show-header="false"
+    pt:content:class="!p-0 !rounded-2xl overflow-hidden"
+  >
+    <div class="flex flex-col bg-surface text-foreground" style="max-height: 90dvh">
 
       <!-- Header -->
-      <div class="flex-shrink-0 px-6 pt-6 pb-4 border-b border-border/50">
+      <div class="flex-shrink-0 px-6 pt-6 pb-4 border-b border-border/50 bg-surface">
         <div class="flex items-center gap-3">
           <div class="w-11 h-11 rounded-[22px] flex items-center justify-center shadow-md flex-shrink-0"
             style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 16px #f59e0b40">
-            <v-icon icon="mdi-swap-horizontal" size="20" color="white" />
+            <i class="mdi mdi-swap-horizontal-text-xl-text-white"></i>
           </div>
-          <div class="flex-1">
-            <h2 class="text-base font-black">Device Trade-In Evaluator</h2>
-            <p class="text-xs text-muted-foreground font-medium mt-0.5">
+          <div class="flex-grow min-w-0">
+            <h2 class="text-sm font-black truncate">Device Trade-In Evaluator</h2>
+            <p class="text-[11px] text-muted-foreground font-medium mt-0.5">
               Step {{ currentStep }} of {{ TOTAL_STEPS }} — {{ stepTitles[currentStep - 1] }}
             </p>
           </div>
           <!-- Progress bar -->
-          <div class="flex gap-1 mr-8">
+          <div class="flex gap-1 mr-4 shrink-0">
             <div v-for="i in TOTAL_STEPS" :key="i"
               class="h-1.5 rounded-full transition-all duration-500"
               :class="i <= currentStep ? 'w-6' : 'w-2.5'"
@@ -26,7 +33,7 @@
       </div>
 
       <!-- Step Content -->
-      <div class="flex-1 overflow-y-auto px-6 py-5">
+      <div class="flex-grow overflow-y-auto px-6 py-5">
 
         <!-- ── Step 1: Device Identity ── -->
         <div v-if="currentStep === 1" class="space-y-4">
@@ -64,9 +71,9 @@
           </div>
 
           <!-- IMEI / Model Number -->
-          <div class="rounded-[16px] p-4 space-y-3" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.5); outline-offset: 0">
+          <div class="rounded-[16px] p-4 space-y-3 bg-muted/40 border border-border/60">
             <div class="flex items-center gap-2">
-              <Fingerprint class="w-4 h-4 text-muted-foreground" />
+              <i class="mdi mdi-fingerprint-text-muted-foreground-text-sm"></i>
               <p class="text-xs font-black">Device Identifiers <span class="font-normal text-muted-foreground">(improves lookup accuracy)</span></p>
             </div>
             <div class="grid grid-cols-2 gap-3">
@@ -95,58 +102,57 @@
           </div>
 
           <!-- Resolved device banner (shown when IMEI/model# resolved the device) -->
-          <div v-if="resolvedDevice" class="flex items-center gap-3 p-3 rounded-[14px]"
-            style="background: #10b98110; outline: 1.5px solid #10b98130; outline-offset: 0">
-            <v-icon icon="mdi-check-circle-outline" size="16" class="flex-shrink-0" style="color: #10b981" />
-            <div class="flex-1">
-              <p class="text-xs font-black" style="color: #10b981">Device identified via {{ resolvedDevice.method }}</p>
-              <p class="text-xs text-muted-foreground">{{ resolvedDevice.brand }} {{ resolvedDevice.model }}{{ resolvedDevice.storage ? ' · ' + resolvedDevice.storage : '' }}</p>
+          <div v-if="resolvedDevice" class="flex items-center gap-3 p-3 rounded-[14px] bg-emerald-500/10 border border-emerald-500/20">
+            <i class="mdi mdi-check-circle-outline-text-base-text-emerald-500-shrink-0"></i>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-black text-emerald-600 dark:text-emerald-400">Device identified via {{ resolvedDevice.method }}</p>
+              <p class="text-xs text-muted-foreground truncate">{{ resolvedDevice.brand }} {{ resolvedDevice.model }}{{ resolvedDevice.storage ? ' · ' + resolvedDevice.storage : '' }}</p>
             </div>
             <button class="text-[10px] text-muted-foreground hover:text-foreground underline" @click="resolvedDevice = null">Clear</button>
           </div>
 
           <!-- Market price fetch -->
-          <div class="rounded-[18px] p-4 space-y-3" style="background: #f59e0b0c; outline: 1.5px solid #f59e0b28; outline-offset: 0">
+          <div class="rounded-[18px] p-4 space-y-3 bg-amber-500/5 border border-amber-500/10">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <v-icon icon="mdi-trending-up" size="16" style="color: #f59e0b" />
+                <i class="mdi mdi-trending-up-text-base-text-amber-500"></i>
                 <p class="text-xs font-black">Live Market Price</p>
               </div>
               <button
-                class="flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-                style="background: #f59e0b; color: white"
+                class="flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed bg-amber-500 text-white"
                 :disabled="(!form.brand && !form.model && !form.imei && !form.model_number) || fetchingPrice"
                 @click="fetchMarketPrice"
               >
                 <div v-if="fetchingPrice" class="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                <v-icon icon="mdi-magnify" size="12" v-else />
+                <i class="mdi mdi-magnify-text-xs" v-else></i>
                 {{ fetchingPrice ? fetchingStage : 'Look Up' }}
               </button>
             </div>
 
             <!-- Results -->
-            <div v-if="marketPriceResult" class="space-y-1">
+            <div v-if="marketPriceResult" class="space-y-1.5">
               <div class="flex items-center justify-between">
                 <span class="text-xs text-muted-foreground">eBay avg (sold listings)</span>
-                <span class="font-black text-sm" style="color: #f59e0b">{{ currency }}{{ marketPriceResult.ebay_avg.toFixed(2) }}</span>
+                <span class="font-black text-sm text-amber-600 dark:text-amber-400">{{ currency }}{{ marketPriceResult.ebay_avg.toFixed(2) }}</span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-xs text-muted-foreground">Swappa avg</span>
-                <span class="font-black text-sm" style="color: #f59e0b">{{ currency }}{{ marketPriceResult.swappa_avg.toFixed(2) }}</span>
+                <span class="font-black text-sm text-amber-600 dark:text-amber-400">{{ currency }}{{ marketPriceResult.swappa_avg.toFixed(2) }}</span>
               </div>
-              <div class="flex items-center justify-between border-t border-border/40 pt-1">
+              <hr class="border-t border-border/40 my-1" />
+              <div class="flex items-center justify-between">
                 <span class="text-xs font-semibold">Used Market Median</span>
-                <span class="font-black text-base" style="color: #f59e0b">{{ currency }}{{ marketPriceResult.median.toFixed(2) }}</span>
+                <span class="font-black text-base text-amber-600 dark:text-amber-400">{{ currency }}{{ marketPriceResult.median.toFixed(2) }}</span>
               </div>
-              <div class="flex items-center gap-1.5 mt-0.5">
-                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold" style="background: #f59e0b18; color: #d97706">
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="text-[9px] px-2 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-600">
                   via {{ marketPriceResult.lookup_method === 'imei' ? 'IMEI' : marketPriceResult.lookup_method === 'model_number' ? 'Model #' : 'Name search' }}
                 </span>
                 <p class="text-[10px] text-muted-foreground">{{ marketPriceResult.source_note }}</p>
               </div>
             </div>
             <div v-else-if="priceError" class="space-y-1">
-              <p class="text-xs text-destructive font-medium">{{ priceError }}</p>
+              <p class="text-xs text-red-500 font-medium">{{ priceError }}</p>
               <p class="text-[10px] text-muted-foreground">Try adding an IMEI or model number above for a more precise lookup.</p>
             </div>
             <div v-else class="text-xs text-muted-foreground">
@@ -154,7 +160,7 @@
             </div>
 
             <!-- Manual override -->
-            <div class="space-y-1.5 pt-1 border-t border-border/30">
+            <div class="space-y-1.5 pt-2 border-t border-border/30">
               <label class="wi-label">Manual Market Price Override</label>
               <input v-model.number="form.market_price" type="number" min="0" step="0.01" placeholder="0.00" class="wi-input font-mono" />
               <p class="text-[10px] text-muted-foreground">Enter the current market value manually if the lookup doesn't find a result.</p>
@@ -172,7 +178,7 @@
               <button v-for="g in conditionGrades" :key="g.value"
                 class="grade-chip"
                 :class="form.condition_grade === g.value ? 'grade-chip--active' : ''"
-                :style="form.condition_grade === g.value ? `background: ${g.color}18; outline-color: ${g.color}60; color: ${g.color}` : ''"
+                :style="form.condition_grade === g.value ? `background: ${g.color}15; border-color: ${g.color}50; color: ${g.color}` : ''"
                 @click="form.condition_grade = g.value">
                 <span class="text-xl">{{ g.emoji }}</span>
                 <span class="text-xs font-black mt-1">{{ g.label }}</span>
@@ -181,15 +187,15 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="space-y-2">
               <label class="wi-label">Screen Condition</label>
               <div class="space-y-1.5">
                 <button v-for="s in screenConditions" :key="s.value"
-                  class="w-full flex items-center gap-3 p-3 rounded-[14px] text-left transition-all hover:scale-[1.01]"
+                  class="w-full flex items-center gap-3 p-3 rounded-[14px] text-left transition-all border"
                   :style="form.screen_condition === s.value
-                    ? `background: ${s.color}18; outline: 1.5px solid ${s.color}50; outline-offset: 0`
-                    : 'background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.4); outline-offset: 0'"
+                    ? `background: ${s.color}15; border-color: ${s.color}40; color: ${s.color}`
+                    : 'background: hsl(var(--muted)/0.3); border-color: border;'"
                   @click="form.screen_condition = s.value">
                   <span class="text-base">{{ s.emoji }}</span>
                   <div>
@@ -205,7 +211,7 @@
                 <div class="flex items-center justify-between">
                   <label class="wi-label mb-0">Battery Health</label>
                   <span class="text-sm font-black"
-                    :style="form.battery_health >= 80 ? 'color: #10b981' : form.battery_health >= 60 ? 'color: #f59e0b' : 'color: #ef4444'">
+                    :style="{ color: form.battery_health >= 80 ? '#10b981' : form.battery_health >= 60 ? '#f59e0b' : '#ef4444' }">
                     {{ form.battery_health }}%
                   </span>
                 </div>
@@ -219,10 +225,10 @@
                 <label class="wi-label">Device Age</label>
                 <div class="grid grid-cols-3 gap-1.5">
                   <button v-for="a in ageOptions" :key="a.value"
-                    class="py-2 px-1 rounded-[12px] text-[11px] font-bold transition-all text-center"
+                    class="py-2 px-1 rounded-[12px] text-[11px] font-bold transition-all text-center border"
                     :style="form.age_years === a.value
-                      ? 'background: #6366f120; color: #6366f1; outline: 1.5px solid #6366f150; outline-offset: 0'
-                      : 'background: hsl(var(--muted)/0.4); color: hsl(var(--muted-foreground))'"
+                      ? 'background: #6366f115; color: #6366f1; border-color: #6366f130;'
+                      : 'background: hsl(var(--muted)/0.3); color: hsl(var(--muted-foreground)); border-color: transparent;'"
                     @click="form.age_years = a.value">
                     {{ a.label }}
                   </button>
@@ -240,10 +246,10 @@
             <label class="wi-label">Functional Issues <span class="text-muted-foreground font-normal normal-case">(select all that apply)</span></label>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <button v-for="issue in functionalIssues" :key="issue.value"
-                class="flex items-center gap-2 p-3 rounded-[14px] text-left transition-all text-xs font-bold"
+                class="flex items-center gap-2 p-3 rounded-[14px] text-left transition-all text-xs font-bold border"
                 :style="form.functional_issues.includes(issue.value)
-                  ? 'background: #ef444418; outline: 1.5px solid #ef444440; color: #ef4444; outline-offset: 0'
-                  : 'background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.4); color: hsl(var(--foreground)); outline-offset: 0'"
+                  ? 'background: #ef444415; border-color: #ef444430; color: #ef4444;'
+                  : 'background: hsl(var(--muted)/0.3); border-color: transparent; color: hsl(var(--foreground));'"
                 @click="toggleIssue('functional', issue.value)">
                 <span class="text-base flex-shrink-0">{{ issue.emoji }}</span>
                 {{ issue.label }}
@@ -255,10 +261,10 @@
             <label class="wi-label">Cosmetic Issues <span class="text-muted-foreground font-normal normal-case">(select all that apply)</span></label>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <button v-for="issue in cosmeticIssues" :key="issue.value"
-                class="flex items-center gap-2 p-3 rounded-[14px] text-left transition-all text-xs font-bold"
+                class="flex items-center gap-2 p-3 rounded-[14px] text-left transition-all text-xs font-bold border"
                 :style="form.cosmetic_issues.includes(issue.value)
-                  ? 'background: #f59e0b18; outline: 1.5px solid #f59e0b40; color: #d97706; outline-offset: 0'
-                  : 'background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.4); color: hsl(var(--foreground)); outline-offset: 0'"
+                  ? 'background: #f59e0b15; border-color: #f59e0b30; color: #d97706;'
+                  : 'background: hsl(var(--muted)/0.3); border-color: transparent; color: hsl(var(--foreground));'"
                 @click="toggleIssue('cosmetic', issue.value)">
                 <span class="text-base flex-shrink-0">{{ issue.emoji }}</span>
                 {{ issue.label }}
@@ -266,15 +272,15 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="space-y-3">
               <label class="wi-label">Accessories Included</label>
               <div class="space-y-1.5">
                 <button v-for="acc in accessoryOptions" :key="acc.value"
-                  class="w-full flex items-center gap-2.5 p-2.5 rounded-[12px] text-xs font-bold transition-all"
+                  class="w-full flex items-center gap-2.5 p-2.5 rounded-[12px] text-xs font-bold transition-all border"
                   :style="form.accessories.includes(acc.value)
-                    ? 'background: #10b98118; outline: 1.5px solid #10b98140; color: #10b981; outline-offset: 0'
-                    : 'background: hsl(var(--muted)/0.4); outline: 1.5px solid hsl(var(--border)/0.4); outline-offset: 0'"
+                    ? 'background: #10b98115; border-color: #10b98130; color: #10b981;'
+                    : 'background: hsl(var(--muted)/0.3); border-color: transparent;'"
                   @click="toggleAccessory(acc.value)">
                   <span class="text-base">{{ acc.emoji }}</span>
                   {{ acc.label }}
@@ -285,7 +291,7 @@
             <div class="space-y-3">
               <label class="wi-label">Lock Status</label>
               <div class="space-y-2">
-                <div class="p-3 rounded-[14px]" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.4); outline-offset: 0">
+                <div class="p-3 rounded-[14px] bg-muted/40 border">
                   <label class="flex items-start gap-3 cursor-pointer">
                     <input type="checkbox" v-model="form.icloud_locked" class="wi-check mt-0.5" />
                     <div>
@@ -294,7 +300,7 @@
                     </div>
                   </label>
                 </div>
-                <div class="p-3 rounded-[14px]" style="background: hsl(var(--muted)/0.3); outline: 1.5px solid hsl(var(--border)/0.4); outline-offset: 0">
+                <div class="p-3 rounded-[14px] bg-muted/40 border">
                   <label class="flex items-start gap-3 cursor-pointer">
                     <input type="checkbox" v-model="form.frp_locked" class="wi-check mt-0.5" />
                     <div>
@@ -308,7 +314,7 @@
               <div class="space-y-1.5 mt-2">
                 <label class="wi-label">Repair Cost Estimate</label>
                 <div class="relative">
-                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">{{ currency }}</span>
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">{{ currency }}</span>
                   <input v-model.number="form.repair_cost_est" type="number" min="0" step="0.01" placeholder="0.00" class="wi-input pl-7 font-mono" />
                 </div>
                 <p class="text-[10px] text-muted-foreground">Cost to repair/refurbish before resale</p>
@@ -322,9 +328,9 @@
           <p class="step-hint">Review the calculated offer and adjust before presenting to the customer.</p>
 
           <!-- Pricing breakdown card -->
-          <div class="rounded-[22px] overflow-hidden" style="outline: 2px solid hsl(var(--border)/0.6); outline-offset: 0">
+          <div class="rounded-[22px] overflow-hidden border border-border/80">
             <div class="px-5 py-4" style="background: linear-gradient(135deg, #f59e0b0a, #d9770608)">
-              <p class="text-xs font-black uppercase tracking-widest" style="color: #f59e0b">Valuation Summary</p>
+              <p class="text-xs font-black uppercase tracking-widest text-amber-500">Valuation Summary</p>
               <p class="text-sm text-muted-foreground mt-0.5 font-medium">{{ form.brand }} {{ form.model }} {{ form.storage }}</p>
             </div>
             <div class="divide-y divide-border/50">
@@ -356,12 +362,12 @@
                 </div>
                 <span class="font-black text-sm text-emerald-500">+ {{ currency }}{{ accessoryBonus.toFixed(2) }}</span>
               </div>
-              <div class="flex items-center justify-between px-5 py-4 bg-amber-50 dark:bg-amber-950/20">
+              <div class="flex items-center justify-between px-5 py-4 bg-amber-500/5">
                 <div>
                   <p class="text-sm font-black">Calculated Offer Price</p>
                   <p class="text-[10px] text-muted-foreground">What you pay the customer</p>
                 </div>
-                <span class="text-2xl font-black" style="color: #f59e0b">{{ currency }}{{ calculatedOffer.toFixed(2) }}</span>
+                <span class="text-2xl font-black text-amber-500">{{ currency }}{{ calculatedOffer.toFixed(2) }}</span>
               </div>
             </div>
           </div>
@@ -370,38 +376,39 @@
           <div class="space-y-1.5">
             <label class="wi-label">Final Offer Price <span class="text-muted-foreground font-normal normal-case">(adjust as needed)</span></label>
             <div class="flex items-center gap-3">
-              <div class="relative flex-1">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-base font-bold text-muted-foreground">{{ currency }}</span>
-                <input v-model.number="form.offer_price" type="number" min="0" step="0.50" class="wi-input pl-7 font-mono text-lg font-black" style="border-color: #f59e0b; box-shadow: 0 0 0 3px #f59e0b18" />
+              <div class="relative flex-grow">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">{{ currency }}</span>
+                <input v-model.number="form.offer_price" type="number" min="0" step="0.50" class="wi-input pl-7 font-mono text-base font-black border-amber-500 focus:ring-amber-500/20" />
               </div>
-              <button class="h-11 px-4 rounded-[14px] text-xs font-bold transition-all hover:scale-105"
-                style="background: hsl(var(--muted)/0.5); outline: 1.5px solid hsl(var(--border)); outline-offset: 0"
+              <button class="h-11 px-4 rounded-[14px] text-xs font-bold transition-all border bg-muted/40"
                 @click="form.offer_price = calculatedOffer">Reset</button>
             </div>
           </div>
 
           <!-- Estimated resale & profit -->
           <div class="grid grid-cols-3 gap-3">
-            <div class="p-4 rounded-[18px] text-center" style="background: #6366f10c; outline: 1.5px solid #6366f128; outline-offset: 0">
-              <p class="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Est. Resale</p>
-              <p class="text-lg font-black" style="color: #6366f1">{{ currency }}{{ estimatedResale.toFixed(2) }}</p>
+            <div class="p-4 rounded-[18px] text-center bg-indigo-500/5 border border-indigo-500/10">
+              <p class="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Est. Resale</p>
+              <p class="text-base font-black text-indigo-500">{{ currency }}{{ estimatedResale.toFixed(2) }}</p>
             </div>
-            <div class="p-4 rounded-[18px] text-center" :style="estimatedProfit >= 0 ? 'background: #10b9810c; outline: 1.5px solid #10b98128; outline-offset: 0' : 'background: #ef44440c; outline: 1.5px solid #ef444428; outline-offset: 0'">
-              <p class="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Est. Profit</p>
-              <p class="text-lg font-black" :style="estimatedProfit >= 0 ? 'color: #10b981' : 'color: #ef4444'">
+            <div class="p-4 rounded-[18px] text-center border" 
+              :class="[estimatedProfit >= 0 ? 'bg-emerald-500/5 border-emerald-500/10' : 'bg-red-500/5 border-red-500/10']">
+              <p class="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Est. Profit</p>
+              <p class="text-base font-black" :style="{ color: estimatedProfit >= 0 ? '#10b981' : '#ef4444' }">
                 {{ estimatedProfit >= 0 ? '' : '−' }}{{ currency }}{{ Math.abs(estimatedProfit).toFixed(2) }}
               </p>
             </div>
-            <div class="p-4 rounded-[18px] text-center" :style="profitMargin >= 20 ? 'background: #10b9810c; outline: 1.5px solid #10b98128; outline-offset: 0' : 'background: #f59e0b0c; outline: 1.5px solid #f59e0b28; outline-offset: 0'">
-              <p class="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Margin</p>
-              <p class="text-lg font-black" :style="profitMargin >= 20 ? 'color: #10b981' : 'color: #f59e0b'">{{ profitMargin.toFixed(0) }}%</p>
+            <div class="p-4 rounded-[18px] text-center border" 
+              :class="[profitMargin >= 20 ? 'bg-emerald-500/5 border-emerald-500/10' : 'bg-amber-500/5 border-amber-500/10']">
+              <p class="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Margin</p>
+              <p class="text-base font-black" :style="{ color: profitMargin >= 20 ? '#10b981' : '#f59e0b' }">{{ profitMargin.toFixed(0) }}%</p>
             </div>
           </div>
 
           <!-- Warning banners -->
-          <div v-if="form.icloud_locked || form.frp_locked" class="flex items-start gap-3 p-3 rounded-[14px]" style="background: #ef444410; outline: 1.5px solid #ef444430; outline-offset: 0">
-            <v-icon icon="mdi-alert-outline" size="16" class="flex-shrink-0 mt-0.5" style="color: #ef4444" />
-            <p class="text-xs font-semibold" style="color: #ef4444">
+          <div v-if="form.icloud_locked || form.frp_locked" class="flex items-start gap-3 p-3 rounded-[14px] bg-red-500/10 border border-red-500/20">
+            <i class="mdi mdi-alert-outline text-base text-red-500 shrink-0 mt-0.5"></i>
+            <p class="text-xs font-semibold text-red-600 dark:text-red-400">
               This device has {{ [form.icloud_locked && 'iCloud Lock', form.frp_locked && 'FRP Lock'].filter(Boolean).join(' + ') }}.
               Ensure the customer can provide proof of ownership and removal before completing the trade-in.
             </p>
@@ -416,48 +423,49 @@
       </div>
 
       <!-- Footer -->
-      <div class="flex-shrink-0 flex gap-3 px-6 pb-6 pt-4 border-t border-border/50">
+      <div class="flex-shrink-0 flex gap-3 px-6 pb-6 pt-4 border-t border-border/50 bg-surface">
         <button v-if="currentStep > 1"
-          class="h-11 px-4 rounded-full text-sm font-bold transition-all hover:scale-[1.03] active:scale-95 flex items-center gap-1.5"
-          style="outline: 2px solid hsl(var(--border)); outline-offset: 0"
+          class="h-11 px-5 rounded-full text-xs font-bold transition-all hover:scale-[1.03] active:scale-95 flex items-center gap-1.5 border"
           @click="currentStep--">
-          <v-icon icon="mdi-chevron-left" size="16" /> Back
+          <i class="mdi mdi-chevron-left-text-base"></i> Back
         </button>
-        <button class="h-11 px-4 rounded-full text-sm font-bold transition-all hover:scale-[1.03] active:scale-95"
-          style="outline: 2px solid hsl(var(--border)); outline-offset: 0"
+        <button class="h-11 px-5 rounded-full text-xs font-bold transition-all hover:scale-[1.03] active:scale-95 border"
           @click="handleClose">Cancel</button>
 
-        <div class="flex-1" />
+        <div class="flex-grow" />
 
         <button v-if="currentStep < TOTAL_STEPS"
-          class="h-11 px-6 rounded-full text-sm font-black text-white flex items-center gap-2 transition-all hover:scale-[1.03] hover:-translate-y-0.5 active:scale-95"
-          :style="canProceed
-            ? 'background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 14px #f59e0b40'
-            : 'background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); cursor: not-allowed'"
+          class="h-11 px-6 rounded-full text-xs font-black text-white flex items-center gap-2 transition-all hover:scale-[1.03] hover:-translate-y-0.5 active:scale-95"
+          :class="[
+            canProceed
+              ? 'bg-amber-500 hover:shadow-lg active:shadow-sm'
+              : 'bg-muted text-muted-foreground cursor-not-allowed opacity-50'
+          ]"
           :disabled="!canProceed"
           @click="nextStep">
-          Next <v-icon icon="mdi-chevron-right" size="16" />
+          Next <i class="mdi mdi-chevron-right-text-base"></i>
         </button>
 
         <button v-else
-          class="h-11 px-6 rounded-full text-sm font-black text-white flex items-center gap-2 transition-all hover:scale-[1.03] hover:-translate-y-0.5 active:scale-95 disabled:opacity-50"
-          style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 14px #10b98140"
+          class="h-11 px-6 rounded-full text-xs font-black text-white flex items-center gap-2 transition-all hover:scale-[1.03] hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 bg-emerald-500"
           :disabled="saving"
           @click="saveTradeIn">
           <div v-if="saving" class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-          <v-icon icon="mdi-check-circle-outline" size="16" v-else />
+          <i class="mdi mdi-check-circle-outline-text-base" v-else></i>
           {{ saving ? 'Saving…' : 'Save Trade-In' }}
         </button>
       </div>
 
-    </v-card>
-  </v-dialog>
+    </div>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
 import CustomerSelect from '~/components/CustomerSelect.vue'
+import Dialog from 'primevue/dialog'
 import { useAppStore } from '~/stores/app'
 import { storeToRefs } from 'pinia'
+import { ref, computed, watch, reactive } from 'vue'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits(['update:modelValue', 'saved'])
@@ -643,11 +651,6 @@ const nextStep = () => {
 }
 
 // ── Market price lookup ───────────────────────────────────────────
-// Calls the Nuxt server route /api/trade-in/lookup which runs
-// Claude + web_search server-side (avoids CORS). Cascade:
-//   1. IMEI → IMEI.info → resolves device identity → price search
-//   2. Model number → Claude resolves identity → price search
-//   3. Brand + model name → price search
 const fetchMarketPrice = async () => {
   const hasIdentifier = form.brand || form.model || form.imei || form.model_number
   if (!hasIdentifier || fetchingPrice.value) return
@@ -657,7 +660,7 @@ const fetchMarketPrice = async () => {
   marketPriceResult.value = null
   resolvedDevice.value = null
 
-  // Validate IMEI client-side first so we give instant feedback
+  // Validate IMEI client-side first
   if (form.imei) {
     const digits = form.imei.replace(/\D/g, '')
     if (digits.length === 15) {
@@ -677,7 +680,6 @@ const fetchMarketPrice = async () => {
   }
 
   try {
-    // Show progressive stage labels
     if (form.imei) fetchingStage.value = 'Looking up IMEI…'
     else if (form.model_number) fetchingStage.value = 'Resolving model #…'
     else fetchingStage.value = 'Searching prices…'
@@ -698,7 +700,6 @@ const fetchMarketPrice = async () => {
       return
     }
 
-    // If IMEI or model # resolved the device, populate the form fields and show banner
     if (result.resolved_brand || result.resolved_model) {
       const methodLabel = result.lookup_method === 'imei' ? 'IMEI lookup'
         : result.lookup_method === 'model_number' ? 'model number' : 'name search'
@@ -867,13 +868,12 @@ watch(isOpen, (v) => { if (!v) handleClose() })
   padding: 14px 10px;
   border-radius: 18px;
   background: hsl(var(--muted)/0.4);
-  outline: 1.5px solid hsl(var(--border)/0.5);
-  outline-offset: 0;
+  border: 1.5px solid border;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   cursor: pointer;
   gap: 4px;
 }
 .grade-chip:hover { transform: scale(1.04) translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,0.08); }
 .grade-chip:active { transform: scale(0.97); }
-.grade-chip--active { outline-width: 2px; }
+.grade-chip--active { border-width: 2px; }
 </style>

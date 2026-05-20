@@ -11,7 +11,7 @@
           width="56"
           style="background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, #8b5cf6 100%);"
         >
-          <v-icon icon="mdi-calendar" size="28" color="white" />
+          <i class="mdi mdi-calendar"></i>
         </v-sheet>
         <div>
           <h1 class="text-h4 font-weight-black tracking-tight mb-1">Calendar</h1>
@@ -55,7 +55,7 @@
         variant="tonal"
         class="font-weight-bold"
       >
-        <v-icon :icon="t.icon" start size="16"></v-icon>
+        <i class="mdi mdi-"></i>
         {{ t.label }}
       </v-chip>
     </div>
@@ -130,7 +130,7 @@
                 :style="`background: ${eColor(event)}22; color: ${eColor(event)}; border-left: 3px solid ${eColor(event)}`"
               >
                 <div class="d-flex align-center gap-1">
-                  <v-icon :icon="eIcon(event)" size="12" class="flex-shrink-0" />
+                  <i class="mdi mdi-eIcon(event)"></i>
                   <span class="text-caption font-weight-bold text-truncate" style="font-size: 10px !important; line-height: 1.2;">
                     {{ eLabel(event) }}
                   </span>
@@ -184,17 +184,17 @@
               >
                 <v-card-text class="d-flex align-center gap-4 pa-4">
                   <v-avatar :color="`${eColor(event)}22`" size="48" rounded="lg">
-                    <v-icon :icon="eIcon(event)" size="24" :color="eColor(event)" />
+                    <i class="mdi mdi-eIcon(event)"></i>
                   </v-avatar>
 
                   <div class="flex-1-1-100 min-w-0">
                     <div class="text-body-1 font-weight-bold text-truncate">{{ eLabel(event) }}</div>
                     <div class="text-caption font-weight-medium text-medium-emphasis d-flex align-center gap-2 mt-1">
-                      <v-icon icon="mdi-clock-outline" size="14" />
+                      <i class="mdi mdi-clock-outline"></i>
                       {{ event.time || 'All day' }}
                       <template v-if="event.address">
                         <span class="px-1 text-disabled">•</span>
-                        <v-icon icon="mdi-map-marker-outline" size="14" :color="eColor(event)" />
+                        <i class="mdi mdi-map-marker-outline"></i>
                         <span :style="`color: ${eColor(event)}`">{{ event.address }}</span>
                       </template>
                     </div>
@@ -216,7 +216,7 @@
 
         <div v-else class="d-flex flex-column align-center justify-center py-16">
           <v-avatar color="primary" variant="tonal" size="80" class="mb-4">
-            <v-icon icon="mdi-calendar-blank" size="40" />
+            <i class="mdi mdi-calendar-blank"></i>
           </v-avatar>
           <div class="text-body-1 font-weight-bold text-medium-emphasis">No events found for {{ currentLabel }}</div>
         </div>

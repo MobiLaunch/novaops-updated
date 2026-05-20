@@ -1,284 +1,343 @@
 <template>
-  <div class="d-flex flex-column gap-6">
+  <div class="flex flex-col gap-6">
 
     <!-- Header -->
-    <div class="d-flex align-center justify-space-between flex-wrap gap-4 mb-2">
-      <div class="d-flex align-center gap-4">
-        <v-avatar size="56" color="success" variant="tonal" class="rounded-xl">
-          <v-icon icon="mdi-file-document-outline" size="28" color="success" />
-        </v-avatar>
+    <div class="flex align-center justify-between flex-wrap gap-4 mb-2">
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+          <i class="mdi mdi-file-document-outline-text-2xl"></i>
+        </div>
         <div>
-          <h1 class="text-h4 font-weight-black">Forms</h1>
-          <p class="text-body-2 text-medium-emphasis mb-0 mt-1">Invoices, receipts, and customer agreements</p>
+          <h1 class="text-2xl font-black">Forms</h1>
+          <p class="text-sm text-muted-foreground mt-1">Invoices, receipts, and customer agreements</p>
         </div>
       </div>
     </div>
 
     <!-- Template picker (shown when no form is active) -->
-    <v-row v-if="!activeForm">
-      <v-col v-for="template in formTemplates" :key="template.label" cols="12" sm="6" md="4">
-        <v-card class="rounded-xl border pa-6 h-100 d-flex flex-column" elevation="0" hover @click="openForm(template)">
-          <div class="d-flex align-center gap-3 mb-4">
-            <v-avatar size="48" :color="template.color" variant="tonal" class="rounded-lg">
-              <v-icon :icon="template.icon" size="24" :color="template.color" />
-            </v-avatar>
+    <div v-if="!activeForm" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div 
+        v-for="template in formTemplates" 
+        :key="template.label" 
+        class="bg-surface border border-border rounded-xl p-6 flex flex-col cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg"
+        @click="openForm(template)"
+      >
+        <div class="flex items-center gap-3 mb-4">
+          <div 
+            class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0"
+            :style="{ backgroundColor: `${template.color}15`, color: template.color }"
+          >
+            <i class="mdi mdi-text-xl" :class="template.icon"></i>
           </div>
-          <div>
-            <h3 class="text-subtitle-1 font-weight-black">{{ template.label }}</h3>
-            <p class="text-caption text-medium-emphasis font-weight-medium mt-1">{{ template.desc }}</p>
-          </div>
-          <div class="mt-auto pt-4">
-            <p class="text-overline text-medium-emphasis mb-1">Includes</p>
-            <div class="d-flex flex-wrap gap-1 mb-4">
-              <v-chip v-for="tag in template.tags" :key="tag" size="small" :color="template.color" variant="tonal" class="font-weight-bold text-caption">
-                {{ tag }}
-              </v-chip>
-            </div>
-            <v-btn
-              :color="template.color"
-              variant="flat"
-              class="w-100 rounded-pill text-none font-weight-bold"
+        </div>
+        <div>
+          <h3 class="text-sm font-black">{{ template.label }}</h3>
+          <p class="text-xs text-muted-foreground mt-1.5 leading-relaxed">{{ template.desc }}</p>
+        </div>
+        <div class="mt-auto pt-6">
+          <p class="text-[9px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Includes</p>
+          <div class="flex flex-wrap gap-1.5 mb-4">
+            <span 
+              v-for="tag in template.tags" 
+              :key="tag" 
+              class="text-[9px] font-bold px-2 py-0.5 rounded-full"
+              :style="{ backgroundColor: `${template.color}15`, color: template.color }"
             >
-              Use Template
-            </v-btn>
+              {{ tag }}
+            </span>
           </div>
-        </v-card>
-      </v-col>
-    </v-row>
+          <Button
+            label="Use Template"
+            :severity="template.color === '#10b981' ? 'success' : template.color === '#3b82f6' ? 'info' : template.color === '#8b5cf6' ? 'primary' : 'warn'"
+            class="w-full rounded-full text-xs font-bold text-none mt-2"
+          />
+        </div>
+      </div>
+    </div>
 
     <!-- Builder + Live Preview (side by side) -->
-    <v-row v-if="activeForm">
+    <div v-if="activeForm" class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
       <!-- Left: Form Builder -->
-      <v-col cols="12" xl="6">
-        <v-card class="rounded-xl border pa-6 h-100" elevation="0">
-          <div class="d-flex align-center gap-3 mb-6">
-            <v-btn icon="mdi-chevron-left" variant="text" size="small" @click="activeForm = null" />
-            <v-avatar size="40" :color="activeForm.color" variant="tonal" class="rounded-lg">
-              <v-icon :icon="activeForm.icon" size="20" :color="activeForm.color" />
-            </v-avatar>
-            <h3 class="text-subtitle-1 font-weight-black mb-0">{{ activeForm.label }}</h3>
+      <div class="flex flex-col">
+        <div class="bg-surface border border-border rounded-xl p-6 flex flex-col h-full">
+          <div class="flex items-center gap-3 mb-6 shrink-0">
+            <Button icon="mdi mdi-chevron-left" variant="text" severity="secondary" class="rounded-full !w-8 !h-8" @click="activeForm = null" />
+            <div 
+              class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+              :style="{ backgroundColor: `${activeForm.color}15`, color: activeForm.color }"
+            >
+              <i class="mdi mdi-text-lg" :class="activeForm.icon"></i>
+            </div>
+            <h3 class="text-sm font-black">{{ activeForm.label }}</h3>
           </div>
 
-          <div class="d-flex flex-column gap-5">
+          <div class="flex flex-col gap-5">
             <!-- Business info (auto-filled from settings) -->
-            <v-card class="rounded-lg pa-3 d-flex align-center gap-3 bg-surface-variant" elevation="0">
-              <v-icon icon="mdi-office-building-outline" color="medium-emphasis" />
+            <div class="rounded-xl p-4 flex items-center gap-3 bg-muted/50 border">
+              <i class="mdi mdi-office-building-outline-text-lg-text-muted-foreground"></i>
               <div>
-                <p class="font-weight-black text-body-2 mb-0">{{ settings.businessName || 'Your Business' }}</p>
-                <p class="text-caption text-medium-emphasis mb-0">{{ [settings.phone, settings.email].filter(Boolean).join(' · ') || 'Set phone & email in Settings' }}</p>
+                <p class="font-bold text-xs">{{ settings.businessName || 'Your Business' }}</p>
+                <p class="text-[10px] text-muted-foreground mt-0.5">{{ [settings.phone, settings.email].filter(Boolean).join(' · ') || 'Set phone & email in Settings' }}</p>
               </div>
-            </v-card>
+            </div>
 
-            <v-row dense>
-              <v-col cols="12" sm="6">
-                <p class="text-caption font-weight-bold text-medium-emphasis text-uppercase mb-1">Customer</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Customer</label>
                 <CustomerSelect v-model="form.customerId" @update:modelValue="onCustomerChange" />
-              </v-col>
-              <v-col cols="12" sm="6">
-                <p class="text-caption font-weight-bold text-medium-emphasis text-uppercase mb-1">Linked Ticket</p>
-                <v-select
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Linked Ticket</label>
+                <Select
                   v-model="form.ticketId"
-                  :items="[{id: null, label: 'None'}, ...tickets.map((t: any) => ({id: t.id, label: `#${t.id} — ${t.device}`}))]"
-                  item-title="label"
-                  item-value="id"
-                  variant="outlined"
-                  density="comfortable"
-                  hide-details
-                  @update:modelValue="onTicketChange"
+                  :options="[{id: null, label: 'None'}, ...tickets.map((t: any) => ({id: t.id, label: `#${t.id} — ${t.device}`}))]"
+                  optionLabel="label"
+                  optionValue="id"
+                  placeholder="Select a ticket"
+                  class="w-full rounded-xl text-xs"
+                  @change="onTicketChange"
                 />
-              </v-col>
-              <v-col cols="12" sm="6">
-                <p class="text-caption font-weight-bold text-medium-emphasis text-uppercase mb-1">Date</p>
-                <v-text-field v-model="form.date" type="date" variant="outlined" density="comfortable" hide-details />
-              </v-col>
-              <v-col v-if="activeForm.label !== 'Service Agreement'" cols="12" sm="6">
-                <p class="text-caption font-weight-bold text-medium-emphasis text-uppercase mb-1">Due Date</p>
-                <v-text-field v-model="form.dueDate" type="date" variant="outlined" density="comfortable" hide-details />
-              </v-col>
-            </v-row>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Date</label>
+                <input 
+                  v-model="form.date" 
+                  type="date" 
+                  class="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20" 
+                />
+              </div>
+              <div v-if="activeForm.label !== 'Service Agreement'" class="flex flex-col gap-1.5">
+                <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Due Date</label>
+                <input 
+                  v-model="form.dueDate" 
+                  type="date" 
+                  class="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20" 
+                />
+              </div>
+            </div>
 
             <!-- Line Items (not for Service Agreement) -->
             <div v-if="activeForm.label !== 'Service Agreement'">
-              <div class="d-flex align-center justify-space-between mb-3">
-                <p class="text-caption font-weight-bold text-medium-emphasis text-uppercase mb-0">Line Items</p>
-                <v-btn color="success" variant="tonal" size="small" class="rounded-pill text-none font-weight-bold" @click="addLineItem">
-                  <v-icon start>mdi-plus</v-icon> Add Item
-                </v-btn>
+              <div class="flex items-center justify-between mb-3">
+                <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Line Items</label>
+                <Button 
+                  label="Add Item" 
+                  icon="mdi mdi-plus" 
+                  severity="success" 
+                  variant="tonal" 
+                  class="rounded-full text-[10px] font-bold px-3 py-1 text-none" 
+                  @click="addLineItem" 
+                />
               </div>
               
-              <div class="d-flex flex-column gap-2">
-                <div v-for="(item, i) in form.lineItems" :key="i" class="d-flex align-center gap-2">
-                  <v-text-field v-model="item.description" placeholder="Description" variant="outlined" density="compact" hide-details class="flex-grow-1" />
-                  <v-text-field v-model.number="item.qty" type="number" min="1" placeholder="Qty" variant="outlined" density="compact" hide-details style="max-width: 80px" />
-                  <v-text-field v-model.number="item.price" type="number" min="0" step="0.01" placeholder="Price" variant="outlined" density="compact" hide-details style="max-width: 100px" />
-                  <v-btn icon="mdi-delete-outline" variant="text" color="error" size="small" @click="removeLineItem(i)" />
+              <div class="flex flex-col gap-2">
+                <div v-for="(item, i) in form.lineItems" :key="i" class="flex align-center items-center gap-2">
+                  <InputText v-model="item.description" placeholder="Description" class="flex-grow rounded-xl text-xs" />
+                  <InputText v-model.number="item.qty" type="number" min="1" placeholder="Qty" class="w-16 rounded-xl text-xs text-center" />
+                  <InputText v-model.number="item.price" type="number" min="0" step="0.01" placeholder="Price" class="w-24 rounded-xl text-xs text-right" />
+                  <Button icon="mdi mdi-delete-outline" variant="text" severity="danger" class="rounded-full !w-8 !h-8 shrink-0" @click="removeLineItem(i)" />
                 </div>
-                <div v-if="!form.lineItems.length" class="text-caption font-weight-medium text-medium-emphasis py-2">
+                <div v-if="!form.lineItems.length" class="text-xs text-muted-foreground italic py-2">
                   No line items — linked ticket price will be used automatically.
                 </div>
               </div>
-              <div v-if="form.lineItems.length > 0" class="mt-3 d-flex justify-end">
-                <span class="text-subtitle-1 font-weight-black text-success">Total: {{ formatCurrency(lineItemsTotal) }}</span>
+              
+              <div v-if="form.lineItems.length > 0" class="mt-3 flex justify-end">
+                <span class="text-sm font-black text-emerald-600 dark:text-emerald-400">Total: {{ formatCurrency(lineItemsTotal) }}</span>
               </div>
             </div>
 
-            <div>
-              <p class="text-caption font-weight-bold text-medium-emphasis text-uppercase mb-1">Notes / Terms</p>
-              <v-textarea v-model="form.notes" placeholder="Additional notes, payment terms, warranty info…" rows="2" auto-grow variant="outlined" hide-details />
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Notes / Terms</label>
+              <Textarea 
+                v-model="form.notes" 
+                placeholder="Additional notes, payment terms, warranty info…" 
+                rows="2" 
+                autoResize 
+                class="w-full rounded-xl text-xs" 
+              />
             </div>
 
-            <div v-if="activeForm.label === 'Service Agreement'">
-              <p class="text-caption font-weight-bold text-medium-emphasis text-uppercase mb-1">Authorization Statement</p>
-              <v-textarea v-model="form.authStatement" rows="3" auto-grow variant="outlined" hide-details
-                placeholder="I authorize the above repair shop to perform diagnostics and repairs on my device. I understand that..." />
+            <div v-if="activeForm.label === 'Service Agreement'" class="flex flex-col gap-1.5">
+              <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Authorization Statement</label>
+              <Textarea 
+                v-model="form.authStatement" 
+                rows="3" 
+                autoResize 
+                class="w-full rounded-xl text-xs"
+                placeholder="I authorize the above repair shop to perform diagnostics and repairs on my device. I understand that..." 
+              />
             </div>
 
-            <v-btn
-              color="success"
-              variant="flat"
-              class="rounded-pill text-none px-6 font-weight-bold mt-2"
-              size="large"
+            <Button
+              label="Generate & Print"
+              icon="mdi mdi-printer"
+              severity="success"
+              class="rounded-full text-xs font-bold mt-2 py-2.5 text-none w-full"
               @click="generateAndPrint"
-            >
-              <v-icon start>mdi-printer</v-icon> Generate & Print
-            </v-btn>
+            />
           </div>
-        </v-card>
-      </v-col>
+        </div>
+      </div>
 
       <!-- Right: Live Preview -->
-      <v-col cols="12" xl="6">
-        <v-card class="rounded-xl border bg-surface overflow-hidden d-flex flex-column h-100" elevation="0">
-          <div class="px-5 py-3 border-b d-flex align-center gap-2 bg-surface-variant">
-            <v-icon icon="mdi-eye-outline" size="16" color="medium-emphasis" />
-            <span class="text-caption font-weight-black text-medium-emphasis text-uppercase">Live Preview</span>
-            <v-spacer />
-            <span class="text-caption font-weight-medium text-medium-emphasis">Updates as you type</span>
+      <div class="flex flex-col">
+        <div class="bg-surface border border-border rounded-xl overflow-hidden flex flex-col h-full">
+          <div class="px-5 py-3 border-b flex items-center justify-between bg-muted/30 shrink-0">
+            <div class="flex items-center gap-2">
+              <i class="mdi mdi-eye-outline-text-muted-foreground"></i>
+              <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Live Preview</span>
+            </div>
+            <span class="text-[10px] text-muted-foreground">Updates as you type</span>
           </div>
           
-          <div class="overflow-y-auto pa-8 bg-surface flex-grow-1" style="max-height: 800px; font-family: sans-serif;">
-            <div class="d-flex justify-space-between align-start mb-8">
+          <div class="overflow-y-auto p-8 bg-surface flex-grow" style="max-height: 800px; font-family: sans-serif;">
+            <div class="flex justify-between items-start mb-8">
               <div>
-                <h2 class="text-h5 font-weight-black mb-1" :style="`color: ${activeForm.color}`">{{ activeForm.label.toUpperCase() }}</h2>
-                <p class="text-subtitle-2 font-weight-bold mb-0">{{ settings.businessName || 'Your Business Name' }}</p>
-                <p class="text-caption text-medium-emphasis mb-0">{{ settings.phone || '' }}</p>
-                <p class="text-caption text-medium-emphasis mb-0">{{ settings.email || '' }}</p>
-                <p class="text-caption text-medium-emphasis mb-0">{{ settings.address || '' }}</p>
-                <v-chip size="x-small" :color="activeForm.color" variant="tonal" class="mt-2 font-weight-bold">
+                <h2 class="text-lg font-black mb-1" :style="{ color: activeForm.color }">{{ activeForm.label.toUpperCase() }}</h2>
+                <p class="text-xs font-bold">{{ settings.businessName || 'Your Business Name' }}</p>
+                <p class="text-[10px] text-muted-foreground">{{ settings.phone || '' }}</p>
+                <p class="text-[10px] text-muted-foreground">{{ settings.email || '' }}</p>
+                <p class="text-[10px] text-muted-foreground">{{ settings.address || '' }}</p>
+                <span 
+                  class="mt-2 inline-block text-[9px] font-bold px-2 py-0.5 rounded-full"
+                  :style="{ backgroundColor: `${activeForm.color}15`, color: activeForm.color }"
+                >
                   #{{ docNumber }}
-                </v-chip>
+                </span>
               </div>
-              <div class="text-right text-caption text-medium-emphasis">
-                <p class="mb-1"><span class="font-weight-black text-high-emphasis">Date:</span> {{ form.date || today }}</p>
-                <p v-if="form.dueDate" class="mb-0"><span class="font-weight-black text-high-emphasis">Due:</span> {{ form.dueDate }}</p>
+              <div class="text-right text-[10px] text-muted-foreground">
+                <p class="mb-1"><span class="font-bold text-foreground">Date:</span> {{ form.date || today }}</p>
+                <p v-if="form.dueDate" class="mb-0"><span class="font-bold text-foreground">Due:</span> {{ form.dueDate }}</p>
               </div>
             </div>
 
-            <v-card class="rounded-xl pa-4 mb-6" :style="`background-color: ${activeForm.color}08; border: 1px solid ${activeForm.color}20`" elevation="0">
-              <p class="text-caption font-weight-black text-high-emphasis mb-1">Bill To</p>
-              <p class="text-body-2 font-weight-bold mb-0">{{ previewCustomer?.name || 'Walk-in Customer' }}</p>
-              <p v-if="previewCustomer?.phone" class="text-caption text-medium-emphasis mb-0">{{ previewCustomer.phone }}</p>
-              <p v-if="previewCustomer?.email" class="text-caption text-medium-emphasis mb-0">{{ previewCustomer.email }}</p>
-            </v-card>
+            <div 
+              class="rounded-xl p-4 mb-6 border" 
+              :style="{ backgroundColor: `${activeForm.color}08`, borderColor: `${activeForm.color}20` }"
+            >
+              <p class="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Bill To</p>
+              <p class="text-xs font-bold">{{ previewCustomer?.name || 'Walk-in Customer' }}</p>
+              <p v-if="previewCustomer?.phone" class="text-[10px] text-muted-foreground">{{ previewCustomer.phone }}</p>
+              <p v-if="previewCustomer?.email" class="text-[10px] text-muted-foreground">{{ previewCustomer.email }}</p>
+            </div>
 
-            <v-card v-if="previewTicket" class="rounded-xl pa-4 mb-6" :style="`background-color: ${activeForm.color}06; border: 1px solid ${activeForm.color}14`" elevation="0">
-              <p class="text-caption font-weight-black text-high-emphasis mb-1">Ticket #{{ previewTicket.id }}</p>
-              <p class="text-body-2 font-weight-medium mb-0">{{ previewTicket.device }} {{ previewTicket.deviceModel }}</p>
-              <p class="text-caption text-medium-emphasis mb-0">{{ previewTicket.issue }}</p>
-            </v-card>
+            <div 
+              v-if="previewTicket" 
+              class="rounded-xl p-4 mb-6 border" 
+              :style="{ backgroundColor: `${activeForm.color}06`, borderColor: `${activeForm.color}14` }"
+            >
+              <p class="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Ticket #{{ previewTicket.id }}</p>
+              <p class="text-xs font-medium">{{ previewTicket.device }} {{ previewTicket.deviceModel }}</p>
+              <p class="text-[10px] text-muted-foreground mt-0.5">{{ previewTicket.issue }}</p>
+            </div>
 
-            <v-table v-if="activeForm.label !== 'Service Agreement'" class="mb-6 bg-transparent" density="compact">
-              <thead>
-                <tr>
-                  <th class="text-left text-uppercase text-caption font-weight-black text-medium-emphasis">Description</th>
-                  <th class="text-center text-uppercase text-caption font-weight-black text-medium-emphasis">Qty</th>
-                  <th class="text-right text-uppercase text-caption font-weight-black text-medium-emphasis">Price</th>
-                  <th class="text-right text-uppercase text-caption font-weight-black text-medium-emphasis">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(li, i) in previewLineItems" :key="i">
-                  <td class="text-body-2 font-weight-medium">{{ li.description || '—' }}</td>
-                  <td class="text-center text-body-2 text-medium-emphasis">{{ li.qty }}</td>
-                  <td class="text-right text-body-2 text-medium-emphasis">{{ formatCurrency(li.price) }}</td>
-                  <td class="text-right text-body-2 font-weight-bold">{{ formatCurrency(li.qty * li.price) }}</td>
-                </tr>
-                <tr v-if="!previewLineItems.length">
-                  <td colspan="4" class="text-caption text-medium-emphasis font-italic py-3">Line items will appear here…</td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colspan="3" class="pt-4 text-subtitle-1 font-weight-black" :style="`color: ${activeForm.color}`">TOTAL</td>
-                  <td class="pt-4 text-right text-subtitle-1 font-weight-black" :style="`color: ${activeForm.color}`">{{ formatCurrency(previewTotal) }}</td>
-                </tr>
-              </tfoot>
-            </v-table>
+            <div v-if="activeForm.label !== 'Service Agreement'" class="mb-6">
+              <table class="w-full text-left text-xs mb-4">
+                <thead>
+                  <tr class="border-b border-border text-muted-foreground uppercase tracking-wider font-bold">
+                    <th class="py-2 text-[10px]">Description</th>
+                    <th class="py-2 text-center text-[10px]">Qty</th>
+                    <th class="py-2 text-right text-[10px]">Price</th>
+                    <th class="py-2 text-right text-[10px]">Amount</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-border">
+                  <tr v-for="(li, i) in previewLineItems" :key="i">
+                    <td class="py-2 font-medium">{{ li.description || '—' }}</td>
+                    <td class="py-2 text-center text-muted-foreground">{{ li.qty }}</td>
+                    <td class="py-2 text-right text-muted-foreground">{{ formatCurrency(li.price) }}</td>
+                    <td class="py-2 text-right font-bold">{{ formatCurrency(li.qty * li.price) }}</td>
+                  </tr>
+                  <tr v-if="!previewLineItems.length">
+                    <td colspan="4" class="py-4 text-center text-muted-foreground italic text-[11px]">Line items will appear here…</td>
+                  </tr>
+                </tbody>
+              </table>
+              <hr class="border-t border-border my-2" />
+              <div class="flex justify-between items-center pt-2">
+                <span class="text-xs font-black" :style="{ color: activeForm.color }">TOTAL</span>
+                <span class="text-sm font-black" :style="{ color: activeForm.color }">{{ formatCurrency(previewTotal) }}</span>
+              </div>
+            </div>
 
-            <v-card v-if="form.notes" class="rounded-xl pa-3 mb-4 text-caption text-medium-emphasis bg-surface-variant" elevation="0">
+            <div v-if="form.notes" class="rounded-xl p-3 mb-4 text-[11px] text-muted-foreground bg-muted border">
               {{ form.notes }}
-            </v-card>
+            </div>
 
-            <v-card v-if="activeForm.label === 'Service Agreement'" class="rounded-xl pa-4 mt-4 border bg-transparent" elevation="0">
-              <p class="text-caption font-weight-black text-high-emphasis mb-2">Authorization</p>
-              <p class="text-caption text-medium-emphasis mb-4">{{ form.authStatement || 'Customer authorization statement will appear here…' }}</p>
-              <div class="d-flex gap-6 mt-6">
+            <div 
+              v-if="activeForm.label === 'Service Agreement'" 
+              class="rounded-xl p-4 mt-4 border bg-transparent"
+            >
+              <p class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Authorization</p>
+              <p class="text-[10px] text-muted-foreground leading-relaxed">{{ form.authStatement || 'Customer authorization statement will appear here…' }}</p>
+              <div class="flex gap-6 mt-8">
                 <div>
-                  <v-divider class="mb-1" style="width: 144px; border-color: rgba(var(--v-theme-on-surface), 0.5);" />
-                  <p class="text-caption font-weight-bold text-medium-emphasis" style="font-size: 10px !important">Customer Signature</p>
+                  <div class="w-36 border-b border-border h-8 mb-1"></div>
+                  <p class="text-[9px] font-bold text-muted-foreground">Customer Signature</p>
                 </div>
                 <div>
-                  <v-divider class="mb-1" style="width: 96px; border-color: rgba(var(--v-theme-on-surface), 0.5);" />
-                  <p class="text-caption font-weight-bold text-medium-emphasis" style="font-size: 10px !important">Date</p>
+                  <div class="w-24 border-b border-border h-8 mb-1"></div>
+                  <p class="text-[9px] font-bold text-muted-foreground">Date</p>
                 </div>
               </div>
-            </v-card>
+            </div>
 
-            <div class="mt-8 pt-4 border-t text-center text-caption text-medium-emphasis" style="font-size: 10px !important">
+            <div class="mt-8 pt-4 border-t text-center text-[9px] text-muted-foreground">
               Thank you for your business! — Generated by {{ settings.businessName || 'NovaOps' }}
             </div>
           </div>
-        </v-card>
-      </v-col>
-    </v-row>
+        </div>
+      </div>
+    </div>
 
     <!-- Invoice History -->
-    <v-card v-if="invoiceHistory.length > 0" class="rounded-xl border pa-6 mt-2" elevation="0">
-      <div class="d-flex align-center justify-space-between mb-4">
-        <div class="d-flex align-center gap-3">
-          <v-avatar size="36" color="success" variant="tonal" class="rounded-lg">
-            <v-icon icon="mdi-clock-outline" size="20" color="success" />
-          </v-avatar>
-          <h3 class="text-subtitle-1 font-weight-black mb-0">Recent Documents</h3>
+    <div v-if="invoiceHistory.length > 0" class="bg-surface border border-border rounded-xl p-6 mt-2">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+            <i class="mdi mdi-clock-outline-text-lg"></i>
+          </div>
+          <h3 class="text-base font-black">Recent Documents</h3>
         </div>
-        <v-btn variant="text" size="small" color="medium-emphasis" class="font-weight-bold text-none" @click="invoiceHistory = []">
-          Clear
-        </v-btn>
+        <Button 
+          label="Clear" 
+          variant="text" 
+          severity="secondary" 
+          class="text-xs text-none font-bold" 
+          @click="invoiceHistory = []" 
+        />
       </div>
       
-      <v-list lines="two" bg-color="transparent" class="pa-0">
-        <v-list-item
+      <div class="flex flex-col gap-2">
+        <div
           v-for="inv in invoiceHistory"
           :key="inv.id"
-          class="rounded-xl mb-2 border"
+          class="flex items-center justify-between p-3 border border-border rounded-xl"
         >
-          <template #prepend>
-            <v-avatar size="40" color="success" variant="tonal" class="rounded-lg">
-              <v-icon icon="mdi-receipt-text-outline" size="20" />
-            </v-avatar>
-          </template>
-          <v-list-item-title class="font-weight-bold text-body-2">{{ inv.type }} — {{ inv.customerName }}</v-list-item-title>
-          <v-list-item-subtitle class="font-weight-medium text-caption">{{ inv.date }}</v-list-item-subtitle>
-          <template #append>
-            <div class="d-flex align-center gap-4">
-              <span class="text-subtitle-2 font-weight-black text-success">{{ formatCurrency(inv.total) }}</span>
-              <v-btn icon="mdi-printer" variant="text" color="medium-emphasis" size="small" @click="reprintInvoice(inv)" />
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+              <i class="mdi mdi-receipt-text-outline-text-lg"></i>
             </div>
-          </template>
-        </v-list-item>
-      </v-list>
-    </v-card>
+            <div class="min-w-0">
+              <div class="text-xs font-bold truncate leading-tight">{{ inv.type }} — {{ inv.customerName }}</div>
+              <div class="text-[10px] text-muted-foreground mt-0.5">{{ inv.date }}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 shrink-0">
+            <span class="text-xs font-black text-emerald-600 dark:text-emerald-400">{{ formatCurrency(inv.total) }}</span>
+            <Button 
+              icon="mdi mdi-printer" 
+              variant="text" 
+              severity="secondary" 
+              class="rounded-full !w-8 !h-8" 
+              @click="reprintInvoice(inv)" 
+            />
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Trade-In Wizard -->
     <TradeInWizard v-model="tradeInOpen" @saved="tradeInOpen = false" />
@@ -287,6 +346,8 @@
 
 <script setup lang="ts">
 import TradeInWizard from '~/components/TradeInWizard.vue'
+import { ref, computed } from 'vue'
+import { useAppStore } from '~/stores/app'
 
 const appStore   = useAppStore()
 const customers  = computed(() => appStore.customers ?? [])
@@ -384,7 +445,6 @@ function buildHtml(data: any) {
     : ticket ? `<tr><td style="padding:8px 0">Repair — ${ticket.device}</td><td style="text-align:center">1</td><td style="text-align:right">${business.currency || '$'}${(ticket.price || 0).toFixed(2)}</td><td style="text-align:right;font-weight:700">${business.currency || '$'}${(ticket.price || 0).toFixed(2)}</td></tr>` : ''
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${type}</title><style>
-.m3-label { display:block;font-size:10px;font-weight:800;color:hsl(var(--muted-foreground));text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem; }
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:system-ui,-apple-system,sans-serif;padding:48px;max-width:760px;margin:auto;color:#1a1a1a;font-size:13px}
     .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px}
@@ -471,13 +531,3 @@ const reprintInvoice = (inv: any) => {
   const w = window.open(''); if (w) { w.document.write(inv.html); w.document.close() }
 }
 </script>
-
-<style scoped>
-.m3-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
-.m3-input:focus { border-color: #10b981; box-shadow: 0 0 0 3px #10b98118; }
-textarea.m3-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
-select.m3-input { width:100%;height:48px;padding:0 20px;border-radius:20px;font-size:14px;font-weight:500;background:hsl(var(--muted)/0.5);border:2px solid hsl(var(--border)/0.7);color:hsl(var(--foreground));outline:none;transition:all 0.2s ease; }
-.m3-card { transition: transform 0.35s cubic-bezier(0.34,1.5,0.64,1), box-shadow 0.3s ease; }
-.m3-card:hover  { transform: scale(1.025) translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
-.m3-card:active { transform: scale(0.97); }
-</style>

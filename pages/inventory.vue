@@ -9,7 +9,7 @@
           rounded="xl"
           style="background: linear-gradient(135deg,#8b5cf6,#7c3aed); box-shadow: 0 4px 20px #8b5cf650"
         >
-          <v-icon icon="mdi-package-variant-closed" size="22" color="white" />
+          <i class="mdi mdi-package-variant-closed"></i>
         </v-avatar>
         <div>
           <h1 class="text-h5 font-weight-black">Inventory &amp; Services</h1>
@@ -31,15 +31,15 @@
     <!-- ── Tabs ─────────────────────────────────────────────────── -->
     <v-tabs v-model="activeTab" color="deep-purple" class="mb-4">
       <v-tab value="stock">
-        <v-icon start>mdi-package-variant-closed</v-icon>
+        <i class="mdi mdi-package-variant-closed"></i>
         Stock & Services
       </v-tab>
       <v-tab value="services">
-        <v-icon start>mdi-wrench-outline</v-icon>
+        <i class="mdi mdi-wrench-outline"></i>
         Service Pricing
       </v-tab>
       <v-tab value="tradein">
-        <v-icon start>mdi-swap-horizontal</v-icon>
+        <i class="mdi mdi-swap-horizontal"></i>
         Trade-In
       </v-tab>
     </v-tabs>
@@ -55,7 +55,7 @@
         >
           <div class="d-flex align-center justify-space-between mb-3">
             <v-avatar size="40" rounded="lg" :style="`background:${stat.color}24`">
-              <v-icon :icon="stat.icon" size="20" :style="`color:${stat.color}`" />
+              <i class="mdi text-xl" :class="stat.icon"></i>
             </v-avatar>
             <v-chip size="x-small" :style="`background:${stat.color}20;color:${stat.color}`" variant="flat">
               {{ stat.badge }}
@@ -125,7 +125,11 @@
                 ? 'background:linear-gradient(135deg,#22d3ee18,#0891b218)'
                 : 'background:linear-gradient(135deg,#8b5cf620,#7c3aed20)'"
             >
-              <v-icon :icon="item.itemType === 'service' ? 'mdi-wrench-outline' : 'mdi-package-variant-closed'" size="22" :style="item.itemType === 'service' ? 'color:#22d3ee' : 'color:#8b5cf6'" />
+              <i
+                class="mdi text-xl"
+                :class="item.itemType === 'service' ? 'mdi-wrench-outline' : 'mdi-package-variant-closed'"
+                :style="item.itemType === 'service' ? 'color:#22d3ee' : 'color:#8b5cf6'"
+              ></i>
             </v-avatar>
             <div class="d-flex flex-column align-end gap-1">
               <v-chip
@@ -185,7 +189,7 @@
       <v-col v-if="filtered.length === 0" cols="12">
         <v-card class="pa-12 text-center">
           <v-avatar size="80" rounded="xl" color="deep-purple" variant="tonal" class="mb-4 mx-auto">
-            <v-icon icon="mdi-package-variant-closed" size="40" style="opacity:0.5" />
+            <i class="mdi mdi-package-variant-closed"></i>
           </v-avatar>
           <div class="text-h6 font-weight-black mb-1">No items found</div>
           <div class="text-body-2 text-medium-emphasis">
@@ -201,7 +205,7 @@
           <v-card-item class="border-b" style="background:#10b98108">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#10b981,#059669)">
-                <v-icon icon="mdi-wrench-outline" size="18" color="white" />
+                <i class="mdi mdi-wrench-outline"></i>
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black">Service Pricing</v-card-title>
@@ -210,7 +214,7 @@
           <v-card-text class="pa-6">
             <div v-if="servicesList.length === 0" class="d-flex flex-column align-center gap-3 py-10 text-medium-emphasis">
               <v-avatar size="64" rounded="xl" color="success" variant="tonal">
-                <v-icon icon="mdi-wrench-outline" size="32" style="opacity:.5" />
+                <i class="mdi mdi-wrench-outline"></i>
               </v-avatar>
               <div class="text-body-2 font-weight-bold">No services yet</div>
               <div class="text-caption">Use the "Add Item" button above with type "Service" to add one</div>
@@ -220,7 +224,7 @@
                 <v-card variant="outlined" class="pa-4 h-100 item-card" style="border-color:#10b98130; cursor:pointer" @click="openEdit(svc)">
                   <div class="d-flex align-center gap-3 mb-3">
                     <v-avatar size="40" rounded="lg" style="background:#10b98118">
-                      <v-icon icon="mdi-wrench-outline" size="20" color="#10b981" />
+                      <i class="mdi mdi-wrench-outline"></i>
                     </v-avatar>
                     <div class="flex-grow-1 min-w-0">
                       <div class="text-body-2 font-weight-bold text-truncate">{{ svc.name }}</div>
@@ -243,7 +247,7 @@
       <v-tabs-window-item value="tradein">
         <v-card class="pa-12 text-center" variant="outlined" style="border-color: rgba(var(--v-theme-warning), 0.3)">
           <v-avatar size="80" rounded="xl" color="warning" variant="tonal" class="mb-4 mx-auto">
-            <v-icon icon="mdi-swap-horizontal" size="40" style="opacity:0.8" />
+            <i class="mdi mdi-swap-horizontal"></i>
           </v-avatar>
           <div class="text-h5 font-weight-black mb-2">Trade-In Evaluator</div>
           <div class="text-body-1 text-medium-emphasis mb-6 max-w-md mx-auto" style="max-width: 500px">
@@ -273,7 +277,10 @@
                 ? 'background:linear-gradient(135deg,#22d3ee,#0891b2)'
                 : 'background:linear-gradient(135deg,#8b5cf6,#7c3aed)'"
             >
-              <v-icon :icon="form.itemType === 'service' ? 'mdi-wrench-outline' : 'mdi-package-variant-closed'" size="18" color="white" />
+              <i
+                class="mdi text-xl text-white"
+                :class="form.itemType === 'service' ? 'mdi-wrench-outline' : 'mdi-package-variant-closed'"
+              ></i>
             </v-avatar>
           </template>
           <v-card-title>{{ editingItem ? 'Edit Item' : 'Add Item' }}</v-card-title>
@@ -380,7 +387,7 @@
         <v-card-item>
           <template #prepend>
             <v-avatar color="warning" size="40" rounded="lg" variant="tonal">
-              <v-icon color="warning">mdi-printer</v-icon>
+              <i class="mdi mdi-printer"></i>
             </v-avatar>
           </template>
           <v-card-title>Print {{ batchPrintCount }} labels?</v-card-title>

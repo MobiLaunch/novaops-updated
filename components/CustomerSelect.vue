@@ -1,162 +1,126 @@
 <template>
-  <div ref="dropdownContainer">
+  <div ref="dropdownContainer" class="relative">
     <!-- Selected State -->
-    <v-card
+    <div
       v-if="selectedValue && !isNewCustomer"
-      variant="tonal"
-      color="success"
-      rounded="xl"
-      class="pa-3"
+      class="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-950 dark:text-emerald-300 rounded-xl flex items-center justify-between"
     >
-      <div class="d-flex align-center justify-space-between">
-        <div class="d-flex align-center gap-2">
-          <v-avatar size="24" color="success" variant="tonal">
-            <v-icon icon="mdi-check" size="14" />
-          </v-avatar>
-          <span class="text-body-2 font-weight-bold">{{ selectedCustomerName }}</span>
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center shrink-0">
+          <i class="mdi mdi-check-text-xs"></i>
         </div>
-        <v-btn
-          variant="text"
-          size="x-small"
-          class="text-10 font-weight-black text-medium-emphasis"
-          @click.prevent="clearSelection"
-        >
-          CHANGE
-        </v-btn>
+        <span class="text-xs font-bold truncate">{{ selectedCustomerName }}</span>
       </div>
-    </v-card>
+      <Button
+        label="CHANGE"
+        variant="text"
+        severity="secondary"
+        class="text-[10px] font-bold text-none shrink-0"
+        @click.prevent="clearSelection"
+      />
+    </div>
 
     <!-- Search / Selecting State -->
-    <div v-else-if="!isNewCustomer" class="position-relative">
-      <v-text-field
-        v-model="searchText"
-        class="customer-select-search"
-        placeholder="Search customers..."
-        prepend-inner-icon="mdi-magnify"
-        variant="outlined"
-        density="comfortable"
-        hide-details
-        single-line
-        rounded="xl"
-        @focus="showDropdown = true"
-      >
-        <template #append-inner>
-          <v-btn
-            size="x-small"
-            variant="tonal"
-            class="font-weight-black text-10"
-            @click.stop.prevent="openNewCustomer"
-          >
-            + NEW
-          </v-btn>
-        </template>
-      </v-text-field>
+    <div v-else-if="!isNewCustomer" class="relative w-full">
+      <div class="relative flex items-center w-full">
+        <i class="mdi mdi-magnify absolute left-3.5 text-muted-foreground text-base"></i>
+        <InputText
+          v-model="searchText"
+          placeholder="Search customers..."
+          class="w-full pl-9 pr-16 rounded-xl text-xs py-2.5"
+          @focus="showDropdown = true"
+        />
+        <Button
+          label="+ NEW"
+          severity="secondary"
+          class="absolute right-2 text-[10px] font-bold px-2 py-0.5 h-7 text-none"
+          @click.stop.prevent="openNewCustomer"
+        />
+      </div>
 
-      <v-card
+      <div
         v-if="showDropdown && filteredCustomers.length > 0"
-        variant="outlined"
-        rounded="lg"
-        elevation="4"
-        class="position-absolute w-100 mt-1 overflow-y-auto"
-        style="z-index: 12; max-height: 12rem"
+        class="absolute left-0 right-0 mt-1.5 bg-surface border border-border rounded-xl shadow-xl overflow-y-auto max-h-48 z-50 divide-y divide-border/50"
       >
-        <v-list density="compact" class="pa-0">
-          <v-list-item
-            v-for="c in filteredCustomers"
-            :key="c.id"
-            :title="c.name"
-            :subtitle="c.email || c.phone || undefined"
-            @click.prevent="selectCustomer(c)"
-          />
-        </v-list>
-      </v-card>
+        <button
+          v-for="c in filteredCustomers"
+          :key="c.id"
+          class="w-full text-left px-4 py-2.5 hover:bg-muted/70 transition-colors flex flex-col gap-0.5"
+          @click.prevent="selectCustomer(c)"
+        >
+          <span class="text-xs font-bold text-foreground leading-tight">{{ c.name }}</span>
+          <span v-if="c.email || c.phone" class="text-[10px] text-muted-foreground font-medium mt-0.5">
+            {{ c.email || c.phone }}
+          </span>
+        </button>
+      </div>
 
-      <v-card
+      <div
         v-if="showDropdown && filteredCustomers.length === 0"
-        variant="outlined"
-        rounded="lg"
-        elevation="4"
-        class="position-absolute w-100 mt-1 pa-4 text-center"
-        style="z-index: 12"
+        class="absolute left-0 right-0 mt-1.5 bg-surface border border-border rounded-xl shadow-xl p-4 text-center z-50 flex flex-col items-center gap-2"
       >
-        <p class="text-body-2 font-weight-medium text-medium-emphasis">
+        <p class="text-xs text-muted-foreground font-medium">
           No customers match "{{ searchText }}"
         </p>
-        <v-btn
+        <Button
+          label="+ Add as New Customer"
           variant="text"
-          color="primary"
-          size="small"
-          class="font-weight-black mt-2"
+          severity="primary"
+          class="text-xs text-none font-bold mt-1"
           @click.prevent="openNewCustomer"
-        >
-          + Add as New Customer
-        </v-btn>
-      </v-card>
+        />
+      </div>
     </div>
 
     <!-- New Customer Form -->
-    <v-card
+    <div
       v-if="isNewCustomer"
-      variant="outlined"
-      rounded="xl"
-      class="mt-2 pa-4"
+      class="mt-2 p-4 bg-surface border border-border rounded-xl flex flex-col gap-3"
     >
-      <div class="d-flex align-center justify-space-between mb-2">
-        <span class="text-caption font-black text-uppercase text-primary" style="letter-spacing: 0.08em">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-[10px] font-black text-primary uppercase tracking-wider">
           Create New Customer
         </span>
-        <v-btn
-          variant="tonal"
-          size="x-small"
-          class="text-10 font-weight-black text-medium-emphasis"
+        <Button
+          label="CANCEL"
+          variant="text"
+          severity="secondary"
+          class="text-[10px] font-bold text-none"
           @click.prevent="cancelNewCustomer"
-        >
-          CANCEL
-        </v-btn>
+        />
       </div>
-      <div class="d-flex flex-column gap-3">
-        <v-text-field
+      <div class="flex flex-col gap-3">
+        <InputText
           v-model="newCustomerForm.name"
           placeholder="Full Name *"
-          variant="outlined"
-          density="comfortable"
-          hide-details
-          rounded="lg"
+          class="w-full rounded-xl text-xs py-2"
         />
-        <v-text-field
+        <InputText
           v-model="newCustomerForm.email"
           placeholder="Email Address"
           type="email"
-          variant="outlined"
-          density="comfortable"
-          hide-details
-          rounded="lg"
+          class="w-full rounded-xl text-xs py-2"
         />
-        <v-text-field
+        <InputText
           v-model="newCustomerForm.phone"
           placeholder="Phone Number"
           type="tel"
-          variant="outlined"
-          density="comfortable"
-          hide-details
-          rounded="lg"
+          class="w-full rounded-xl text-xs py-2"
           @input="newCustomerForm.phone = formatPhone(newCustomerForm.phone)"
         />
-        <v-btn
-          variant="flat"
-          size="large"
-          rounded="lg"
-          class="font-weight-black mt-1 text-white"
+        <Button
+          severity="primary"
+          class="w-full rounded-xl text-xs font-bold py-2.5 text-none text-white flex items-center justify-center gap-2"
           style="background: linear-gradient(135deg, #6366f1, #8b5cf6)"
           :disabled="!newCustomerForm.name || isSaving"
           @click.prevent="saveNewCustomer"
         >
-          <v-progress-circular v-if="isSaving" indeterminate size="18" width="2" class="mr-2" color="white" />
-          <v-icon v-else icon="mdi-check" start />
+          <i v-if="isSaving" class="mdi mdi-loading-animate-spin-text-sm"></i>
+          <i v-else class="mdi mdi-check text-sm"></i>
           {{ isSaving ? 'Saving...' : 'Save & Select' }}
-        </v-btn>
+        </Button>
       </div>
-    </v-card>
+    </div>
   </div>
 </template>
 

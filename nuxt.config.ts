@@ -1,7 +1,8 @@
 /**
- * nuxt.config.ts — NovaOps (Vuetify 4 Edition)
- * Pure Vuetify 4 + MDI icons — no TailwindCSS
+ * nuxt.config.ts — NovaOps (PrimeVue Edition)
  */
+import Aura from '@primeuix/themes/aura'
+import { definePreset } from '@primeuix/themes'
 
 if (process.env.NODE_ENV !== 'production') {
   const _emit = process.emit.bind(process)
@@ -15,78 +16,45 @@ if (process.env.NODE_ENV !== 'production') {
   }
 }
 
+const MyPreset = definePreset(Aura, {
+  semantic: {
+    primary: {
+      50: '{indigo.50}',
+      100: '{indigo.100}',
+      200: '{indigo.200}',
+      300: '{indigo.300}',
+      400: '{indigo.400}',
+      500: '{indigo.500}',
+      600: '{indigo.600}',
+      700: '{indigo.700}',
+      800: '{indigo.800}',
+      900: '{indigo.900}',
+      950: '{indigo.950}'
+    }
+  }
+})
+
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
   ssr: false,
 
   modules: [
-    'vuetify-nuxt-module',
+    '@primevue/nuxt-module',
     '@pinia/nuxt',
     '@vite-pwa/nuxt',
   ],
 
-  vuetify: {
-    moduleOptions: {
-      styles: { configFile: 'assets/css/vuetify-settings.scss' },
-    },
-    vuetifyOptions: {
+  primevue: {
+    options: {
       theme: {
-        defaultTheme: 'light',
-        themes: {
-          light: {
-            dark: false,
-            colors: {
-              primary:            '#6366f1',
-              'primary-darken-1': '#4f46e5',
-              secondary:          '#475569',
-              success:            '#10b981',
-              warning:            '#f59e0b',
-              error:              '#ef4444',
-              info:               '#3b82f6',
-              background:         '#f8fafc',
-              surface:            '#ffffff',
-              'surface-variant':  '#e2e8f0',
-              'on-surface-variant': '#334155',
-            },
-          },
-          dark: {
-            dark: true,
-            colors: {
-              primary:            '#818cf8',
-              'primary-darken-1': '#6366f1',
-              secondary:          '#94a3b8',
-              success:            '#34d399',
-              warning:            '#fbbf24',
-              error:              '#f87171',
-              info:               '#60a5fa',
-              background:         '#0f172a',
-              surface:            '#1e293b',
-              'surface-variant':  '#0f172a',
-              'on-surface-variant': '#cbd5e1',
-            },
-          },
-        },
-      },
-
-      defaults: {
-        VCard:        { rounded: 'xl', elevation: 0, border: true },
-        VBtn:         { rounded: 'pill', elevation: 0 },
-        VChip:        { rounded: 'pill' },
-        VTextField:   { variant: 'outlined', density: 'comfortable', rounded: 'xl', hideDetails: 'auto' },
-        VSelect:      { variant: 'outlined', density: 'comfortable', rounded: 'xl', hideDetails: 'auto' },
-        VTextarea:    { variant: 'outlined', density: 'comfortable', rounded: 'xl', hideDetails: 'auto' },
-        VSwitch:      { color: 'primary', hideDetails: true, density: 'compact' },
-        VDialog:      { maxWidth: '480', rounded: 'xl' },
-        VSnackbar:    { rounded: 'xl', location: 'bottom right', timeout: 4000 },
-        VDataTable:   { density: 'comfortable', hover: true },
-        VNavigationDrawer: { elevation: 0, border: true },
-        VList:        { density: 'compact', nav: true },
-        VListItem:    { rounded: 'xl' },
-      },
-
-      icons: { defaultSet: 'mdi' },
-    },
+        preset: MyPreset,
+        options: {
+          darkModeSelector: '.p-dark',
+          cssLayer: false
+        }
+      }
+    }
   },
 
   pwa: {
@@ -153,7 +121,11 @@ export default defineNuxtConfig({
     },
   },
 
-  css: ['~/assets/css/main.css'],
+  css: [
+    '@mdi/font/css/materialdesignicons.min.css',
+    'primeicons/primeicons.css',
+    '~/assets/css/main.css'
+  ],
   imports: { autoImport: true },
   components: [{ path: '~/components', ignore: ['**/index.ts'] }],
 

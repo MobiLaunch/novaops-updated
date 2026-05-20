@@ -34,28 +34,28 @@
     <!-- ── Tabs ─────────────────────────────────────────────────── -->
     <v-tabs v-model="activeTab" color="primary" class="mb-4">
       <v-tab value="tickets">
-        <v-icon start>mdi-ticket-outline</v-icon>
+        <i class="mdi mdi-ticket-outline"></i>
         Tickets
         <v-chip v-if="openTicketCount > 0" size="x-small" class="ms-2" color="warning" variant="tonal">
           {{ openTicketCount }}
         </v-chip>
       </v-tab>
       <v-tab value="housecalls">
-        <v-icon start>mdi-map-marker-outline</v-icon>
+        <i class="mdi mdi-map-marker-outline"></i>
         House Calls
         <v-chip v-if="activeHousecallCount > 0" size="x-small" class="ms-2" color="success" variant="tonal">
           {{ activeHousecallCount }}
         </v-chip>
       </v-tab>
       <v-tab value="thirdparty">
-        <v-icon start>mdi-domain</v-icon>
+        <i class="mdi mdi-domain"></i>
         Vendor Repairs
         <v-chip v-if="activeVendorCount > 0" size="x-small" class="ms-2" color="secondary" variant="tonal">
           {{ activeVendorCount }}
         </v-chip>
       </v-tab>
       <v-tab value="calendar">
-        <v-icon start>mdi-calendar</v-icon>
+        <i class="mdi mdi-calendar"></i>
         Calendar
       </v-tab>
     </v-tabs>
@@ -73,7 +73,7 @@
             <v-card class="pa-4">
               <div class="d-flex align-center justify-space-between mb-3">
                 <v-avatar :color="stat.color" size="36" rounded="lg" variant="tonal">
-                  <v-icon :color="stat.color" size="18">{{ stat.icon }}</v-icon>
+                  <i class="mdi mdi-{{-stat.icon-}}"></i>
                 </v-avatar>
                 <span class="text-h5 font-weight-black" :style="`color: ${stat.color}`">{{ stat.value }}</span>
               </div>
@@ -149,7 +149,7 @@
                 variant="tonal"
                 rounded="pill"
               >
-                <v-icon start size="8">mdi-circle</v-icon>
+                <i class="mdi mdi-circle"></i>
                 {{ item.status }}
               </v-chip>
             </template>
@@ -174,7 +174,7 @@
 
             <template #no-data>
               <div class="text-center py-10 text-medium-emphasis">
-                <v-icon size="48" class="mb-2 opacity-30">mdi-ticket-outline</v-icon>
+                <i class="mdi mdi-ticket-outline"></i>
                 <p class="text-body-2 font-weight-medium">No tickets found</p>
                 <v-btn color="warning" variant="tonal" size="small" class="mt-3" @click="newTicketOpen = true">
                   Create First Ticket
@@ -195,7 +195,7 @@
           <v-col cols="6" sm="3">
             <v-card class="pa-4">
               <v-avatar color="success" size="36" rounded="lg" variant="tonal" class="mb-2">
-                <v-icon color="success" size="18">mdi-map-marker</v-icon>
+                <i class="mdi mdi-map-marker"></i>
               </v-avatar>
               <div class="text-h5 font-weight-black text-success">{{ housecalls.length }}</div>
               <div class="text-caption text-medium-emphasis">All Calls</div>
@@ -204,7 +204,7 @@
           <v-col cols="6" sm="3">
             <v-card class="pa-4">
               <v-avatar color="info" size="36" rounded="lg" variant="tonal" class="mb-2">
-                <v-icon color="info" size="18">mdi-clock-outline</v-icon>
+                <i class="mdi mdi-clock-outline"></i>
               </v-avatar>
               <div class="text-h5 font-weight-black text-info">{{ countHousecallByStatus('Scheduled') }}</div>
               <div class="text-caption text-medium-emphasis">Scheduled</div>
@@ -213,7 +213,7 @@
           <v-col cols="6" sm="3">
             <v-card class="pa-4">
               <v-avatar color="warning" size="36" rounded="lg" variant="tonal" class="mb-2">
-                <v-icon color="warning" size="18">mdi-wrench</v-icon>
+                <i class="mdi mdi-wrench"></i>
               </v-avatar>
               <div class="text-h5 font-weight-black text-warning">{{ countHousecallByStatus('In Progress') }}</div>
               <div class="text-caption text-medium-emphasis">In Progress</div>
@@ -222,7 +222,7 @@
           <v-col cols="6" sm="3">
             <v-card class="pa-4">
               <v-avatar color="primary" size="36" rounded="lg" variant="tonal" class="mb-2">
-                <v-icon color="primary" size="18">mdi-check-circle-outline</v-icon>
+                <i class="mdi mdi-check-circle-outline"></i>
               </v-avatar>
               <div class="text-h5 font-weight-black text-primary">{{ countHousecallByStatus('Completed') }}</div>
               <div class="text-caption text-medium-emphasis">Completed</div>
@@ -267,12 +267,12 @@
               <v-card-item>
                 <template #prepend>
                   <v-avatar color="success" size="40" rounded="lg" variant="tonal">
-                    <v-icon color="success">mdi-map-marker</v-icon>
+                    <i class="mdi mdi-map-marker"></i>
                   </v-avatar>
                 </template>
                 <v-card-title class="text-body-1 font-weight-bold">{{ getCustomerName(call.customerId) }}</v-card-title>
                 <v-card-subtitle>
-                  <v-icon size="12" class="me-1">mdi-map-marker-outline</v-icon>{{ call.address }}
+                  <i class="mdi mdi-map-marker-outline"></i>{{ call.address }}
                 </v-card-subtitle>
                 <template #append>
                   <v-chip :color="callStatusVuetifyColor(call.status)" size="x-small" variant="tonal">{{ call.status }}</v-chip>
@@ -281,7 +281,7 @@
 
               <v-card-text class="pt-0">
                 <p class="text-caption text-success font-weight-bold mb-2">
-                  <v-icon size="12">mdi-calendar</v-icon> {{ formatDate(call.date) }} at {{ call.time }}
+                  <i class="mdi mdi-calendar"></i> {{ formatDate(call.date) }} at {{ call.time }}
                 </p>
                 <!-- OSM map preview -->
                 <div v-if="getOsmCardUrl(call.address)" class="rounded-lg overflow-hidden mb-2" style="height:80px;pointer-events:none">
@@ -308,7 +308,7 @@
 
         <!-- Empty -->
         <v-card v-else class="pa-10 text-center">
-          <v-icon size="48" color="success" class="opacity-30 mb-3">mdi-map-marker</v-icon>
+          <i class="mdi mdi-map-marker"></i>
           <p class="text-body-1 font-weight-bold mb-1">No house calls {{ housecallFilter !== 'All' ? `with status "${housecallFilter}"` : 'scheduled' }}</p>
           <p class="text-body-2 text-medium-emphasis mb-4">{{ housecallFilter === 'All' ? 'Schedule your first on-site visit' : 'Try a different filter' }}</p>
           <v-btn color="success" variant="tonal" @click="openNewHousecall">Schedule Call</v-btn>
@@ -325,7 +325,7 @@
           <v-col v-for="stat in vendorStats" :key="stat.label" cols="6" sm="3">
             <v-card class="pa-4">
               <v-avatar :color="stat.color" size="36" rounded="lg" variant="tonal" class="mb-2">
-                <v-icon :color="stat.color" size="18">{{ stat.icon }}</v-icon>
+                <i class="mdi mdi-{{-stat.icon-}}"></i>
               </v-avatar>
               <div class="text-h5 font-weight-black" :style="`color: ${stat.color}`">{{ stat.value }}</div>
               <div class="text-caption text-medium-emphasis">{{ stat.label }}</div>
@@ -369,7 +369,7 @@
             <v-card-item>
               <template #prepend>
                 <v-avatar color="secondary" size="40" rounded="lg" variant="tonal">
-                  <v-icon color="secondary">mdi-domain</v-icon>
+                  <i class="mdi mdi-domain"></i>
                 </v-avatar>
               </template>
               <v-card-title>
@@ -413,7 +413,7 @@
 
         <!-- Empty -->
         <v-card v-else class="pa-10 text-center">
-          <v-icon size="48" color="secondary" class="opacity-30 mb-3">mdi-domain</v-icon>
+          <i class="mdi mdi-domain"></i>
           <p class="text-body-1 font-weight-bold mb-1">No vendor repairs</p>
           <p class="text-body-2 text-medium-emphasis mb-4">Send your first device out for third-party repair</p>
           <v-btn color="secondary" variant="tonal" @click="openNewVendorRepair">New Vendor Repair</v-btn>
@@ -450,7 +450,7 @@
         <v-card-item>
           <template #prepend>
             <v-avatar color="error" size="44" rounded="lg" variant="tonal">
-              <v-icon color="error">mdi-delete-outline</v-icon>
+              <i class="mdi mdi-delete-outline"></i>
             </v-avatar>
           </template>
           <v-card-title>Delete ticket permanently?</v-card-title>
@@ -479,7 +479,7 @@
         <v-card-item>
           <template #prepend>
             <v-avatar color="error" size="44" rounded="lg" variant="tonal">
-              <v-icon color="error">mdi-delete-outline</v-icon>
+              <i class="mdi mdi-delete-outline"></i>
             </v-avatar>
           </template>
           <v-card-title>Delete house call?</v-card-title>
@@ -501,7 +501,7 @@
         <v-card-item class="border-b">
           <template #prepend>
             <v-avatar color="secondary" size="40" rounded="lg">
-              <v-icon color="white">mdi-domain</v-icon>
+              <i class="mdi mdi-domain"></i>
             </v-avatar>
           </template>
           <v-card-title>{{ editingVendorRepair ? 'Edit Vendor Repair' : 'New Vendor Repair' }}</v-card-title>

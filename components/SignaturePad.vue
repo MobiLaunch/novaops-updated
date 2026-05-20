@@ -1,7 +1,7 @@
 <template>
-  <div class="d-flex flex-column gap-2">
-    <label class="text-caption font-weight-bold text-medium-emphasis text-uppercase">{{ label }}</label>
-    <div class="border rounded-lg overflow-hidden bg-surface">
+  <div class="flex flex-col gap-2">
+    <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">{{ label }}</label>
+    <div class="border border-border rounded-xl overflow-hidden bg-surface">
       <canvas
         ref="canvasRef"
         :width="width"
@@ -17,9 +17,23 @@
         @touchend.prevent="stopDrawing"
       />
     </div>
-    <div class="d-flex gap-2">
-      <v-btn variant="outlined" size="small" prepend-icon="mdi-close" @click="clear">Clear</v-btn>
-      <v-btn variant="outlined" size="small" prepend-icon="mdi-content-save" @click="save">Save Signature</v-btn>
+    <div class="flex gap-2 mt-1">
+      <Button 
+        label="Clear" 
+        icon="mdi mdi-close" 
+        variant="outlined" 
+        severity="secondary" 
+        class="rounded-full text-xs font-bold text-none" 
+        @click="clear" 
+      />
+      <Button 
+        label="Save Signature" 
+        icon="mdi mdi-content-save" 
+        variant="outlined" 
+        severity="primary" 
+        class="rounded-full text-xs font-bold text-none" 
+        @click="save" 
+      />
     </div>
   </div>
 </template>

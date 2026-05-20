@@ -1,124 +1,97 @@
 <template>
-  <div class="h-100 d-flex flex-column gap-6">
-    <!-- Header -->
-    <div class="d-flex flex-column gap-2 mb-2">
-      <div class="d-flex align-center gap-3">
-        <v-avatar color="primary" variant="tonal" rounded="lg">
-          <v-icon color="primary">mdi-bookshelf</v-icon>
-        </v-avatar>
-        <h1 class="text-h4 font-weight-black text-primary">Repair Library</h1>
+  <div class="flex flex-col gap-6 h-full">
+
+    <header class="flex flex-col gap-2 mb-2">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+          <i class="mdi mdi-bookshelf text-xl"></i>
+        </div>
+        <h1 class="text-2xl font-black text-primary m-0">Repair Library</h1>
       </div>
-      <p class="text-body-1 text-medium-emphasis ml-14">Search for devices to find step-by-step repair guides.</p>
+      <p class="text-sm text-muted-foreground ml-13 m-0">Search for devices to find step-by-step repair guides.</p>
+    </header>
+
+    <div class="relative search-field mb-4">
+      <i class="mdi mdi-magnify absolute left-4 text-muted-foreground" style="top: 50%; transform: translateY(-50%);"></i>
+      <InputText
+        v-model="searchQuery"
+        placeholder="Search for a device (e.g., iPhone 13, Galaxy S21)..."
+        class="w-full pl-11 pr-12 rounded-xl py-3"
+        @keyup.enter="performSearch"
+      />
+      <button
+        type="button"
+        class="absolute right-3 text-primary"
+        style="top: 50%; transform: translateY(-50%);"
+        @click="performSearch"
+      >
+        <i class="mdi mdi-arrow-right-circle text-2xl"></i>
+      </button>
     </div>
 
-    <!-- Search -->
-    <v-text-field
-      v-model="searchQuery"
-      prepend-inner-icon="mdi-magnify"
-      append-inner-icon="mdi-arrow-right-circle"
-      placeholder="Search for a device (e.g., iPhone 13, Galaxy S21)..."
-      variant="solo-filled"
-      flat
-      hide-details
-      clearable
-      rounded="xl"
-      density="comfortable"
-      class="search-field mb-4"
-      :loading="loading"
-      @keyup.enter="performSearch"
-      @click:append-inner="performSearch"
-    />
-
-    <!-- Results -->
-    <div v-if="loading" class="d-flex justify-center align-center my-12 py-12 flex-1-1-100">
-      <v-progress-circular indeterminate color="primary" size="64" width="6" />
+    <div v-if="loading" class="flex justify-center items-center my-12 py-12 flex-1">
+      <ProgressSpinner style="width: 64px; height: 64px" stroke-width="4" />
     </div>
-    
-    <div v-else-if="results.length > 0">
-      <v-row>
-        <v-col
-          v-for="guide in results"
-          :key="guide.guideid"
-          cols="12"
-          sm="6"
-          md="4"
-          lg="3"
-        >
-          <v-card
-            hover
-            class="h-100 rounded-xl d-flex flex-column border overflow-hidden guide-card transition-swing"
-            :to="`/library/${guide.guideid}`"
-            elevation="0"
+
+    <div v-else-if="results.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <NuxtLink
+        v-for="guide in results"
+        :key="guide.guideid"
+        :to="`/library/${guide.guideid}`"
+        class="bg-surface border border-border rounded-xl overflow-hidden flex flex-col guide-card transition-all hover:-translate-y-1 hover:shadow-lg"
+      >
+        <div class="relative">
+          <img
+            v-if="guide.image"
+            :src="guide.image.medium"
+            alt=""
+            class="w-full h-[220px] object-cover bg-muted"
           >
-            <div class="image-wrapper position-relative">
-              <v-img
-                v-if="guide.image"
-                :src="guide.image.medium"
-                height="220"
-                cover
-                class="bg-surface-variant"
-              ></v-img>
-              <div v-else class="bg-surface-variant h-100 d-flex align-center justify-center" style="height: 220px">
-                <v-icon size="48" color="medium-emphasis">mdi-image-off-outline</v-icon>
-              </div>
-              <div class="gradient-overlay position-absolute bottom-0 left-0 right-0" style="height: 80px;"></div>
-              
-              <v-chip
-                size="small"
-                :color="difficultyColor(guide.difficulty)"
-                variant="flat"
-                class="position-absolute font-weight-bold"
-                style="bottom: 12px; left: 12px; z-index: 2"
-              >
-                {{ guide.difficulty || 'Unknown' }}
-              </v-chip>
-            </div>
-            
-            <v-card-text class="d-flex flex-column flex-1-1-100 pa-4">
-              <div class="text-caption font-weight-black text-primary mb-1 text-uppercase tracking-widest">{{ guide.category }}</div>
-              <div class="text-subtitle-1 font-weight-bold mb-2 line-clamp-2 text-high-emphasis" style="line-height: 1.3">{{ guide.title }}</div>
-              
-              <v-spacer />
-              
-              <div class="text-body-2 text-medium-emphasis line-clamp-3 mt-2">
-                {{ guide.summary || 'No summary available for this guide.' }}
-              </div>
-              
-              <v-divider class="my-4" />
-              
-              <div class="d-flex align-center justify-space-between text-caption text-medium-emphasis font-weight-medium">
-                <div class="d-flex align-center gap-1">
-                  <v-icon size="14">mdi-wrench-outline</v-icon>
-                  <span class="text-capitalize">{{ guide.type }}</span>
-                </div>
-                <div v-if="guide.time_required_max" class="d-flex align-center gap-1">
-                  <v-icon size="14">mdi-clock-outline</v-icon>
-                  <span>{{ formatTime(guide.time_required_max) }}</span>
-                </div>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
+          <div v-else class="h-[220px] bg-muted flex items-center justify-center">
+            <i class="mdi mdi-image-off-outline text-4xl text-muted-foreground"></i>
+          </div>
+          <div class="gradient-overlay absolute bottom-0 left-0 right-0 h-20"></div>
+          <Tag
+            :value="guide.difficulty || 'Unknown'"
+            :severity="difficultySeverity(guide.difficulty)"
+            class="absolute text-[10px] font-bold"
+            style="bottom: 12px; left: 12px; z-index: 2"
+          />
+        </div>
+        <div class="p-4 flex flex-col flex-1">
+          <div class="text-[10px] font-black text-primary uppercase tracking-wider mb-1">{{ guide.category }}</div>
+          <div class="text-sm font-bold line-clamp-2 mb-2">{{ guide.title }}</div>
+          <p class="text-xs text-muted-foreground line-clamp-3 flex-1 mt-2 m-0">
+            {{ guide.summary || 'No summary available for this guide.' }}
+          </p>
+          <hr class="border-border my-4" />
+          <div class="flex items-center justify-between text-xs text-muted-foreground font-medium">
+            <span class="flex items-center gap-1 capitalize">
+              <i class="mdi mdi-wrench-outline"></i>{{ guide.type }}
+            </span>
+            <span v-if="guide.time_required_max" class="flex items-center gap-1">
+              <i class="mdi mdi-clock-outline"></i>{{ formatTime(guide.time_required_max) }}
+            </span>
+          </div>
+        </div>
+      </NuxtLink>
     </div>
-    
-    <div v-else-if="hasSearched && !loading" class="d-flex flex-column align-center justify-center my-12 py-12 flex-1-1-100">
-      <v-avatar color="surface-variant" size="120" class="mb-6">
-        <v-icon size="64" color="medium-emphasis">mdi-book-search-outline</v-icon>
-      </v-avatar>
-      <h3 class="text-h5 font-weight-black mb-2">No guides found</h3>
-      <p class="text-body-1 text-medium-emphasis">Try adjusting your search terms or checking for spelling errors.</p>
-      <v-btn color="primary" variant="tonal" class="mt-6 rounded-lg text-none" @click="searchQuery = ''; hasSearched = false">
-        Clear Search
-      </v-btn>
+
+    <div v-else-if="hasSearched && !loading" class="flex flex-col items-center justify-center my-12 py-12 flex-1">
+      <div class="w-28 h-28 rounded-full bg-muted flex items-center justify-center mb-6">
+        <i class="mdi mdi-book-search-outline text-5xl text-muted-foreground"></i>
+      </div>
+      <h3 class="text-xl font-black mb-2 m-0">No guides found</h3>
+      <p class="text-sm text-muted-foreground m-0">Try adjusting your search terms.</p>
+      <Button label="Clear Search" class="mt-6 font-bold text-none" @click="searchQuery = ''; hasSearched = false" />
     </div>
-    
-    <div v-else class="d-flex flex-column align-center justify-center my-12 py-12 flex-1-1-100">
-      <v-avatar color="primary" variant="tonal" size="120" class="mb-6 opacity-80">
-        <v-icon size="64" color="primary">mdi-bookshelf</v-icon>
-      </v-avatar>
-      <h2 class="text-h4 font-weight-black mb-3">Start your search</h2>
-      <p class="text-body-1 text-center text-medium-emphasis" style="max-width: 450px; line-height: 1.6;">
+
+    <div v-else class="flex flex-col items-center justify-center my-12 py-12 flex-1">
+      <div class="w-28 h-28 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-6 opacity-80">
+        <i class="mdi mdi-bookshelf text-5xl"></i>
+      </div>
+      <h2 class="text-2xl font-black mb-3 m-0">Start your search</h2>
+      <p class="text-sm text-center text-muted-foreground max-w-md m-0 leading-relaxed">
         Enter a device model above to find official iFixit repair guides, teardowns, and techniques directly within NovaOps.
       </p>
     </div>
@@ -126,9 +99,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-
 const route = useRoute()
 const router = useRouter()
 
@@ -138,26 +108,19 @@ const hasSearched = ref(false)
 const results = ref<any[]>([])
 
 onMounted(() => {
-  if (searchQuery.value) {
-    performSearch()
-  }
+  if (searchQuery.value) performSearch()
 })
 
 async function performSearch() {
   if (!searchQuery.value.trim()) return
-  
-  // Update URL to make it shareable
   router.replace({ query: { q: searchQuery.value } })
-  
   loading.value = true
   hasSearched.value = true
   results.value = []
-  
   try {
     const res = await fetch(`https://www.ifixit.com/api/2.0/search/${encodeURIComponent(searchQuery.value)}?filter=guide`)
     if (!res.ok) throw new Error('Failed to fetch')
     const data = await res.json()
-    // Sort results by relevance/quality if possible, for now just use results
     results.value = data.results || []
   } catch (err) {
     console.error('Failed to search guides:', err)
@@ -166,13 +129,13 @@ async function performSearch() {
   }
 }
 
-function difficultyColor(diff: string) {
-  if (!diff) return 'grey'
+function difficultySeverity(diff: string) {
+  if (!diff) return 'secondary'
   const d = diff.toLowerCase()
   if (d.includes('easy')) return 'success'
-  if (d.includes('moderate')) return 'warning'
-  if (d.includes('difficult')) return 'error'
-  return 'grey'
+  if (d.includes('moderate')) return 'warn'
+  if (d.includes('difficult')) return 'danger'
+  return 'secondary'
 }
 
 function formatTime(seconds: number) {
@@ -188,44 +151,15 @@ function formatTime(seconds: number) {
 
 <style scoped>
 .search-field {
-  box-shadow: 0 4px 16px -4px rgba(0,0,0,0.08);
-  transition: box-shadow 0.2s ease;
+  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.08);
 }
 .search-field:focus-within {
-  box-shadow: 0 8px 24px -6px rgba(var(--v-theme-primary), 0.2);
-}
-.search-field :deep(.v-field__append-inner) {
-  cursor: pointer;
-  color: rgb(var(--v-theme-primary));
-  font-size: 28px;
-  padding-inline-start: 8px;
-}
-.search-field :deep(.v-field__append-inner:hover) {
-  opacity: 0.8;
-}
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.tracking-widest {
-  letter-spacing: 0.1em;
+  box-shadow: 0 8px 24px -6px rgba(99, 102, 241, 0.2);
 }
 .guide-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px -10px rgba(0,0,0,0.15) !important;
-  border-color: rgba(var(--v-theme-primary), 0.5) !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
 }
 .gradient-overlay {
-  background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
 }
 </style>

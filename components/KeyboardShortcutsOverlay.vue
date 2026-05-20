@@ -1,43 +1,49 @@
 <template>
-  <v-dialog v-model="isOpen" max-width="480" content-class="shortcut-dialog">
-    <v-card rounded="xl">
-      <v-card-item class="border-b">
-        <template #prepend>
-          <v-avatar color="primary" size="40" rounded="lg" variant="tonal">
-            <v-icon size="20">mdi-keyboard</v-icon>
-          </v-avatar>
-        </template>
-        <v-card-title class="text-body-1 font-weight-black">Keyboard Shortcuts</v-card-title>
-        <v-card-subtitle>Press <kbd>?</kbd> to toggle this overlay</v-card-subtitle>
-        <template #append>
-          <v-btn icon="mdi-close" variant="text" size="small" @click="isOpen = false" />
-        </template>
-      </v-card-item>
+  <Dialog
+    v-model:visible="isOpen"
+    modal
+    :draggable="false"
+    class="w-full max-w-[480px] mx-4"
+    :show-header="true"
+  >
+    <template #header>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0">
+          <i class="mdi mdi-keyboard-text-lg"></i>
+        </div>
+        <div>
+          <span class="text-sm font-black block">Keyboard Shortcuts</span>
+          <span class="text-[10px] text-muted-foreground block mt-0.5">Press <kbd class="px-1.5 py-0.5 bg-muted border border-border/80 text-[10px] font-bold rounded shadow-sm">?</kbd> to toggle this overlay</span>
+        </div>
+      </div>
+    </template>
 
-      <v-card-text class="pa-0">
-        <div v-for="group in shortcutGroups" :key="group.title" class="px-4 py-3">
-          <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-2">
-            {{ group.title }}
-          </p>
-          <div class="d-flex flex-column gap-1">
-            <div
-              v-for="s in group.shortcuts"
-              :key="s.label"
-              class="d-flex align-center justify-space-between py-1"
-            >
-              <span class="text-body-2">{{ s.label }}</span>
-              <div class="d-flex align-center gap-1">
-                <kbd v-for="(key, ki) in s.keys" :key="ki">{{ key }}</kbd>
-              </div>
+    <div class="flex flex-col divide-y divide-border/40 pr-1">
+      <div v-for="group in shortcutGroups" :key="group.title" class="py-3.5 first:pt-0 last:pb-0">
+        <p class="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-2.5">
+          {{ group.title }}
+        </p>
+        <div class="flex flex-col gap-2">
+          <div
+            v-for="s in group.shortcuts"
+            :key="s.label"
+            class="flex items-center justify-between text-xs py-0.5"
+          >
+            <span class="font-medium text-foreground/90">{{ s.label }}</span>
+            <div class="flex items-center gap-1.5">
+              <kbd v-for="(key, ki) in s.keys" :key="ki" class="px-2 py-0.5 bg-muted border border-border text-[10px] rounded-md font-bold shadow-sm">{{ key }}</kbd>
             </div>
           </div>
         </div>
-      </v-card-text>
-    </v-card>
-  </v-dialog>
+      </div>
+    </div>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import Dialog from 'primevue/dialog'
+
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits(['update:modelValue'])
 
@@ -46,7 +52,7 @@ const isOpen = computed({
   set: (val) => emit('update:modelValue', val),
 })
 
-const mod = navigator?.platform?.includes('Mac') ? '⌘' : 'Ctrl'
+const mod = (process.client && navigator?.platform?.includes('Mac')) ? '⌘' : 'Ctrl'
 
 const shortcutGroups = [
   {
@@ -76,21 +82,3 @@ const shortcutGroups = [
   },
 ]
 </script>
-
-<style scoped>
-kbd {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 26px;
-  height: 24px;
-  padding: 0 6px;
-  font-size: 12px;
-  font-weight: 600;
-  font-family: inherit;
-  border-radius: 6px;
-  border: 1px solid rgba(128, 128, 128, 0.25);
-  background: rgba(128, 128, 128, 0.06);
-  color: inherit;
-}
-</style>

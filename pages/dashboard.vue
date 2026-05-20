@@ -1,286 +1,220 @@
 <template>
-  <div>
+  <div class="flex flex-col gap-6">
 
-    <!-- ── Page header ─────────────────────────────────────────── -->
-    <div class="d-flex align-center justify-space-between flex-wrap gap-3 mb-6">
+    <header class="flex items-center justify-between flex-wrap gap-3">
       <div>
-        <p class="text-caption text-medium-emphasis mb-0">{{ greeting }}</p>
-        <h1 class="text-h5 font-weight-black">Dashboard</h1>
+        <p class="text-xs text-muted-foreground m-0 mb-0.5">{{ greeting }}</p>
+        <h1 class="text-xl font-black m-0">Dashboard</h1>
       </div>
-      <div class="d-flex align-center gap-2">
-        <v-chip color="primary" variant="tonal" prepend-icon="mdi-calendar" size="small">
-          {{ todayLabel }}
-        </v-chip>
-        <v-chip v-if="lastSyncedLabel" variant="text" size="x-small" prepend-icon="mdi-sync" class="opacity-50">
-          {{ lastSyncedLabel }}
-        </v-chip>
-        <v-btn
-          color="primary"
-          size="small"
-          prepend-icon="mdi-plus"
-          @click="newTicketOpen = true"
-        >New Ticket</v-btn>
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-xs font-bold px-3 py-1 rounded-full bg-primary/10 text-primary flex items-center gap-1">
+          <i class="mdi mdi-calendar"></i> {{ todayLabel }}
+        </span>
+        <span v-if="lastSyncedLabel" class="text-[10px] text-muted-foreground flex items-center gap-1 opacity-60">
+          <i class="mdi mdi-sync"></i> {{ lastSyncedLabel }}
+        </span>
+        <Button label="New Ticket" size="small" class="font-bold text-none" @click="newTicketOpen = true">
+          <i class="mdi mdi-plus-mr-1"></i>
+        </Button>
       </div>
-    </div>
+    </header>
 
-    <!-- ── Weather / context banner ────────────────────────────── -->
-    <v-alert
+    <Message
       v-if="weather.loaded"
-      :color="bannerColor"
-      variant="tonal"
-      rounded="lg"
-      class="mb-5"
-      density="compact"
+      :severity="bannerSeverity"
+      :closable="false"
+      class="text-sm"
     >
-      <template #prepend>
-        <v-icon :icon="weatherIcon" size="20" />
-      </template>
-      <span class="text-body-2 font-weight-medium">
-        {{ weather.temp }}°F · {{ weather.description }} in {{ weather.location }} —
-        <strong>{{ banner.suggestion }}</strong> {{ banner.emoji }}
+      <span class="flex items-center justify-between gap-4 w-full flex-wrap">
+        <span>
+          <i class="mdi mdi-mr-2" :class="weatherIcon"></i>
+          {{ weather.temp }}°F · {{ weather.description }} in {{ weather.location }} —
+          <strong>{{ banner.suggestion }}</strong> {{ banner.emoji }}
+        </span>
+        <span class="text-2xl font-black">{{ weather.temp }}°</span>
       </span>
-      <template #append>
-        <span class="text-h6 font-weight-black">{{ weather.temp }}°</span>
-      </template>
-    </v-alert>
-    <v-alert
+    </Message>
+    <div
       v-else-if="!weather.loading"
-      color="surface-variant"
-      variant="tonal"
-      rounded="lg"
-      class="mb-5"
-      density="compact"
-      style="cursor:pointer"
+      class="p-3 rounded-xl border border-border bg-muted/50 text-sm text-muted-foreground cursor-pointer text-center"
       @click="loadWeather"
     >
-      <span class="text-body-2">Tap to load local weather ☕</span>
-    </v-alert>
+      Tap to load local weather
+    </div>
 
-    <!-- ── Repair alerts ────────────────────────────────────────── -->
-    <div v-if="warrantyExpiringSoon.length || waitingForParts.length" class="mb-5 d-flex flex-column gap-2">
-      <v-alert
-        v-for="t in warrantyExpiringSoon.slice(0,2)"
-        :key="'w-'+t.id"
-        type="warning"
-        variant="tonal"
-        density="compact"
-        rounded="lg"
-        closable
+    <div v-if="warrantyExpiringSoon.length || waitingForParts.length" class="flex flex-col gap-2">
+      <Message
+        v-for="t in warrantyExpiringSoon.slice(0, 2)"
+        :key="'w-' + t.id"
+        severity="warn"
+        :closable="true"
+        class="text-sm"
       >
         <strong>#{{ t.id }}</strong> — Warranty expiring in {{ warrantyDaysLeft(t) }} days · {{ t.device }}
-      </v-alert>
-      <v-alert
-        v-for="t in waitingForParts.slice(0,2)"
-        :key="'p-'+t.id"
-        type="error"
-        variant="tonal"
-        density="compact"
-        rounded="lg"
-        closable
+      </Message>
+      <Message
+        v-for="t in waitingForParts.slice(0, 2)"
+        :key="'p-' + t.id"
+        severity="error"
+        :closable="true"
+        class="text-sm"
       >
         <strong>#{{ t.id }}</strong> — Waiting for parts · {{ t.device }}
-      </v-alert>
+      </Message>
     </div>
 
-    <!-- ── KPI Cards ─────────────────────────────────────────────── -->
-    <v-row dense class="mb-4">
-      <!-- Revenue hero -->
-      <v-col cols="12" md="4">
-        <v-card
-          color="success"
-          variant="flat"
-          class="revenue-hero pa-5"
-          style="cursor:pointer;min-height:140px"
-          @click="navigateTo('/analytics')"
-        >
-          <div class="d-flex align-center justify-space-between mb-2">
-            <v-icon color="white" size="28">mdi-currency-usd</v-icon>
-            <v-chip color="white" variant="tonal" size="x-small" class="font-weight-bold">
-              {{ completedTickets.length }} jobs
-            </v-chip>
-          </div>
-          <div class="text-caption text-white" style="opacity:.75">Total Revenue</div>
-          <div class="text-h4 font-weight-black text-white mt-1">{{ formatCurrency(totalRevenue) }}</div>
-          <div class="text-caption text-white mt-2" style="opacity:.65">
-            <v-icon size="14">mdi-trending-up</v-icon> View analytics →
-          </div>
-        </v-card>
-      </v-col>
+    <div class="grid grid-cols-2 md:grid-cols-12 gap-3">
+      <div
+        class="col-span-2 md:col-span-4 revenue-hero rounded-xl p-5 text-white cursor-pointer min-h-[140px] flex flex-col"
+        @click="navigateTo('/analytics')"
+      >
+        <div class="flex items-center justify-between mb-2">
+          <i class="mdi mdi-currency-usd-text-3xl"></i>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20">{{ completedTickets.length }} jobs</span>
+        </div>
+        <div class="text-xs opacity-75">Total Revenue</div>
+        <div class="text-3xl font-black mt-1">{{ formatCurrency(totalRevenue) }}</div>
+        <div class="text-xs mt-2 opacity-65 flex items-center gap-1">
+          <i class="mdi mdi-trending-up-text-sm"></i> View analytics →
+        </div>
+      </div>
 
-      <!-- Stat cards -->
-      <v-col
+      <div
         v-for="stat in kpiStats"
         :key="stat.label"
-        cols="6"
-        md="2"
+        class="col-span-1 md:col-span-2 bg-surface border border-border rounded-xl p-4 cursor-pointer h-full hover:shadow-md transition-shadow"
+        @click="navigateTo(stat.path)"
       >
-        <v-card
-          class="pa-4"
-          style="cursor:pointer;height:100%"
-          @click="navigateTo(stat.path)"
-        >
-          <div class="d-flex align-center justify-space-between mb-3">
-            <v-avatar :color="stat.color" size="36" rounded="lg" variant="tonal">
-              <v-icon :color="stat.color" size="18">{{ stat.icon }}</v-icon>
-            </v-avatar>
-            <v-chip
-              v-if="stat.chip"
-              :color="stat.chipColor"
-              size="x-small"
-              variant="tonal"
-            >{{ stat.chip }}</v-chip>
-          </div>
-          <div class="text-h5 font-weight-black">{{ stat.value }}</div>
-          <div class="text-caption text-medium-emphasis">{{ stat.label }}</div>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- ── Quick Actions ──────────────────────────────────────────── -->
-    <div class="mb-6">
-      <p class="text-caption font-weight-black text-medium-emphasis text-uppercase mb-3">Quick Actions</p>
-      <v-row dense>
-        <v-col
-          v-for="action in quickActions"
-          :key="action.label"
-          cols="4"
-          sm="2"
-        >
-          <v-card
-            class="pa-3 text-center action-tile"
-            style="cursor:pointer"
-            @click="action.onClick()"
+        <div class="flex items-center justify-between mb-3">
+          <div
+            class="w-9 h-9 rounded-lg flex items-center justify-center"
+            :style="{ backgroundColor: stat.color + '18', color: stat.color }"
           >
-            <v-avatar
-              :color="action.color"
-              size="44"
-              rounded="lg"
-              class="mb-2"
-            >
-              <v-icon :icon="action.icon" size="20" color="white" />
-            </v-avatar>
-            <div class="text-caption font-weight-bold text-truncate">{{ action.label }}</div>
-            <div class="text-caption text-medium-emphasis text-truncate" style="font-size:10px">{{ action.sub }}</div>
-          </v-card>
-        </v-col>
-      </v-row>
+            <i class="mdi mdi-text-lg" :class="stat.icon"></i>
+          </div>
+          <Tag
+            v-if="stat.chip"
+            :value="stat.chip"
+            :severity="stat.chipColor === 'warning' ? 'warn' : stat.chipColor === 'success' ? 'success' : 'secondary'"
+            class="text-[9px]"
+          />
+        </div>
+        <div class="text-2xl font-black">{{ stat.value }}</div>
+        <div class="text-xs text-muted-foreground">{{ stat.label }}</div>
+      </div>
     </div>
 
-    <!-- ── Bottom row ─────────────────────────────────────────────── -->
-    <v-row>
-
-      <!-- Today summary -->
-      <v-col cols="12" md="3">
-        <v-card class="pa-4" style="height:100%">
-          <div class="d-flex align-center gap-2 mb-4">
-            <v-avatar color="primary" size="30" rounded="lg" variant="tonal">
-              <v-icon color="primary" size="16">mdi-trending-up</v-icon>
-            </v-avatar>
-            <span class="text-subtitle-2 font-weight-bold">Today</span>
-          </div>
-          <v-row dense>
-            <v-col
-              v-for="s in todaySummary"
-              :key="s.label"
-              cols="6"
-            >
-              <div
-                class="pa-3 rounded-lg"
-                :style="`background: ${s.color}12; border: 1px solid ${s.color}25`"
-              >
-                <v-icon :color="s.color" size="16" class="mb-1">{{ s.icon }}</v-icon>
-                <div class="text-caption text-medium-emphasis" style="font-size:10px">{{ s.label }}</div>
-                <div class="text-subtitle-2 font-weight-black">{{ s.value }}</div>
-              </div>
-            </v-col>
-          </v-row>
-        </v-card>
-      </v-col>
-
-      <!-- Recent tickets table -->
-      <v-col cols="12" md="9">
-        <v-card>
-          <v-card-title class="d-flex align-center justify-space-between pa-4 pb-0">
-            <div class="d-flex align-center gap-2">
-              <v-avatar color="warning" size="30" rounded="lg" variant="tonal">
-                <v-icon color="warning" size="16">mdi-ticket-outline</v-icon>
-              </v-avatar>
-              <span class="text-subtitle-2 font-weight-bold">Recent Tickets</span>
-            </div>
-            <v-btn
-              variant="tonal"
-              color="primary"
-              size="x-small"
-              rounded="pill"
-              @click="navigateTo('/bookings')"
-            >View all</v-btn>
-          </v-card-title>
-
-          <v-data-table
-            :headers="ticketHeaders"
-            :items="recentTickets"
-            :items-per-page="8"
-            hide-default-footer
-            density="comfortable"
+    <div>
+      <p class="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-3">Quick Actions</p>
+      <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        <button
+          v-for="action in quickActions"
+          :key="action.label"
+          type="button"
+          class="bg-surface border border-border rounded-xl p-3 text-center action-tile"
+          @click="action.onClick()"
+        >
+          <div
+            class="w-11 h-11 rounded-lg flex items-center justify-center text-white mx-auto mb-2"
+            :style="{ backgroundColor: action.color }"
           >
-            <!-- ID column -->
-            <template #item.id="{ item }">
-              <span class="text-caption font-weight-bold text-primary">#{{ item.id }}</span>
-            </template>
+            <i class="mdi mdi-text-xl" :class="action.icon"></i>
+          </div>
+          <div class="text-xs font-bold truncate">{{ action.label }}</div>
+          <div class="text-[10px] text-muted-foreground truncate">{{ action.sub }}</div>
+        </button>
+      </div>
+    </div>
 
-            <!-- Customer column -->
-            <template #item.customerId="{ item }">
-              <span class="text-body-2">{{ getCustomerName(item.customerId) }}</span>
-            </template>
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+      <div class="md:col-span-3 bg-surface border border-border rounded-xl p-4 h-full">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+            <i class="mdi mdi-trending-up"></i>
+          </div>
+          <span class="text-sm font-bold">Today</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div
+            v-for="s in todaySummary"
+            :key="s.label"
+            class="p-3 rounded-lg"
+            :style="`background: ${s.color}12; border: 1px solid ${s.color}25`"
+          >
+            <i class="mdi mdi-mb-1" :class="s.icon" :style="{ color: s.color }"></i>
+            <div class="text-[10px] text-muted-foreground">{{ s.label }}</div>
+            <div class="text-sm font-black">{{ s.value }}</div>
+          </div>
+        </div>
+      </div>
 
-            <!-- Device column -->
-            <template #item.device="{ item }">
-              <span class="text-body-2">{{ item.device }} {{ item.deviceModel || '' }}</span>
-            </template>
+      <div class="md:col-span-9 bg-surface border border-border rounded-xl overflow-hidden">
+        <div class="flex items-center justify-between p-4 border-b border-border">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
+              <i class="mdi mdi-ticket-outline"></i>
+            </div>
+            <span class="text-sm font-bold">Recent Tickets</span>
+          </div>
+          <Button label="View all" size="small" variant="outlined" class="text-none text-xs" @click="navigateTo('/bookings')" />
+        </div>
 
-            <!-- Status column -->
-            <template #item.status="{ item }">
-              <div class="d-flex align-center gap-2">
-                <v-chip
-                  :color="ticketStatusColor(item.status)"
-                  size="x-small"
-                  variant="tonal"
-                  rounded="pill"
-                >
-                  <v-icon start size="8">mdi-circle</v-icon>
-                  {{ item.status }}
-                </v-chip>
-                <v-chip
-                  v-if="ticketAge(item) >= 3 && item.status !== 'Completed' && item.status !== 'Delivered'"
-                  :color="ticketAge(item) >= 7 ? 'error' : 'warning'"
-                  size="x-small"
-                  variant="tonal"
-                >{{ ticketAge(item) }}d</v-chip>
+        <DataTable
+          :value="recentTickets"
+          :rows="8"
+          class="text-sm"
+          :pt="{ table: { class: 'w-full' } }"
+        >
+          <Column field="id" header="#" style="width: 4rem">
+            <template #body="{ data }">
+              <span class="text-xs font-bold text-primary">#{{ data.id }}</span>
+            </template>
+          </Column>
+          <Column field="customerId" header="Customer">
+            <template #body="{ data }">
+              {{ getCustomerName(data.customerId) }}
+            </template>
+          </Column>
+          <Column field="device" header="Device">
+            <template #body="{ data }">
+              {{ data.device }} {{ data.deviceModel || '' }}
+            </template>
+          </Column>
+          <Column field="status" header="Status" style="width: 9rem">
+            <template #body="{ data }">
+              <div class="flex items-center gap-2 flex-wrap">
+                <Tag
+                  :value="data.status"
+                  :severity="statusSeverity(data.status)"
+                  class="text-[10px]"
+                />
+                <Tag
+                  v-if="ticketAge(data) >= 3 && data.status !== 'Completed' && data.status !== 'Delivered'"
+                  :value="`${ticketAge(data)}d`"
+                  :severity="ticketAge(data) >= 7 ? 'danger' : 'warn'"
+                  class="text-[10px]"
+                />
               </div>
             </template>
-
-            <!-- Price column -->
-            <template #item.price="{ item }">
-              <span class="text-body-2 font-weight-bold" :style="`color: ${ticketStatusColor(item.status)}`">
-                {{ formatCurrency(item.price) }}
+          </Column>
+          <Column field="price" header="Price" style="width: 6rem">
+            <template #body="{ data }">
+              <span class="font-bold" :style="{ color: ticketStatusColor(data.status) }">
+                {{ formatCurrency(data.price) }}
               </span>
             </template>
+          </Column>
+          <template #empty>
+            <div class="text-center py-10 text-muted-foreground">
+              <i class="mdi mdi-ticket-outline-text-5xl-opacity-30-block-mb-2"></i>
+              <p class="text-sm m-0">No tickets yet — create your first one!</p>
+            </div>
+          </template>
+        </DataTable>
+      </div>
+    </div>
 
-            <!-- Empty state -->
-            <template #no-data>
-              <div class="text-center py-8 text-medium-emphasis">
-                <v-icon size="40" class="mb-2 opacity-30">mdi-ticket-outline</v-icon>
-                <p class="text-body-2">No tickets yet — create your first one!</p>
-              </div>
-            </template>
-          </v-data-table>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- New Ticket Dialog -->
     <NewTicketDialog v-model="newTicketOpen" :customers="customers" @create="handleCreateTicket" />
-
   </div>
 </template>
 
@@ -296,7 +230,7 @@ import { useNotifications } from '~/composables/useNotifications'
 
 definePageMeta({ middleware: ['auth'] })
 
-const router   = useRouter()
+const router = useRouter()
 const appStore = useAppStore()
 const { customers, tickets, inventory, appointments, settings } = storeToRefs(appStore)
 const { trackDevice } = appStore
@@ -311,42 +245,69 @@ onMounted(() => {
   if (!weather.value.loaded && !weather.value.loading) fetchWeather().catch(() => {})
   lastSynced.value = new Date()
 })
-const loadWeather = async () => { if (!weather.value.loaded) await fetchWeather() }
+const loadWeather = async () => {
+  if (!weather.value.loaded) await fetchWeather()
+}
 
-// Banner
 const banner = computed(() =>
   weather.value.loaded
     ? getContextBanner(weather.value.temp, weather.value.conditionCode)
-    : getContextBanner(68, 0)
+    : getContextBanner(68, 0),
 )
-const bannerColor = computed(() => {
+const bannerSeverity = computed(() => {
   const t = weather.value.temp
   if (t <= 40) return 'info'
   if (t <= 65) return 'success'
-  return 'warning'
+  return 'warn'
 })
 const weatherIcon = computed(() => {
   const map: Record<string, string> = {
-    'sun': 'mdi-weather-sunny', 'cloud-sun': 'mdi-weather-partly-cloudy', 'cloud': 'mdi-weather-cloudy',
-    'cloud-rain': 'mdi-weather-rainy', 'snowflake': 'mdi-snowflake',
-    'cloud-drizzle': 'mdi-weather-rainy', 'cloud-snow': 'mdi-weather-snowy',
+    sun: 'mdi-weather-sunny',
+    'cloud-sun': 'mdi-weather-partly-cloudy',
+    cloud: 'mdi-weather-cloudy',
+    'cloud-rain': 'mdi-weather-rainy',
+    snowflake: 'mdi-snowflake',
+    'cloud-drizzle': 'mdi-weather-rainy',
+    'cloud-snow': 'mdi-weather-snowy',
     'cloud-lightning': 'mdi-weather-lightning',
   }
   return map[weather.value.icon || 'cloud'] || 'mdi-weather-cloudy'
 })
 
-// Computed data
-const totalRevenue     = computed(() => (tickets.value || []).filter(t => t.price > 0 && (t.status === 'Completed' || t.status === 'Delivered')).reduce((a, t) => a + (t.price || 0), 0))
-const activeTickets    = computed(() => (tickets.value || []).filter(t => t.status !== 'Closed' && t.status !== 'Delivered'))
-const completedTickets = computed(() => (tickets.value || []).filter(t => t.status === 'Completed' || t.status === 'Delivered'))
-const completedToday   = computed(() => {
+const totalRevenue = computed(() =>
+  (tickets.value || [])
+    .filter((t) => t.price > 0 && (t.status === 'Completed' || t.status === 'Delivered'))
+    .reduce((a, t) => a + (t.price || 0), 0),
+)
+const activeTickets = computed(() =>
+  (tickets.value || []).filter((t) => t.status !== 'Closed' && t.status !== 'Delivered'),
+)
+const completedTickets = computed(() =>
+  (tickets.value || []).filter((t) => t.status === 'Completed' || t.status === 'Delivered'),
+)
+const completedToday = computed(() => {
   const today = new Date().toDateString()
-  return (tickets.value || []).filter(t => (t.status === 'Completed' || t.status === 'Delivered') && t.updatedAt && new Date(t.updatedAt).toDateString() === today).length
+  return (tickets.value || []).filter(
+    (t) =>
+      (t.status === 'Completed' || t.status === 'Delivered') &&
+      t.updatedAt &&
+      new Date(t.updatedAt).toDateString() === today,
+  ).length
 })
-const lowStockItems        = computed(() => (inventory.value || []).filter((i: any) => (i.itemType || 'product') !== 'service' && i.stock <= (i.low || 5)).length)
-const upcomingAppointments = computed(() => (appointments.value || []).filter((a: any) => a.status === 'scheduled').length)
-const recentTickets        = computed(() => [...(tickets.value || [])].sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 8))
-const waitingForParts      = computed(() => (tickets.value || []).filter(t => t.status === 'Waiting for Parts'))
+const lowStockItems = computed(() =>
+  (inventory.value || []).filter(
+    (i: any) => (i.itemType || 'product') !== 'service' && i.stock <= (i.low || 5),
+  ).length,
+)
+const upcomingAppointments = computed(() =>
+  (appointments.value || []).filter((a: any) => a.status === 'scheduled').length,
+)
+const recentTickets = computed(() =>
+  [...(tickets.value || [])].sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 8),
+)
+const waitingForParts = computed(() =>
+  (tickets.value || []).filter((t) => t.status === 'Waiting for Parts'),
+)
 const ticketAge = (t: any) => {
   if (!t.createdAt) return 0
   return Math.floor((Date.now() - new Date(t.createdAt).getTime()) / 86400000)
@@ -361,89 +322,185 @@ const lastSyncedLabel = computed(() => {
 const warrantyExpiringSoon = computed(() => {
   const now = new Date()
   return (tickets.value || [])
-    .filter(t => (t.status === 'Completed' || t.status === 'Delivered') && t.warrantyDays > 0 && t.warrantyStart)
-    .map(t => {
-      const end = new Date(new Date(t.warrantyStart).getTime() + (t.warrantyDays || 0) * 86400000)
+    .filter(
+      (t) =>
+        (t.status === 'Completed' || t.status === 'Delivered') &&
+        t.warrantyDays > 0 &&
+        t.warrantyStart,
+    )
+    .map((t) => {
+      const end = new Date(
+        new Date(t.warrantyStart).getTime() + (t.warrantyDays || 0) * 86400000,
+      )
       return { ...t, _daysLeft: Math.ceil((end.getTime() - now.getTime()) / 86400000) }
     })
-    .filter(t => t._daysLeft >= 0 && t._daysLeft <= 14)
+    .filter((t) => t._daysLeft >= 0 && t._daysLeft <= 14)
     .sort((a, b) => a._daysLeft - b._daysLeft)
 })
 const warrantyDaysLeft = (t: any) => {
-  const end = new Date(new Date(t.warrantyStart).getTime() + (t.warrantyDays || 0) * 86400000)
+  const end = new Date(
+    new Date(t.warrantyStart).getTime() + (t.warrantyDays || 0) * 86400000,
+  )
   return Math.max(0, Math.ceil((end.getTime() - Date.now()) / 86400000))
 }
 
-const formatCurrency   = (n: number) => `${settings.value?.currency || '$'}${(n || 0).toFixed(2)}`
-const getCustomerName  = (id: number) => (customers.value || []).find((c: any) => c.id === id)?.name || 'Unknown'
+const formatCurrency = (n: number) => `${settings.value?.currency || '$'}${(n || 0).toFixed(2)}`
+const getCustomerName = (id: number) =>
+  (customers.value || []).find((c: any) => c.id === id)?.name || 'Unknown'
 
-const ticketStatusColor = (status: string) => ({
-  'Open': 'info', 'In Progress': 'warning',
-  'Waiting for Parts': 'error', 'Completed': 'success', 'Delivered': 'secondary',
-}[status] || 'secondary')
+const ticketStatusColor = (status: string) =>
+  ({
+    Open: '#3b82f6',
+    'In Progress': '#f59e0b',
+    'Waiting for Parts': '#ef4444',
+    Completed: '#10b981',
+    Delivered: '#64748b',
+  })[status] || '#64748b'
 
-// Greeting
-const greeting   = computed(() => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening' })
-const todayLabel = computed(() => new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }))
+const statusSeverity = (status: string) =>
+  ({
+    Open: 'info',
+    'In Progress': 'warn',
+    'Waiting for Parts': 'danger',
+    Completed: 'success',
+    Delivered: 'secondary',
+  })[status] || 'secondary'
 
-// KPI stats
+const greeting = computed(() => {
+  const h = new Date().getHours()
+  return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
+})
+const todayLabel = computed(() =>
+  new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
+)
+
 const kpiStats = computed(() => [
   {
-    label: 'Active Tickets', value: activeTickets.value.length, icon: 'mdi-ticket-outline',
-    color: '#3b82f6', path: '/bookings',
-    chip: `${completedToday.value} today`, chipColor: 'success',
+    label: 'Active Tickets',
+    value: activeTickets.value.length,
+    icon: 'mdi-ticket-outline',
+    color: '#3b82f6',
+    path: '/bookings',
+    chip: `${completedToday.value} today`,
+    chipColor: 'success',
   },
   {
-    label: 'Customers', value: (customers.value || []).length, icon: 'mdi-account-group-outline',
-    color: '#8b5cf6', path: '/customers', chip: null, chipColor: '',
+    label: 'Customers',
+    value: (customers.value || []).length,
+    icon: 'mdi-account-group-outline',
+    color: '#8b5cf6',
+    path: '/customers',
+    chip: null,
+    chipColor: '',
   },
   {
-    label: 'Inventory', value: (inventory.value || []).length, icon: 'mdi-package-variant-closed',
-    color: '#f59e0b', path: '/inventory',
+    label: 'Inventory',
+    value: (inventory.value || []).length,
+    icon: 'mdi-package-variant-closed',
+    color: '#f59e0b',
+    path: '/inventory',
     chip: lowStockItems.value > 0 ? `${lowStockItems.value} low` : 'Stocked',
     chipColor: lowStockItems.value > 0 ? 'warning' : 'success',
   },
   {
-    label: 'Upcoming', value: upcomingAppointments.value, icon: 'mdi-calendar-clock',
-    color: '#06b6d4', path: '/bookings', chip: null, chipColor: '',
+    label: 'Upcoming',
+    value: upcomingAppointments.value,
+    icon: 'mdi-calendar-clock',
+    color: '#06b6d4',
+    path: '/bookings',
+    chip: null,
+    chipColor: '',
   },
 ])
 
-// Quick actions
 const quickActions = computed(() => [
-  { label: 'New Sale',  sub: 'POS',          color: '#ec4899', icon: 'mdi-cart-outline',           onClick: () => navigateTo('/pos') },
-  { label: 'Schedule', sub: 'Calendar',      color: '#8b5cf6', icon: 'mdi-calendar',               onClick: () => navigateTo('/bookings') },
-  { label: 'Inventory',sub: 'Stock',         color: '#f59e0b', icon: 'mdi-package-variant-closed',  onClick: () => navigateTo('/inventory') },
-  { label: 'Bookings', sub: 'Repairs',       color: '#3b82f6', icon: 'mdi-clipboard-check-outline', onClick: () => navigateTo('/bookings') },
-  { label: 'Customers',sub: 'Clients',       color: '#06b6d4', icon: 'mdi-account-plus-outline',    onClick: () => navigateTo('/customers') },
-  { label: 'Trade-In', sub: 'Quotes',        color: '#f59e0b', icon: 'mdi-swap-horizontal',         onClick: () => navigateTo('/inventory') },
+  {
+    label: 'New Sale',
+    sub: 'POS',
+    color: '#ec4899',
+    icon: 'mdi-cart-outline',
+    onClick: () => navigateTo('/pos'),
+  },
+  {
+    label: 'Schedule',
+    sub: 'Calendar',
+    color: '#8b5cf6',
+    icon: 'mdi-calendar',
+    onClick: () => navigateTo('/bookings'),
+  },
+  {
+    label: 'Inventory',
+    sub: 'Stock',
+    color: '#f59e0b',
+    icon: 'mdi-package-variant-closed',
+    onClick: () => navigateTo('/inventory'),
+  },
+  {
+    label: 'Bookings',
+    sub: 'Repairs',
+    color: '#3b82f6',
+    icon: 'mdi-clipboard-check-outline',
+    onClick: () => navigateTo('/bookings'),
+  },
+  {
+    label: 'Customers',
+    sub: 'Clients',
+    color: '#06b6d4',
+    icon: 'mdi-account-plus-outline',
+    onClick: () => navigateTo('/customers'),
+  },
+  {
+    label: 'Trade-In',
+    sub: 'Quotes',
+    color: '#f59e0b',
+    icon: 'mdi-swap-horizontal',
+    onClick: () => navigateTo('/inventory'),
+  },
 ])
 
-// Today summary
 const todayRevenue = computed(() => {
   const today = new Date().toDateString()
-  return (tickets.value || []).filter(t => t.price > 0 && (t.status === 'Completed' || t.status === 'Delivered') && t.updatedAt && new Date(t.updatedAt).toDateString() === today).reduce((a, t) => a + (t.price || 0), 0)
+  return (tickets.value || [])
+    .filter(
+      (t) =>
+        t.price > 0 &&
+        (t.status === 'Completed' || t.status === 'Delivered') &&
+        t.updatedAt &&
+        new Date(t.updatedAt).toDateString() === today,
+    )
+    .reduce((a, t) => a + (t.price || 0), 0)
 })
 const todaySummary = computed(() => [
-  { label: 'Revenue',   value: formatCurrency(todayRevenue.value), color: '#3b82f6', icon: 'mdi-currency-usd' },
-  { label: 'Completed', value: String(completedToday.value),       color: '#10b981', icon: 'mdi-check-circle-outline' },
-  { label: 'Active',    value: String(activeTickets.value.length), color: '#f97316', icon: 'mdi-ticket-outline' },
-  { label: 'Scheduled', value: String(upcomingAppointments.value), color: '#8b5cf6', icon: 'mdi-calendar-check' },
+  {
+    label: 'Revenue',
+    value: formatCurrency(todayRevenue.value),
+    color: '#3b82f6',
+    icon: 'mdi-currency-usd',
+  },
+  {
+    label: 'Completed',
+    value: String(completedToday.value),
+    color: '#10b981',
+    icon: 'mdi-check-circle-outline',
+  },
+  {
+    label: 'Active',
+    value: String(activeTickets.value.length),
+    color: '#f97316',
+    icon: 'mdi-ticket-outline',
+  },
+  {
+    label: 'Scheduled',
+    value: String(upcomingAppointments.value),
+    color: '#8b5cf6',
+    icon: 'mdi-calendar-check',
+  },
 ])
 
-// Ticket table headers
-const ticketHeaders = [
-  { title: '#',       key: 'id',         width: 60 },
-  { title: 'Customer',key: 'customerId', minWidth: 140 },
-  { title: 'Device',  key: 'device',     minWidth: 160 },
-  { title: 'Status',  key: 'status',     width: 150 },
-  { title: 'Price',   key: 'price',      width: 100, align: 'end' as const },
-]
-
-// Create ticket
 const { addNotification } = useNotifications()
 const { sendTicketEmail, sendInternalAlert } = useEmailNotifications()
-const getCustomerPhone = (id: number) => (customers.value || []).find((c: any) => c.id === id)?.phone || ''
+const getCustomerPhone = (id: number) =>
+  (customers.value || []).find((c: any) => c.id === id)?.phone || ''
 
 const handleCreateTicket = async (ticketData: any) => {
   const toastId = toast.loading('Creating ticket…')
@@ -453,13 +510,31 @@ const handleCreateTicket = async (ticketData: any) => {
       const nc = await appStore.createCustomer(ticketData.newCustomer)
       customerId = nc.id
     }
-    const ticket = await appStore.createTicket({ ...ticketData, customerId, status: 'Open', price: 0, services: [], parts: [], payments: [], notes: [], timeLog: [] })
+    const ticket = await appStore.createTicket({
+      ...ticketData,
+      customerId,
+      status: 'Open',
+      price: 0,
+      services: [],
+      parts: [],
+      payments: [],
+      notes: [],
+      timeLog: [],
+    })
     trackDevice(ticket.device)
     toast.dismiss(toastId)
     toast.success('Ticket Created', `Ticket #${ticket.id} created successfully`)
     newTicketOpen.value = false
     sendTicketEmail({ ...ticket, customerId }).catch(() => {})
-    sendInternalAlert({ eventType: 'New Ticket', eventSummary: `Ticket #${ticket.id} created`, customerName: getCustomerName(customerId), customerPhone: getCustomerPhone(customerId), deviceName: ticketData.device || '', issueDescription: ticketData.issue || '', ticketNumber: String(ticket.id) }).catch(() => {})
+    sendInternalAlert({
+      eventType: 'New Ticket',
+      eventSummary: `Ticket #${ticket.id} created`,
+      customerName: getCustomerName(customerId),
+      customerPhone: getCustomerPhone(customerId),
+      deviceName: ticketData.device || '',
+      issueDescription: ticketData.issue || '',
+      ticketNumber: String(ticket.id),
+    }).catch(() => {})
   } catch (err: any) {
     toast.dismiss(toastId)
     toast.danger('Error', err.message || 'Failed to create ticket')
@@ -469,11 +544,24 @@ const handleCreateTicket = async (ticketData: any) => {
 
 <style scoped>
 .revenue-hero {
-  background: linear-gradient(135deg, #059669, #10b981 60%, #34d399) !important;
+  background: linear-gradient(135deg, #059669, #10b981 60%, #34d399);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-.revenue-hero:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(16,185,129,0.3) !important; }
-
-.action-tile { transition: transform 0.25s cubic-bezier(0.34,1.5,0.64,1); }
-.action-tile:hover { transform: translateY(-3px) scale(1.04); }
+.revenue-hero:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(16, 185, 129, 0.3);
+}
+.action-tile {
+  transition: transform 0.25s cubic-bezier(0.34, 1.5, 0.64, 1);
+}
+.action-tile:hover {
+  transform: translateY(-3px) scale(1.04);
+}
+@media (min-width: 768px) {
+  .md\:col-span-2 { grid-column: span 2 / span 2; }
+  .md\:col-span-3 { grid-column: span 3 / span 3; }
+  .md\:col-span-4 { grid-column: span 4 / span 4; }
+  .md\:col-span-9 { grid-column: span 9 / span 9; }
+  .md\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+}
 </style>

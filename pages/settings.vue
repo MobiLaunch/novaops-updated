@@ -4,7 +4,7 @@
     <!-- ── Page Header ── -->
     <div class="d-flex align-center gap-4 mb-6">
       <v-avatar size="48" rounded="xl" style="background:linear-gradient(135deg,#64748b,#475569)">
-        <v-icon icon="mdi-cog-outline" size="22" color="white" />
+        <i class="mdi mdi-cog-outline"></i>
       </v-avatar>
       <div>
         <h1 class="text-h5 font-weight-black">Settings</h1>
@@ -22,7 +22,7 @@
           <v-card-item class="border-b" style="background:#6366f108">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
-                <v-icon icon="mdi-office-building-outline" size="18" color="white" />
+                <i class="mdi mdi-office-building-outline"></i>
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black">Business Information</v-card-title>
@@ -71,7 +71,7 @@
           <v-card-item class="border-b" style="background:#3ecf8e08">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#3ecf8e,#1a9e6a)">
-                <v-icon icon="mdi-database-outline" size="18" color="white" />
+                <i class="mdi mdi-database-outline"></i>
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black">Supabase Database</v-card-title>
@@ -82,7 +82,7 @@
                 :color="sbConn.status.connected ? 'success' : sbConn.hasCredentials.value ? 'warning' : 'error'"
                 variant="tonal"
               >
-                <v-icon start size="10">mdi-circle</v-icon>
+                <i class="mdi mdi-circle"></i>
                 {{ sbConn.status.connected ? `Connected · ${sbConn.projectRef.value}` : sbConn.hasCredentials.value ? 'Credentials saved' : 'Not connected' }}
               </v-chip>
             </template>
@@ -117,7 +117,7 @@
           <v-card-item class="border-b" style="background:#10b98108">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#10b981,#059669)">
-                <v-icon icon="mdi-credit-card-outline" size="18" color="white" />
+                <i class="mdi mdi-credit-card-outline"></i>
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black">Square Terminal Integration</v-card-title>
@@ -128,7 +128,7 @@
                 :color="squareStatus === 'connected' ? 'success' : squareStatus === 'checking' ? 'warning' : 'error'"
                 variant="tonal"
               >
-                <v-icon start size="10">mdi-circle</v-icon>
+                <i class="mdi mdi-circle"></i>
                 {{ squareStatus === 'connected' ? 'Connected' : squareStatus === 'checking' ? 'Checking…' : 'Disconnected' }}
               </v-chip>
             </template>
@@ -204,7 +204,7 @@
           <v-card-item class="border-b" style="background:#06b6d408">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">
-                <v-icon icon="mdi-printer" size="18" color="white" />
+                <i class="mdi mdi-printer"></i>
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black">Printing &amp; Barcodes</v-card-title>
@@ -220,7 +220,7 @@
             <v-card variant="tonal" color="surface-variant" rounded="lg" class="pa-4 mb-4">
               <div class="d-flex align-center justify-space-between mb-3">
                 <div class="d-flex align-center gap-3">
-                  <v-avatar size="32" rounded="lg" style="background:#10b98118"><v-icon icon="mdi-receipt-text-outline" size="16" color="#10b981" /></v-avatar>
+                  <v-avatar size="32" rounded="lg" style="background:#10b98118"><i class="mdi mdi-receipt-text-outline"></i></v-avatar>
                   <div>
                     <div class="text-body-2 font-weight-bold">Default Thermal Printer</div>
                     <div v-if="!pairedThermalPrinter" class="text-caption text-medium-emphasis">No device linked</div>
@@ -244,7 +244,7 @@
             <v-card variant="tonal" color="surface-variant" rounded="lg" class="pa-4 mb-4">
               <div class="d-flex align-center justify-space-between mb-3">
                 <div class="d-flex align-center gap-3">
-                  <v-avatar size="32" rounded="lg" style="background:#06b6d418"><v-icon icon="mdi-barcode-scan" size="16" color="#06b6d4" /></v-avatar>
+                  <v-avatar size="32" rounded="lg" style="background:#06b6d418"><i class="mdi mdi-barcode-scan"></i></v-avatar>
                   <div>
                     <div class="text-body-2 font-weight-bold">Default Label Printer</div>
                     <div v-if="!pairedLabelPrinter" class="text-caption text-medium-emphasis">No device linked</div>
@@ -294,7 +294,7 @@
           <v-card-item class="border-b" style="background:#f59e0b08">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
-                <v-icon icon="mdi-bell-outline" size="18" color="white" />
+                <i class="mdi mdi-bell-outline"></i>
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black">Notifications</v-card-title>
@@ -304,7 +304,7 @@
             <v-list-item v-for="(notif, key) in notificationSettings" :key="key" rounded="lg" class="mx-2 my-1">
               <template #prepend>
                 <v-avatar size="32" rounded="lg" :style="`background:${notif.color}18`">
-                  <v-icon :icon="notif.icon" size="16" :style="`color:${notif.color}`" />
+                  <i class="mdi text-base" :class="notif.icon"></i>
                 </v-avatar>
               </template>
               <template #title><span class="text-body-2 font-weight-bold">{{ notif.label }}</span></template>
@@ -326,7 +326,7 @@
           <v-card-item class="border-b" style="background:#8b5cf608">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
-                <v-icon icon="mdi-account-outline" size="18" color="white" />
+                <i class="mdi mdi-account-outline"></i>
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black">Account</v-card-title>
@@ -353,7 +353,7 @@
           <v-card-item class="border-b" style="background:#06b6d408">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">
-                <v-icon icon="mdi-database-outline" size="18" color="white" />
+                <i class="mdi mdi-database-outline"></i>
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black">Data Management</v-card-title>
@@ -370,7 +370,7 @@
           <v-card-item class="border-b" style="background:#3ecf8e08">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#3ecf8e,#1a9e6a)">
-                <v-icon color="white">mdi-stethoscope</v-icon>
+                <i class="mdi mdi-stethoscope"></i>
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black">System Diagnostics</v-card-title>
@@ -398,7 +398,7 @@
           <v-card-item class="border-b" style="background:#ef444408">
             <template #prepend>
               <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#ef4444,#dc2626)">
-                <v-icon icon="mdi-alert-outline" size="18" color="white" />
+                <i class="mdi mdi-alert-outline"></i>
               </v-avatar>
             </template>
             <v-card-title class="text-body-1 font-weight-black" style="color:#ef4444">Danger Zone</v-card-title>
@@ -418,7 +418,7 @@
         <v-card-item class="border-b" style="background:#3ecf8e06">
           <template #prepend>
             <v-avatar size="44" rounded="xl" style="background:linear-gradient(135deg,#3ecf8e,#1a9e6a);box-shadow:0 4px 16px #3ecf8e30">
-              <v-icon icon="mdi-database-outline" size="20" color="white" />
+              <i class="mdi mdi-database-outline"></i>
             </v-avatar>
           </template>
           <v-card-title>Connect to Supabase</v-card-title>
@@ -477,7 +477,7 @@
         <v-card-item>
           <template #prepend>
             <v-avatar size="44" rounded="lg" color="error" variant="tonal">
-              <v-icon color="error">mdi-alert-circle-outline</v-icon>
+              <i class="mdi mdi-alert-circle-outline"></i>
             </v-avatar>
           </template>
           <v-card-title>Disconnect Supabase?</v-card-title>

@@ -1,4 +1,4 @@
-/* ── NovaOps Global Styles (Vuetify 4 Edition) ── */
+/* ── NovaOps Global Styles (PrimeVue Edition) ── */
 
 /* Google Sans + Nunito */
 @import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap');
@@ -165,9 +165,39 @@ body {
 .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .whitespace-pre-wrap { white-space: pre-wrap; }
 
-/* Colors (shim for old Tailwind color classes used in templates) */
+/* ── Theme utilities (PrimeVue Aura + app tokens) ── */
+.bg-background { background-color: hsl(var(--background)); }
+.bg-surface    { background-color: var(--p-content-background, #fff); }
+.bg-muted      { background-color: hsl(var(--muted)); }
+.bg-primary    { background-color: var(--p-primary-500, #6366f1); }
+.text-foreground { color: var(--p-text-color, hsl(var(--foreground))); }
+.text-primary    { color: var(--p-primary-500, #6366f1); }
+.text-muted-foreground { color: var(--p-text-muted-color, hsl(var(--muted-foreground))); }
+.border-border { border-color: var(--p-content-border-color, hsl(var(--border))); }
+
+/* Colors (legacy shims) */
 .text-white { color: #fff; }
-.text-muted-foreground { color: rgba(var(--v-theme-on-surface), 0.6); }
+.shrink-0   { flex-shrink: 0; }
+.min-w-0    { min-width: 0; }
+.min-h-0    { min-height: 0; }
+.hidden     { display: none !important; }
+.h-full     { height: 100%; }
+.max-h-full { max-height: 100%; }
+.divide-y > :not(:last-child) { border-bottom-width: 1px; border-bottom-style: solid; }
+.divide-border > :not(:last-child) { border-color: var(--p-content-border-color, hsl(var(--border))); }
+
+@media (min-width: 1024px) {
+  .lg\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .lg\:col-span-5  { grid-column: span 5 / span 5; }
+  .lg\:col-span-4  { grid-column: span 4 / span 4; }
+  .lg\:col-span-3  { grid-column: span 3 / span 3; }
+  .lg\:flex        { display: flex; }
+  .lg\:block       { display: block; }
+}
+@media (min-width: 1280px) {
+  .xl\:col-span-6  { grid-column: span 6 / span 6; }
+  .xl\:col-span-3  { grid-column: span 3 / span 3; }
+}
 
 /* Layout */
 .relative { position: relative; }
@@ -190,58 +220,6 @@ body {
 /* ── Animation ────────────────────────────────── */
 @keyframes spin { to { transform: rotate(360deg); } }
 .animate-spin { animation: spin 1s linear infinite; }
-
-/* ── Vuetify overrides ────────────────────────── */
-
-/* Navigation rail item active pill */
-.v-navigation-drawer .v-list-item--active {
-  font-weight: 700;
-}
-
-/* Center icons in compact rail (prepend margin otherwise offsets them) */
-.rail-drawer .rail-nav-list {
-  padding-inline: 0 !important;
-  align-items: stretch;
-}
-.rail-drawer .v-list-item {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  padding-inline: 0 !important;
-  min-height: 48px;
-}
-.rail-drawer .v-list-item__spacer {
-  display: none !important;
-}
-.rail-drawer .v-list-item__prepend {
-  width: auto !important;
-  min-width: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-inline: 0 !important;
-}
-.rail-drawer .v-list-item__prepend > .position-relative {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.rail-drawer .v-list-item__content {
-  display: none !important;
-}
-.rail-drawer .v-list-item__append {
-  display: none !important;
-}
-
-/* Data table — zebra rows on hover */
-.v-data-table__tr:hover td { background: rgba(99,102,241,0.04) !important; }
-
-/* Snackbar bottom-right positioning fix for Nuxt */
-.v-snackbar__wrapper { margin: 16px !important; }
-
-/* Chip size tweaks */
-.v-chip.v-chip--size-x-small { font-size: 10px; font-weight: 700; }
-.v-chip.v-chip--size-small    { font-size: 11px; font-weight: 700; }
 
 /* Page transition */
 .page-enter-active { transition: all 0.2s ease-out; }

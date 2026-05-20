@@ -4,7 +4,7 @@
       <v-card-item class="border-b">
         <template #prepend>
           <v-avatar color="success" size="40" rounded="lg">
-            <v-icon color="white">mdi-map-marker</v-icon>
+            <i class="mdi mdi-map-marker"></i>
           </v-avatar>
         </template>
         <v-card-title>{{ isEditing ? 'Edit House Call' : 'Schedule House Call' }}</v-card-title>
@@ -81,7 +81,7 @@
                   <iframe v-if="mapsUrl" :src="mapsUrl" width="100%" height="100%" style="border:0" />
                   <div v-else class="d-flex align-center justify-center h-100 text-medium-emphasis" style="background:rgba(0,0,0,0.04)">
                     <div class="text-center">
-                      <v-icon size="32" class="opacity-40">mdi-map</v-icon>
+                      <i class="mdi mdi-map"></i>
                       <p class="text-caption mt-1">Enter address to preview</p>
                     </div>
                   </div>
@@ -91,7 +91,7 @@
               <!-- Calculator -->
               <v-card variant="tonal" rounded="lg" class="pa-4">
                 <p class="text-caption font-weight-black text-uppercase mb-3">
-                  <v-icon size="14" class="me-1">mdi-calculator</v-icon> Job Calculator
+                  <i class="mdi mdi-calculator"></i> Job Calculator
                 </p>
                 <v-row dense>
                   <v-col cols="6">

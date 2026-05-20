@@ -1,58 +1,80 @@
 <template>
-  <v-card>
-    <v-card-item>
-      <v-card-title>Account Settings</v-card-title>
-    </v-card-item>
-    <v-card-text class="d-flex flex-column gap-4">
-      <div class="d-flex align-center gap-4 mb-2">
-        <div class="position-relative">
-          <v-avatar color="primary" size="80" class="text-h5 font-weight-bold">
-            <v-img v-if="avatarUrl" :src="avatarUrl" alt="" cover />
+  <div class="bg-surface border border-border rounded-xl overflow-hidden">
+    <div class="p-4 border-b border-border">
+      <h3 class="text-sm font-black m-0">Account Settings</h3>
+    </div>
+    <div class="p-4 flex flex-col gap-4">
+      <div class="flex items-center gap-4 mb-2">
+        <div class="relative">
+          <div
+            class="w-20 h-20 rounded-full bg-primary text-white flex items-center justify-center text-xl font-bold overflow-hidden"
+          >
+            <img v-if="avatarUrl" :src="avatarUrl" alt="" class="w-full h-full object-cover" />
             <span v-else>{{ getInitials(accountForm.name) }}</span>
-          </v-avatar>
-          <v-btn
-            icon="mdi-camera"
-            size="x-small"
+          </div>
+          <Button
+            rounded
             variant="outlined"
-            class="position-absolute"
-            style="bottom:-4px;right:-4px"
+            class="!absolute !w-7 !h-7"
+            style="bottom: -4px; right: -4px"
             @click="openAvatarPicker"
-          />
+          >
+            <i class="mdi mdi-camera-text-xs"></i>
+          </Button>
           <input
             ref="avatarFileInput"
             type="file"
             accept="image/jpeg,image/png,image/webp,image/gif"
-            class="d-none"
+            class="hidden"
             @change="onAvatarSelected"
           >
         </div>
         <div>
-          <p class="text-body-2 text-medium-emphasis">Profile Picture</p>
-          <p class="text-caption text-medium-emphasis mt-1">Click camera to change</p>
+          <p class="text-sm text-muted-foreground m-0">Profile Picture</p>
+          <p class="text-xs text-muted-foreground mt-1 m-0">Click camera to change</p>
         </div>
       </div>
 
-      <v-text-field v-model="accountForm.name" label="Full Name *" placeholder="Your Name" />
-      <v-text-field v-model="accountForm.email" label="Email *" type="email" placeholder="you@example.com" />
-      <v-select v-model="accountForm.role" label="Role" :items="['owner','manager','technician']" />
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[10px] font-bold text-muted-foreground uppercase">Full Name *</label>
+        <InputText v-model="accountForm.name" placeholder="Your Name" class="w-full rounded-xl" />
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[10px] font-bold text-muted-foreground uppercase">Email *</label>
+        <InputText v-model="accountForm.email" type="email" placeholder="you@example.com" class="w-full rounded-xl" />
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[10px] font-bold text-muted-foreground uppercase">Role</label>
+        <Select
+          v-model="accountForm.role"
+          :options="roleOptions"
+          option-label="label"
+          option-value="value"
+          class="w-full"
+        />
+      </div>
 
-      <v-divider />
-      <p class="text-body-2 font-weight-medium mb-0">Change Password</p>
-      <v-text-field v-model="accountForm.currentPassword" type="password" placeholder="Current password" />
-      <v-text-field v-model="accountForm.newPassword" type="password" placeholder="New password" />
-      <v-text-field v-model="accountForm.confirmPassword" type="password" placeholder="Confirm new password" />
+      <hr class="border-border" />
+      <p class="text-sm font-medium m-0">Change Password</p>
+      <InputText v-model="accountForm.currentPassword" type="password" placeholder="Current password" class="w-full rounded-xl" />
+      <InputText v-model="accountForm.newPassword" type="password" placeholder="New password" class="w-full rounded-xl" />
+      <InputText v-model="accountForm.confirmPassword" type="password" placeholder="Confirm new password" class="w-full rounded-xl" />
 
-      <v-btn block color="primary" prepend-icon="mdi-content-save" @click="saveAccount">Save Changes</v-btn>
-    </v-card-text>
-  </v-card>
-  <v-alert
+      <Button label="Save Changes" class="w-full font-bold text-none" @click="saveAccount">
+        <i class="mdi mdi-content-save-mr-2"></i>
+      </Button>
+    </div>
+  </div>
+
+  <Message
     v-if="validationAlert"
-    type="warning"
-    :text="validationAlert"
-    closable
+    severity="warn"
+    :closable="true"
     class="mt-3"
-    @click:close="validationAlert = ''"
-  />
+    @close="validationAlert = ''"
+  >
+    {{ validationAlert }}
+  </Message>
 </template>
 
 <script setup lang="ts">
@@ -67,13 +89,19 @@ const validationAlert = ref('')
 const avatarUrl = ref('')
 const avatarFileInput = ref<HTMLInputElement | null>(null)
 
+const roleOptions = [
+  { label: 'Owner', value: 'owner' },
+  { label: 'Manager', value: 'manager' },
+  { label: 'Technician', value: 'technician' },
+]
+
 const accountForm = ref({
   name: '',
   email: '',
   role: 'owner',
   currentPassword: '',
   newPassword: '',
-  confirmPassword: ''
+  confirmPassword: '',
 })
 
 onMounted(() => {
@@ -196,11 +224,14 @@ const saveAccount = () => {
   }
 
   if (process.client) {
-    localStorage.setItem('accountData', JSON.stringify({
-      name: accountForm.value.name,
-      email: accountForm.value.email,
-      role: accountForm.value.role
-    }))
+    localStorage.setItem(
+      'accountData',
+      JSON.stringify({
+        name: accountForm.value.name,
+        email: accountForm.value.email,
+        role: accountForm.value.role,
+      }),
+    )
   }
 
   toast.success('Account Updated', 'Your account settings have been saved')

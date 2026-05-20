@@ -1,62 +1,83 @@
 <template>
-  <div>
-    <v-btn icon variant="text" @click="open = true" class="position-relative">
-      <v-icon icon="mdi-bell-outline" size="20" />
-      <v-badge
-        v-if="unreadCount > 0"
-        :content="unreadCount"
-        color="error"
-        floating
-      />
-    </v-btn>
+  <div class="relative">
+    <button 
+      class="relative w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+      @click="open = true"
+    >
+      <i class="mdi mdi-bell-outline-text-lg"></i>
+      <span 
+        v-slot="{}"
+        v-if="unreadCount > 0" 
+        class="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-sm"
+      >
+        {{ unreadCount }}
+      </span>
+    </button>
 
-    <v-dialog v-model="open" max-width="500">
-      <v-card>
-        <v-card-item>
-          <v-card-title>Notifications</v-card-title>
-          <template #append>
-            <v-btn v-if="notifications.length > 0" variant="text" size="small" @click="clearAll">Clear All</v-btn>
-          </template>
-        </v-card-item>
-        <v-card-text style="max-height:400px;overflow-y:auto">
-          <div class="d-flex flex-column gap-2">
-            <v-card
-              v-for="notification in notifications"
-              :key="notification.id"
-              variant="tonal"
-              rounded="lg"
-              class="pa-3"
-              :color="getColor(notification.type)"
-              :style="notification.read ? 'opacity:0.6' : ''"
-            >
-              <div class="d-flex align-start justify-space-between">
-                <div class="flex-grow-1">
-                  <div class="d-flex align-center gap-2">
-                    <v-icon :icon="getIcon(notification.type)" size="16" />
-                    <p class="text-body-2 font-weight-medium mb-0">{{ notification.title }}</p>
-                  </div>
-                  <p class="text-body-2 text-medium-emphasis mt-1 mb-0">{{ notification.message }}</p>
-                  <p class="text-caption text-medium-emphasis mt-2 mb-0">{{ formatTime(notification.timestamp) }}</p>
-                </div>
-                <v-btn icon="mdi-close" size="x-small" variant="text" @click="removeNotification(notification.id)" />
-              </div>
-            </v-card>
-
-            <div v-if="notifications.length === 0" class="text-center py-8">
-              <v-icon icon="mdi-bell-outline" size="48" class="mx-auto mb-2 text-medium-emphasis" style="opacity:0.5" />
-              <p class="text-medium-emphasis mb-0">No notifications</p>
+    <Dialog
+      v-model:visible="open"
+      modal
+      :draggable="false"
+      class="w-full max-w-[450px] mx-4"
+      :show-header="true"
+    >
+      <template #header>
+        <div class="flex items-center justify-between w-full pr-4">
+          <span class="text-sm font-black">Notifications</span>
+          <Button 
+            v-if="notifications.length > 0" 
+            label="Clear All" 
+            variant="text" 
+            severity="secondary" 
+            class="text-[11px] font-bold text-none !p-1" 
+            @click="clearAll" 
+          />
+        </div>
+      </template>
+      
+      <div class="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1">
+        <div
+          v-for="notification in notifications"
+          :key="notification.id"
+          class="p-3.5 border rounded-xl flex items-start justify-between gap-3 transition-all"
+          :class="[
+            notification.read 
+              ? 'opacity-60 bg-surface border-border/40' 
+              : 'bg-muted/40 border-border/80'
+          ]"
+        >
+          <div class="flex-grow min-w-0">
+            <div class="flex items-center gap-2">
+              <i class="mdi mdi-text-base" :class="[getIcon(notification.type), getIconColorClass(notification.type)]"></i>
+              <p class="text-xs font-bold leading-tight truncate text-foreground">{{ notification.title }}</p>
             </div>
+            <p class="text-xs text-muted-foreground mt-1.5 leading-relaxed">{{ notification.message }}</p>
+            <p class="text-[10px] text-muted-foreground/75 mt-2 font-medium">{{ formatTime(notification.timestamp) }}</p>
           </div>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+          <Button 
+            icon="mdi mdi-close" 
+            variant="text" 
+            severity="secondary" 
+            class="rounded-full !w-6 !h-6 shrink-0 !text-muted-foreground" 
+            @click="removeNotification(notification.id)" 
+          />
+        </div>
+
+        <div v-if="notifications.length === 0" class="text-center py-10 flex flex-col items-center gap-2">
+          <i class="mdi mdi-bell-outline-text-4xl-text-muted-foreground/30"></i>
+          <p class="text-xs text-muted-foreground font-medium">No notifications</p>
+        </div>
+      </div>
+    </Dialog>
   </div>
 </template>
 
 <script setup lang="ts">
+import Dialog from 'primevue/dialog'
+import { ref } from 'vue'
 import { useNotifications } from '~/composables/useNotifications'
 
-const { notifications, removeNotification, clearAll, markAllAsRead, unreadCount } = useNotifications()
+const { notifications, removeNotification, clearAll, unreadCount } = useNotifications()
 const open = ref(false)
 
 const getIcon = (type: string) => {
@@ -68,12 +89,12 @@ const getIcon = (type: string) => {
   }
 }
 
-const getColor = (type: string) => {
+const getIconColorClass = (type: string) => {
   switch (type) {
-    case 'success': return 'success'
-    case 'warning': return 'warning'
-    case 'error': return 'error'
-    default: return 'info'
+    case 'success': return 'text-emerald-500'
+    case 'warning': return 'text-amber-500'
+    case 'error': return 'text-red-500'
+    default: return 'text-blue-500'
   }
 }
 
