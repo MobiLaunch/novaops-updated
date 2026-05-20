@@ -12,7 +12,7 @@
           class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
           :class="customer ? 'bg-blue-500/10 text-blue-500' : 'bg-indigo-500/10 text-indigo-500'"
         >
-          <i class="mdi mdi-text-lg" :class="customer ? 'mdi-pencil' : 'mdi-account-plus-outline'"></i>
+          <i class="mdi text-lg" :class="customer ? 'mdi-pencil' : 'mdi-account-plus-outline'"></i>
         </div>
         <div>
           <span class="text-sm font-black block">{{ customer ? 'Edit Customer' : 'New Customer' }}</span>

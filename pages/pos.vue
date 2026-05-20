@@ -20,7 +20,7 @@
           class="w-12 h-12 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md"
           style="background: linear-gradient(135deg, #ec4899, #db2777);"
         >
-          <i class="mdi mdi-cart-outline-text-2xl"></i>
+          <i class="mdi mdi-cart-outline text-2xl"></i>
         </div>
         <div>
           <h1 class="text-xl font-black m-0">Point of Sale</h1>
@@ -99,7 +99,7 @@
           >
             <div class="flex justify-between items-start mb-2">
               <div class="w-9 h-9 rounded-lg bg-violet-500/15 text-violet-500 flex items-center justify-center">
-                <i class="mdi mdi-shield-check-outline-text-lg"></i>
+                <i class="mdi mdi-shield-check-outline text-lg"></i>
               </div>
               <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-600">PLAN</span>
             </div>
@@ -122,7 +122,7 @@
                 :class="item.itemType === 'service' ? 'bg-emerald-500/15 text-emerald-500' : 'bg-pink-500/15 text-pink-500'"
               >
                 <i
-                  class="mdi mdi-text-lg"
+                  class="mdi text-lg"
                   :class="item.itemType === 'service' ? 'mdi-wrench-outline' : 'mdi-package-variant-closed'"
                 ></i>
               </div>
@@ -152,7 +152,7 @@
           v-if="filteredProducts.length === 0"
           class="flex flex-col items-center justify-center py-12 opacity-60 text-center"
         >
-          <i class="mdi mdi-package-variant-closed-text-5xl-text-muted-foreground-mb-2"></i>
+          <i class="mdi mdi-package-variant-closed text-5xl text-muted"></i>
           <p class="text-sm font-bold m-0">
             {{ searchQuery ? `No results for "${searchQuery}"` : 'No items in catalog' }}
           </p>
@@ -186,7 +186,7 @@
 
           <div class="flex-1 overflow-y-auto min-h-0">
             <div v-if="!cart.length" class="h-full flex flex-col items-center justify-center p-6 text-center opacity-50">
-              <i class="mdi mdi-cart-outline-text-5xl-mb-2"></i>
+              <i class="mdi mdi-cart-outline text-5xl mb-2"></i>
               <p class="text-sm font-bold m-0">Cart is empty</p>
               <p class="text-xs text-muted-foreground mt-1 m-0">Tap a product or scan a barcode</p>
             </div>
@@ -202,7 +202,7 @@
                   :class="item.isService ? 'bg-emerald-500/12 text-emerald-500' : item.isTicket ? 'bg-amber-500/12 text-amber-500' : 'bg-pink-500/12 text-pink-500'"
                 >
                   <i
-                    class="mdi mdi-text-sm"
+                    class="mdi text-sm"
                     :class="item.isService ? 'mdi-wrench-outline' : item.isTicket ? 'mdi-ticket-confirmation-outline' : 'mdi-package-variant-closed'"
                   ></i>
                 </div>
@@ -218,11 +218,11 @@
                     class="flex items-center gap-0.5 bg-muted rounded-lg px-1"
                   >
                     <Button variant="text" size="small" class="!w-7 !h-7" @click="decrementItem(idx)">
-                      <i class="mdi mdi-minus-text-sm"></i>
+                      <i class="mdi mdi-minus text-sm"></i>
                     </Button>
                     <span class="text-xs font-bold min-w-4 text-center">{{ item.quantity }}</span>
                     <Button variant="text" size="small" class="!w-7 !h-7" @click="incrementItem(idx)">
-                      <i class="mdi mdi-plus-text-sm"></i>
+                      <i class="mdi mdi-plus text-sm"></i>
                     </Button>
                   </div>
                   <Button
@@ -234,7 +234,7 @@
                     class="!w-7 !h-7"
                     @click="decrementItem(idx)"
                   >
-                    <i class="mdi mdi-close-text-sm"></i>
+                    <i class="mdi mdi-close text-sm"></i>
                   </Button>
                   <span class="text-xs font-black text-pink-500 min-w-12 text-right">
                     {{ formatCurrency(item.price * item.quantity) }}
@@ -273,7 +273,7 @@
                 <Button label="C" severity="danger" variant="outlined" class="font-black text-lg py-3" @click="handleKey('C')" />
                 <Button label="0" variant="outlined" class="font-black text-lg py-3" @click="handleKey(0)" />
                 <Button variant="outlined" class="py-3" @click="handleKey('⌫')">
-                  <i class="mdi mdi-backspace-outline-text-lg"></i>
+                  <i class="mdi mdi-backspace-outline text-lg"></i>
                 </Button>
               </div>
               <Button
@@ -303,7 +303,7 @@
               @click="mobileTab = 'checkout'"
             >
               Continue to checkout
-              <i class="mdi mdi-arrow-right-ml-2"></i>
+              <i class="mdi mdi-arrow right-ml"></i>
             </Button>
           </div>
         </div>
@@ -334,7 +334,7 @@
               : 'border-border hover:border-primary/40'"
             @click="paymentMethod = pm.id"
           >
-            <i class="mdi mdi-text-xl" :class="pm.icon" :style="{ color: pm.color }"></i>
+            <i class="mdi text-xl" :class="pm.icon" :style="{ color: pm.color }"></i>
             <span class="text-xs font-bold">{{ pm.label }}</span>
           </button>
         </div>
@@ -350,7 +350,7 @@
             @click="paymentMethod = 'Card'"
           >
             <Button severity="primary" rounded>
-              <i class="mdi mdi-credit-card-outline-mr-2"></i>
+              <i class="mdi mdi-credit-card-outline mr-2"></i>
               Use card payment
             </Button>
           </div>
@@ -441,7 +441,7 @@
     >
       <div v-if="saleResult" class="p-6 text-center flex flex-col items-center bg-surface rounded-2xl">
         <div class="w-16 h-16 rounded-full bg-emerald-500 text-white flex items-center justify-center mb-4 shadow-lg">
-          <i class="mdi mdi-check-circle-outline-text-4xl"></i>
+          <i class="mdi mdi-check-circle-outline text-4xl"></i>
         </div>
         <h2 class="text-xl font-black m-0">Sale complete!</h2>
         <p class="text-xs text-muted-foreground font-bold mt-1 mb-4">Receipt #{{ saleResult.receiptId }}</p>
@@ -468,7 +468,7 @@
           class="w-full font-bold text-none"
           @click="reprintLastReceipt"
         >
-          <i class="mdi mdi-printer-mr-2"></i>
+          <i class="mdi mdi-printer mr-2"></i>
           Print receipt
         </Button>
       </div>

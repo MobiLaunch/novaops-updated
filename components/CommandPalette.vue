@@ -10,7 +10,7 @@
     <div class="flex flex-col bg-surface text-foreground shadow-2xl">
       <!-- Search input -->
       <div class="flex items-center px-4 py-3.5 border-b border-border/60">
-        <i class="mdi mdi-magnify-text-muted-foreground-text-xl-mr-3-shrink-0"></i>
+        <i class="mdi mdi-magnify text-muted"></i>
         <input
           ref="searchInput"
           v-model="query"
@@ -29,7 +29,7 @@
       <div class="command-results max-h-[380px] overflow-y-auto">
         <!-- Empty state -->
         <div v-if="!query" class="p-8 text-center flex flex-col items-center gap-3">
-          <i class="mdi mdi-text-search-text-4xl-text-muted-foreground/30-animate-pulse"></i>
+          <i class="mdi mdi-text-search text-4xl text-muted"></i>
           <p class="text-xs text-muted-foreground font-medium">Type to search across everything</p>
           <div class="flex justify-center gap-2 mt-1">
             <span class="text-[9px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600">Tickets</span>
@@ -40,7 +40,7 @@
 
         <!-- No results -->
         <div v-else-if="allResults.length === 0" class="p-8 text-center flex flex-col items-center gap-2">
-          <i class="mdi mdi-emoticon-sad-outline-text-4xl-text-muted-foreground/30"></i>
+          <i class="mdi mdi-emoticon-sad-outline text-4xl text-muted"></i>
           <p class="text-xs text-muted-foreground font-medium">No results for "{{ query }}"</p>
         </div>
 
@@ -49,7 +49,7 @@
           <!-- Tickets -->
           <div v-if="ticketResults.length" class="py-2">
             <p class="text-[10px] font-black text-muted-foreground/80 uppercase tracking-wider px-4 py-1.5 flex items-center gap-1.5">
-              <i class="mdi mdi-ticket-outline-text-xs"></i> Tickets ({{ ticketResults.length }})
+              <i class="mdi mdi-ticket-outline text-xs"></i> Tickets ({{ ticketResults.length }})
             </p>
             <div class="flex flex-col px-2 gap-0.5">
               <div
@@ -84,7 +84,7 @@
           <!-- Customers -->
           <div v-if="customerResults.length" class="py-2">
             <p class="text-[10px] font-black text-muted-foreground/80 uppercase tracking-wider px-4 py-1.5 flex items-center gap-1.5">
-              <i class="mdi mdi-account-group-text-xs"></i> Customers ({{ customerResults.length }})
+              <i class="mdi mdi-account-group text-xs"></i> Customers ({{ customerResults.length }})
             </p>
             <div class="flex flex-col px-2 gap-0.5">
               <div
@@ -116,7 +116,7 @@
           <!-- Inventory -->
           <div v-if="inventoryResults.length" class="py-2">
             <p class="text-[10px] font-black text-muted-foreground/80 uppercase tracking-wider px-4 py-1.5 flex items-center gap-1.5">
-              <i class="mdi mdi-package-variant-closed-text-xs"></i> Inventory ({{ inventoryResults.length }})
+              <i class="mdi mdi-package-variant-closed text-xs"></i> Inventory ({{ inventoryResults.length }})
             </p>
             <div class="flex flex-col px-2 gap-0.5">
               <div
@@ -133,7 +133,7 @@
               >
                 <div class="flex items-center gap-3 min-w-0">
                   <div class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0">
-                    <i class="mdi mdi-package-variant-text-sm"></i>
+                    <i class="mdi mdi-package-variant text-sm"></i>
                   </div>
                   <div class="min-w-0 leading-tight">
                     <p class="text-xs font-semibold truncate text-foreground">{{ item.name }}</p>

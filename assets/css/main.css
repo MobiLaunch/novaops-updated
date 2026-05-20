@@ -25,9 +25,7 @@ body {
 }
 
 /* ── Utility Shims ────────────────────────────── */
-/* Lightweight utility classes that replace the few Tailwind utilities
-   still referenced in templates.  Vuetify's own d-flex / pa-X / etc.
-   cover the majority; these fill the remaining gaps. */
+/* Lightweight utilities used across PrimeVue templates */
 
 /* Sizing */
 .w-2    { width:  0.5rem; }
@@ -213,9 +211,44 @@ body {
 
 /* Grid */
 .grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
 .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.col-span-2 { grid-column: span 2 / span 2; }
+.col-span-full { grid-column: 1 / -1; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.max-w-lg { max-width: 32rem; }
+
+@media (min-width: 640px) {
+  .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sm\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .sm\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .sm\:p-6 { padding: 1.5rem; }
+  .sm\:p-8 { padding: 2rem; }
+  .md\:pl-14 { padding-left: 3.5rem; }
+}
+@media (min-width: 768px) {
+  .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .md\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .md\:col-span-4 { grid-column: span 4 / span 4; }
+  .md\:col-span-5 { grid-column: span 5 / span 5; }
+  .md\:col-span-6 { grid-column: span 6 / span 6; }
+  .md\:flex-end { justify-content: flex-end; }
+  .md\:justify-end { justify-content: flex-end; }
+}
+@media (min-width: 1024px) {
+  .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .lg\:col-span-4 { grid-column: span 4 / span 4; }
+  .lg\:col-span-5 { grid-column: span 5 / span 5; }
+  .lg\:col-span-6 { grid-column: span 6 / span 6; }
+  .lg\:col-span-12 { grid-column: span 12 / span 12; }
+  .lg\:block { display: block; }
+  .lg\:flex { display: flex; }
+}
 
 /* ── Animation ────────────────────────────────── */
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -235,3 +268,62 @@ body {
 
 /* ── Electron titlebar gap ───────────────────── */
 .electron-app { padding-top: 40px; }
+
+/* ── App layout patterns ─────────────────────── */
+.page-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.kpi-card {
+  background: var(--p-content-background, #fff);
+  border: 1px solid var(--p-content-border-color, hsl(var(--border)));
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.filter-chip {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid var(--p-content-border-color, hsl(var(--border)));
+  background: transparent;
+  color: var(--p-text-muted-color, hsl(var(--muted-foreground)));
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.filter-chip:hover { background: hsl(var(--muted)); }
+.filter-chip--active {
+  background: color-mix(in srgb, var(--p-primary-500, #6366f1) 12%, transparent);
+  border-color: color-mix(in srgb, var(--p-primary-500, #6366f1) 35%, transparent);
+  color: var(--p-primary-500, #6366f1);
+}
+
+.search-field-wrap { position: relative; max-width: 20rem; }
+.search-field-wrap .mdi-magnify {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--p-text-muted-color, hsl(var(--muted-foreground)));
+  pointer-events: none;
+}
+.search-field-wrap .p-inputtext { padding-left: 2.25rem; border-radius: 9999px; width: 100%; }
+
+/* PrimeVue polish */
+.p-dialog .p-dialog-content { padding: 0; }
+.p-tablist { background: transparent; }
+.p-datatable .p-datatable-tbody > tr { cursor: pointer; }
+.p-button.text-none .p-button-label { text-transform: none; }
+.p-dark {
+  --background: 222 47% 7%;
+  --foreground: 210 40% 98%;
+  --muted: 217 33% 14%;
+  --muted-foreground: 215 20% 65%;
+  --border: 217 33% 18%;
+}

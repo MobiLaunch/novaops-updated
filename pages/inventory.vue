@@ -1,408 +1,242 @@
 <template>
-  <div>
-
-    <!-- ── Page Header ─────────────────────────────────────────── -->
-    <div class="d-flex align-center justify-space-between flex-wrap gap-3 mb-6">
-      <div class="d-flex align-center gap-4">
-        <v-avatar
-          size="48"
-          rounded="xl"
-          style="background: linear-gradient(135deg,#8b5cf6,#7c3aed); box-shadow: 0 4px 20px #8b5cf650"
-        >
-          <i class="mdi mdi-package-variant-closed"></i>
-        </v-avatar>
-        <div>
-          <h1 class="text-h5 font-weight-black">Inventory &amp; Services</h1>
-          <p class="text-body-2 text-medium-emphasis">Track parts, tools, accessories &amp; repair services</p>
-        </div>
-      </div>
-      <div class="d-flex gap-2">
-        <v-btn variant="tonal" prepend-icon="mdi-printer" @click="handleBatchPrint">Print Labels</v-btn>
-        <v-btn variant="tonal" prepend-icon="mdi-alert-outline" @click="checkLowStock">Low Stock</v-btn>
-        <v-btn
-          color="deep-purple"
-          prepend-icon="mdi-plus"
+  <div class="page-shell">
+    <header class="flex items-center justify-between flex-wrap gap-3">
+      <div class="flex items-center gap-4">
+        <div
+          class="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md shrink-0"
           style="background: linear-gradient(135deg,#8b5cf6,#7c3aed)"
-          @click="openNew"
-        >Add Item</v-btn>
-      </div>
-    </div>
-
-    <!-- ── Tabs ─────────────────────────────────────────────────── -->
-    <v-tabs v-model="activeTab" color="deep-purple" class="mb-4">
-      <v-tab value="stock">
-        <i class="mdi mdi-package-variant-closed"></i>
-        Stock & Services
-      </v-tab>
-      <v-tab value="services">
-        <i class="mdi mdi-wrench-outline"></i>
-        Service Pricing
-      </v-tab>
-      <v-tab value="tradein">
-        <i class="mdi mdi-swap-horizontal"></i>
-        Trade-In
-      </v-tab>
-    </v-tabs>
-
-    <v-tabs-window v-model="activeTab" style="overflow: visible;">
-      <v-tabs-window-item value="stock">
-        <!-- ── Stat Cards ───────────────────────────────────────────── -->
-        <v-row dense class="mb-5">
-      <v-col v-for="stat in stats" :key="stat.label" cols="6" sm="3">
-        <v-card
-          class="pa-4 stat-card"
-          :style="`background:${stat.color}12; outline:2px solid ${stat.color}28; outline-offset:0`"
         >
-          <div class="d-flex align-center justify-space-between mb-3">
-            <v-avatar size="40" rounded="lg" :style="`background:${stat.color}24`">
-              <i class="mdi text-xl" :class="stat.icon"></i>
-            </v-avatar>
-            <v-chip size="x-small" :style="`background:${stat.color}20;color:${stat.color}`" variant="flat">
-              {{ stat.badge }}
-            </v-chip>
-          </div>
-          <div class="text-caption text-medium-emphasis font-weight-medium">{{ stat.label }}</div>
-          <div class="text-h5 font-weight-black" :style="`color:${stat.color}`">{{ stat.value }}</div>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- ── Search & Filters ─────────────────────────────────────── -->
-    <v-card class="pa-4 mb-4">
-      <div class="d-flex align-center gap-3 flex-wrap">
-        <v-text-field
-          v-model="q"
-          placeholder="Search by name, SKU, or category…"
-          prepend-inner-icon="mdi-magnify"
-          hide-details
-          density="compact"
-          rounded="pill"
-          style="max-width:320px; min-width:200px"
-        />
-        <v-chip-group v-model="typeFilterIdx" mandatory selected-class="text-deep-purple">
-          <v-chip
-            v-for="t in typeOptions"
-            :key="t.value ?? 'all'"
-            size="small"
-            :color="typeFilter === t.value ? 'deep-purple' : undefined"
-            :variant="typeFilter === t.value ? 'tonal' : 'outlined'"
-            @click="typeFilter = t.value"
-          >{{ t.label }}</v-chip>
-        </v-chip-group>
-        <div v-if="dynamicCategories.length" class="d-flex gap-2 flex-wrap">
-          <v-chip
-            v-for="cat in ['All', ...dynamicCategories]"
-            :key="cat"
-            size="small"
-            :color="selectedCat === (cat === 'All' ? null : cat) ? 'deep-purple' : undefined"
-            :variant="selectedCat === (cat === 'All' ? null : cat) ? 'tonal' : 'outlined'"
-            @click="selectedCat = cat === 'All' ? null : cat"
-          >{{ cat }}</v-chip>
+          <i class="mdi mdi-package-variant-closed text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-black m-0">Inventory & Services</h1>
+          <p class="text-sm text-muted-foreground m-0">Track parts, tools, accessories & repair services</p>
         </div>
       </div>
-    </v-card>
+      <div class="flex flex-wrap gap-2">
+        <Button label="Print Labels" variant="outlined" class="text-none" @click="handleBatchPrint"><i class="mdi mdi-printer mr-1"></i></Button>
+        <Button label="Low Stock" variant="outlined" class="text-none" @click="checkLowStock"><i class="mdi mdi-alert-outline mr-1"></i></Button>
+        <Button label="Add Item" class="text-none font-bold text-white" style="background: linear-gradient(135deg,#8b5cf6,#7c3aed)" @click="openNew">
+          <i class="mdi mdi-plus mr-1"></i>
+        </Button>
+      </div>
+    </header>
 
-    <!-- ── Item Grid ─────────────────────────────────────────────── -->
-    <v-row>
-      <v-col
-        v-for="item in filtered"
-        :key="item.id"
-        cols="12"
-        sm="6"
-        lg="4"
-        xl="3"
-      >
-        <v-card
-          class="item-card pa-4 h-100"
-          style="cursor:pointer"
-          @click="openEdit(item)"
-        >
-          <div class="d-flex align-start justify-space-between mb-3">
-            <v-avatar
-              size="48"
-              rounded="xl"
-              :style="item.itemType === 'service'
-                ? 'background:linear-gradient(135deg,#22d3ee18,#0891b218)'
-                : 'background:linear-gradient(135deg,#8b5cf620,#7c3aed20)'"
+    <Tabs v-model:value="activeTab">
+      <TabList>
+        <Tab value="stock"><i class="mdi mdi-package-variant-closed mr-1"></i> Stock & Services</Tab>
+        <Tab value="services"><i class="mdi mdi-wrench-outline mr-1"></i> Service Pricing</Tab>
+        <Tab value="tradein"><i class="mdi mdi-swap-horizontal mr-1"></i> Trade-In</Tab>
+      </TabList>
+
+      <TabPanels class="pt-4">
+        <TabPanel value="stock">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+            <div
+              v-for="stat in stats"
+              :key="stat.label"
+              class="kpi-card stat-card"
+              :style="`background:${stat.color}12; outline:2px solid ${stat.color}28`"
             >
-              <i
-                class="mdi text-xl"
-                :class="item.itemType === 'service' ? 'mdi-wrench-outline' : 'mdi-package-variant-closed'"
-                :style="item.itemType === 'service' ? 'color:#22d3ee' : 'color:#8b5cf6'"
-              ></i>
-            </v-avatar>
-            <div class="d-flex flex-column align-end gap-1">
-              <v-chip
-                size="x-small"
-                variant="flat"
-                :style="item.itemType === 'service'
-                  ? 'background:#22d3ee20;color:#22d3ee'
-                  : 'background:#8b5cf620;color:#8b5cf6'"
-              >{{ item.itemType === 'service' ? 'SERVICE' : 'PRODUCT' }}</v-chip>
-              <v-chip
-                size="x-small"
-                variant="flat"
-                :color="item.itemType === 'service' ? 'info'
-                  : item.stock <= (item.low || 5) ? 'error' : 'success'"
-              >{{ item.itemType === 'service' ? 'AVAILABLE'
-                  : item.stock <= (item.low || 5) ? '⚠ LOW' : 'IN STOCK' }}</v-chip>
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center" :style="`background:${stat.color}24;color:${stat.color}`">
+                  <i class="mdi text-xl" :class="stat.icon"></i>
+                </div>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" :style="`background:${stat.color}20;color:${stat.color}`">{{ stat.badge }}</span>
+              </div>
+              <div class="text-xs text-muted-foreground">{{ stat.label }}</div>
+              <div class="text-2xl font-black" :style="`color:${stat.color}`">{{ stat.value }}</div>
             </div>
           </div>
 
-          <div class="flex-grow-1 mb-3">
-            <div class="text-body-2 font-weight-black mb-1">{{ item.name }}</div>
-            <div class="text-caption text-medium-emphasis">
-              {{ item.itemType !== 'service' ? `SKU: ${item.sku || '—'}` : (item.description || '') }}
+          <div class="bg-surface border border-border rounded-xl p-4 mb-4 flex flex-wrap items-center gap-3">
+            <div class="search-field-wrap flex-1 min-w-[200px]">
+              <i class="mdi mdi-magnify"></i>
+              <InputText v-model="q" placeholder="Search by name, SKU, or category…" class="w-full" />
             </div>
-            <div class="text-caption text-medium-emphasis">{{ item.category }}</div>
-          </div>
-
-          <v-divider class="mb-3" />
-          <div class="d-flex align-end justify-space-between">
-            <div>
-              <div
-                class="text-h6 font-weight-black"
-                :style="item.itemType === 'service' ? 'color:#22d3ee' : 'color:#8b5cf6'"
-              >{{ formatCurrency(item.price) }}</div>
-              <div v-if="item.itemType !== 'service'" class="text-caption text-medium-emphasis">
-                Cost: {{ formatCurrency(item.cost || 0) }}
-              </div>
-              <div v-else class="text-caption text-medium-emphasis">
-                {{ item.estimated_minutes || item.duration
-                    ? `~${item.estimated_minutes || item.duration} min`
-                    : 'Labor rate' }}
-              </div>
+            <div class="flex flex-wrap gap-2">
+              <button
+                v-for="t in typeOptions"
+                :key="t.value ?? 'all'"
+                type="button"
+                class="filter-chip"
+                :class="{ 'filter-chip--active': typeFilter === t.value }"
+                @click="typeFilter = t.value"
+              >{{ t.label }}</button>
             </div>
-            <div class="text-right">
-              <div class="text-h5 font-weight-black">
-                {{ item.itemType !== 'service' ? item.stock : '∞' }}
-              </div>
-              <div class="text-caption text-medium-emphasis font-weight-bold" style="font-size:10px">
-                {{ item.itemType !== 'service' ? 'UNITS' : 'UNLIMITED' }}
-              </div>
+            <div v-if="dynamicCategories.length" class="flex flex-wrap gap-2">
+              <button
+                v-for="cat in ['All', ...dynamicCategories]"
+                :key="cat"
+                type="button"
+                class="filter-chip"
+                :class="{ 'filter-chip--active': selectedCat === (cat === 'All' ? null : cat) }"
+                @click="selectedCat = cat === 'All' ? null : cat"
+              >{{ cat }}</button>
             </div>
           </div>
-        </v-card>
-      </v-col>
 
-      <!-- Empty state -->
-      <v-col v-if="filtered.length === 0" cols="12">
-        <v-card class="pa-12 text-center">
-          <v-avatar size="80" rounded="xl" color="deep-purple" variant="tonal" class="mb-4 mx-auto">
-            <i class="mdi mdi-package-variant-closed"></i>
-          </v-avatar>
-          <div class="text-h6 font-weight-black mb-1">No items found</div>
-          <div class="text-body-2 text-medium-emphasis">
-            {{ q ? 'Try a different search' : 'Add your first item' }}
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <div
+              v-for="item in filtered"
+              :key="item.id"
+              class="item-card bg-surface border border-border rounded-xl p-4 flex flex-col cursor-pointer h-full"
+              @click="openEdit(item)"
+            >
+              <div class="flex items-start justify-between mb-3">
+                <div
+                  class="w-12 h-12 rounded-xl flex items-center justify-center"
+                  :style="item.itemType === 'service' ? 'background:#22d3ee18;color:#22d3ee' : 'background:#8b5cf620;color:#8b5cf6'"
+                >
+                  <i class="mdi text-xl" :class="item.itemType === 'service' ? 'mdi-wrench-outline' : 'mdi-package-variant-closed'"></i>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                  <Tag :value="item.itemType === 'service' ? 'SERVICE' : 'PRODUCT'" />
+                  <Tag
+                    :value="item.itemType === 'service' ? 'AVAILABLE' : item.stock <= (item.low || 5) ? 'LOW' : 'IN STOCK'"
+                    :severity="item.itemType === 'service' ? 'info' : item.stock <= (item.low || 5) ? 'danger' : 'success'"
+                  />
+                </div>
+              </div>
+              <div class="flex-1 mb-3 min-w-0">
+                <div class="text-sm font-black mb-1 truncate">{{ item.name }}</div>
+                <div class="text-xs text-muted-foreground truncate">
+                  {{ item.itemType !== 'service' ? `SKU: ${item.sku || '—'}` : (item.description || '') }}
+                </div>
+                <div class="text-xs text-muted-foreground">{{ item.category }}</div>
+              </div>
+              <hr class="border-border mb-3" />
+              <div class="flex items-end justify-between">
+                <div>
+                  <div class="text-lg font-black" :style="item.itemType === 'service' ? 'color:#22d3ee' : 'color:#8b5cf6'">{{ formatCurrency(item.price) }}</div>
+                  <div v-if="item.itemType !== 'service'" class="text-xs text-muted-foreground">Cost: {{ formatCurrency(item.cost || 0) }}</div>
+                  <div v-else class="text-xs text-muted-foreground">
+                    {{ item.estimated_minutes || item.duration ? `~${item.estimated_minutes || item.duration} min` : 'Labor rate' }}
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="text-xl font-black">{{ item.itemType !== 'service' ? item.stock : '∞' }}</div>
+                  <div class="text-[10px] font-bold text-muted-foreground">{{ item.itemType !== 'service' ? 'UNITS' : 'UNLIMITED' }}</div>
+                </div>
+              </div>
+            </div>
+            <div v-if="!filtered.length" class="col-span-full text-center py-12 border border-dashed border-border rounded-xl">
+              <i class="mdi mdi-package-variant-closed text-5xl text-violet-500 opacity-40 block mb-2"></i>
+              <p class="font-black m-0">No items found</p>
+              <p class="text-sm text-muted-foreground">{{ q ? 'Try a different search' : 'Add your first item' }}</p>
+            </div>
           </div>
-        </v-card>
-      </v-col>
-    </v-row>
-      </v-tabs-window-item>
+        </TabPanel>
 
-      <v-tabs-window-item value="services">
-        <v-card>
-          <v-card-item class="border-b" style="background:#10b98108">
-            <template #prepend>
-              <v-avatar size="40" rounded="xl" style="background:linear-gradient(135deg,#10b981,#059669)">
+        <TabPanel value="services">
+          <div class="bg-surface border border-border rounded-xl overflow-hidden">
+            <div class="p-4 border-b border-border flex items-center gap-3" style="background:#10b98108">
+              <div class="w-10 h-10 rounded-xl text-white flex items-center justify-center" style="background:linear-gradient(135deg,#10b981,#059669)">
                 <i class="mdi mdi-wrench-outline"></i>
-              </v-avatar>
-            </template>
-            <v-card-title class="text-body-1 font-weight-black">Service Pricing</v-card-title>
-            <v-card-subtitle>Manage your repair services, prices, and time estimates</v-card-subtitle>
-          </v-card-item>
-          <v-card-text class="pa-6">
-            <div v-if="servicesList.length === 0" class="d-flex flex-column align-center gap-3 py-10 text-medium-emphasis">
-              <v-avatar size="64" rounded="xl" color="success" variant="tonal">
-                <i class="mdi mdi-wrench-outline"></i>
-              </v-avatar>
-              <div class="text-body-2 font-weight-bold">No services yet</div>
-              <div class="text-caption">Use the "Add Item" button above with type "Service" to add one</div>
+              </div>
+              <div>
+                <div class="font-black text-sm">Service Pricing</div>
+                <div class="text-xs text-muted-foreground">Manage repair services, prices, and time estimates</div>
+              </div>
             </div>
-            <v-row v-else dense>
-              <v-col v-for="svc in servicesList" :key="svc.id" cols="12" sm="6" lg="4">
-                <v-card variant="outlined" class="pa-4 h-100 item-card" style="border-color:#10b98130; cursor:pointer" @click="openEdit(svc)">
-                  <div class="d-flex align-center gap-3 mb-3">
-                    <v-avatar size="40" rounded="lg" style="background:#10b98118">
+            <div class="p-6">
+              <div v-if="!servicesList.length" class="text-center py-10 text-muted-foreground">
+                <i class="mdi mdi-wrench-outline text-5xl opacity-40 block mb-2"></i>
+                <p class="font-bold m-0">No services yet</p>
+                <p class="text-xs">Use Add Item with type Service</p>
+              </div>
+              <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div
+                  v-for="svc in servicesList"
+                  :key="svc.id"
+                  class="item-card border border-emerald-500/30 rounded-xl p-4 cursor-pointer"
+                  @click="openEdit(svc)"
+                >
+                  <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-500/15 text-emerald-600 flex items-center justify-center">
                       <i class="mdi mdi-wrench-outline"></i>
-                    </v-avatar>
-                    <div class="flex-grow-1 min-w-0">
-                      <div class="text-body-2 font-weight-bold text-truncate">{{ svc.name }}</div>
-                      <div class="text-caption text-medium-emphasis text-truncate">{{ svc.category || 'Services' }}</div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-sm font-bold truncate">{{ svc.name }}</div>
+                      <div class="text-xs text-muted-foreground truncate">{{ svc.category || 'Services' }}</div>
                     </div>
                   </div>
-                  <div class="d-flex align-center justify-space-between">
-                    <span class="text-h6 font-weight-black" style="color:#10b981">{{ formatCurrency(svc.price) }}</span>
-                    <v-chip v-if="svc.estimated_minutes" size="x-small" color="success" variant="tonal">
-                      {{ svc.estimated_minutes }} min
-                    </v-chip>
+                  <div class="flex items-center justify-between">
+                    <span class="text-lg font-black text-emerald-600">{{ formatCurrency(svc.price) }}</span>
+                    <Tag v-if="svc.estimated_minutes" :value="svc.estimated_minutes + ' min'" severity="success" />
                   </div>
-                </v-card>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-      </v-tabs-window-item>
-
-      <v-tabs-window-item value="tradein">
-        <v-card class="pa-12 text-center" variant="outlined" style="border-color: rgba(var(--v-theme-warning), 0.3)">
-          <v-avatar size="80" rounded="xl" color="warning" variant="tonal" class="mb-4 mx-auto">
-            <i class="mdi mdi-swap-horizontal"></i>
-          </v-avatar>
-          <div class="text-h5 font-weight-black mb-2">Trade-In Evaluator</div>
-          <div class="text-body-1 text-medium-emphasis mb-6 max-w-md mx-auto" style="max-width: 500px">
-            Assess customer devices, calculate condition-based offers, and automatically add purchased devices to your inventory.
+                </div>
+              </div>
+            </div>
           </div>
-          <v-btn
-            color="warning"
-            size="large"
-            prepend-icon="mdi-calculator"
-            @click="tradeInWizardOpen = true"
-          >
-            Start New Evaluation
-          </v-btn>
-        </v-card>
-      </v-tabs-window-item>
-    </v-tabs-window>
+        </TabPanel>
 
-    <!-- ── Add/Edit Dialog ─────────────────────────────────────── -->
-    <v-dialog v-model="newOpen" max-width="520" scrollable>
-      <v-card>
-        <v-card-item class="border-b">
-          <template #prepend>
-            <v-avatar
-              size="40"
-              rounded="xl"
-              :style="form.itemType === 'service'
-                ? 'background:linear-gradient(135deg,#22d3ee,#0891b2)'
-                : 'background:linear-gradient(135deg,#8b5cf6,#7c3aed)'"
-            >
-              <i
-                class="mdi text-xl text-white"
-                :class="form.itemType === 'service' ? 'mdi-wrench-outline' : 'mdi-package-variant-closed'"
-              ></i>
-            </v-avatar>
-          </template>
-          <v-card-title>{{ editingItem ? 'Edit Item' : 'Add Item' }}</v-card-title>
-          <v-card-subtitle>{{ form.itemType === 'service' ? 'Service or labor item' : 'Inventory details' }}</v-card-subtitle>
-          <template #append>
-            <v-btn icon="mdi-close" variant="text" size="small" @click="newOpen = false; editingItem = null" />
-          </template>
-        </v-card-item>
+        <TabPanel value="tradein">
+          <div class="text-center py-12 px-6 border border-amber-500/30 rounded-xl bg-amber-500/5 max-w-lg mx-auto">
+            <i class="mdi mdi-swap-horizontal text-5xl text-amber-500 block mb-4"></i>
+            <h2 class="text-xl font-black m-0 mb-2">Trade-In Evaluator</h2>
+            <p class="text-sm text-muted-foreground mb-6">
+              Assess customer devices, calculate condition-based offers, and add purchased devices to inventory.
+            </p>
+            <Button label="Start New Evaluation" severity="warn" class="text-none font-bold" @click="tradeInWizardOpen = true">
+              <i class="mdi mdi-calculator mr-1"></i>
+            </Button>
+          </div>
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
 
-        <v-card-text class="pa-6">
-          <!-- Item type toggle -->
-          <v-btn-toggle
-            v-model="form.itemType"
-            mandatory
-            rounded="pill"
-            density="compact"
-            color="deep-purple"
-            class="mb-5 w-100"
-            divided
-          >
-            <v-btn value="product" class="flex-1">📦 Product</v-btn>
-            <v-btn value="service" class="flex-1">🔧 Service</v-btn>
-          </v-btn-toggle>
+    <Dialog v-model:visible="newOpen" modal :header="editingItem ? 'Edit Item' : 'Add Item'" class="w-full max-w-lg mx-4">
+      <p class="text-xs text-muted-foreground mt-0 mb-4">{{ form.itemType === 'service' ? 'Service or labor item' : 'Inventory details' }}</p>
+      <SelectButton
+        v-model="form.itemType"
+        :options="[{ label: 'Product', value: 'product' }, { label: 'Service', value: 'service' }]"
+        option-label="label"
+        option-value="value"
+        :allow-empty="false"
+        class="mb-4 w-full"
+      />
+      <div class="flex flex-col gap-3">
+        <InputText
+          v-model="form.name"
+          :placeholder="form.itemType === 'service' ? 'Service name' : 'Item name'"
+          class="w-full rounded-xl"
+        />
+        <template v-if="form.itemType === 'product'">
+          <div class="grid grid-cols-2 gap-3">
+            <InputText v-model="form.sku" placeholder="SKU" class="rounded-xl" />
+            <Select v-model="form.category" :options="allCategories" placeholder="Category" class="w-full" />
+            <InputText v-model.number="form.price" type="number" placeholder="Price" class="rounded-xl" />
+            <InputText v-model.number="form.cost" type="number" placeholder="Cost" class="rounded-xl" />
+            <InputText v-model.number="form.stock" type="number" placeholder="Stock qty" class="rounded-xl" />
+            <InputText v-model.number="form.low" type="number" placeholder="Low stock alert" class="rounded-xl" />
+          </div>
+        </template>
+        <template v-else>
+          <div class="grid grid-cols-2 gap-3">
+            <InputText v-model.number="form.price" type="number" placeholder="Price ($)" class="rounded-xl" />
+            <InputText v-model.number="form.estimated_minutes" type="number" placeholder="Duration (min)" class="rounded-xl" />
+          </div>
+          <InputText v-model="form.category" placeholder="Category" class="rounded-xl w-full" />
+          <Textarea v-model="form.description" rows="2" placeholder="Description" class="w-full rounded-xl" />
+        </template>
+      </div>
+      <template #footer>
+        <Button v-if="editingItem" label="Print Label" variant="outlined" class="text-none mr-auto" @click="printCurrentLabel" />
+        <Button label="Cancel" variant="text" class="text-none" @click="newOpen = false; editingItem = null" />
+        <Button :label="editingItem ? 'Save Changes' : 'Add Item'" class="text-none font-bold" :loading="isSaving" @click="saveItem" />
+      </template>
+    </Dialog>
 
-          <v-row dense>
-            <v-col cols="12">
-              <v-text-field
-                v-model="form.name"
-                :label="form.itemType === 'service' ? 'Service Name' : 'Item Name'"
-                :placeholder="form.itemType === 'service' ? 'Screen Replacement Labor' : 'Screen Replacement'"
-                variant="outlined"
-                density="comfortable"
-              />
-            </v-col>
-
-            <!-- Product fields -->
-            <template v-if="form.itemType === 'product'">
-              <v-col cols="6">
-                <v-text-field v-model="form.sku" label="SKU" placeholder="SKU-001" variant="outlined" density="comfortable" />
-              </v-col>
-              <v-col cols="6">
-                <v-select
-                  v-model="form.category"
-                  :items="allCategories"
-                  label="Category"
-                  variant="outlined"
-                  density="comfortable"
-                />
-              </v-col>
-              <v-col cols="6">
-                <v-text-field v-model.number="form.price" type="number" label="Price" placeholder="29.99" variant="outlined" density="comfortable" prefix="$" />
-              </v-col>
-              <v-col cols="6">
-                <v-text-field v-model.number="form.cost" type="number" label="Cost" placeholder="15.00" variant="outlined" density="comfortable" prefix="$" />
-              </v-col>
-              <v-col cols="6">
-                <v-text-field v-model.number="form.stock" type="number" label="Stock Qty" placeholder="10" variant="outlined" density="comfortable" />
-              </v-col>
-              <v-col cols="6">
-                <v-text-field v-model.number="form.low" type="number" label="Low Stock Alert" placeholder="5" variant="outlined" density="comfortable" />
-              </v-col>
-            </template>
-
-            <!-- Service fields -->
-            <template v-else>
-              <v-col cols="6">
-                <v-text-field v-model.number="form.price" type="number" label="Price ($)" placeholder="75.00" variant="outlined" density="comfortable" prefix="$" />
-              </v-col>
-              <v-col cols="6">
-                <v-text-field v-model.number="form.estimated_minutes" type="number" label="Duration (min)" placeholder="60" variant="outlined" density="comfortable" />
-              </v-col>
-              <v-col cols="12">
-                <v-text-field v-model="form.category" label="Category" placeholder="e.g. Apple Repairs, Samsung Repairs" variant="outlined" density="comfortable" />
-              </v-col>
-              <v-col cols="12">
-                <v-textarea v-model="form.description" label="Description" placeholder="Brief description of the service" rows="2" variant="outlined" density="comfortable" />
-              </v-col>
-            </template>
-          </v-row>
-        </v-card-text>
-
-        <v-divider />
-        <v-card-actions class="pa-4">
-          <v-btn
-            v-if="editingItem"
-            variant="outlined"
-            prepend-icon="mdi-printer"
-            @click="printCurrentLabel"
-          >Print Label</v-btn>
-          <v-spacer />
-          <v-btn variant="text" @click="newOpen = false; editingItem = null">Cancel</v-btn>
-          <v-btn
-            :color="form.itemType === 'service' ? 'cyan' : 'deep-purple'"
-            :loading="isSaving"
-            @click="saveItem"
-          >{{ editingItem ? 'Save Changes' : 'Add Item' }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Batch print confirmation -->
-    <v-dialog v-model="batchPrintConfirmOpen" max-width="420">
-      <v-card>
-        <v-card-item>
-          <template #prepend>
-            <v-avatar color="warning" size="40" rounded="lg" variant="tonal">
-              <i class="mdi mdi-printer"></i>
-            </v-avatar>
-          </template>
-          <v-card-title>Print {{ batchPrintCount }} labels?</v-card-title>
-          <v-card-subtitle>Make sure your label printer is ready.</v-card-subtitle>
-        </v-card-item>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="batchPrintConfirmOpen = false">Cancel</v-btn>
-          <v-btn color="warning" @click="executeBatchPrint">Print All</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <Dialog v-model:visible="batchPrintConfirmOpen" modal :header="`Print ${batchPrintCount} labels?`" class="w-full max-w-sm mx-4">
+      <p class="text-sm text-muted-foreground m-0">Make sure your label printer is ready.</p>
+      <template #footer>
+        <Button label="Cancel" variant="text" class="text-none" @click="batchPrintConfirmOpen = false" />
+        <Button label="Print All" severity="warn" class="text-none" @click="executeBatchPrint" />
+      </template>
+    </Dialog>
 
     <TradeInWizard v-model="tradeInWizardOpen" @saved="handleTradeInSaved" />
-
   </div>
 </template>
 
@@ -429,7 +263,6 @@ const servicesList = computed(() => allItems.value.filter((i: any) => i.itemType
 const q            = ref('')
 const selectedCat  = ref<string|null>(null)
 const typeFilter   = ref<string|null>(null)
-const typeFilterIdx = ref(0)
 const newOpen      = ref(false)
 const editingItem  = ref<any>(null)
 const isSaving     = ref(false)

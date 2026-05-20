@@ -5,7 +5,7 @@
     <div class="flex align-center justify-between flex-wrap gap-4 mb-2">
       <div class="flex items-center gap-4">
         <div class="w-14 h-14 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
-          <i class="mdi mdi-file-document-outline-text-2xl"></i>
+          <i class="mdi mdi-file-document-outline text-2xl"></i>
         </div>
         <div>
           <h1 class="text-2xl font-black">Forms</h1>
@@ -27,7 +27,7 @@
             class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0"
             :style="{ backgroundColor: `${template.color}15`, color: template.color }"
           >
-            <i class="mdi mdi-text-xl" :class="template.icon"></i>
+            <i class="mdi text-xl" :class="template.icon"></i>
           </div>
         </div>
         <div>
@@ -67,7 +67,7 @@
               class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
               :style="{ backgroundColor: `${activeForm.color}15`, color: activeForm.color }"
             >
-              <i class="mdi mdi-text-lg" :class="activeForm.icon"></i>
+              <i class="mdi text-lg" :class="activeForm.icon"></i>
             </div>
             <h3 class="text-sm font-black">{{ activeForm.label }}</h3>
           </div>
@@ -75,7 +75,7 @@
           <div class="flex flex-col gap-5">
             <!-- Business info (auto-filled from settings) -->
             <div class="rounded-xl p-4 flex items-center gap-3 bg-muted/50 border">
-              <i class="mdi mdi-office-building-outline-text-lg-text-muted-foreground"></i>
+              <i class="mdi mdi-office-building-outline text-lg text-muted"></i>
               <div>
                 <p class="font-bold text-xs">{{ settings.businessName || 'Your Business' }}</p>
                 <p class="text-[10px] text-muted-foreground mt-0.5">{{ [settings.phone, settings.email].filter(Boolean).join(' · ') || 'Set phone & email in Settings' }}</p>
@@ -186,7 +186,7 @@
         <div class="bg-surface border border-border rounded-xl overflow-hidden flex flex-col h-full">
           <div class="px-5 py-3 border-b flex items-center justify-between bg-muted/30 shrink-0">
             <div class="flex items-center gap-2">
-              <i class="mdi mdi-eye-outline-text-muted-foreground"></i>
+              <i class="mdi mdi-eye-outline text-muted"></i>
               <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Live Preview</span>
             </div>
             <span class="text-[10px] text-muted-foreground">Updates as you type</span>
@@ -297,7 +297,7 @@
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
-            <i class="mdi mdi-clock-outline-text-lg"></i>
+            <i class="mdi mdi-clock-outline text-lg"></i>
           </div>
           <h3 class="text-base font-black">Recent Documents</h3>
         </div>
@@ -318,7 +318,7 @@
         >
           <div class="flex items-center gap-3 min-w-0">
             <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
-              <i class="mdi mdi-receipt-text-outline-text-lg"></i>
+              <i class="mdi mdi-receipt-text-outline text-lg"></i>
             </div>
             <div class="min-w-0">
               <div class="text-xs font-bold truncate leading-tight">{{ inv.type }} — {{ inv.customerName }}</div>

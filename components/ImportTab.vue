@@ -5,7 +5,7 @@
     <div class="flex align-center justify-between flex-wrap gap-4 mb-2">
       <div class="flex items-center gap-4">
         <div class="w-14 h-14 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0">
-          <i class="mdi mdi-upload-text-2xl"></i>
+          <i class="mdi mdi-upload text-2xl"></i>
         </div>
         <div>
           <h1 class="text-2xl font-black">Import & Export</h1>
@@ -36,7 +36,7 @@
               class="w-11 h-11 rounded-lg flex items-center justify-center shrink-0" 
               :style="{ backgroundColor: `${type.color}15`, color: type.color }"
             >
-              <i class="mdi mdi-text-xl" :class="type.icon"></i>
+              <i class="mdi text-xl" :class="type.icon"></i>
             </div>
             <div>
               <h3 class="text-sm font-black">{{ type.label }}</h3>
@@ -56,7 +56,7 @@
               class="w-14 h-14 rounded-xl flex items-center justify-center shrink-0" 
               :style="{ backgroundColor: `${type.color}15`, color: type.color }"
             >
-              <i class="mdi mdi-file-upload-outline-text-2xl-opacity-80"></i>
+              <i class="mdi mdi-file-upload-outline text-2xl opacity-80"></i>
             </div>
             <div class="text-center">
               <p class="text-xs font-bold">Drop file here or click</p>
@@ -105,7 +105,7 @@
               class="w-11 h-11 rounded-lg flex items-center justify-center shrink-0" 
               :style="{ backgroundColor: `${type.color}15`, color: type.color }"
             >
-              <i class="mdi mdi-text-xl" :class="type.icon"></i>
+              <i class="mdi text-xl" :class="type.icon"></i>
             </div>
             <div>
               <h3 class="text-sm font-black">Export {{ type.label }}</h3>
@@ -121,7 +121,7 @@
               class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" 
               :style="{ backgroundColor: `${type.color}15`, color: type.color }"
             >
-              <i class="mdi mdi-download-text-xl"></i>
+              <i class="mdi mdi-download text-xl"></i>
             </div>
             <div class="text-center">
               <p class="text-3xl font-black" :style="{ color: type.color }">{{ exportCount(type.key) }}</p>
@@ -152,7 +152,7 @@
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0">
-            <i class="mdi mdi-clock-outline-text-lg"></i>
+            <i class="mdi mdi-clock-outline text-lg"></i>
           </div>
           <h3 class="text-base font-black">Import History</h3>
         </div>
@@ -172,7 +172,7 @@
           class="flex items-center gap-3 p-3 border border-border bg-muted/40 rounded-xl"
         >
           <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
-            <i class="mdi mdi-check-circle-outline-text-lg"></i>
+            <i class="mdi mdi-check-circle-outline text-lg"></i>
           </div>
           <div>
             <div class="text-xs font-bold">{{ log.message }}</div>

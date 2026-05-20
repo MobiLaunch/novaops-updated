@@ -7,7 +7,7 @@
     >
       <div class="flex items-center gap-2.5 min-w-0">
         <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center shrink-0">
-          <i class="mdi mdi-check-text-xs"></i>
+          <i class="mdi mdi-check text-xs"></i>
         </div>
         <span class="text-xs font-bold truncate">{{ selectedCustomerName }}</span>
       </div>
@@ -115,7 +115,7 @@
           :disabled="!newCustomerForm.name || isSaving"
           @click.prevent="saveNewCustomer"
         >
-          <i v-if="isSaving" class="mdi mdi-loading-animate-spin-text-sm"></i>
+          <i v-if="isSaving" class="mdi mdi-loading animate-spin text-sm"></i>
           <i v-else class="mdi mdi-check text-sm"></i>
           {{ isSaving ? 'Saving...' : 'Save & Select' }}
         </Button>

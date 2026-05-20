@@ -4,7 +4,7 @@
     <div class="bg-surface border border-violet-500/20 rounded-xl overflow-hidden shadow-sm">
       <div class="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/10">
         <div class="flex items-center gap-2 text-xs font-bold">
-          <i class="mdi mdi-calendar-clock-text-violet-500-text-sm"></i>
+          <i class="mdi mdi-calendar-clock text-violet"></i>
           Upcoming
         </div>
         <Button 
@@ -24,20 +24,20 @@
           @click="navigateToItem(item)"
         >
           <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0">
-            <i class="mdi mdi-text-sm" :class="getIcon(item.type)"></i>
+            <i class="mdi text-sm" :class="getIcon(item.type)"></i>
           </div>
           <div class="flex-grow min-w-0">
             <p class="text-xs font-semibold truncate leading-tight">{{ item.title }}</p>
             <p class="text-[10px] text-muted-foreground truncate mt-0.5">{{ item.subtitle }}</p>
             <div class="flex items-center gap-1 mt-1">
-              <i class="mdi mdi-clock-outline-text-[10px]-text-violet-500"></i>
+              <i class="mdi mdi-clock-outline text-[10px] text-violet"></i>
               <span class="text-[10px] font-semibold text-violet-500">{{ item.timeFromNow }}</span>
             </div>
           </div>
         </div>
 
         <div v-if="upcomingItems.length === 0" class="text-center py-6 flex flex-col items-center gap-1">
-          <i class="mdi mdi-calendar-clock-text-3xl-text-muted-foreground/30"></i>
+          <i class="mdi mdi-calendar-clock text-3xl text-muted"></i>
           <p class="text-xs text-muted-foreground">No upcoming items</p>
         </div>
       </div>
@@ -47,7 +47,7 @@
     <div class="bg-surface border border-blue-500/20 rounded-xl overflow-hidden shadow-sm">
       <div class="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/10">
         <div class="flex items-center gap-2 text-xs font-bold">
-          <i class="mdi mdi-bell-outline-text-blue-500-text-sm"></i>
+          <i class="mdi mdi-bell-outline text-blue"></i>
           Notifications
           <span 
             v-slot="{}"
@@ -82,7 +82,7 @@
             class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
             :class="getNotificationBgClass(notification.type)"
           >
-            <i class="mdi mdi-text-sm" :class="getNotificationIcon(notification.type)"></i>
+            <i class="mdi text-sm" :class="getNotificationIcon(notification.type)"></i>
           </div>
           <div class="flex-grow min-w-0">
             <p class="text-xs font-semibold truncate leading-tight">{{ notification.title }}</p>
@@ -93,7 +93,7 @@
         </div>
 
         <div v-if="notifications.length === 0" class="text-center py-6 flex flex-col items-center gap-1">
-          <i class="mdi mdi-bell-outline-text-3xl-text-muted-foreground/30"></i>
+          <i class="mdi mdi-bell-outline text-3xl text-muted"></i>
           <p class="text-xs text-muted-foreground">No notifications</p>
         </div>
       </div>

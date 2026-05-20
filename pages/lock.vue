@@ -19,7 +19,7 @@
           class="w-20 h-20 rounded-xl flex items-center justify-center text-white shadow-lg"
           style="background: linear-gradient(135deg, var(--p-primary-500, #6366f1) 0%, #8b5cf6 100%);"
         >
-          <i class="mdi mdi-shield-lock-outline-text-4xl"></i>
+          <i class="mdi mdi-shield-lock-outline text-4xl"></i>
         </div>
         <div>
           <h1 class="text-xl font-black m-0">Screen Locked</h1>
@@ -36,7 +36,7 @@
             ? 'border-primary bg-primary/10 text-primary scale-105'
             : 'border-border text-transparent bg-transparent'"
         >
-          <i class="mdi mdi-circle-small-text-2xl" :class="pin.length >= i ? 'opacity-100' : 'opacity-0'"></i>
+          <i class="mdi mdi-circle-small text-2xl" :class="pin.length >= i ? 'opacity-100' : 'opacity-0'"></i>
         </div>
       </div>
 
@@ -58,11 +58,11 @@
           @click="addDigit(num)"
         />
         <Button severity="danger" variant="outlined" class="h-16" @click="clearPin">
-          <i class="mdi mdi-close-circle-outline-text-2xl"></i>
+          <i class="mdi mdi-close-circle-outline text-2xl"></i>
         </Button>
         <Button :label="'0'" variant="outlined" class="font-black text-xl py-4 h-16" @click="addDigit(0)" />
         <Button variant="outlined" class="h-16" @click="backspace">
-          <i class="mdi mdi-backspace-outline-text-2xl"></i>
+          <i class="mdi mdi-backspace-outline text-2xl"></i>
         </Button>
       </div>
 

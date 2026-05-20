@@ -4,7 +4,7 @@
       class="relative w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
       @click="open = true"
     >
-      <i class="mdi mdi-bell-outline-text-lg"></i>
+      <i class="mdi mdi-bell-outline text-lg"></i>
       <span 
         v-slot="{}"
         v-if="unreadCount > 0" 
@@ -48,7 +48,7 @@
         >
           <div class="flex-grow min-w-0">
             <div class="flex items-center gap-2">
-              <i class="mdi mdi-text-base" :class="[getIcon(notification.type), getIconColorClass(notification.type)]"></i>
+              <i class="mdi text-base" :class="[getIcon(notification.type), getIconColorClass(notification.type)]"></i>
               <p class="text-xs font-bold leading-tight truncate text-foreground">{{ notification.title }}</p>
             </div>
             <p class="text-xs text-muted-foreground mt-1.5 leading-relaxed">{{ notification.message }}</p>
@@ -64,7 +64,7 @@
         </div>
 
         <div v-if="notifications.length === 0" class="text-center py-10 flex flex-col items-center gap-2">
-          <i class="mdi mdi-bell-outline-text-4xl-text-muted-foreground/30"></i>
+          <i class="mdi mdi-bell-outline text-4xl text-muted"></i>
           <p class="text-xs text-muted-foreground font-medium">No notifications</p>
         </div>
       </div>

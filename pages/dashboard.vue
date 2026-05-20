@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-6">
+  <div class="page-shell">
 
     <header class="flex items-center justify-between flex-wrap gap-3">
       <div>
@@ -14,7 +14,7 @@
           <i class="mdi mdi-sync"></i> {{ lastSyncedLabel }}
         </span>
         <Button label="New Ticket" size="small" class="font-bold text-none" @click="newTicketOpen = true">
-          <i class="mdi mdi-plus-mr-1"></i>
+          <i class="mdi mdi-plus mr-1"></i>
         </Button>
       </div>
     </header>
@@ -27,7 +27,7 @@
     >
       <span class="flex items-center justify-between gap-4 w-full flex-wrap">
         <span>
-          <i class="mdi mdi-mr-2" :class="weatherIcon"></i>
+          <i class="mdi mr-2" :class="weatherIcon"></i>
           {{ weather.temp }}°F · {{ weather.description }} in {{ weather.location }} —
           <strong>{{ banner.suggestion }}</strong> {{ banner.emoji }}
         </span>
@@ -69,13 +69,13 @@
         @click="navigateTo('/analytics')"
       >
         <div class="flex items-center justify-between mb-2">
-          <i class="mdi mdi-currency-usd-text-3xl"></i>
+          <i class="mdi mdi-currency-usd text-3xl"></i>
           <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20">{{ completedTickets.length }} jobs</span>
         </div>
         <div class="text-xs opacity-75">Total Revenue</div>
         <div class="text-3xl font-black mt-1">{{ formatCurrency(totalRevenue) }}</div>
         <div class="text-xs mt-2 opacity-65 flex items-center gap-1">
-          <i class="mdi mdi-trending-up-text-sm"></i> View analytics →
+          <i class="mdi mdi-trending-up text-sm"></i> View analytics →
         </div>
       </div>
 
@@ -90,7 +90,7 @@
             class="w-9 h-9 rounded-lg flex items-center justify-center"
             :style="{ backgroundColor: stat.color + '18', color: stat.color }"
           >
-            <i class="mdi mdi-text-lg" :class="stat.icon"></i>
+            <i class="mdi text-lg" :class="stat.icon"></i>
           </div>
           <Tag
             v-if="stat.chip"
@@ -118,7 +118,7 @@
             class="w-11 h-11 rounded-lg flex items-center justify-center text-white mx-auto mb-2"
             :style="{ backgroundColor: action.color }"
           >
-            <i class="mdi mdi-text-xl" :class="action.icon"></i>
+            <i class="mdi text-xl" :class="action.icon"></i>
           </div>
           <div class="text-xs font-bold truncate">{{ action.label }}</div>
           <div class="text-[10px] text-muted-foreground truncate">{{ action.sub }}</div>
@@ -141,7 +141,7 @@
             class="p-3 rounded-lg"
             :style="`background: ${s.color}12; border: 1px solid ${s.color}25`"
           >
-            <i class="mdi mdi-mb-1" :class="s.icon" :style="{ color: s.color }"></i>
+            <i class="mdi mb-1" :class="s.icon" :style="{ color: s.color }"></i>
             <div class="text-[10px] text-muted-foreground">{{ s.label }}</div>
             <div class="text-sm font-black">{{ s.value }}</div>
           </div>
@@ -206,7 +206,7 @@
           </Column>
           <template #empty>
             <div class="text-center py-10 text-muted-foreground">
-              <i class="mdi mdi-ticket-outline-text-5xl-opacity-30-block-mb-2"></i>
+              <i class="mdi mdi-ticket-outline text-5xl opacity-30 block mb-2"></i>
               <p class="text-sm m-0">No tickets yet — create your first one!</p>
             </div>
           </template>

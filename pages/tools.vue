@@ -5,7 +5,7 @@
     <div class="flex flex-col gap-2">
       <div class="flex items-center gap-3">
         <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center shrink-0">
-          <i class="mdi mdi-magic-staff-text-2xl"></i>
+          <i class="mdi mdi-magic-staff text-2xl"></i>
         </div>
         <div>
           <h1 class="text-2xl font-black">Tools</h1>
@@ -27,7 +27,7 @@
         ]"
         @click="activeTab = tab.value"
       >
-        <i class="mdi mdi-text-base" :class="tab.icon"></i>
+        <i class="mdi text-base" :class="tab.icon"></i>
         {{ tab.label }}
       </button>
     </div>

@@ -14,7 +14,7 @@
         <div class="flex items-center gap-3">
           <div class="w-11 h-11 rounded-[22px] flex items-center justify-center shadow-md flex-shrink-0"
             style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 16px #f59e0b40">
-            <i class="mdi mdi-swap-horizontal-text-xl-text-white"></i>
+            <i class="mdi mdi-swap-horizontal text-xl text-white"></i>
           </div>
           <div class="flex-grow min-w-0">
             <h2 class="text-sm font-black truncate">Device Trade-In Evaluator</h2>
@@ -73,7 +73,7 @@
           <!-- IMEI / Model Number -->
           <div class="rounded-[16px] p-4 space-y-3 bg-muted/40 border border-border/60">
             <div class="flex items-center gap-2">
-              <i class="mdi mdi-fingerprint-text-muted-foreground-text-sm"></i>
+              <i class="mdi mdi-fingerprint text-muted"></i>
               <p class="text-xs font-black">Device Identifiers <span class="font-normal text-muted-foreground">(improves lookup accuracy)</span></p>
             </div>
             <div class="grid grid-cols-2 gap-3">
@@ -103,7 +103,7 @@
 
           <!-- Resolved device banner (shown when IMEI/model# resolved the device) -->
           <div v-if="resolvedDevice" class="flex items-center gap-3 p-3 rounded-[14px] bg-emerald-500/10 border border-emerald-500/20">
-            <i class="mdi mdi-check-circle-outline-text-base-text-emerald-500-shrink-0"></i>
+            <i class="mdi mdi-check-circle-outline text-base text-emerald"></i>
             <div class="flex-1 min-w-0">
               <p class="text-xs font-black text-emerald-600 dark:text-emerald-400">Device identified via {{ resolvedDevice.method }}</p>
               <p class="text-xs text-muted-foreground truncate">{{ resolvedDevice.brand }} {{ resolvedDevice.model }}{{ resolvedDevice.storage ? ' · ' + resolvedDevice.storage : '' }}</p>
@@ -115,7 +115,7 @@
           <div class="rounded-[18px] p-4 space-y-3 bg-amber-500/5 border border-amber-500/10">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <i class="mdi mdi-trending-up-text-base-text-amber-500"></i>
+                <i class="mdi mdi-trending-up text-base text-amber"></i>
                 <p class="text-xs font-black">Live Market Price</p>
               </div>
               <button
@@ -124,7 +124,7 @@
                 @click="fetchMarketPrice"
               >
                 <div v-if="fetchingPrice" class="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                <i class="mdi mdi-magnify-text-xs" v-else></i>
+                <i class="mdi mdi-magnify text-xs" v-else></i>
                 {{ fetchingPrice ? fetchingStage : 'Look Up' }}
               </button>
             </div>
@@ -427,7 +427,7 @@
         <button v-if="currentStep > 1"
           class="h-11 px-5 rounded-full text-xs font-bold transition-all hover:scale-[1.03] active:scale-95 flex items-center gap-1.5 border"
           @click="currentStep--">
-          <i class="mdi mdi-chevron-left-text-base"></i> Back
+          <i class="mdi mdi-chevron left-text"></i> Back
         </button>
         <button class="h-11 px-5 rounded-full text-xs font-bold transition-all hover:scale-[1.03] active:scale-95 border"
           @click="handleClose">Cancel</button>
@@ -443,7 +443,7 @@
           ]"
           :disabled="!canProceed"
           @click="nextStep">
-          Next <i class="mdi mdi-chevron-right-text-base"></i>
+          Next <i class="mdi mdi-chevron right-text"></i>
         </button>
 
         <button v-else
@@ -451,7 +451,7 @@
           :disabled="saving"
           @click="saveTradeIn">
           <div v-if="saving" class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-          <i class="mdi mdi-check-circle-outline-text-base" v-else></i>
+          <i class="mdi mdi-check-circle-outline text-base" v-else></i>
           {{ saving ? 'Saving…' : 'Save Trade-In' }}
         </button>
       </div>

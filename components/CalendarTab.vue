@@ -1,228 +1,178 @@
 <template>
-  <v-container fluid class="pa-4 pa-sm-6">
-    <!-- ── Page Header ─────────────────────────────────────────── -->
-    <v-row align="center" justify="space-between" class="mb-6">
-      <v-col cols="12" md="6" class="d-flex align-center gap-4">
-        <v-sheet
-          rounded="xl"
-          elevation="4"
-          class="d-flex align-center justify-center"
-          height="56"
-          width="56"
-          style="background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, #8b5cf6 100%);"
+  <div class="p-4 sm:p-6 flex flex-col gap-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div
+          class="w-14 h-14 rounded-xl flex items-center justify-center text-white shadow-md shrink-0"
+          style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);"
         >
-          <i class="mdi mdi-calendar"></i>
-        </v-sheet>
-        <div>
-          <h1 class="text-h4 font-weight-black tracking-tight mb-1">Calendar</h1>
-          <p class="text-caption text-medium-emphasis font-weight-medium">Appointments, house calls & repairs</p>
+          <i class="mdi mdi-calendar text-2xl"></i>
         </div>
-      </v-col>
+        <div>
+          <h1 class="text-2xl font-black m-0">Calendar</h1>
+          <p class="text-xs text-muted-foreground m-0">Appointments, house calls & repairs</p>
+        </div>
+      </div>
 
-      <v-col cols="12" md="6" class="d-flex justify-md-end justify-start gap-4">
-        <v-btn
-          variant="tonal"
-          rounded="xl"
-          color="secondary"
-          class="text-none font-weight-bold"
-          @click="goToday"
-        >
-          Today
-        </v-btn>
-
-        <v-btn-toggle
+      <div class="flex flex-wrap items-center gap-2">
+        <Button label="Today" variant="outlined" class="text-none font-bold rounded-xl" @click="goToday" />
+        <SelectButton
           v-model="calView"
-          color="primary"
-          variant="tonal"
-          rounded="xl"
-          mandatory
-        >
-          <v-btn v-for="v in views" :key="v.key" :value="v.key" class="text-none font-weight-bold">
-            {{ v.label }}
-          </v-btn>
-        </v-btn-toggle>
-      </v-col>
-    </v-row>
-
-    <!-- ── Legend ─────────────────────────────────────────────── -->
-    <div class="d-flex flex-wrap align-center gap-4 mb-4">
-      <span class="text-overline text-medium-emphasis font-weight-black">Key:</span>
-      <v-chip
-        v-for="t in eventTypes"
-        :key="t.key"
-        size="small"
-        :color="t.color"
-        variant="tonal"
-        class="font-weight-bold"
-      >
-        <i class="mdi mdi-"></i>
-        {{ t.label }}
-      </v-chip>
+          :options="views"
+          option-label="label"
+          option-value="key"
+          :allow-empty="false"
+          class="rounded-xl"
+        />
+      </div>
     </div>
 
-    <!-- ── View Controls ──────────────────────────────────────── -->
-    <v-card variant="outlined" rounded="xl" class="bg-surface mb-6">
-      <v-toolbar color="transparent" density="comfortable">
-        <v-btn icon="mdi-chevron-left" variant="text" @click="prev" />
-        <v-spacer />
-        <h2 class="text-h6 font-weight-black text-center w-100 position-absolute" style="left: 0; pointer-events: none;">
-          {{ currentLabel }}
-        </h2>
-        <v-spacer />
-        <v-btn icon="mdi-chevron-right" variant="text" @click="next" />
-      </v-toolbar>
+    <div class="flex flex-wrap items-center gap-3">
+      <span class="text-[10px] font-black text-muted-foreground uppercase">Key:</span>
+      <Tag
+        v-for="t in eventTypes"
+        :key="t.key"
+        :value="t.label"
+        class="font-bold"
+        :style="{ backgroundColor: t.color + '22', color: t.color }"
+      >
+        <i class="mdi mr-1" :class="t.icon"></i>
+      </Tag>
+    </div>
 
-      <v-divider />
+    <div class="bg-surface border border-border rounded-xl overflow-hidden mb-6">
+      <div class="flex items-center px-2 py-2 relative">
+        <Button variant="text" rounded class="!w-9 !h-9" @click="prev"><i class="mdi mdi-chevron-left"></i></Button>
+        <h2 class="text-base font-black text-center flex-1 m-0 pointer-events-none">{{ currentLabel }}</h2>
+        <Button variant="text" rounded class="!w-9 !h-9" @click="next"><i class="mdi mdi-chevron-right"></i></Button>
+      </div>
 
-      <!-- ══ MONTH & WEEK GRID ══════════════════════════════════════════ -->
+      <hr class="border-border m-0" />
+
       <template v-if="calView === 'month' || calView === 'week'">
-        <!-- Day Headers -->
-        <div class="v-calendar-grid bg-surface-variant">
+        <div class="v-calendar-grid bg-muted/30">
           <div
             v-for="(day, i) in (calView === 'month' ? ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] : weekDays)"
             :key="i"
-            class="text-center py-3 border-b border-e border-dashed"
+            class="text-center py-3 border-b border-r border-dashed border-border"
           >
-            <span class="text-caption font-weight-black text-uppercase text-medium-emphasis tracking-widest">
+            <span class="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
               {{ calView === 'month' ? day : day.dow }}
             </span>
-            <div
-              v-if="calView === 'week'"
-              class="d-flex justify-center mt-1"
-            >
-              <v-avatar
-                :color="day.isToday ? 'primary' : 'transparent'"
-                size="32"
-                :class="{'text-white': day.isToday}"
+            <div v-if="calView === 'week'" class="flex justify-center mt-1">
+              <div
+                class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black"
+                :class="day.isToday ? 'bg-primary text-white' : ''"
               >
-                <span class="text-body-2 font-weight-black">{{ day.dayNum }}</span>
-              </v-avatar>
+                {{ day.dayNum }}
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Grid Cells -->
         <div class="v-calendar-grid bg-surface">
           <div
             v-for="(day, idx) in currentDays"
             :key="idx"
-            class="cal-cell border-b border-e border-dashed pa-2 d-flex flex-column"
-            :class="{ 'opacity-50': !day.currentMonth && calView === 'month', 'bg-primary-lighten-5': day.isToday }"
+            class="cal-cell border-b border-r border-dashed border-border p-2 flex flex-col"
+            :class="{ 'opacity-50': !day.currentMonth && calView === 'month', 'cal-cell--today': day.isToday }"
           >
-            <!-- Date Number -->
-            <div class="d-flex justify-center mb-2" v-if="calView === 'month'">
-              <v-avatar
-                :color="day.isToday ? 'primary' : 'transparent'"
-                size="28"
-                :class="{'text-white': day.isToday}"
+            <div v-if="calView === 'month'" class="flex justify-center mb-2">
+              <div
+                class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                :class="day.isToday ? 'bg-primary text-white' : ''"
               >
-                <span class="text-caption font-weight-bold">{{ day.day }}</span>
-              </v-avatar>
+                {{ day.day }}
+              </div>
             </div>
 
-            <!-- Events -->
-            <div class="d-flex flex-column gap-1 flex-1-1-100 overflow-y-auto w-100">
-              <v-sheet
+            <div class="flex flex-col gap-1 flex-1 overflow-y-auto w-full min-h-0">
+              <div
                 v-for="event in getDayEvents(day.date).slice(0, calView === 'month' ? 3 : undefined)"
                 :key="event._id"
-                rounded="lg"
-                class="px-2 py-1 cb-event text-truncate cursor-pointer"
+                class="px-2 py-1 rounded-lg cb-event truncate cursor-pointer"
                 :style="`background: ${eColor(event)}22; color: ${eColor(event)}; border-left: 3px solid ${eColor(event)}`"
               >
-                <div class="d-flex align-center gap-1">
-                  <i class="mdi mdi-eIcon(event)"></i>
-                  <span class="text-caption font-weight-bold text-truncate" style="font-size: 10px !important; line-height: 1.2;">
-                    {{ eLabel(event) }}
-                  </span>
+                <div class="flex items-center gap-1">
+                  <i class="mdi text-sm shrink-0" :class="eIcon(event)"></i>
+                  <span class="text-[10px] font-bold truncate leading-tight">{{ eLabel(event) }}</span>
                 </div>
-                <div v-if="calView === 'week' && event.time" class="text-caption opacity-70 mt-1" style="font-size: 10px !important;">
-                  {{ event.time }}
-                </div>
-              </v-sheet>
+                <div v-if="calView === 'week' && event.time" class="text-[10px] opacity-70 mt-0.5">{{ event.time }}</div>
+              </div>
 
-              <v-sheet
+              <div
                 v-if="calView === 'month' && getDayEvents(day.date).length > 3"
-                rounded="lg"
-                class="px-2 py-1 bg-surface-variant text-medium-emphasis text-center cursor-pointer"
+                class="px-2 py-1 rounded-lg bg-muted text-muted-foreground text-center cursor-pointer"
               >
-                <span class="text-caption font-weight-bold" style="font-size: 9px !important;">
-                  +{{ getDayEvents(day.date).length - 3 }} more
-                </span>
-              </v-sheet>
+                <span class="text-[9px] font-bold">+{{ getDayEvents(day.date).length - 3 }} more</span>
+              </div>
             </div>
           </div>
         </div>
       </template>
 
-      <!-- ══ AGENDA VIEW ═════════════════════════════════════════════ -->
       <template v-else>
-        <div v-if="agendaGroups.length" class="pa-4 pa-sm-8 d-flex flex-column gap-6">
+        <div v-if="agendaGroups.length" class="p-4 sm:p-8 flex flex-col gap-6">
           <div v-for="group in agendaGroups" :key="group.date">
-            <div class="d-flex align-center gap-4 mb-4">
-              <v-avatar
-                :color="group.date === today ? 'primary' : 'surface-variant'"
-                size="40"
+            <div class="flex items-center gap-4 mb-4">
+              <div
+                class="w-10 h-10 rounded-full flex items-center justify-center font-black"
+                :class="group.date === today ? 'bg-primary text-white' : 'bg-muted'"
               >
-                <span class="text-body-1 font-weight-black" :class="{ 'text-primary': group.date !== today }">
-                  {{ new Date(group.date + 'T00:00:00').getDate() }}
-                </span>
-              </v-avatar>
-              <span class="text-subtitle-2 font-weight-black text-uppercase tracking-widest text-medium-emphasis">
+                {{ new Date(group.date + 'T00:00:00').getDate() }}
+              </div>
+              <span class="text-xs font-black uppercase tracking-widest text-muted-foreground">
                 {{ formatAgendaDate(group.date) }}
               </span>
-              <v-divider class="flex-1-1-100" />
+              <hr class="flex-1 border-border" />
             </div>
 
-            <div class="pl-md-14 pl-2 d-flex flex-column gap-3">
-              <v-card
+            <div class="md:pl-14 pl-2 flex flex-col gap-3">
+              <div
                 v-for="event in group.events"
                 :key="event._id"
-                variant="outlined"
-                rounded="xl"
-                class="agenda-card cursor-pointer"
+                class="agenda-card border rounded-xl p-4 flex items-center gap-4 cursor-pointer"
                 :style="`border-color: ${eColor(event)}40; background: ${eColor(event)}08`"
               >
-                <v-card-text class="d-flex align-center gap-4 pa-4">
-                  <v-avatar :color="`${eColor(event)}22`" size="48" rounded="lg">
-                    <i class="mdi mdi-eIcon(event)"></i>
-                  </v-avatar>
+                <div
+                  class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0"
+                  :style="{ backgroundColor: eColor(event) + '22', color: eColor(event) }"
+                >
+                  <i class="mdi text-xl" :class="eIcon(event)"></i>
+                </div>
 
-                  <div class="flex-1-1-100 min-w-0">
-                    <div class="text-body-1 font-weight-bold text-truncate">{{ eLabel(event) }}</div>
-                    <div class="text-caption font-weight-medium text-medium-emphasis d-flex align-center gap-2 mt-1">
-                      <i class="mdi mdi-clock-outline"></i>
-                      {{ event.time || 'All day' }}
-                      <template v-if="event.address">
-                        <span class="px-1 text-disabled">•</span>
-                        <i class="mdi mdi-map-marker-outline"></i>
-                        <span :style="`color: ${eColor(event)}`">{{ event.address }}</span>
-                      </template>
-                    </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-bold truncate">{{ eLabel(event) }}</div>
+                  <div class="text-xs text-muted-foreground flex items-center gap-2 mt-1 flex-wrap">
+                    <i class="mdi mdi-clock-outline"></i>
+                    {{ event.time || 'All day' }}
+                    <template v-if="event.address">
+                      <span class="text-muted-foreground">•</span>
+                      <i class="mdi mdi-map-marker-outline"></i>
+                      <span :style="`color: ${eColor(event)}`">{{ event.address }}</span>
+                    </template>
                   </div>
+                </div>
 
-                  <v-chip
-                    size="small"
-                    class="font-weight-black text-capitalize"
-                    variant="tonal"
-                    :color="statusColor(event.status)"
-                  >
-                    {{ event.status || 'open' }}
-                  </v-chip>
-                </v-card-text>
-              </v-card>
+                <Tag
+                  :value="event.status || 'open'"
+                  :severity="statusSeverity(event.status)"
+                  class="font-bold capitalize shrink-0"
+                />
+              </div>
             </div>
           </div>
         </div>
 
-        <div v-else class="d-flex flex-column align-center justify-center py-16">
-          <v-avatar color="primary" variant="tonal" size="80" class="mb-4">
-            <i class="mdi mdi-calendar-blank"></i>
-          </v-avatar>
-          <div class="text-body-1 font-weight-bold text-medium-emphasis">No events found for {{ currentLabel }}</div>
+        <div v-else class="flex flex-col items-center justify-center py-16">
+          <div class="w-20 h-20 rounded-full bg-primary/15 text-primary flex items-center justify-center mb-4">
+            <i class="mdi mdi-calendar-blank text-4xl"></i>
+          </div>
+          <div class="text-sm font-bold text-muted-foreground">No events found for {{ currentLabel }}</div>
         </div>
       </template>
-    </v-card>
-  </v-container>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -233,14 +183,12 @@ import { storeToRefs } from 'pinia'
 const appStore = useAppStore()
 const { appointments, tickets } = storeToRefs(appStore)
 
-// ── Event type config ──────────────────────────────────────────
 const eventTypes = [
   { key: 'appointment', label: 'Appointment',   color: '#06b6d4', icon: 'mdi-calendar' },
   { key: 'housecall',   label: 'House Call',    color: '#10b981', icon: 'mdi-map-marker-outline' },
   { key: 'ticket',      label: 'Repair Ticket', color: '#f59e0b', icon: 'mdi-ticket-confirmation-outline' },
 ]
 
-// ── Unified events ─────────────────────────────────────────────
 const allEvents = computed(() => {
   const appts = (appointments.value || []).map((a: any) => ({
     ...a,
@@ -274,7 +222,6 @@ function eLabel(e: any) { return e.title || e.description || 'Untitled' }
 const getDayEvents = (date: string) =>
   date ? allEvents.value.filter((e: any) => e.date === date) : []
 
-// ── Calendar nav ───────────────────────────────────────────────
 const today     = new Date().toISOString().split('T')[0]
 const now       = new Date()
 const viewYear  = ref(now.getFullYear())
@@ -317,7 +264,6 @@ const calendarDays = computed(() => {
   return days
 })
 
-// ── Week nav ───────────────────────────────────────────────────
 function startOfWeek(d: Date) {
   const date = new Date(d)
   date.setDate(d.getDate() - d.getDay())
@@ -339,7 +285,6 @@ const weekDays = computed(() =>
 const currentLabel = computed(() => mode.value === 'week' ? weekLabel.value : monthLabel.value)
 const currentDays = computed(() => mode.value === 'week' ? weekDays.value : calendarDays.value)
 
-// ── Agenda groups ──────────────────────────────────────────────
 const agendaGroups = computed(() => {
   const ms = `${viewYear.value}-${String(viewMonth.value + 1).padStart(2,'0')}-01`
   const me = `${viewYear.value}-${String(viewMonth.value + 1).padStart(2,'0')}-${new Date(viewYear.value, viewMonth.value + 1, 0).getDate()}`
@@ -349,16 +294,15 @@ const agendaGroups = computed(() => {
   return Object.keys(byDate).sort().map(date => ({ date, events: byDate[date] }))
 })
 
-// ── Helpers ────────────────────────────────────────────────────
 const formatAgendaDate = (d: string) =>
   d ? new Date(d + 'T00:00:00').toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' }) : ''
 
-const statusColor = (s: string) => {
+const statusSeverity = (s: string) => {
   const st = (s || '').toLowerCase()
   if (['scheduled', 'open'].includes(st)) return 'info'
-  if (['in progress'].includes(st)) return 'warning'
+  if (['in progress'].includes(st)) return 'warn'
   if (['completed', 'delivered'].includes(st)) return 'success'
-  if (['cancelled'].includes(st)) return 'error'
+  if (['cancelled'].includes(st)) return 'danger'
   return 'secondary'
 }
 </script>
@@ -373,6 +317,9 @@ const statusColor = (s: string) => {
   max-height: 180px;
   transition: background-color 0.2s;
 }
+.cal-cell--today {
+  background-color: rgba(99, 102, 241, 0.06);
+}
 .cb-event {
   transition: transform 0.2s, background-color 0.2s;
 }
@@ -386,8 +333,5 @@ const statusColor = (s: string) => {
 .agenda-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-.bg-primary-lighten-5 {
-  background-color: rgba(var(--v-theme-primary), 0.04) !important;
 }
 </style>

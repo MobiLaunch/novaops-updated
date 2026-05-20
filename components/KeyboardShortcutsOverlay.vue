@@ -9,7 +9,7 @@
     <template #header>
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0">
-          <i class="mdi mdi-keyboard-text-lg"></i>
+          <i class="mdi mdi-keyboard text-lg"></i>
         </div>
         <div>
           <span class="text-sm font-black block">Keyboard Shortcuts</span>

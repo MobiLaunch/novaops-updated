@@ -25,7 +25,7 @@
         style="top: 50%; transform: translateY(-50%);"
         @click="performSearch"
       >
-        <i class="mdi mdi-arrow-right-circle text-2xl"></i>
+        <i class="mdi mdi-arrow right-circle text"></i>
       </button>
     </div>
 

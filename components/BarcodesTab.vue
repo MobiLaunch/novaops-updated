@@ -5,7 +5,7 @@
     <div class="flex items-center justify-between flex-wrap gap-4 mb-2">
       <div class="flex items-center gap-4">
         <div class="w-14 h-14 rounded-xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center shrink-0">
-          <i class="mdi mdi-barcode-scan-text-2xl"></i>
+          <i class="mdi mdi-barcode-scan text-2xl"></i>
         </div>
         <div>
           <h1 class="text-2xl font-black">Barcodes</h1>
@@ -33,7 +33,7 @@
         <div v-if="mode === 'Generate'" class="bg-surface border border-border rounded-xl p-6 flex flex-col flex-grow">
           <div class="flex items-center gap-3 mb-6">
             <div class="w-9 h-9 rounded-lg bg-cyan-500/10 text-cyan-500 flex items-center justify-center shrink-0">
-              <i class="mdi mdi-barcode-text-xl"></i>
+              <i class="mdi mdi-barcode text-xl"></i>
             </div>
             <h3 class="text-base font-black">Generate Barcode</h3>
           </div>
@@ -114,7 +114,7 @@
               v-if="!barcodeValue" 
               class="mt-4 p-8 flex flex-col items-center justify-center gap-2 bg-muted rounded-xl border border-dashed border-border"
             >
-              <i class="mdi mdi-barcode-text-5xl-text-muted-foreground-opacity-40"></i>
+              <i class="mdi mdi-barcode text-5xl text-muted"></i>
               <p class="text-sm font-bold text-muted-foreground text-center">Enter a value above to preview your barcode</p>
             </div>
           </div>
@@ -124,7 +124,7 @@
         <div v-if="mode === 'Scan'" class="bg-surface border border-border rounded-xl p-6 flex flex-col flex-grow">
           <div class="flex items-center gap-3 mb-6">
             <div class="w-9 h-9 rounded-lg bg-cyan-500/10 text-cyan-500 flex items-center justify-center shrink-0">
-              <i class="mdi mdi-barcode-scan-text-xl"></i>
+              <i class="mdi mdi-barcode-scan text-xl"></i>
             </div>
             <h3 class="text-base font-black">Scan / Lookup</h3>
           </div>
@@ -161,7 +161,7 @@
             >
               <div v-if="scanResult.found" class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0">
-                  <i class="mdi mdi-package-variant-closed-text-2xl"></i>
+                  <i class="mdi mdi-package-variant-closed text-2xl"></i>
                 </div>
                 <div>
                   <p class="text-base font-black text-emerald-700 dark:text-emerald-300 leading-tight">{{ scanResult.item?.name }}</p>
@@ -171,7 +171,7 @@
                 </div>
               </div>
               <p v-else class="text-sm font-bold flex items-center gap-2 m-0">
-                <i class="mdi mdi-close-circle-text-lg"></i> No item found for "{{ scanValue }}"
+                <i class="mdi mdi-close-circle text-lg"></i> No item found for "{{ scanValue }}"
               </p>
             </div>
           </div>
@@ -184,7 +184,7 @@
           <div class="flex items-center justify-between mb-6 shrink-0">
             <div class="flex items-center gap-3">
               <div class="w-9 h-9 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0">
-                <i class="mdi mdi-package-variant-closed-text-xl"></i>
+                <i class="mdi mdi-package-variant-closed text-xl"></i>
               </div>
               <h3 class="text-base font-black">Inventory Items</h3>
             </div>
@@ -203,7 +203,7 @@
               >
                 <div class="flex items-center gap-3 min-w-0">
                   <div class="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0">
-                    <i class="mdi mdi-package-variant-closed-text-lg"></i>
+                    <i class="mdi mdi-package-variant-closed text-lg"></i>
                   </div>
                   <div class="min-w-0">
                     <div class="text-xs font-bold truncate leading-tight">{{ item.name }}</div>
@@ -221,7 +221,7 @@
             </div>
             
             <div v-if="!inventory.length" class="text-center py-12">
-              <i class="mdi mdi-package-variant-closed-text-5xl-text-muted-foreground-opacity-30-mb-3"></i>
+              <i class="mdi mdi-package-variant-closed text-5xl text-muted"></i>
               <p class="text-sm font-bold text-muted-foreground">No inventory items yet</p>
             </div>
           </div>
@@ -234,7 +234,7 @@
       <div class="flex items-center justify-between mb-4 flex-wrap gap-4">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-lg bg-cyan-500/10 text-cyan-500 flex items-center justify-center shrink-0">
-            <i class="mdi mdi-layers-outline-text-xl"></i>
+            <i class="mdi mdi-layers-outline text-xl"></i>
           </div>
           <h3 class="text-base font-black">Batch Print — Inventory Labels</h3>
         </div>

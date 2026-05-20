@@ -19,7 +19,7 @@
             style="bottom: -4px; right: -4px"
             @click="openAvatarPicker"
           >
-            <i class="mdi mdi-camera-text-xs"></i>
+            <i class="mdi mdi-camera text-xs"></i>
           </Button>
           <input
             ref="avatarFileInput"
@@ -61,7 +61,7 @@
       <InputText v-model="accountForm.confirmPassword" type="password" placeholder="Confirm new password" class="w-full rounded-xl" />
 
       <Button label="Save Changes" class="w-full font-bold text-none" @click="saveAccount">
-        <i class="mdi mdi-content-save-mr-2"></i>
+        <i class="mdi mdi-content-save mr-2"></i>
       </Button>
     </div>
   </div>
