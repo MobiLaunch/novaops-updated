@@ -106,12 +106,12 @@
 
     <div>
       <p class="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-3">Quick Actions</p>
-      <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+      <div class="tile-grid">
         <button
           v-for="action in quickActions"
           :key="action.label"
           type="button"
-          class="bg-surface border border-border rounded-xl p-3 text-center action-tile"
+          class="bg-surface border border-border rounded-xl p-3 text-center action-tile min-h-[5.5rem]"
           @click="action.onClick()"
         >
           <div
@@ -556,12 +556,5 @@ const handleCreateTicket = async (ticketData: any) => {
 }
 .action-tile:hover {
   transform: translateY(-3px) scale(1.04);
-}
-@media (min-width: 768px) {
-  .md\:col-span-2 { grid-column: span 2 / span 2; }
-  .md\:col-span-3 { grid-column: span 3 / span 3; }
-  .md\:col-span-4 { grid-column: span 4 / span 4; }
-  .md\:col-span-9 { grid-column: span 9 / span 9; }
-  .md\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
 }
 </style>

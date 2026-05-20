@@ -1,5 +1,5 @@
 <template>
-  <div class="page-shell">
+  <div class="page-shell page-shell--wide">
 
     <header class="flex items-center justify-between flex-wrap gap-3">
       <div class="flex items-center gap-4">

@@ -185,10 +185,6 @@ body {
 .divide-border > :not(:last-child) { border-color: var(--p-content-border-color, hsl(var(--border))); }
 
 @media (min-width: 1024px) {
-  .lg\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
-  .lg\:col-span-5  { grid-column: span 5 / span 5; }
-  .lg\:col-span-4  { grid-column: span 4 / span 4; }
-  .lg\:col-span-3  { grid-column: span 3 / span 3; }
   .lg\:flex        { display: flex; }
   .lg\:block       { display: block; }
 }
@@ -209,13 +205,26 @@ body {
 .select-none      { user-select: none; }
 .transition-all   { transition: all 0.2s ease; }
 
-/* Grid */
+/* Grid — 12-column system (used across settings, dashboard, POS, etc.) */
 .grid { display: grid; }
 .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
 .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.col-span-1 { grid-column: span 1 / span 1; }
 .col-span-2 { grid-column: span 2 / span 2; }
+.col-span-3 { grid-column: span 3 / span 3; }
+.col-span-4 { grid-column: span 4 / span 4; }
+.col-span-5 { grid-column: span 5 / span 5; }
+.col-span-6 { grid-column: span 6 / span 6; }
+.col-span-7 { grid-column: span 7 / span 7; }
+.col-span-8 { grid-column: span 8 / span 8; }
+.col-span-9 { grid-column: span 9 / span 9; }
+.col-span-10 { grid-column: span 10 / span 10; }
+.col-span-11 { grid-column: span 11 / span 11; }
+.col-span-12 { grid-column: span 12 / span 12; }
 .col-span-full { grid-column: 1 / -1; }
 .mx-auto { margin-left: auto; margin-right: auto; }
 .max-w-lg { max-width: 32rem; }
@@ -224,6 +233,13 @@ body {
   .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .sm\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .sm\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .sm\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .sm\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .sm\:col-span-2 { grid-column: span 2 / span 2; }
+  .sm\:col-span-3 { grid-column: span 3 / span 3; }
+  .sm\:col-span-4 { grid-column: span 4 / span 4; }
+  .sm\:col-span-6 { grid-column: span 6 / span 6; }
+  .sm\:col-span-12 { grid-column: span 12 / span 12; }
   .sm\:p-6 { padding: 1.5rem; }
   .sm\:p-8 { padding: 2rem; }
   .md\:pl-14 { padding-left: 3.5rem; }
@@ -233,18 +249,30 @@ body {
   .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .md\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .md\:col-span-1 { grid-column: span 1 / span 1; }
+  .md\:col-span-2 { grid-column: span 2 / span 2; }
+  .md\:col-span-3 { grid-column: span 3 / span 3; }
   .md\:col-span-4 { grid-column: span 4 / span 4; }
   .md\:col-span-5 { grid-column: span 5 / span 5; }
   .md\:col-span-6 { grid-column: span 6 / span 6; }
+  .md\:col-span-7 { grid-column: span 7 / span 7; }
+  .md\:col-span-8 { grid-column: span 8 / span 8; }
+  .md\:col-span-9 { grid-column: span 9 / span 9; }
+  .md\:col-span-10 { grid-column: span 10 / span 10; }
+  .md\:col-span-11 { grid-column: span 11 / span 11; }
+  .md\:col-span-12 { grid-column: span 12 / span 12; }
   .md\:flex-end { justify-content: flex-end; }
   .md\:justify-end { justify-content: flex-end; }
 }
 @media (min-width: 1024px) {
   .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .lg\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .lg\:col-span-3 { grid-column: span 3 / span 3; }
   .lg\:col-span-4 { grid-column: span 4 / span 4; }
   .lg\:col-span-5 { grid-column: span 5 / span 5; }
   .lg\:col-span-6 { grid-column: span 6 / span 6; }
+  .lg\:col-span-8 { grid-column: span 8 / span 8; }
   .lg\:col-span-12 { grid-column: span 12 / span 12; }
   .lg\:block { display: block; }
   .lg\:flex { display: flex; }
@@ -273,11 +301,33 @@ body {
 .page-shell {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  max-width: 1400px;
+  gap: 1.25rem;
+  max-width: 72rem;
   margin: 0 auto;
   width: 100%;
 }
+
+.page-shell--wide {
+  max-width: 90rem;
+}
+
+.app-card {
+  background: var(--p-content-background, #fff);
+  border: 1px solid var(--p-content-border-color, hsl(var(--border)));
+  border-radius: 0.875rem;
+  overflow: hidden;
+}
+
+/* Responsive tile grids (dashboard quick actions, etc.) */
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.75rem, 1fr));
+  gap: 0.5rem;
+}
+
+/* Form field width hints */
+.field-narrow { max-width: 11rem; }
+.field-medium { max-width: 22rem; }
 
 .kpi-card {
   background: var(--p-content-background, #fff);
@@ -317,9 +367,61 @@ body {
 
 /* PrimeVue polish */
 .p-dialog .p-dialog-content { padding: 0; }
+.p-dialog .p-dialog-header,
+.p-dialog .p-dialog-footer { padding: 1rem 1.25rem; }
 .p-tablist { background: transparent; }
 .p-datatable .p-datatable-tbody > tr { cursor: pointer; }
 .p-button.text-none .p-button-label { text-transform: none; }
+
+/* Buttons: auto width by default; explicit w-full / btn-block for full bleed */
+.p-button {
+  width: auto;
+  max-width: 100%;
+  flex-shrink: 0;
+}
+.p-button.w-full,
+.btn-block.p-button,
+.btn-block .p-button {
+  width: 100%;
+}
+.p-button:not(.w-full):not(.btn-block) {
+  align-self: flex-start;
+}
+
+/* Messages & inputs */
+.p-message {
+  width: auto;
+  max-width: 100%;
+  align-self: stretch;
+}
+.p-message.message-inline {
+  width: auto;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.p-inputtext,
+.p-textarea,
+.p-select,
+.p-inputnumber {
+  max-width: 100%;
+}
+.field-narrow .p-inputtext,
+.field-narrow .p-inputnumber-input {
+  max-width: 11rem;
+}
+
+/* Nav rail focus (avoid harsh default outline) */
+.nav-rail-btn,
+aside.w-\[72px\] button,
+aside.w-\[72px\] a {
+  outline: none;
+}
+.nav-rail-btn:focus-visible,
+aside.w-\[72px\] button:focus-visible,
+aside.w-\[72px\] a:focus-visible {
+  outline: 2px solid var(--p-primary-500, #6366f1);
+  outline-offset: 2px;
+}
 .p-dark {
   --background: 222 47% 7%;
   --foreground: 210 40% 98%;

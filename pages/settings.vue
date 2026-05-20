@@ -52,11 +52,11 @@
                 <label class="text-[10px] font-bold text-muted-foreground uppercase">Address</label>
                 <Textarea v-model="form.address" :rows="2" placeholder="123 Main St, City, State ZIP" class="w-full rounded-xl" />
               </div>
-              <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5">
+              <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5 field-narrow">
                 <label class="text-[10px] font-bold text-muted-foreground uppercase">Currency Symbol</label>
                 <InputText v-model="form.currency" placeholder="$" class="w-full rounded-xl" />
               </div>
-              <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5">
+              <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5 field-narrow">
                 <label class="text-[10px] font-bold text-muted-foreground uppercase">Tax Rate (%)</label>
                 <InputText v-model.number="form.taxRate" type="number" step="0.01" placeholder="0.00" class="w-full rounded-xl" />
               </div>
@@ -65,7 +65,7 @@
                 <InputText v-model="form.statuses" placeholder="Open, In Progress, Waiting for Parts, Completed, Delivered" class="w-full rounded-xl" />
                 <p class="text-[10px] text-muted-foreground m-0">Separate each status with a comma</p>
               </div>
-              <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5">
+              <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5 field-narrow">
                 <label class="text-[10px] font-bold text-muted-foreground uppercase">Screen Lock PIN</label>
                 <InputText v-model="form.pin" type="password" maxlength="4" placeholder="4-digit PIN" class="w-full rounded-xl" style="font-family:monospace;letter-spacing:.25em" />
                 <p class="text-[10px] text-muted-foreground m-0">Screen locks after 3 minutes of inactivity</p>
@@ -79,7 +79,7 @@
                 v-if="saveMsg"
                 :severity="saveMsg.ok ? 'success' : 'error'"
                 :closable="true"
-                class="mt-2 w-full"
+                class="message-inline"
                 @close="saveMsg = null"
               >
                 <template v-if="saveMsg.ok"><strong>Settings saved</strong></template>
@@ -405,7 +405,7 @@
                 </div>
               </div>
             </div>
-            <Button label="Sign Out" severity="danger" variant="outlined" class="w-full text-none" @click="handleSignOut">
+            <Button label="Sign Out" severity="danger" variant="outlined" class="btn-block text-none" @click="handleSignOut">
               <i class="mdi mdi-logout mr-1"></i>
             </Button>
           </div>
@@ -426,10 +426,10 @@
             </div>
           </div>
           <div class="p-6 flex flex-col gap-3">
-            <Button label="Export All Data" severity="info" variant="outlined" class="w-full text-none" @click="handleExport">
+            <Button label="Export All Data" severity="info" variant="outlined" class="btn-block text-none" @click="handleExport">
               <i class="mdi mdi-download mr-1"></i>
             </Button>
-            <Button label="Import Data" variant="outlined" class="w-full text-none" @click="router.push('/tools')">
+            <Button label="Import Data" variant="outlined" class="btn-block text-none" @click="router.push('/tools')">
               <i class="mdi mdi-upload mr-1"></i>
             </Button>
           </div>
@@ -450,7 +450,7 @@
             </div>
           </div>
           <div class="p-6">
-            <Button label="Run Diagnostics" severity="success" class="w-full text-none mb-4" :loading="isRunningDiag" @click="runDiagnostics">
+            <Button label="Run Diagnostics" severity="success" class="btn-block text-none mb-4" :loading="isRunningDiag" @click="runDiagnostics">
               <i class="mdi mdi-play-circle-outline mr-1"></i>
             </Button>
             <div v-if="diagResults.length" class="flex flex-col gap-2" style="max-height:300px;overflow-y:auto">
@@ -482,7 +482,7 @@
             </div>
           </div>
           <div class="p-6">
-            <Button label="Reset All Data" severity="danger" class="w-full text-none" @click="confirmReset">
+            <Button label="Reset All Data" severity="danger" class="btn-block text-none" @click="confirmReset">
               <i class="mdi mdi-delete-sweep mr-1"></i>
             </Button>
           </div>

@@ -40,10 +40,11 @@
         v-if="!isMobile"
         class="w-[72px] border-r flex flex-col justify-between py-3 bg-surface items-center shrink-0 z-40"
       >
-        <div class="flex flex-col items-center w-full gap-2">
+        <div class="flex flex-col items-center w-full gap-2.5 py-1">
           <!-- + New Action -->
           <button
-            class="w-12 h-12 rounded-xl hover:bg-muted text-primary flex items-center justify-center transition-colors relative"
+            type="button"
+            class="nav-rail-btn w-12 h-12 rounded-xl hover:bg-muted text-primary flex items-center justify-center transition-colors relative"
             v-tooltip.right="'Quick Actions'"
             @click="toggleQuickActions"
           >
@@ -77,7 +78,7 @@
             v-for="item in coreNav"
             :key="item.path"
             :to="item.path"
-            class="w-12 h-12 rounded-xl flex items-center justify-center transition-colors relative"
+            class="nav-rail-btn w-12 h-12 rounded-xl flex items-center justify-center transition-colors relative"
             :class="[route.path === item.path ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground']"
             v-tooltip.right="item.name"
           >
@@ -94,7 +95,8 @@
         <div class="flex flex-col items-center w-full gap-2">
           <!-- Upcoming -->
           <button
-            class="w-12 h-12 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors relative"
+            type="button"
+            class="nav-rail-btn w-12 h-12 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors relative"
             v-tooltip.right="'Upcoming'"
             @click="toggleUpcoming"
           >
@@ -129,7 +131,8 @@
 
           <!-- Theme toggle -->
           <button
-            class="w-12 h-12 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
+            type="button"
+            class="nav-rail-btn w-12 h-12 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
             v-tooltip.right="`Theme: ${theme}`"
             @click="toggleTheme"
           >
@@ -139,7 +142,7 @@
           <!-- Settings -->
           <NuxtLink
             to="/settings"
-            class="w-12 h-12 rounded-xl flex items-center justify-center transition-colors"
+            class="nav-rail-btn w-12 h-12 rounded-xl flex items-center justify-center transition-colors"
             :class="[route.path === '/settings' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground']"
             v-tooltip.right="'Settings'"
           >
