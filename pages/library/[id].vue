@@ -2,9 +2,9 @@
   <div class="page-shell h-full flex flex-col gap-4">
 
     <div class="flex items-center gap-3 mb-2">
-      <Button variant="text" rounded class="!w-10 !h-10" @click="router.back()">
+      <v-btn icon variant="text" class="!w-10 !h-10" @click="router.back()">
         <i class="mdi mdi-arrow-left"></i>
-      </Button>
+      </v-btn>
       <nav class="flex items-center gap-1 text-xs font-bold text-primary flex-wrap">
         <NuxtLink to="/library" class="hover:underline">Library</NuxtLink>
         <i class="mdi mdi-chevron-right text-muted-foreground"></i>
@@ -15,7 +15,7 @@
     </div>
 
     <div v-if="loading" class="flex flex-col items-center justify-center flex-1 py-20">
-      <ProgressSpinner style="width: 64px; height: 64px" stroke-width="4" class="mb-4" />
+      <v-progress-circular indeterminate size="64" width="4" color="primary" class="mb-4" />
       <span class="text-lg text-muted-foreground">Loading guide…</span>
     </div>
 
@@ -23,7 +23,7 @@
       <i class="mdi mdi-alert-circle-outline text-5xl text-red-500 mb-4"></i>
       <h2 class="text-xl font-bold m-0 mb-2">Error loading guide</h2>
       <p class="text-sm text-muted-foreground mb-6 m-0">{{ error }}</p>
-      <Button label="Try Again" @click="fetchGuide" />
+      <v-btn color="primary" @click="fetchGuide">Try Again</v-btn>
     </div>
 
     <template v-else-if="guide">
@@ -37,7 +37,7 @@
               class="w-full h-full object-cover max-h-[350px]"
             >
             <div class="absolute bottom-4 left-4 z-10">
-              <Tag :value="guide.difficulty || 'Unknown'" :severity="difficultySeverity(guide.difficulty)" />
+              <v-chip :color="difficultySeverity(guide.difficulty)" size="small" class="font-bold">{{ guide.difficulty || 'Unknown' }}</v-chip>
             </div>
             <div class="gradient-overlay absolute bottom-0 left-0 right-0 h-1/2 pointer-events-none"></div>
           </div>
@@ -80,14 +80,15 @@
                   class="w-full h-[350px] object-cover"
                 >
                 <div v-if="step.media.data.length > 1" class="flex justify-center gap-2 p-2">
-                  <Button
+                  <v-btn
                     v-for="(_, mIndex) in step.media.data"
                     :key="mIndex"
                     size="small"
-                    :severity="(stepImageIndex[index] || 0) === mIndex ? 'primary' : 'secondary'"
+                    :color="(stepImageIndex[index] || 0) === mIndex ? 'primary' : undefined"
+                    :variant="(stepImageIndex[index] || 0) === mIndex ? 'flat' : 'outlined'"
                     class="!w-8 !h-8 !p-0"
                     @click="stepImageIndex[index] = mIndex"
-                  >{{ mIndex + 1 }}</Button>
+                  >{{ mIndex + 1 }}</v-btn>
                 </div>
               </template>
               <div v-else class="flex items-center justify-center h-[200px]">
@@ -117,7 +118,7 @@
         <p class="text-sm mb-6 max-w-md mx-auto m-0 text-muted-foreground">
           You've reached the end of this guide. To reassemble your device, follow these instructions in reverse order.
         </p>
-        <Button label="Back to Top" size="large" class="font-bold text-none" @click="scrollToTop" />
+        <v-btn color="primary" size="large" class="font-bold text-none" @click="scrollToTop">Back to Top</v-btn>
       </div>
     </template>
   </div>
@@ -198,7 +199,7 @@ function scrollToTop() {
 </script>
 
 <style>
-.guide-html-content a { color: var(--p-primary-500, #6366f1); text-decoration: none; font-weight: 500; }
+.guide-html-content a { color: #6366f1; text-decoration: none; font-weight: 500; }
 .guide-html-content a:hover { text-decoration: underline; }
 .guide-html-content p { margin-bottom: 0; }
 .guide-html-content strong { font-weight: 700; }

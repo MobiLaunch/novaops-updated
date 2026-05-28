@@ -1,8 +1,6 @@
 /**
- * nuxt.config.ts — NovaOps (PrimeVue Edition)
+ * nuxt.config.ts — NovaOps (Vuetify 3 Edition)
  */
-import Aura from '@primeuix/themes/aura'
-import { definePreset } from '@primeuix/themes'
 
 if (process.env.NODE_ENV !== 'production') {
   const _emit = process.emit.bind(process)
@@ -16,45 +14,90 @@ if (process.env.NODE_ENV !== 'production') {
   }
 }
 
-const MyPreset = definePreset(Aura, {
-  semantic: {
-    primary: {
-      50: '{indigo.50}',
-      100: '{indigo.100}',
-      200: '{indigo.200}',
-      300: '{indigo.300}',
-      400: '{indigo.400}',
-      500: '{indigo.500}',
-      600: '{indigo.600}',
-      700: '{indigo.700}',
-      800: '{indigo.800}',
-      900: '{indigo.900}',
-      950: '{indigo.950}'
-    }
-  }
-})
-
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
   ssr: false,
 
   modules: [
-    '@primevue/nuxt-module',
+    'vuetify-nuxt-module',
     '@pinia/nuxt',
     '@vite-pwa/nuxt',
   ],
 
-  primevue: {
-    options: {
+  vuetify: {
+    vuetifyOptions: {
       theme: {
-        preset: MyPreset,
-        options: {
-          darkModeSelector: '.p-dark',
-          cssLayer: false
-        }
-      }
-    }
+        defaultTheme: 'light',
+        themes: {
+          light: {
+            dark: false,
+            colors: {
+              background: '#f5f7fa',
+              surface: '#ffffff',
+              primary: '#6366f1',
+              'primary-darken-1': '#4f46e5',
+              secondary: '#64748b',
+              accent: '#8b5cf6',
+              error: '#ef4444',
+              info: '#3b82f6',
+              success: '#10b981',
+              warning: '#f59e0b',
+            },
+          },
+          dark: {
+            dark: true,
+            colors: {
+              background: '#0f172a',
+              surface: '#1e293b',
+              primary: '#6366f1',
+              'primary-darken-1': '#818cf8',
+              secondary: '#94a3b8',
+              accent: '#a78bfa',
+              error: '#ef4444',
+              info: '#3b82f6',
+              success: '#10b981',
+              warning: '#f59e0b',
+            },
+          },
+        },
+      },
+      defaults: {
+        VBtn: {
+          variant: 'flat',
+          rounded: 'lg',
+        },
+        VTextField: {
+          variant: 'outlined',
+          density: 'comfortable',
+          rounded: 'lg',
+        },
+        VTextarea: {
+          variant: 'outlined',
+          density: 'comfortable',
+          rounded: 'lg',
+        },
+        VSelect: {
+          variant: 'outlined',
+          density: 'comfortable',
+          rounded: 'lg',
+        },
+        VAutocomplete: {
+          variant: 'outlined',
+          density: 'comfortable',
+          rounded: 'lg',
+        },
+        VCard: {
+          rounded: 'lg',
+        },
+        VDialog: {
+          maxWidth: 560,
+        },
+        VChip: {
+          rounded: 'lg',
+        },
+      },
+    },
   },
 
   pwa: {
@@ -123,7 +166,6 @@ export default defineNuxtConfig({
 
   css: [
     '@mdi/font/css/materialdesignicons.min.css',
-    'primeicons/primeicons.css',
     '~/assets/css/main.css'
   ],
   imports: { autoImport: true },

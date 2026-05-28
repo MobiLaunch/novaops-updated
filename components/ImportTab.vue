@@ -16,15 +16,16 @@
 
     <!-- ── Mode Tabs ─────────────────────────────────────────── -->
     <div class="bg-muted border rounded-full p-1 flex gap-1 self-start">
-      <Button
+      <v-btn
         v-for="m in ['Import', 'Export']"
         :key="m"
-        :label="m"
-        :variant="activeTab === m ? undefined : 'text'"
-        :severity="activeTab === m ? 'primary' : 'secondary'"
+        :variant="activeTab === m ? 'flat' : 'text'"
+        :color="activeTab === m ? 'primary' : 'secondary'"
         class="rounded-full text-xs font-bold px-6 py-1.5 transition-all text-none"
         @click="activeTab = m"
-      />
+      >
+        {{ m }}
+      </v-btn>
     </div>
 
     <!-- ── Import Section ─────────────────────────────────────── -->
@@ -62,11 +63,12 @@
               <p class="text-xs font-bold">Drop file here or click</p>
               <p class="text-[10px] text-muted-foreground mt-1">Supports CSV and JSON</p>
             </div>
-            <Button
-              label="Choose File"
-              :severity="type.key === 'customers' ? 'primary' : type.key === 'inventory' ? 'help' : 'warn'"
+            <v-btn
+              :color="type.key === 'customers' ? 'primary' : type.key === 'inventory' ? 'accent' : 'warning'"
               class="rounded-full text-[11px] font-bold px-5 py-1 mt-2 text-none"
-            />
+            >
+              Choose File
+            </v-btn>
           </div>
           <input :ref="el => fileInputs[type.key] = el as HTMLInputElement" type="file" accept=".csv,.json" class="hidden" @change="handleFileUpload($event, type.key)" />
 
@@ -84,14 +86,15 @@
           </div>
 
           <!-- Template download -->
-          <Button
+          <v-btn
             variant="outlined"
-            severity="secondary"
+            color="secondary"
             class="mt-4 w-full rounded-full text-xs font-bold text-none"
-            icon="mdi mdi-download"
-            :label="`Download ${type.label} Template`"
+            prepend-icon="mdi-download"
             @click="downloadTemplate(type)"
-          />
+          >
+            Download {{ type.label }} Template
+          </v-btn>
         </div>
       </div>
     </div>
@@ -130,18 +133,20 @@
           </div>
 
           <div class="flex gap-3 shrink-0">
-            <Button
-              label="Export CSV"
-              :severity="type.key === 'customers' ? 'primary' : type.key === 'inventory' ? 'help' : 'warn'"
+            <v-btn
+              :color="type.key === 'customers' ? 'primary' : type.key === 'inventory' ? 'accent' : 'warning'"
               class="flex-grow rounded-full text-xs font-bold text-none"
               @click="exportData(type.key, 'csv')"
-            />
-            <Button
-              label="Export JSON"
-              severity="secondary"
+            >
+              Export CSV
+            </v-btn>
+            <v-btn
+              color="secondary"
               class="flex-grow rounded-full text-xs font-bold text-none"
               @click="exportData(type.key, 'json')"
-            />
+            >
+              Export JSON
+            </v-btn>
           </div>
         </div>
       </div>
@@ -156,13 +161,14 @@
           </div>
           <h3 class="text-base font-black">Import History</h3>
         </div>
-        <Button 
-          label="Clear" 
+        <v-btn 
           variant="text" 
-          severity="secondary" 
+          color="secondary" 
           class="text-xs text-none font-bold" 
           @click="importLog = []" 
-        />
+        >
+          Clear
+        </v-btn>
       </div>
       
       <div class="flex flex-col gap-2">
@@ -186,9 +192,9 @@
 </template>
 
 <script setup lang="ts">
-import { useToast } from '~/composables/useToast'
 import { ref, computed } from 'vue'
 import { useAppStore } from '~/stores/app'
+import { useToast } from '~/composables/useToast'
 
 const appStore = useAppStore()
 const { toast } = useToast()

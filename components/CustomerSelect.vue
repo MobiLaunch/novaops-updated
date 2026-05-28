@@ -11,31 +11,39 @@
         </div>
         <span class="text-xs font-bold truncate">{{ selectedCustomerName }}</span>
       </div>
-      <Button
-        label="CHANGE"
+      <v-btn
         variant="text"
-        severity="secondary"
+        color="secondary"
         class="text-[10px] font-bold text-none shrink-0"
         @click.prevent="clearSelection"
-      />
+      >
+        CHANGE
+      </v-btn>
     </div>
 
     <!-- Search / Selecting State -->
     <div v-else-if="!isNewCustomer" class="relative w-full">
       <div class="relative flex items-center w-full">
-        <i class="mdi mdi-magnify absolute left-3.5 text-muted-foreground text-base"></i>
-        <InputText
+        <v-text-field
           v-model="searchText"
           placeholder="Search customers..."
-          class="w-full pl-9 pr-16 rounded-xl text-xs py-2.5"
+          prepend-inner-icon="mdi-magnify"
+          hide-details
+          density="comfortable"
+          class="w-full text-xs"
           @focus="showDropdown = true"
-        />
-        <Button
-          label="+ NEW"
-          severity="secondary"
-          class="absolute right-2 text-[10px] font-bold px-2 py-0.5 h-7 text-none"
-          @click.stop.prevent="openNewCustomer"
-        />
+        >
+          <template #append-inner>
+            <v-btn
+              color="secondary"
+              variant="tonal"
+              class="text-[10px] font-bold px-2 py-0.5 h-7 text-none rounded-lg"
+              @click.stop.prevent="openNewCustomer"
+            >
+              + NEW
+            </v-btn>
+          </template>
+        </v-text-field>
       </div>
 
       <div
@@ -62,13 +70,14 @@
         <p class="text-xs text-muted-foreground font-medium">
           No customers match "{{ searchText }}"
         </p>
-        <Button
-          label="+ Add as New Customer"
+        <v-btn
           variant="text"
-          severity="primary"
+          color="primary"
           class="text-xs text-none font-bold mt-1"
           @click.prevent="openNewCustomer"
-        />
+        >
+          + Add as New Customer
+        </v-btn>
       </div>
     </div>
 
@@ -81,35 +90,39 @@
         <span class="text-[10px] font-black text-primary uppercase tracking-wider">
           Create New Customer
         </span>
-        <Button
-          label="CANCEL"
+        <v-btn
           variant="text"
-          severity="secondary"
+          color="secondary"
           class="text-[10px] font-bold text-none"
           @click.prevent="cancelNewCustomer"
-        />
+        >
+          CANCEL
+        </v-btn>
       </div>
       <div class="flex flex-col gap-3">
-        <InputText
+        <v-text-field
           v-model="newCustomerForm.name"
           placeholder="Full Name *"
-          class="w-full rounded-xl text-xs py-2"
+          hide-details
+          class="w-full rounded-xl text-xs"
         />
-        <InputText
+        <v-text-field
           v-model="newCustomerForm.email"
           placeholder="Email Address"
           type="email"
-          class="w-full rounded-xl text-xs py-2"
+          hide-details
+          class="w-full rounded-xl text-xs"
         />
-        <InputText
+        <v-text-field
           v-model="newCustomerForm.phone"
           placeholder="Phone Number"
           type="tel"
-          class="w-full rounded-xl text-xs py-2"
+          hide-details
+          class="w-full rounded-xl text-xs"
           @input="newCustomerForm.phone = formatPhone(newCustomerForm.phone)"
         />
-        <Button
-          severity="primary"
+        <v-btn
+          color="primary"
           class="w-full rounded-xl text-xs font-bold py-2.5 text-none text-white flex items-center justify-center gap-2"
           style="background: linear-gradient(135deg, #6366f1, #8b5cf6)"
           :disabled="!newCustomerForm.name || isSaving"
@@ -118,7 +131,7 @@
           <i v-if="isSaving" class="mdi mdi-loading animate-spin text-sm"></i>
           <i v-else class="mdi mdi-check text-sm"></i>
           {{ isSaving ? 'Saving...' : 'Save & Select' }}
-        </Button>
+        </v-btn>
       </div>
     </div>
   </div>

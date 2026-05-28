@@ -15,36 +15,45 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
-        <Button label="Today" variant="outlined" class="text-none font-bold rounded-xl" @click="goToday" />
-        <SelectButton
+        <v-btn variant="outlined" color="secondary" class="text-none font-bold rounded-xl" @click="goToday">Today</v-btn>
+        <v-btn-toggle
           v-model="calView"
-          :options="views"
-          option-label="label"
-          option-value="key"
-          :allow-empty="false"
+          mandatory
+          divided
+          variant="outlined"
+          color="primary"
           class="rounded-xl"
-        />
+        >
+          <v-btn
+            v-for="v in views"
+            :key="v.key"
+            :value="v.key"
+            class="text-xs font-bold text-none"
+          >
+            {{ v.label }}
+          </v-btn>
+        </v-btn-toggle>
       </div>
     </div>
 
     <div class="flex flex-wrap items-center gap-3">
       <span class="text-[10px] font-black text-muted-foreground uppercase">Key:</span>
-      <Tag
+      <v-chip
         v-for="t in eventTypes"
         :key="t.key"
-        :value="t.label"
-        class="font-bold"
+        class="font-bold text-xs"
+        variant="flat"
         :style="{ backgroundColor: t.color + '22', color: t.color }"
       >
-        <i class="mdi mr-1" :class="t.icon"></i>
-      </Tag>
+        <i class="mdi mr-1" :class="t.icon"></i> {{ t.label }}
+      </v-chip>
     </div>
 
     <div class="bg-surface border border-border rounded-xl overflow-hidden mb-6">
       <div class="flex items-center px-2 py-2 relative">
-        <Button variant="text" rounded class="!w-9 !h-9" @click="prev"><i class="mdi mdi-chevron-left"></i></Button>
+        <v-btn icon="mdi-chevron-left" variant="text" class="!w-9 !h-9" @click="prev" />
         <h2 class="text-base font-black text-center flex-1 m-0 pointer-events-none">{{ currentLabel }}</h2>
-        <Button variant="text" rounded class="!w-9 !h-9" @click="next"><i class="mdi mdi-chevron-right"></i></Button>
+        <v-btn icon="mdi-chevron-right" variant="text" class="!w-9 !h-9" @click="next" />
       </div>
 
       <hr class="border-border m-0" />
@@ -154,11 +163,13 @@
                   </div>
                 </div>
 
-                <Tag
-                  :value="event.status || 'open'"
-                  :severity="statusSeverity(event.status)"
-                  class="font-bold capitalize shrink-0"
-                />
+                <v-chip
+                  :color="statusColor(event.status)"
+                  class="font-bold capitalize shrink-0 text-xs"
+                  variant="tonal"
+                >
+                  {{ event.status || 'open' }}
+                </v-chip>
               </div>
             </div>
           </div>
@@ -297,12 +308,12 @@ const agendaGroups = computed(() => {
 const formatAgendaDate = (d: string) =>
   d ? new Date(d + 'T00:00:00').toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' }) : ''
 
-const statusSeverity = (s: string) => {
+const statusColor = (s: string) => {
   const st = (s || '').toLowerCase()
   if (['scheduled', 'open'].includes(st)) return 'info'
-  if (['in progress'].includes(st)) return 'warn'
+  if (['in progress'].includes(st)) return 'warning'
   if (['completed', 'delivered'].includes(st)) return 'success'
-  if (['cancelled'].includes(st)) return 'danger'
+  if (['cancelled'].includes(st)) return 'error'
   return 'secondary'
 }
 </script>

@@ -35,8 +35,8 @@
     <!-- Tab Panels -->
     <div class="mt-2">
       <BarcodesTab v-if="activeTab === 'barcodes'" />
-      <ImportTab v-slot="{}" v-else-if="activeTab === 'import'" />
-      <FormsTab v-slot="{}" v-else-if="activeTab === 'forms'" />
+      <ImportTab v-else-if="activeTab === 'import'" />
+      <FormsTab v-else-if="activeTab === 'forms'" />
     </div>
 
   </div>

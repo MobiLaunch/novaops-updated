@@ -30,7 +30,7 @@
         class="p-2 rounded-full hover:bg-muted text-foreground transition-colors"
         @click="toggleTheme"
       >
-        <i class="mdi text-lg" :class="theme === 'dark' ? 'mdi-weather-sunny' : 'mdi-weather-night'"></i>
+        <i class="mdi text-lg" :class="isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'"></i>
       </button>
     </header>
 
@@ -42,34 +42,36 @@
       >
         <div class="flex flex-col items-center w-full gap-2.5 py-1">
           <!-- + New Action -->
-          <button
-            type="button"
-            class="nav-rail-btn w-12 h-12 rounded-xl hover:bg-muted text-primary flex items-center justify-center transition-colors relative"
-            v-tooltip.right="'Quick Actions'"
-            @click="toggleQuickActions"
-          >
-            <i class="mdi mdi-plus-circle text-2xl"></i>
-          </button>
-          
-          <Popover ref="quickActionsPopover">
-            <div class="p-2 min-w-[200px] flex flex-col gap-1">
-              <div class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 px-2">Quick Actions</div>
+          <v-menu location="end" :close-on-content-click="true">
+            <template #activator="{ props: menuProps }">
               <button
-                v-for="q in quickItems"
-                :key="q.type"
-                class="w-full text-left p-2 rounded-lg hover:bg-muted flex items-center justify-between text-foreground transition-colors"
-                @click="triggerAction(q.type)"
+                type="button"
+                v-bind="menuProps"
+                class="nav-rail-btn w-12 h-12 rounded-xl hover:bg-muted text-primary flex items-center justify-center transition-colors relative"
               >
-                <div class="flex items-center gap-3">
-                  <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" :style="{ backgroundColor: q.color }">
-                    <i class="mdi text-sm" :class="q.icon"></i>
-                  </div>
-                  <span class="text-xs font-bold">{{ q.label }}</span>
-                </div>
-                <span class="text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{{ q.kbd }}</span>
+                <i class="mdi mdi-plus-circle text-2xl"></i>
               </button>
-            </div>
-          </Popover>
+            </template>
+            <v-card min-width="200" class="rounded-xl">
+              <div class="p-2 flex flex-col gap-1">
+                <div class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 px-2">Quick Actions</div>
+                <button
+                  v-for="q in quickItems"
+                  :key="q.type"
+                  class="w-full text-left p-2 rounded-lg hover:bg-muted flex items-center justify-between text-foreground transition-colors"
+                  @click="triggerAction(q.type)"
+                >
+                  <div class="flex items-center gap-3">
+                    <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white" :style="{ backgroundColor: q.color }">
+                      <i class="mdi text-sm" :class="q.icon"></i>
+                    </div>
+                    <span class="text-xs font-bold">{{ q.label }}</span>
+                  </div>
+                  <span class="text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{{ q.kbd }}</span>
+                </button>
+              </div>
+            </v-card>
+          </v-menu>
 
           <hr class="w-8 border-t border-border my-1" />
 
@@ -80,7 +82,7 @@
             :to="item.path"
             class="nav-rail-btn w-12 h-12 rounded-xl flex items-center justify-center transition-colors relative"
             :class="[route.path === item.path ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground']"
-            v-tooltip.right="item.name"
+            v-tooltip:end="item.name"
           >
             <i class="mdi text-xl" :class="item.icon" :style="{ color: route.path === item.path ? item.color : undefined }"></i>
             <span
@@ -94,49 +96,51 @@
         <!-- Bottom: theme + settings + avatar -->
         <div class="flex flex-col items-center w-full gap-2">
           <!-- Upcoming -->
-          <button
-            type="button"
-            class="nav-rail-btn w-12 h-12 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors relative"
-            v-tooltip.right="'Upcoming'"
-            @click="toggleUpcoming"
-          >
-            <i class="mdi mdi-calendar-clock text-xl"></i>
-            <span
-              v-if="upcomingCount > 0"
-              class="absolute top-2 right-2 px-1 py-0.5 min-w-4 h-4 text-[9px] font-bold text-white bg-blue-500 rounded-full flex items-center justify-center leading-none"
-            >
-              {{ upcomingCount }}
-            </span>
-          </button>
-
-          <Popover ref="upcomingPopover">
-            <div class="p-3 min-w-[280px] max-w-[320px] flex flex-col gap-2">
-              <div class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Upcoming Tasks</div>
-              <div v-if="upcomingItems.length === 0" class="text-xs text-muted-foreground py-2 text-center">No upcoming tasks</div>
-              <div 
-                v-for="u in upcomingItems" 
-                :key="u.id" 
-                class="flex items-start gap-2.5 p-2 rounded-lg border hover:bg-muted transition-colors text-foreground"
+          <v-menu location="end" :close-on-content-click="false">
+            <template #activator="{ props: menuProps }">
+              <button
+                type="button"
+                v-bind="menuProps"
+                class="nav-rail-btn w-12 h-12 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors relative"
               >
-                <div class="w-6 h-6 rounded-md flex items-center justify-center text-white shrink-0 mt-0.5" :style="{ backgroundColor: u.color }">
-                  <i class="mdi text-xs" :class="u.icon"></i>
-                </div>
-                <div class="flex-grow min-w-0">
-                  <div class="text-xs font-bold truncate">{{ u.label }}</div>
-                  <div class="text-[10px] text-muted-foreground mt-0.5">{{ u.sub }}</div>
+                <i class="mdi mdi-calendar-clock text-xl"></i>
+                <span
+                  v-if="upcomingCount > 0"
+                  class="absolute top-2 right-2 px-1 py-0.5 min-w-4 h-4 text-[9px] font-bold text-white bg-blue-500 rounded-full flex items-center justify-center leading-none"
+                >
+                  {{ upcomingCount }}
+                </span>
+              </button>
+            </template>
+            <v-card class="rounded-xl">
+              <div class="p-3 min-w-[280px] max-w-[320px] flex flex-col gap-2">
+                <div class="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Upcoming Tasks</div>
+                <div v-if="upcomingItems.length === 0" class="text-xs text-muted-foreground py-2 text-center">No upcoming tasks</div>
+                <div 
+                  v-for="u in upcomingItems" 
+                  :key="u.id" 
+                  class="flex items-start gap-2.5 p-2 rounded-lg border hover:bg-muted transition-colors text-foreground"
+                >
+                  <div class="w-6 h-6 rounded-md flex items-center justify-center text-white shrink-0 mt-0.5" :style="{ backgroundColor: u.color }">
+                    <i class="mdi text-xs" :class="u.icon"></i>
+                  </div>
+                  <div class="flex-grow min-w-0">
+                    <div class="text-xs font-bold truncate">{{ u.label }}</div>
+                    <div class="text-[10px] text-muted-foreground mt-0.5">{{ u.sub }}</div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Popover>
+            </v-card>
+          </v-menu>
 
           <!-- Theme toggle -->
           <button
             type="button"
             class="nav-rail-btn w-12 h-12 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
-            v-tooltip.right="`Theme: ${theme}`"
+            v-tooltip:end="`Theme: ${isDark ? 'dark' : 'light'}`"
             @click="toggleTheme"
           >
-            <i class="mdi text-xl" :class="theme === 'dark' ? 'mdi-weather-sunny' : 'mdi-weather-night'"></i>
+            <i class="mdi text-xl" :class="isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'"></i>
           </button>
 
           <!-- Settings -->
@@ -144,7 +148,7 @@
             to="/settings"
             class="nav-rail-btn w-12 h-12 rounded-xl flex items-center justify-center transition-colors"
             :class="[route.path === '/settings' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground']"
-            v-tooltip.right="'Settings'"
+            v-tooltip:end="'Settings'"
           >
             <i class="mdi mdi-cog-outline text-xl"></i>
           </NuxtLink>
@@ -157,14 +161,14 @@
       </aside>
 
       <!-- ── Mobile drawer (full sidebar) ────────────────────────── -->
-      <Drawer
-        v-model:visible="mobileDrawerOpen"
-        position="left"
-        class="w-72"
-        header="Navigation"
+      <v-navigation-drawer
+        v-model="mobileDrawerOpen"
+        temporary
+        location="left"
+        width="288"
       >
-        <template #header>
-          <div class="flex items-center gap-3 py-2">
+        <template #prepend>
+          <div class="flex items-center gap-3 py-4 px-4">
             <div class="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center text-xs font-bold">
               {{ userInitials }}
             </div>
@@ -175,7 +179,7 @@
           </div>
         </template>
 
-        <div class="flex flex-col gap-1 py-2">
+        <div class="flex flex-col gap-1 py-2 px-2">
           <NuxtLink
             v-for="item in navigation"
             :key="item.path"
@@ -208,14 +212,16 @@
             </span>
           </NuxtLink>
         </div>
-      </Drawer>
+      </v-navigation-drawer>
 
       <!-- ── Main content ─────────────────────────────────────────── -->
       <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-        <ProgressBar
+        <v-progress-linear
           v-if="appStore.isLoading && !noLoadingGate"
-          mode="indeterminate"
-          class="absolute top-0 left-0 right-0 h-0.5 z-50 rounded-none bg-transparent"
+          indeterminate
+          color="primary"
+          class="absolute top-0 left-0 right-0 z-50"
+          height="2"
         />
 
         <div class="flex-1 p-4 md:p-6 overflow-y-auto overflow-x-hidden bg-background">
@@ -275,23 +281,23 @@ import CommandPalette from '~/components/CommandPalette.vue'
 import KeyboardShortcutsOverlay from '~/components/KeyboardShortcutsOverlay.vue'
 import { useMediaQuery } from '@vueuse/core'
 import { useScreenLock } from '~/composables/useScreenLock'
+import { useTheme } from 'vuetify'
 
 const appStore = useAppStore()
 const { tickets, appointments, settings } = storeToRefs(appStore)
 const { toasts, dismiss } = useToast()
 const route = useRoute()
+const vuetifyTheme = useTheme()
 
 // Responsive breakpoints
 const isMobile = useMediaQuery('(max-width: 959px)')
 const mobileDrawerOpen = ref(false)
-const upcomingPopover = ref()
-const quickActionsPopover = ref()
 
 // Theme
-const theme = ref('light')
+const isDark = computed(() => vuetifyTheme.global.current.value.dark)
 onMounted(() => {
-  theme.value = localStorage.getItem('novaops_theme') || 'light'
-  updateDarkClass()
+  const saved = localStorage.getItem('novaops_theme') || 'light'
+  vuetifyTheme.global.name.value = saved
   appStore.setupAuthListener()
   checkLockStatus()
   setupActivityListeners()
@@ -300,17 +306,9 @@ const { checkLockStatus, setupActivityListeners, cleanup } = useScreenLock()
 onUnmounted(cleanup)
 
 function toggleTheme() {
-  theme.value = theme.value === 'light' ? 'dark' : 'light'
-  localStorage.setItem('novaops_theme', theme.value)
-  updateDarkClass()
-}
-
-function updateDarkClass() {
-  if (theme.value === 'dark') {
-    document.documentElement.classList.add('p-dark')
-  } else {
-    document.documentElement.classList.remove('p-dark')
-  }
+  const next = isDark.value ? 'light' : 'dark'
+  vuetifyTheme.global.name.value = next
+  localStorage.setItem('novaops_theme', next)
 }
 
 // User info
@@ -342,14 +340,6 @@ watch(() => route.path, () => {
   mobileDrawerOpen.value = false
 })
 
-// Popover triggers
-function toggleQuickActions(e: Event) {
-  quickActionsPopover.value?.toggle(e)
-}
-function toggleUpcoming(e: Event) {
-  upcomingPopover.value?.toggle(e)
-}
-
 // Quick items for the New popover
 const quickItems = [
   { type: 'ticket',    label: 'New Ticket',    icon: 'mdi-ticket-outline',           color: '#f59e0b', kbd: '⌘T' },
@@ -365,7 +355,6 @@ const commandPaletteOpen = ref(false)
 const shortcutsOverlayOpen = ref(false)
 
 function triggerAction(type: string) {
-  quickActionsPopover.value?.hide()
   if (type === 'ticket') newTicketOpen.value = true
   else if (type === 'housecall') newHousecallOpen.value = true
   else if (type === 'customer') newCustomerOpen.value = true

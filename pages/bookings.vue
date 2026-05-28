@@ -6,281 +6,303 @@
         <h1 class="text-xl font-black m-0">Booking Management</h1>
         <p class="text-sm text-muted-foreground m-0">Tickets, house calls & vendor repairs</p>
       </div>
-      <Button v-if="activeTab === 'tickets'" label="New Ticket" class="font-bold text-none" @click="newTicketOpen = true">
-        <i class="mdi mdi-plus mr-1"></i>
-      </Button>
-      <Button v-else-if="activeTab === 'housecalls'" label="Schedule Call" severity="success" class="font-bold text-none" @click="openNewHousecall">
-        <i class="mdi mdi-plus mr-1"></i>
-      </Button>
-      <Button v-else-if="activeTab === 'thirdparty'" label="New Vendor Repair" severity="secondary" class="font-bold text-none" @click="openNewVendorRepair">
-        <i class="mdi mdi-plus mr-1"></i>
-      </Button>
+      <v-btn v-if="activeTab === 'tickets'" color="primary" class="font-bold text-none" @click="newTicketOpen = true">
+        <i class="mdi mdi-plus mr-1"></i> New Ticket
+      </v-btn>
+      <v-btn v-else-if="activeTab === 'housecalls'" color="success" class="font-bold text-none" @click="openNewHousecall">
+        <i class="mdi mdi-plus mr-1"></i> Schedule Call
+      </v-btn>
+      <v-btn v-else-if="activeTab === 'thirdparty'" color="secondary" class="font-bold text-none" @click="openNewVendorRepair">
+        <i class="mdi mdi-plus mr-1"></i> New Vendor Repair
+      </v-btn>
     </header>
 
-    <Tabs v-model:value="activeTab">
-      <TabList>
-        <Tab value="tickets">
-          <i class="mdi mdi-ticket-outline mr-1"></i> Tickets
-          <Tag v-if="openTicketCount" :value="String(openTicketCount)" severity="warn" class="ml-2" />
-        </Tab>
-        <Tab value="housecalls">
-          <i class="mdi mdi-map-marker-outline mr-1"></i> House Calls
-          <Tag v-if="activeHousecallCount" :value="String(activeHousecallCount)" severity="success" class="ml-2" />
-        </Tab>
-        <Tab value="thirdparty">
-          <i class="mdi mdi-domain mr-1"></i> Vendor Repairs
-          <Tag v-if="activeVendorCount" :value="String(activeVendorCount)" class="ml-2" />
-        </Tab>
-        <Tab value="calendar"><i class="mdi mdi-calendar mr-1"></i> Calendar</Tab>
-      </TabList>
+    <v-tabs v-model="activeTab" bg-color="transparent" color="primary" align-tabs="start">
+      <v-tab value="tickets">
+        <i class="mdi mdi-ticket-outline mr-1"></i> Tickets
+        <v-chip v-if="openTicketCount" size="x-small" color="warning" class="ml-2 font-bold">{{ openTicketCount }}</v-chip>
+      </v-tab>
+      <v-tab value="housecalls">
+        <i class="mdi mdi-map-marker-outline mr-1"></i> House Calls
+        <v-chip v-if="activeHousecallCount" size="x-small" color="success" class="ml-2 font-bold">{{ activeHousecallCount }}</v-chip>
+      </v-tab>
+      <v-tab value="thirdparty">
+        <i class="mdi mdi-domain mr-1"></i> Vendor Repairs
+        <v-chip v-if="activeVendorCount" size="x-small" color="secondary" class="ml-2 font-bold">{{ activeVendorCount }}</v-chip>
+      </v-tab>
+      <v-tab value="calendar"><i class="mdi mdi-calendar mr-1"></i> Calendar</v-tab>
+    </v-tabs>
 
-      <TabPanels class="pt-4">
-        <!-- TICKETS -->
-        <TabPanel value="tickets">
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-            <div v-for="stat in ticketStats" :key="stat.label" class="kpi-card">
-              <div class="w-9 h-9 rounded-lg flex items-center justify-center mb-2" :style="{ backgroundColor: stat.color + '18', color: stat.color }">
-                <i class="mdi text-lg" :class="stat.icon"></i>
+    <v-window v-model="activeTab" class="pt-4">
+      <!-- TICKETS -->
+      <v-window-item value="tickets">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          <div v-for="stat in ticketStats" :key="stat.label" class="kpi-card">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center mb-2" :style="{ backgroundColor: stat.color + '18', color: stat.color }">
+              <i class="mdi text-lg" :class="stat.icon"></i>
+            </div>
+            <div class="text-2xl font-black" :style="{ color: stat.color }">{{ stat.value }}</div>
+            <div class="text-xs text-muted-foreground">{{ stat.label }}</div>
+          </div>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl p-4 mb-4 flex flex-wrap items-center gap-3">
+          <v-text-field
+            v-model="ticketSearch"
+            placeholder="Search tickets…"
+            prepend-inner-icon="mdi-magnify"
+            hide-details
+            variant="outlined"
+            density="compact"
+            class="flex-1 min-w-[200px] rounded-full"
+          />
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="s in [null, ...statusList]"
+              :key="s ?? 'all'"
+              type="button"
+              class="filter-chip"
+              :class="{ 'filter-chip--active': ticketFilter === s }"
+              @click="ticketFilter = s"
+            >{{ s ?? 'All' }}</button>
+          </div>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl overflow-hidden">
+          <v-data-table
+            :items="filteredTickets"
+            :headers="[
+              { title: '#', key: 'id', width: '70px' },
+              { title: 'Customer', key: 'customer', minWidth: '140px' },
+              { title: 'Device', key: 'device', minWidth: '180px' },
+              { title: 'Priority', key: 'priority', width: '100px' },
+              { title: 'Status', key: 'status', width: '160px' },
+              { title: 'Price', key: 'price', width: '100px' },
+              { title: 'Date', key: 'date', width: '120px' },
+              { title: '', key: 'actions', width: '110px', sortable: false },
+            ]"
+            :items-per-page="15"
+            class="text-sm"
+            @click:row="(event, { item }) => openTicket(item)"
+          >
+            <template #item.id="{ item }">
+              <span class="text-xs font-bold text-amber-600">#{{ item.id }}</span>
+            </template>
+            <template #item.customer="{ item }">
+              <span class="text-sm font-medium">{{ getCustomerName(item.customerId) }}</span>
+            </template>
+            <template #item.device="{ item }">
+              <div class="text-sm font-medium">{{ item.device }} {{ item.deviceModel || '' }}</div>
+              <div class="text-xs text-muted-foreground truncate">{{ item.issue }}</div>
+            </template>
+            <template #item.priority="{ item }">
+              <v-chip :color="prioritySeverity(item.priority)" size="x-small" class="font-bold">{{ item.priority || 'normal' }}</v-chip>
+            </template>
+            <template #item.status="{ item }">
+              <v-chip :color="ticketStatusSeverity(item.status)" size="x-small" class="font-bold">{{ item.status }}</v-chip>
+            </template>
+            <template #item.price="{ item }">
+              <span class="text-sm font-bold" :style="{ color: ticketStatusHex(item.status) }">{{ formatCurrency(item.price) }}</span>
+            </template>
+            <template #item.date="{ item }">
+              <span class="text-xs text-muted-foreground">{{ formatDate(item.createdAt) }}</span>
+            </template>
+            <template #item.actions="{ item }">
+              <div class="flex gap-1" @click.stop>
+                <v-btn variant="text" icon size="small" class="!w-8 !h-8" @click.stop="openTicket(item)"><i class="mdi mdi-pencil-outline text-sm"></i></v-btn>
+                <v-btn variant="text" icon size="small" class="!w-8 !h-8" @click.stop="copyTicketInfo(item)"><i class="mdi mdi-content-copy text-sm"></i></v-btn>
+                <v-btn variant="text" icon color="error" size="small" class="!w-8 !h-8" @click.stop="pendingDelete = item"><i class="mdi mdi-delete-outline text-sm"></i></v-btn>
               </div>
-              <div class="text-2xl font-black" :style="{ color: stat.color }">{{ stat.value }}</div>
-              <div class="text-xs text-muted-foreground">{{ stat.label }}</div>
-            </div>
-          </div>
-
-          <div class="bg-surface border border-border rounded-xl p-4 mb-4 flex flex-wrap items-center gap-3">
-            <div class="search-field-wrap flex-1 min-w-[200px]">
-              <i class="mdi mdi-magnify"></i>
-              <InputText v-model="ticketSearch" placeholder="Search tickets…" class="w-full" />
-            </div>
-            <div class="flex flex-wrap gap-2">
-              <button
-                v-for="s in [null, ...statusList]"
-                :key="s ?? 'all'"
-                type="button"
-                class="filter-chip"
-                :class="{ 'filter-chip--active': ticketFilter === s }"
-                @click="ticketFilter = s"
-              >{{ s ?? 'All' }}</button>
-            </div>
-          </div>
-
-          <div class="bg-surface border border-border rounded-xl overflow-hidden">
-            <DataTable :value="filteredTickets" :rows="15" class="text-sm" row-hover @row-click="(e: any) => openTicket(e.data)">
-              <Column field="id" header="#" style="width: 70px">
-                <template #body="{ data }"><span class="text-xs font-bold text-amber-600">#{{ data.id }}</span></template>
-              </Column>
-              <Column header="Customer" style="min-width: 140px">
-                <template #body="{ data }"><span class="text-sm font-medium">{{ getCustomerName(data.customerId) }}</span></template>
-              </Column>
-              <Column header="Device" style="min-width: 180px">
-                <template #body="{ data }">
-                  <div class="text-sm font-medium">{{ data.device }} {{ data.deviceModel || '' }}</div>
-                  <div class="text-xs text-muted-foreground truncate">{{ data.issue }}</div>
-                </template>
-              </Column>
-              <Column header="Priority" style="width: 100px">
-                <template #body="{ data }"><Tag :value="data.priority || 'normal'" :severity="prioritySeverity(data.priority)" /></template>
-              </Column>
-              <Column header="Status" style="width: 160px">
-                <template #body="{ data }"><Tag :value="data.status" :severity="ticketStatusSeverity(data.status)" /></template>
-              </Column>
-              <Column header="Price" style="width: 100px">
-                <template #body="{ data }">
-                  <span class="text-sm font-bold" :style="{ color: ticketStatusHex(data.status) }">{{ formatCurrency(data.price) }}</span>
-                </template>
-              </Column>
-              <Column header="Date" style="width: 120px">
-                <template #body="{ data }"><span class="text-xs text-muted-foreground">{{ formatDate(data.createdAt) }}</span></template>
-              </Column>
-              <Column header="" style="width: 110px">
-                <template #body="{ data }">
-                  <div class="flex gap-1" @click.stop>
-                    <Button variant="text" size="small" class="!w-8 !h-8" @click.stop="openTicket(data)"><i class="mdi mdi-pencil-outline text-sm"></i></Button>
-                    <Button variant="text" size="small" class="!w-8 !h-8" @click.stop="copyTicketInfo(data)"><i class="mdi mdi-content-copy text-sm"></i></Button>
-                    <Button variant="text" size="small" severity="danger" class="!w-8 !h-8" @click.stop="pendingDelete = data"><i class="mdi mdi-delete-outline text-sm"></i></Button>
-                  </div>
-                </template>
-              </Column>
-              <template #empty>
-                <div class="text-center py-10 text-muted-foreground">
-                  <i class="mdi mdi-ticket-outline text-5xl block mb-2 opacity-40"></i>
-                  <p class="text-sm font-medium m-0">No tickets found</p>
-                  <Button label="Create First Ticket" class="mt-3 text-none" size="small" @click="newTicketOpen = true" />
-                </div>
-              </template>
-            </DataTable>
-          </div>
-        </TabPanel>
-
-        <!-- HOUSE CALLS -->
-        <TabPanel value="housecalls">
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-            <div class="kpi-card">
-              <div class="w-9 h-9 rounded-lg bg-emerald-500/15 text-emerald-600 flex items-center justify-center mb-2"><i class="mdi mdi-map-marker"></i></div>
-              <div class="text-2xl font-black text-emerald-600">{{ housecalls.length }}</div>
-              <div class="text-xs text-muted-foreground">All Calls</div>
-            </div>
-            <div class="kpi-card">
-              <div class="w-9 h-9 rounded-lg bg-sky-500/15 text-sky-600 flex items-center justify-center mb-2"><i class="mdi mdi-clock-outline"></i></div>
-              <div class="text-2xl font-black text-sky-600">{{ countHousecallByStatus('Scheduled') }}</div>
-              <div class="text-xs text-muted-foreground">Scheduled</div>
-            </div>
-            <div class="kpi-card">
-              <div class="w-9 h-9 rounded-lg bg-amber-500/15 text-amber-600 flex items-center justify-center mb-2"><i class="mdi mdi-wrench"></i></div>
-              <div class="text-2xl font-black text-amber-600">{{ countHousecallByStatus('In Progress') }}</div>
-              <div class="text-xs text-muted-foreground">In Progress</div>
-            </div>
-            <div class="kpi-card">
-              <div class="w-9 h-9 rounded-lg bg-primary/15 text-primary flex items-center justify-center mb-2"><i class="mdi mdi-check-circle-outline"></i></div>
-              <div class="text-2xl font-black text-primary">{{ countHousecallByStatus('Completed') }}</div>
-              <div class="text-xs text-muted-foreground">Completed</div>
-            </div>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-3 mb-4">
-            <div class="search-field-wrap flex-1 min-w-[200px]">
-              <i class="mdi mdi-magnify"></i>
-              <InputText v-model="housecallSearch" placeholder="Search name, address or issue…" class="w-full" />
-            </div>
-            <div class="flex flex-wrap gap-2">
-              <button
-                v-for="f in housecallFilterOptions"
-                :key="f"
-                type="button"
-                class="filter-chip"
-                :class="{ 'filter-chip--active': housecallFilter === f }"
-                @click="housecallFilter = f"
-              >{{ f }}</button>
-            </div>
-          </div>
-
-          <div v-if="filteredHousecalls.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <div
-              v-for="call in filteredHousecalls"
-              :key="call.id"
-              class="bg-surface border border-border rounded-xl overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-              @click="viewHousecall(call)"
-            >
-              <div class="p-4 flex items-start gap-3">
-                <div class="w-10 h-10 rounded-lg bg-emerald-500/15 text-emerald-600 flex items-center justify-center shrink-0">
-                  <i class="mdi mdi-map-marker"></i>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="font-bold truncate">{{ getCustomerName(call.customerId) }}</div>
-                  <div class="text-xs text-muted-foreground truncate flex items-center gap-1">
-                    <i class="mdi mdi-map-marker-outline"></i>{{ call.address }}
-                  </div>
-                </div>
-                <Tag :value="call.status" :severity="housecallStatusSeverity(call.status)" class="shrink-0" />
+            </template>
+            <template #no-data>
+              <div class="text-center py-10 text-muted-foreground">
+                <i class="mdi mdi-ticket-outline text-5xl block mb-2 opacity-40"></i>
+                <p class="text-sm font-medium m-0">No tickets found</p>
+                <v-btn color="primary" class="mt-3 text-none" size="small" @click="newTicketOpen = true">Create First Ticket</v-btn>
               </div>
-              <div class="px-4 pb-3">
-                <p class="text-xs text-emerald-700 font-bold m-0 mb-2">
-                  <i class="mdi mdi-calendar mr-1"></i>{{ formatDate(call.date) }} at {{ call.time }}
-                </p>
-                <div v-if="getOsmCardUrl(call.address)" class="rounded-lg overflow-hidden mb-2 h-20 pointer-events-none">
-                  <iframe :src="getOsmCardUrl(call.address)" class="w-full h-full border-0" title="Map" />
-                </div>
-                <p class="text-xs text-muted-foreground m-0 line-clamp-2">{{ call.issue }}</p>
-              </div>
-              <div class="flex items-center gap-2 px-4 py-3 border-t border-border" @click.stop>
-                <Button
-                  v-if="call.status !== 'Completed'"
-                  size="small"
-                  class="text-none"
-                  :severity="call.status === 'Scheduled' ? 'warn' : 'success'"
-                  @click.stop="advanceHousecallStatus(call)"
-                >{{ call.status === 'Scheduled' ? 'Start Call' : 'Complete' }}</Button>
-                <div class="flex-1"></div>
-                <Button variant="text" severity="danger" size="small" @click.stop="pendingDeleteHousecall = call">
-                  <i class="mdi mdi-delete-outline"></i>
-                </Button>
-              </div>
-            </div>
-          </div>
-          <div v-else class="text-center py-12 border border-dashed border-border rounded-xl">
-            <i class="mdi mdi-map-marker text-5xl text-muted-foreground opacity-40 block mb-2"></i>
-            <p class="font-bold m-0">No house calls {{ housecallFilter !== 'All' ? `with status "${housecallFilter}"` : 'scheduled' }}</p>
-            <p class="text-sm text-muted-foreground mb-4">Schedule your first on-site visit</p>
-            <Button label="Schedule Call" severity="success" class="text-none" @click="openNewHousecall" />
-          </div>
-        </TabPanel>
+            </template>
+          </v-data-table>
+        </div>
+      </v-window-item>
 
-        <!-- VENDOR REPAIRS -->
-        <TabPanel value="thirdparty">
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-            <div v-for="stat in vendorStats" :key="stat.label" class="kpi-card">
-              <div class="w-9 h-9 rounded-lg flex items-center justify-center mb-2" :style="{ backgroundColor: stat.color + '18', color: stat.color }">
-                <i class="mdi text-lg" :class="stat.icon"></i>
+      <!-- HOUSE CALLS -->
+      <v-window-item value="housecalls">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          <div class="kpi-card">
+            <div class="w-9 h-9 rounded-lg bg-emerald-500/15 text-emerald-600 flex items-center justify-center mb-2"><i class="mdi mdi-map-marker"></i></div>
+            <div class="text-2xl font-black text-emerald-600">{{ housecalls.length }}</div>
+            <div class="text-xs text-muted-foreground">All Calls</div>
+          </div>
+          <div class="kpi-card">
+            <div class="w-9 h-9 rounded-lg bg-sky-500/15 text-sky-600 flex items-center justify-center mb-2"><i class="mdi mdi-clock-outline"></i></div>
+            <div class="text-2xl font-black text-sky-600">{{ countHousecallByStatus('Scheduled') }}</div>
+            <div class="text-xs text-muted-foreground">Scheduled</div>
+          </div>
+          <div class="kpi-card">
+            <div class="w-9 h-9 rounded-lg bg-amber-500/15 text-amber-600 flex items-center justify-center mb-2"><i class="mdi mdi-wrench"></i></div>
+            <div class="text-2xl font-black text-amber-600">{{ countHousecallByStatus('In Progress') }}</div>
+            <div class="text-xs text-muted-foreground">In Progress</div>
+          </div>
+          <div class="kpi-card">
+            <div class="w-9 h-9 rounded-lg bg-primary/15 text-primary flex items-center justify-center mb-2"><i class="mdi mdi-check-circle-outline"></i></div>
+            <div class="text-2xl font-black text-primary">{{ countHousecallByStatus('Completed') }}</div>
+            <div class="text-xs text-muted-foreground">Completed</div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 mb-4">
+          <v-text-field
+            v-model="housecallSearch"
+            placeholder="Search name, address or issue…"
+            prepend-inner-icon="mdi-magnify"
+            hide-details
+            variant="outlined"
+            density="compact"
+            class="flex-1 min-w-[200px] rounded-full"
+          />
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="f in housecallFilterOptions"
+              :key="f"
+              type="button"
+              class="filter-chip"
+              :class="{ 'filter-chip--active': housecallFilter === f }"
+              @click="housecallFilter = f"
+            >{{ f }}</button>
+          </div>
+        </div>
+
+        <div v-if="filteredHousecalls.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div
+            v-for="call in filteredHousecalls"
+            :key="call.id"
+            class="bg-surface border border-border rounded-xl overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+            @click="viewHousecall(call)"
+          >
+            <div class="p-4 flex items-start gap-3">
+              <div class="w-10 h-10 rounded-lg bg-emerald-500/15 text-emerald-600 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-map-marker"></i>
               </div>
-              <div class="text-2xl font-black" :style="{ color: stat.color }">{{ stat.value }}</div>
-              <div class="text-xs text-muted-foreground">{{ stat.label }}</div>
-            </div>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-3 mb-4">
-            <div class="search-field-wrap flex-1 min-w-[200px]">
-              <i class="mdi mdi-magnify"></i>
-              <InputText v-model="vendorSearch" placeholder="Search vendor repairs…" class="w-full" />
-            </div>
-            <div class="flex flex-wrap gap-2">
-              <button
-                v-for="s in [null, ...vendorStatusList]"
-                :key="s ?? 'all'"
-                type="button"
-                class="filter-chip"
-                :class="{ 'filter-chip--active': vendorFilter === s }"
-                @click="vendorFilter = s"
-              >{{ s ?? 'All' }}</button>
-            </div>
-          </div>
-
-          <div v-if="filteredVendorRepairs.length" class="flex flex-col gap-3">
-            <div
-              v-for="repair in filteredVendorRepairs"
-              :key="repair.id"
-              class="bg-surface border border-border rounded-xl p-4 cursor-pointer hover:bg-muted/30 transition-colors"
-              @click="openVendorRepair(repair)"
-            >
-              <div class="flex items-start gap-3 flex-wrap">
-                <div class="w-10 h-10 rounded-lg bg-violet-500/15 text-violet-600 flex items-center justify-center shrink-0">
-                  <i class="mdi mdi-domain"></i>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="font-bold flex items-center gap-2 flex-wrap">
-                    {{ repair.vendor }}
-                    <Tag v-if="repair.ticketRef" :value="'#' + repair.ticketRef" severity="warn" />
-                  </div>
-                  <div class="text-xs text-muted-foreground">{{ repair.device }} — {{ repair.issue }} · {{ getCustomerName(repair.customerId) }}</div>
-                </div>
-                <div class="flex gap-2 shrink-0">
-                  <Tag v-if="isOverdue(repair)" value="OVERDUE" severity="danger" />
-                  <Tag :value="repair.status" :severity="vendorStatusSeverity(repair.status)" />
+              <div class="flex-1 min-w-0">
+                <div class="font-bold truncate">{{ getCustomerName(call.customerId) }}</div>
+                <div class="text-xs text-muted-foreground truncate flex items-center gap-1">
+                  <i class="mdi mdi-map-marker-outline"></i>{{ call.address }}
                 </div>
               </div>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-3 text-sm">
-                <div><p class="text-[10px] font-black text-muted-foreground uppercase m-0 mb-0.5">Tracking</p><p class="m-0 font-medium">{{ repair.trackingNumber || 'Not provided' }}</p></div>
-                <div><p class="text-[10px] font-black text-muted-foreground uppercase m-0 mb-0.5">Sent</p><p class="m-0 font-medium">{{ repair.sentDate ? formatDate(repair.sentDate) : '—' }}</p></div>
-                <div>
-                  <p class="text-[10px] font-black text-muted-foreground uppercase m-0 mb-0.5">Est. Return</p>
-                  <p class="m-0 font-medium" :class="isOverdue(repair) ? 'text-red-600' : ''">{{ repair.estReturn ? formatDate(repair.estReturn) : '—' }}</p>
-                </div>
-                <div v-if="repair.notes"><p class="text-xs text-muted-foreground m-0">📝 {{ repair.notes }}</p></div>
+              <v-chip :color="housecallStatusSeverity(call.status)" size="x-small" class="shrink-0 font-bold">{{ call.status }}</v-chip>
+            </div>
+            <div class="px-4 pb-3">
+              <p class="text-xs text-emerald-700 font-bold m-0 mb-2">
+                <i class="mdi mdi-calendar mr-1"></i>{{ formatDate(call.date) }} at {{ call.time }}
+              </p>
+              <div v-if="getOsmCardUrl(call.address)" class="rounded-lg overflow-hidden mb-2 h-20 pointer-events-none">
+                <iframe :src="getOsmCardUrl(call.address)" class="w-full h-full border-0" title="Map" />
               </div>
+              <p class="text-xs text-muted-foreground m-0 line-clamp-2">{{ call.issue }}</p>
+            </div>
+            <div class="flex items-center gap-2 px-4 py-3 border-t border-border" @click.stop>
+              <v-btn
+                v-if="call.status !== 'Completed'"
+                size="small"
+                class="text-none"
+                :color="call.status === 'Scheduled' ? 'warning' : 'success'"
+                @click.stop="advanceHousecallStatus(call)"
+              >{{ call.status === 'Scheduled' ? 'Start Call' : 'Complete' }}</v-btn>
+              <div class="flex-grow-1"></div>
+              <v-btn variant="text" color="error" size="small" @click.stop="pendingDeleteHousecall = call">
+                <i class="mdi mdi-delete-outline"></i>
+              </v-btn>
             </div>
           </div>
-          <div v-else class="text-center py-12 border border-dashed border-border rounded-xl">
-            <i class="mdi mdi-domain text-5xl text-muted-foreground opacity-40 block mb-2"></i>
-            <p class="font-bold m-0">No vendor repairs</p>
-            <p class="text-sm text-muted-foreground mb-4">Send your first device out for third-party repair</p>
-            <Button label="New Vendor Repair" severity="secondary" class="text-none" @click="openNewVendorRepair" />
-          </div>
-        </TabPanel>
+        </div>
+        <div v-else class="text-center py-12 border border-dashed border-border rounded-xl">
+          <i class="mdi mdi-map-marker text-5xl text-muted-foreground opacity-40 block mb-2"></i>
+          <p class="font-bold m-0">No house calls {{ housecallFilter !== 'All' ? `with status "${housecallFilter}"` : 'scheduled' }}</p>
+          <p class="text-sm text-muted-foreground mb-4">Schedule your first on-site visit</p>
+          <v-btn color="success" class="text-none" @click="openNewHousecall">Schedule Call</v-btn>
+        </div>
+      </v-window-item>
 
-        <TabPanel value="calendar">
-          <CalendarTab />
-        </TabPanel>
-      </TabPanels>
-    </Tabs>
+      <!-- VENDOR REPAIRS -->
+      <v-window-item value="thirdparty">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          <div v-for="stat in vendorStats" :key="stat.label" class="kpi-card">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center mb-2" :style="{ backgroundColor: stat.color + '18', color: stat.color }">
+              <i class="mdi text-lg" :class="stat.icon"></i>
+            </div>
+            <div class="text-2xl font-black" :style="{ color: stat.color }">{{ stat.value }}</div>
+            <div class="text-xs text-muted-foreground">{{ stat.label }}</div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 mb-4">
+          <v-text-field
+            v-model="vendorSearch"
+            placeholder="Search vendor repairs…"
+            prepend-inner-icon="mdi-magnify"
+            hide-details
+            variant="outlined"
+            density="compact"
+            class="flex-1 min-w-[200px] rounded-full"
+          />
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="s in [null, ...vendorStatusList]"
+              :key="s ?? 'all'"
+              type="button"
+              class="filter-chip"
+              :class="{ 'filter-chip--active': vendorFilter === s }"
+              @click="vendorFilter = s"
+            >{{ s ?? 'All' }}</button>
+          </div>
+        </div>
+
+        <div v-if="filteredVendorRepairs.length" class="flex flex-col gap-3">
+          <div
+            v-for="repair in filteredVendorRepairs"
+            :key="repair.id"
+            class="bg-surface border border-border rounded-xl p-4 cursor-pointer hover:bg-muted/30 transition-colors"
+            @click="openVendorRepair(repair)"
+          >
+            <div class="flex items-start gap-3 flex-wrap">
+              <div class="w-10 h-10 rounded-lg bg-violet-500/15 text-violet-600 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-domain"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-bold flex items-center gap-2 flex-wrap">
+                  {{ repair.vendor }}
+                  <v-chip v-if="repair.ticketRef" size="x-small" color="warning" class="font-bold">#{{ repair.ticketRef }}</v-chip>
+                </div>
+                <div class="text-xs text-muted-foreground">{{ repair.device }} — {{ repair.issue }} · {{ getCustomerName(repair.customerId) }}</div>
+              </div>
+              <div class="flex gap-2 shrink-0">
+                <v-chip v-if="isOverdue(repair)" size="x-small" color="error" class="font-bold">OVERDUE</v-chip>
+                <v-chip :color="vendorStatusSeverity(repair.status)" size="x-small" class="font-bold">{{ repair.status }}</v-chip>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-3 text-sm">
+              <div><p class="text-[10px] font-black text-muted-foreground uppercase m-0 mb-0.5">Tracking</p><p class="m-0 font-medium">{{ repair.trackingNumber || 'Not provided' }}</p></div>
+              <div><p class="text-[10px] font-black text-muted-foreground uppercase m-0 mb-0.5">Sent</p><p class="m-0 font-medium">{{ repair.sentDate ? formatDate(repair.sentDate) : '—' }}</p></div>
+              <div>
+                <p class="text-[10px] font-black text-muted-foreground uppercase m-0 mb-0.5">Est. Return</p>
+                <p class="m-0 font-medium" :class="isOverdue(repair) ? 'text-red-600' : ''">{{ repair.estReturn ? formatDate(repair.estReturn) : '—' }}</p>
+              </div>
+              <div v-if="repair.notes"><p class="text-xs text-muted-foreground m-0">📝 {{ repair.notes }}</p></div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="text-center py-12 border border-dashed border-border rounded-xl">
+          <i class="mdi mdi-domain text-5xl text-muted-foreground opacity-40 block mb-2"></i>
+          <p class="font-bold m-0">No vendor repairs</p>
+          <p class="text-sm text-muted-foreground mb-4">Send your first device out for third-party repair</p>
+          <v-btn color="secondary" class="text-none" @click="openNewVendorRepair">New Vendor Repair</v-btn>
+        </div>
+      </v-window-item>
+
+      <v-window-item value="calendar">
+        <CalendarTab />
+      </v-window-item>
+    </v-window>
 
     <NewTicketDialog v-model="newTicketOpen" :customers="customers" @create="handleCreateTicket" />
     <TicketDetailDialog
@@ -291,52 +313,58 @@
       @delete="handleDeleteTicket"
     />
 
-    <Dialog v-model:visible="deleteDialogOpen" modal header="Delete ticket permanently?" class="w-full max-w-sm mx-4">
-      <p v-if="pendingDelete" class="text-sm text-muted-foreground m-0">
-        Ticket #{{ pendingDelete.id }} for {{ getCustomerName(pendingDelete.customerId) }} — this cannot be undone.
-      </p>
-      <template #footer>
-        <Button label="Cancel" variant="text" class="text-none" @click="pendingDelete = null" />
-        <Button label="Delete" severity="danger" class="text-none" @click="executePendingDelete" />
-      </template>
-    </Dialog>
+    <v-dialog v-model="deleteDialogOpen" max-width="400px">
+      <v-card class="rounded-xl pa-4">
+        <v-card-title class="pa-0 mb-3 text-lg font-bold">Delete ticket permanently?</v-card-title>
+        <p v-if="pendingDelete" class="text-sm text-muted-foreground m-0 mb-4">
+          Ticket #{{ pendingDelete.id }} for {{ getCustomerName(pendingDelete.customerId) }} — this cannot be undone.
+        </p>
+        <div class="flex justify-end gap-2">
+          <v-btn variant="text" class="text-none" @click="pendingDelete = null">Cancel</v-btn>
+          <v-btn color="error" class="text-none" @click="executePendingDelete">Delete</v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
 
     <HouseCallDialog v-model="housecallFormOpen" :editing-call="editingHousecall" />
 
-    <Dialog v-model:visible="deleteHousecallDialogOpen" modal header="Delete house call?" class="w-full max-w-sm mx-4">
-      <p v-if="pendingDeleteHousecall" class="text-sm m-0">Remove call for {{ getCustomerName(pendingDeleteHousecall.customerId) }}?</p>
-      <template #footer>
-        <Button label="Cancel" variant="text" class="text-none" @click="pendingDeleteHousecall = null" />
-        <Button label="Delete" severity="danger" class="text-none" @click="executeDeleteHousecall" />
-      </template>
-    </Dialog>
-
-    <Dialog
-      v-model:visible="vendorFormOpen"
-      modal
-      :header="editingVendorRepair ? 'Edit Vendor Repair' : 'New Vendor Repair'"
-      class="w-full max-w-lg mx-4"
-    >
-      <p class="text-xs text-muted-foreground mt-0 mb-4">Third-party repair sent out to vendor</p>
-      <div class="flex flex-col gap-4">
-        <CustomerSelect v-model="vendorForm.customerId" />
-        <div class="grid grid-cols-2 gap-3">
-          <InputText v-model="vendorForm.device" placeholder="Device" class="rounded-xl" />
-          <InputText v-model="vendorForm.issue" placeholder="Issue" class="rounded-xl" />
-          <InputText v-model="vendorForm.vendor" placeholder="Vendor / repair center" class="rounded-xl" />
-          <InputText v-model="vendorForm.ticketRef" placeholder="Ticket # (optional)" class="rounded-xl" />
-          <InputText v-model="vendorForm.trackingNumber" placeholder="Tracking number" class="rounded-xl" />
-          <Select v-model="vendorForm.status" :options="vendorStatusList" placeholder="Status" class="w-full" />
-          <InputText v-model="vendorForm.sentDate" type="date" placeholder="Date sent" class="rounded-xl" />
-          <InputText v-model="vendorForm.estReturn" type="date" placeholder="Est. return" class="rounded-xl" />
+    <v-dialog v-model="deleteHousecallDialogOpen" max-width="400px">
+      <v-card class="rounded-xl pa-4">
+        <v-card-title class="pa-0 mb-3 text-lg font-bold">Delete house call?</v-card-title>
+        <p v-if="pendingDeleteHousecall" class="text-sm m-0 mb-4">Remove call for {{ getCustomerName(pendingDeleteHousecall.customerId) }}?</p>
+        <div class="flex justify-end gap-2">
+          <v-btn variant="text" class="text-none" @click="pendingDeleteHousecall = null">Cancel</v-btn>
+          <v-btn color="error" class="text-none" @click="executeDeleteHousecall">Delete</v-btn>
         </div>
-        <Textarea v-model="vendorForm.notes" rows="3" placeholder="Notes" class="w-full rounded-xl" />
-      </div>
-      <template #footer>
-        <Button label="Cancel" variant="text" class="text-none" @click="vendorFormOpen = false" />
-        <Button :label="editingVendorRepair ? 'Save Changes' : 'Create'" class="text-none font-bold" @click="saveVendorRepair" />
-      </template>
-    </Dialog>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="vendorFormOpen" max-width="500px">
+      <v-card class="rounded-xl pa-4">
+        <v-card-title class="pa-0 mb-1 text-lg font-bold">
+          {{ editingVendorRepair ? 'Edit Vendor Repair' : 'New Vendor Repair' }}
+        </v-card-title>
+        <p class="text-xs text-muted-foreground mt-0 mb-4">Third-party repair sent out to vendor</p>
+        <div class="flex flex-col gap-4">
+          <CustomerSelect v-model="vendorForm.customerId" />
+          <div class="grid grid-cols-2 gap-3">
+            <v-text-field v-model="vendorForm.device" placeholder="Device" hide-details variant="outlined" density="compact" class="rounded-xl" />
+            <v-text-field v-model="vendorForm.issue" placeholder="Issue" hide-details variant="outlined" density="compact" class="rounded-xl" />
+            <v-text-field v-model="vendorForm.vendor" placeholder="Vendor / repair center" hide-details variant="outlined" density="compact" class="rounded-xl" />
+            <v-text-field v-model="vendorForm.ticketRef" placeholder="Ticket # (optional)" hide-details variant="outlined" density="compact" class="rounded-xl" />
+            <v-text-field v-model="vendorForm.trackingNumber" placeholder="Tracking number" hide-details variant="outlined" density="compact" class="rounded-xl" />
+            <v-select v-model="vendorForm.status" :items="vendorStatusList" placeholder="Status" hide-details variant="outlined" density="compact" class="w-full" />
+            <v-text-field v-model="vendorForm.sentDate" type="date" placeholder="Date sent" hide-details variant="outlined" density="compact" class="rounded-xl" />
+            <v-text-field v-model="vendorForm.estReturn" type="date" placeholder="Est. return" hide-details variant="outlined" density="compact" class="rounded-xl" />
+          </div>
+          <v-textarea v-model="vendorForm.notes" rows="3" placeholder="Notes" hide-details variant="outlined" density="compact" class="w-full rounded-xl" />
+        </div>
+        <div class="flex justify-end gap-2 mt-4">
+          <v-btn variant="text" class="text-none" @click="vendorFormOpen = false">Cancel</v-btn>
+          <v-btn color="primary" class="text-none font-bold" @click="saveVendorRepair">{{ editingVendorRepair ? 'Save Changes' : 'Create' }}</v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 

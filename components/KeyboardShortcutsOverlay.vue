@@ -1,48 +1,48 @@
 <template>
-  <Dialog
-    v-model:visible="isOpen"
-    modal
-    :draggable="false"
-    class="w-full max-w-[480px] mx-4"
-    :show-header="true"
+  <v-dialog
+    v-model="isOpen"
+    max-width="480"
   >
-    <template #header>
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0">
-          <i class="mdi mdi-keyboard text-lg"></i>
+    <v-card class="rounded-xl">
+      <v-card-item class="pb-3 border-b">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0">
+            <i class="mdi mdi-keyboard text-lg"></i>
+          </div>
+          <div>
+            <div class="text-sm font-black text-foreground">Keyboard Shortcuts</div>
+            <div class="text-[10px] text-muted-foreground mt-0.5">Press <kbd class="px-1.5 py-0.5 bg-muted border border-border/80 text-[10px] font-bold rounded shadow-sm">?</kbd> to toggle this overlay</div>
+          </div>
         </div>
-        <div>
-          <span class="text-sm font-black block">Keyboard Shortcuts</span>
-          <span class="text-[10px] text-muted-foreground block mt-0.5">Press <kbd class="px-1.5 py-0.5 bg-muted border border-border/80 text-[10px] font-bold rounded shadow-sm">?</kbd> to toggle this overlay</span>
-        </div>
-      </div>
-    </template>
+      </v-card-item>
 
-    <div class="flex flex-col divide-y divide-border/40 pr-1">
-      <div v-for="group in shortcutGroups" :key="group.title" class="py-3.5 first:pt-0 last:pb-0">
-        <p class="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-2.5">
-          {{ group.title }}
-        </p>
-        <div class="flex flex-col gap-2">
-          <div
-            v-for="s in group.shortcuts"
-            :key="s.label"
-            class="flex items-center justify-between text-xs py-0.5"
-          >
-            <span class="font-medium text-foreground/90">{{ s.label }}</span>
-            <div class="flex items-center gap-1.5">
-              <kbd v-for="(key, ki) in s.keys" :key="ki" class="px-2 py-0.5 bg-muted border border-border text-[10px] rounded-md font-bold shadow-sm">{{ key }}</kbd>
+      <v-card-text class="pt-4 pb-4">
+        <div class="flex flex-col divide-y divide-border/40 pr-1">
+          <div v-for="group in shortcutGroups" :key="group.title" class="py-3.5 first:pt-0 last:pb-0">
+            <p class="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-2.5">
+              {{ group.title }}
+            </p>
+            <div class="flex flex-col gap-2">
+              <div
+                v-for="s in group.shortcuts"
+                :key="s.label"
+                class="flex items-center justify-between text-xs py-0.5"
+              >
+                <span class="font-medium text-foreground/90">{{ s.label }}</span>
+                <div class="flex items-center gap-1.5">
+                  <kbd v-for="(key, ki) in s.keys" :key="ki" class="px-2 py-0.5 bg-muted border border-border text-[10px] rounded-md font-bold shadow-sm">{{ key }}</kbd>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </Dialog>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import Dialog from 'primevue/dialog'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits(['update:modelValue'])

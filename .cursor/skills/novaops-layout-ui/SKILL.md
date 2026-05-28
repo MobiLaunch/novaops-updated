@@ -1,16 +1,16 @@
 ---
 name: novaops-layout-ui
-description: Audits NovaOps layout and UI for bugs, Vuetify migration gaps, broken MDI icons, and inconsistent PrimeVue patterns. Use when reviewing UI, fixing layout issues, polishing pages, running a UI audit, or when the user asks for layout/UI improvements in novaops-updated.
+description: Audits NovaOps layout and UI for bugs, PrimeVue remnants, broken MDI icons, and Vuetify 3 design consistency. Use when reviewing UI, fixing layout issues, polishing pages, running a UI audit, or when the user asks for layout/UI improvements in novaops-updated.
 ---
 
 # NovaOps Layout & UI Agent
 
-Specialized workflow for **finding bugs** and **improvement opportunities** in this Nuxt 3 + PrimeVue 4 app. Do not guess—run checks and read affected files.
+Specialized workflow for **finding bugs** and **improvement opportunities** in this Nuxt 3 + Vuetify 3 app. Do not guess—run checks and read affected files.
 
 ## When to use
 
 - User asks for UI cleanup, layout review, design consistency, or "find UI bugs"
-- Before/after migrating a page off Vuetify
+- Before/after migrating a page or reviewing layout/design tokens
 - After bulk icon or CSS changes
 
 ## Quick start
@@ -19,7 +19,7 @@ Specialized workflow for **finding bugs** and **improvement opportunities** in t
    ```bash
    node scripts/ui-audit.mjs
    ```
-2. Read `assets/css/main.css` (design tokens + utilities) and `utils/status.ts` (Tag severities).
+2. Read `assets/css/main.css` (design tokens + utilities) and `utils/status.ts` (Chip colors).
 3. Open top offending files from audit output; fix **critical** first.
 4. Run `npm run build` after substantive template changes.
 5. Deliver findings using the report format below.
@@ -28,17 +28,12 @@ Specialized workflow for **finding bugs** and **improvement opportunities** in t
 
 | Check | Severity | Meaning |
 |-------|----------|---------|
-| `<v-*` | Critical | Vuetify not in package.json — components won't render |
-| `--v-theme-` | Critical | Stale Vuetify theme variables |
+| `<Button`, `<Dialog`, etc. | Critical | PrimeVue components remaining in template |
+| `--p-` | Critical | Stale PrimeVue theme variables |
+| `from 'primevue'` | Critical | Remaining PrimeVue imports |
 | MDI mashed classes | High | e.g. `mdi-upload-text-2xl` — icon won't show |
 | `mdi mdi-{{` | Critical | Broken dynamic icon from bad migration |
-| Vuetify utility classes | Medium | `d-flex`, `pa-4`, `text-medium-emphasis` — layout drift |
 | Missing `page-shell` | Suggestion | Page layout inconsistent |
-
-Fix mashed MDI in bulk when widespread:
-```bash
-node scripts/fix-mdi-mashed.mjs
-```
 
 ## Manual review checklist
 
@@ -48,18 +43,18 @@ node scripts/fix-mdi-mashed.mjs
 - [ ] Dialogs: `max-w-* mx-4`, `max-h-[90dvh]` for scrollable content
 - [ ] `layouts/default.vue`: main padding `p-4 md:p-6` not fighting page padding
 
-### PrimeVue patterns (target state)
-| Vuetify | Replace with |
+### Vuetify 3 patterns (target state)
+| PrimeVue | Replace with |
 |---------|----------------|
-| `v-dialog` + `v-card` | `Dialog` + `#header` / `#footer` |
-| `v-btn` | `Button` + MDI in slot |
-| `v-text-field` / `v-textarea` | `InputText` / `Textarea` + `rounded-xl` |
-| `v-select` | `Select` |
-| `v-data-table` | `DataTable` + `Column` |
-| `v-tabs` | `Tabs` / `TabList` / `Tab` / `TabPanels` / `TabPanel` |
-| `v-chip` | `Tag` or `filter-chip` buttons |
-| `v-alert` | `Message` |
-| `v-row` / `v-col` | CSS `grid` + utilities from `main.css` |
+| `Dialog` | `v-dialog` + `v-card` |
+| `Button` | `v-btn` |
+| `InputText` / `Textarea` | `v-text-field` / `v-textarea` |
+| `Select` | `v-select` |
+| `DataTable` + `Column` | `v-data-table` |
+| `Tabs` / `TabList` / `Tab` / `TabPanels` / `TabPanel` | `v-tabs` + `v-window` + `v-window-item` |
+| `Tag` | `v-chip` |
+| `Message` | `v-alert` |
+| `ToggleSwitch` | `v-switch` |
 
 ### Icons
 - Static: `<i class="mdi mdi-magnify"></i>`
@@ -68,43 +63,19 @@ node scripts/fix-mdi-mashed.mjs
 
 ### Status & color
 - Use `utils/status.ts`: `ticketStatusSeverity`, `prioritySeverity`, `ticketStatusHex`
-- Avoid `var(--v-theme-*)` and Vuetify color names on chips
+- Use Vuetify theme colors (e.g., `success`, `warning`, `error`, `info`, `secondary`)
 
 ### Reference implementations
 - Page: `pages/customers.vue`, `pages/bookings.vue`, `pages/inventory.vue`
 - Dialog: `components/CustomerEditDialog.vue`, `components/HouseCallDialog.vue`
 - Multi-step: `components/NewTicketDialog.vue`
 
-## Known migration debt (verify with audit)
-
-As of skill creation, likely still Vuetify-heavy:
-- `pages/settings.vue`
-- `pages/analytics.vue`
+## Verification
 
 Re-grep before reporting:
 ```bash
-rg "<v-" --glob "*.vue" -c
+rg "<(Dialog|Button|DataTable|Column|InputText|Textarea|Select|Tag|Message|Tabs|TabList|Tab|TabPanel|TabPanels|Drawer|Popover|ProgressBar|Stepper|Step|Accordion|FloatLabel|IconField|InputIcon|SelectButton|Knob|AutoComplete|DatePicker|InputNumber|ToggleSwitch|Checkbox)[\s/>]" --glob "*.vue"
 ```
-
-## Improvement opportunities (non-blocking)
-
-Look for these when audit is clean:
-- Duplicate KPI/header markup → extract shared pattern (`kpi-card`, page header block)
-- Inconsistent empty states (mix of card vs dashed border)
-- `Button` without `class="text-none"` (label casing)
-- Tables without row hover / empty slot
-- Filter chips: prefer `filter-chip` + `filter-chip--active` over ad-hoc styles
-- Hard-coded hex colors instead of semantic utilities
-- Missing `min-w-0` / `truncate` on flex children with long text
-
-## Fix workflow
-
-1. **Critical**: Remove all `<v-*` from touched files or migrate whole page in one PR-sized chunk.
-2. **High**: Run `fix-mdi-mashed.mjs`, then fix remaining dynamic icons by hand.
-3. **Medium**: Replace Vuetify utility classes with `main.css` utilities (`flex`, `gap-*`, `text-muted-foreground`).
-4. **Polish**: Align with reference page; add `page-shell`; unify search bars (`search-field-wrap`).
-
-Keep diffs minimal—do not refactor unrelated logic.
 
 ## Report format
 
@@ -134,6 +105,5 @@ Keep diffs minimal—do not refactor unrelated logic.
 
 ## Additional resources
 
-- Detailed checklist: [checklist.md](checklist.md)
 - Project CSS: `assets/css/main.css`
 - Status helpers: `utils/status.ts`

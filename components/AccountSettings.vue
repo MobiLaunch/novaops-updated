@@ -12,15 +12,14 @@
             <img v-if="avatarUrl" :src="avatarUrl" alt="" class="w-full h-full object-cover" />
             <span v-else>{{ getInitials(accountForm.name) }}</span>
           </div>
-          <Button
-            rounded
+          <v-btn
+            icon="mdi-camera"
             variant="outlined"
-            class="!absolute !w-7 !h-7"
-            style="bottom: -4px; right: -4px"
+            class="!absolute"
+            style="bottom: -4px; right: -4px; width: 28px; height: 28px;"
+            density="compact"
             @click="openAvatarPicker"
-          >
-            <i class="mdi mdi-camera text-xs"></i>
-          </Button>
+          />
           <input
             ref="avatarFileInput"
             type="file"
@@ -37,47 +36,49 @@
 
       <div class="flex flex-col gap-1.5">
         <label class="text-[10px] font-bold text-muted-foreground uppercase">Full Name *</label>
-        <InputText v-model="accountForm.name" placeholder="Your Name" class="w-full rounded-xl" />
+        <v-text-field v-model="accountForm.name" placeholder="Your Name" hide-details class="w-full" />
       </div>
       <div class="flex flex-col gap-1.5">
         <label class="text-[10px] font-bold text-muted-foreground uppercase">Email *</label>
-        <InputText v-model="accountForm.email" type="email" placeholder="you@example.com" class="w-full rounded-xl" />
+        <v-text-field v-model="accountForm.email" type="email" placeholder="you@example.com" hide-details class="w-full" />
       </div>
       <div class="flex flex-col gap-1.5">
         <label class="text-[10px] font-bold text-muted-foreground uppercase">Role</label>
-        <Select
+        <v-select
           v-model="accountForm.role"
-          :options="roleOptions"
-          option-label="label"
-          option-value="value"
+          :items="roleOptions"
+          item-title="label"
+          item-value="value"
+          hide-details
           class="w-full"
         />
       </div>
 
       <hr class="border-border" />
       <p class="text-sm font-medium m-0">Change Password</p>
-      <InputText v-model="accountForm.currentPassword" type="password" placeholder="Current password" class="w-full rounded-xl" />
-      <InputText v-model="accountForm.newPassword" type="password" placeholder="New password" class="w-full rounded-xl" />
-      <InputText v-model="accountForm.confirmPassword" type="password" placeholder="Confirm new password" class="w-full rounded-xl" />
+      <v-text-field v-model="accountForm.currentPassword" type="password" placeholder="Current password" hide-details class="w-full" />
+      <v-text-field v-model="accountForm.newPassword" type="password" placeholder="New password" hide-details class="w-full" />
+      <v-text-field v-model="accountForm.confirmPassword" type="password" placeholder="Confirm new password" hide-details class="w-full" />
 
-      <Button label="Save Changes" class="w-full font-bold text-none" @click="saveAccount">
-        <i class="mdi mdi-content-save mr-2"></i>
-      </Button>
+      <v-btn color="primary" class="w-full font-bold text-none rounded-xl" @click="saveAccount">
+        <i class="mdi mdi-content-save mr-2"></i> Save Changes
+      </v-btn>
     </div>
   </div>
 
-  <Message
+  <v-alert
     v-if="validationAlert"
-    severity="warn"
-    :closable="true"
-    class="mt-3"
-    @close="validationAlert = ''"
+    type="warning"
+    closable
+    class="mt-3 text-xs"
+    @click:close="validationAlert = ''"
   >
     {{ validationAlert }}
-  </Message>
+  </v-alert>
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { useToast } from '~/composables/useToast'
 
 const AVATAR_STORAGE_KEY = 'novaops_account_avatar'

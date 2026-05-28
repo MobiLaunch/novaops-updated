@@ -13,15 +13,16 @@
         </div>
       </div>
       <div class="bg-muted rounded-full p-1 flex gap-1 border">
-        <Button
+        <v-btn
           v-for="m in ['Generate', 'Scan']"
           :key="m"
-          :label="m"
-          :variant="mode === m ? undefined : 'text'"
-          :severity="mode === m ? 'info' : 'secondary'"
+          :variant="mode === m ? 'flat' : 'text'"
+          :color="mode === m ? 'info' : 'secondary'"
           class="rounded-full text-xs font-bold px-6 py-1.5 transition-all text-none"
           @click="mode = m"
-        />
+        >
+          {{ m }}
+        </v-btn>
       </div>
     </div>
 
@@ -41,9 +42,10 @@
           <div class="flex flex-col gap-4">
             <div class="flex flex-col gap-1.5">
               <label class="text-xs font-bold text-muted-foreground uppercase tracking-wide">Content / SKU</label>
-              <InputText
+              <v-text-field
                 v-model="barcodeValue"
                 placeholder="Enter SKU or item code..."
+                hide-details
                 class="w-full rounded-xl"
                 @input="debouncedGenerate"
               />
@@ -51,9 +53,10 @@
             
             <div class="flex flex-col gap-1.5">
               <label class="text-xs font-bold text-muted-foreground uppercase tracking-wide">Label (optional)</label>
-              <InputText
+              <v-text-field
                 v-model="barcodeLabel"
                 placeholder="Product name or description"
+                hide-details
                 class="w-full rounded-xl"
               />
             </div>
@@ -92,21 +95,23 @@
               <p v-if="barcodeError" class="text-xs font-bold text-red-500">{{ barcodeError }}</p>
               
               <div class="flex gap-3 mt-2">
-                <Button 
-                  label="Print Label" 
-                  icon="mdi mdi-printer" 
-                  severity="info" 
-                  variant="outlined" 
+                <v-btn 
+                  variant="outlined"
+                  color="info" 
+                  prepend-icon="mdi-printer" 
                   class="rounded-full text-xs text-none" 
                   @click="printBarcode" 
-                />
-                <Button 
-                  label="Download" 
-                  icon="mdi mdi-download" 
-                  severity="secondary" 
+                >
+                  Print Label
+                </v-btn>
+                <v-btn 
+                  color="secondary" 
+                  prepend-icon="mdi-download" 
                   class="rounded-full text-xs text-none" 
                   @click="downloadBarcode" 
-                />
+                >
+                  Download
+                </v-btn>
               </div>
             </div>
 
@@ -132,21 +137,24 @@
           <div class="flex flex-col gap-4">
             <div class="flex flex-col gap-1.5">
               <label class="text-xs font-bold text-muted-foreground uppercase tracking-wide">Scan or type SKU</label>
-              <div class="flex gap-2">
-                <InputText
+              <div class="flex gap-2 align-center">
+                <v-text-field
                   ref="scanInput"
                   v-model="scanValue"
                   placeholder="Scan barcode or enter SKU..."
-                  class="flex-1 rounded-xl"
+                  hide-details
+                  class="flex-grow rounded-xl"
                   autofocus
                   @keyup.enter="lookupScan"
                 />
-                <Button 
-                  label="Lookup" 
-                  severity="info" 
-                  class="rounded-xl text-xs font-bold px-4" 
+                <v-btn 
+                  color="info" 
+                  class="rounded-xl text-xs font-bold px-4 h-11" 
+                  style="height: 48px;"
                   @click="lookupScan" 
-                />
+                >
+                  Lookup
+                </v-btn>
               </div>
             </div>
 
@@ -210,13 +218,14 @@
                     <div class="text-[10px] text-muted-foreground font-mono mt-0.5">{{ item.sku || 'No SKU' }}</div>
                   </div>
                 </div>
-                <Button 
-                  label="Generate" 
-                  icon="mdi mdi-barcode" 
+                <v-btn 
                   variant="text" 
-                  severity="secondary" 
+                  color="secondary" 
+                  prepend-icon="mdi-barcode"
                   class="text-[11px] rounded-full px-3 py-1 text-none shrink-0" 
-                />
+                >
+                  Generate
+                </v-btn>
               </div>
             </div>
             
@@ -238,13 +247,14 @@
           </div>
           <h3 class="text-base font-black">Batch Print — Inventory Labels</h3>
         </div>
-        <Button
-          :label="`Print ${selectedItems.length > 0 ? selectedItems.length : ''} Label${selectedItems.length !== 1 ? 's' : ''}`"
-          severity="info"
+        <v-btn
+          color="info"
           class="rounded-full text-xs font-bold px-6 text-none"
           :disabled="selectedItems.length === 0"
           @click="printBatch"
-        />
+        >
+          Print {{ selectedItems.length > 0 ? selectedItems.length : '' }} Label{{ selectedItems.length !== 1 ? 's' : '' }}
+        </v-btn>
       </div>
       
       <div class="flex flex-wrap gap-2">
@@ -274,7 +284,7 @@
 </template>
 
 <script setup lang="ts">
-import { printHtmlContent, printBarcodeLabel, printBarcodeBatch } from '~/utils/print'
+import { printBarcodeLabel, printBarcodeBatch } from '~/utils/print'
 import { useToast } from '~/composables/useToast'
 import { nextTick, ref, computed, watch } from 'vue'
 import { useAppStore } from '~/stores/app'

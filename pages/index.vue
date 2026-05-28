@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen flex items-center justify-center bg-background">
-    <ProgressSpinner style="width: 32px; height: 32px" stroke-width="4" />
+    <v-progress-circular indeterminate size="32" width="4" color="primary" />
   </div>
 </template>
 

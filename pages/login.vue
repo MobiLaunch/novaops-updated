@@ -41,13 +41,13 @@
         </div>
 
         <div class="login-card w-full bg-surface border border-border rounded-xl p-6 shadow-lg">
-          <Message v-if="error" severity="error" :closable="true" class="mb-4" @close="error = ''">{{ error }}</Message>
+          <v-alert v-if="error" type="error" closable class="mb-4 text-sm" @click:close="error = ''">{{ error }}</v-alert>
 
           <div v-if="googleEnabled || facebookEnabled" class="flex flex-col gap-3 mb-2">
-            <Button
+            <v-btn
               v-if="googleEnabled"
               variant="outlined"
-              class="w-full font-bold rounded-full py-3"
+              class="w-full font-bold rounded-full"
               :disabled="loading"
               @click="signInWithGoogle"
             >
@@ -58,16 +58,16 @@
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
               </svg>
               Continue with Google
-            </Button>
-            <Button
+            </v-btn>
+            <v-btn
               v-if="facebookEnabled"
-              class="w-full font-bold rounded-full py-3 fb-btn text-white"
+              class="w-full font-bold rounded-full fb-btn text-white"
               :disabled="loading"
               @click="signInWithFacebook"
             >
               <i class="mdi mdi-facebook mr-2"></i>
               Continue with Facebook
-            </Button>
+            </v-btn>
             <div class="flex items-center gap-2 my-1">
               <hr class="flex-1 border-border" />
               <span class="text-xs text-muted-foreground font-bold">or</span>
@@ -76,22 +76,20 @@
           </div>
 
           <div class="flex flex-col gap-1.5 mb-3">
-            <label class="text-[10px] font-bold text-muted-foreground uppercase">Email</label>
-            <InputText v-model="email" type="email" autocomplete="email" class="w-full rounded-xl" :disabled="loading" @keyup.enter="handleLogin" />
+            <v-text-field v-model="email" type="email" autocomplete="email" label="Email" hide-details :disabled="loading" @keyup.enter="handleLogin" />
           </div>
           <div class="flex flex-col gap-1.5 mb-4">
-            <label class="text-[10px] font-bold text-muted-foreground uppercase">Password</label>
-            <InputText v-model="password" type="password" autocomplete="current-password" class="w-full rounded-xl" :disabled="loading" @keyup.enter="handleLogin" />
+            <v-text-field v-model="password" type="password" autocomplete="current-password" label="Password" hide-details :disabled="loading" @keyup.enter="handleLogin" />
           </div>
 
-          <Button
-            label="Sign In"
+          <v-btn
+            color="primary"
             class="w-full font-black rounded-full mb-2 text-none"
             :loading="loading"
             @click="handleLogin"
           >
-            <i class="mdi mdi-login mr-2"></i>
-          </Button>
+            <i class="mdi mdi-login mr-2"></i> Sign In
+          </v-btn>
 
           <div class="flex items-center gap-2 my-4">
             <hr class="flex-1 border-border" />
@@ -100,7 +98,7 @@
           </div>
 
           <NuxtLink to="/register" class="block">
-            <Button label="Create an account" variant="outlined" class="w-full font-bold rounded-full text-none" />
+            <v-btn variant="outlined" class="w-full font-bold rounded-full text-none">Create an account</v-btn>
           </NuxtLink>
         </div>
 
@@ -123,46 +121,44 @@
           </div>
           <div class="flex flex-col gap-2">
             <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer" class="block">
-              <Button label="Create free project" severity="success" class="w-full font-black rounded-full text-none">
-                <i class="mdi mdi-open-in-new mr-2"></i>
-              </Button>
+              <v-btn color="success" class="w-full font-black rounded-full text-none">
+                <i class="mdi mdi-open-in-new mr-2"></i> Create free project
+              </v-btn>
             </a>
-            <Button label="I have a project" severity="success" variant="outlined" class="w-full font-black rounded-full text-none" @click="showSbSetup = true">
-              <i class="mdi mdi-link mr-2"></i>
-            </Button>
+            <v-btn color="success" variant="outlined" class="w-full font-black rounded-full text-none" @click="showSbSetup = true">
+              <i class="mdi mdi-link mr-2"></i> I have a project
+            </v-btn>
           </div>
         </div>
       </div>
     </div>
 
-    <Dialog v-model:visible="showSbSetup" modal :draggable="false" class="w-full max-w-md mx-4" header="Connect Supabase">
-      <div class="bg-muted rounded-lg p-3 mb-4">
-        <p class="text-[10px] font-black text-muted-foreground uppercase m-0 tracking-wider">
-          supabase.com/dashboard → your project → Settings → API
-        </p>
-      </div>
-      <div class="flex flex-col gap-3">
-        <div class="flex flex-col gap-1.5">
-          <label class="text-[10px] font-bold text-muted-foreground uppercase">Project URL</label>
-          <InputText v-model="sbSetupForm.url" type="url" placeholder="https://xxxxxxxxxxxx.supabase.co" class="w-full rounded-xl" />
-        </div>
-        <div class="flex flex-col gap-1.5">
-          <label class="text-[10px] font-bold text-muted-foreground uppercase">Anon / public key</label>
-          <InputText v-model="sbSetupForm.key" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…" class="w-full rounded-xl" />
-        </div>
-        <Message v-if="sbConn.status.error" severity="error" :closable="false">{{ sbConn.status.error }}</Message>
-        <Button
-          label="Connect & sign in"
-          severity="success"
-          class="w-full font-black rounded-full text-none"
-          :loading="sbConn.status.checking"
-          :disabled="sbConn.status.checking || !sbSetupForm.url || !sbSetupForm.key"
-          @click="handleLoginSbConnect"
-        >
-          <i class="mdi mdi-database-check mr-2"></i>
-        </Button>
-      </div>
-    </Dialog>
+    <v-dialog v-model="showSbSetup" max-width="480">
+      <v-card class="rounded-xl">
+        <v-card-title class="text-sm font-black pt-4 px-6">Connect Supabase</v-card-title>
+        <v-card-text class="px-6 pb-2">
+          <div class="bg-muted rounded-lg p-3 mb-4">
+            <p class="text-[10px] font-black text-muted-foreground uppercase m-0 tracking-wider">
+              supabase.com/dashboard → your project → Settings → API
+            </p>
+          </div>
+          <div class="flex flex-col gap-3">
+            <v-text-field v-model="sbSetupForm.url" type="url" label="Project URL" placeholder="https://xxxxxxxxxxxx.supabase.co" hide-details />
+            <v-text-field v-model="sbSetupForm.key" type="password" label="Anon / public key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…" hide-details />
+            <v-alert v-if="sbConn.status.error" type="error" class="text-xs">{{ sbConn.status.error }}</v-alert>
+          </div>
+        </v-card-text>
+        <v-card-actions class="px-6 pb-4">
+          <v-btn color="success" class="w-full font-black rounded-full text-none"
+            :loading="sbConn.status.checking"
+            :disabled="sbConn.status.checking || !sbSetupForm.url || !sbSetupForm.key"
+            @click="handleLoginSbConnect"
+          >
+            <i class="mdi mdi-database-check mr-2"></i> Connect &amp; sign in
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 

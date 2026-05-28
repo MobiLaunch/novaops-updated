@@ -46,11 +46,12 @@
               {{ tag }}
             </span>
           </div>
-          <Button
-            label="Use Template"
-            :severity="template.color === '#10b981' ? 'success' : template.color === '#3b82f6' ? 'info' : template.color === '#8b5cf6' ? 'primary' : 'warn'"
+          <v-btn
+            :color="template.color === '#10b981' ? 'success' : template.color === '#3b82f6' ? 'info' : template.color === '#8b5cf6' ? 'primary' : 'warning'"
             class="w-full rounded-full text-xs font-bold text-none mt-2"
-          />
+          >
+            Use Template
+          </v-btn>
         </div>
       </div>
     </div>
@@ -62,7 +63,7 @@
       <div class="flex flex-col">
         <div class="bg-surface border border-border rounded-xl p-6 flex flex-col h-full">
           <div class="flex items-center gap-3 mb-6 shrink-0">
-            <Button icon="mdi mdi-chevron-left" variant="text" severity="secondary" class="rounded-full !w-8 !h-8" @click="activeForm = null" />
+            <v-btn icon="mdi-chevron-left" variant="text" color="secondary" class="rounded-full !w-8 !h-8" @click="activeForm = null" />
             <div 
               class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
               :style="{ backgroundColor: `${activeForm.color}15`, color: activeForm.color }"
@@ -89,14 +90,15 @@
               </div>
               <div class="flex flex-col gap-1.5">
                 <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Linked Ticket</label>
-                <Select
+                <v-select
                   v-model="form.ticketId"
-                  :options="[{id: null, label: 'None'}, ...tickets.map((t: any) => ({id: t.id, label: `#${t.id} — ${t.device}`}))]"
-                  optionLabel="label"
-                  optionValue="id"
+                  :items="[{id: null, label: 'None'}, ...tickets.map((t: any) => ({id: t.id, label: `#${t.id} — ${t.device}`}))]"
+                  item-title="label"
+                  item-value="id"
                   placeholder="Select a ticket"
-                  class="w-full rounded-xl text-xs"
-                  @change="onTicketChange"
+                  hide-details
+                  class="w-full text-xs"
+                  @update:modelValue="onTicketChange"
                 />
               </div>
               <div class="flex flex-col gap-1.5">
@@ -104,7 +106,7 @@
                 <input 
                   v-model="form.date" 
                   type="date" 
-                  class="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20" 
+                  class="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground" 
                 />
               </div>
               <div v-if="activeForm.label !== 'Service Agreement'" class="flex flex-col gap-1.5">
@@ -112,7 +114,7 @@
                 <input 
                   v-model="form.dueDate" 
                   type="date" 
-                  class="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20" 
+                  class="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground" 
                 />
               </div>
             </div>
@@ -121,22 +123,23 @@
             <div v-if="activeForm.label !== 'Service Agreement'">
               <div class="flex items-center justify-between mb-3">
                 <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Line Items</label>
-                <Button 
-                  label="Add Item" 
-                  icon="mdi mdi-plus" 
-                  severity="success" 
+                <v-btn 
+                  prepend-icon="mdi-plus" 
+                  color="success" 
                   variant="tonal" 
                   class="rounded-full text-[10px] font-bold px-3 py-1 text-none" 
                   @click="addLineItem" 
-                />
+                >
+                  Add Item
+                </v-btn>
               </div>
               
               <div class="flex flex-col gap-2">
                 <div v-for="(item, i) in form.lineItems" :key="i" class="flex align-center items-center gap-2">
-                  <InputText v-model="item.description" placeholder="Description" class="flex-grow rounded-xl text-xs" />
-                  <InputText v-model.number="item.qty" type="number" min="1" placeholder="Qty" class="w-16 rounded-xl text-xs text-center" />
-                  <InputText v-model.number="item.price" type="number" min="0" step="0.01" placeholder="Price" class="w-24 rounded-xl text-xs text-right" />
-                  <Button icon="mdi mdi-delete-outline" variant="text" severity="danger" class="rounded-full !w-8 !h-8 shrink-0" @click="removeLineItem(i)" />
+                  <v-text-field v-model="item.description" placeholder="Description" hide-details class="flex-grow text-xs" />
+                  <v-text-field v-model.number="item.qty" type="number" min="1" placeholder="Qty" hide-details class="w-16 text-xs text-center" />
+                  <v-text-field v-model.number="item.price" type="number" min="0" step="0.01" placeholder="Price" hide-details class="w-24 text-xs text-right" />
+                  <v-btn icon="mdi-delete-outline" variant="text" color="error" class="rounded-full !w-8 !h-8 shrink-0" @click="removeLineItem(i)" />
                 </div>
                 <div v-if="!form.lineItems.length" class="text-xs text-muted-foreground italic py-2">
                   No line items — linked ticket price will be used automatically.
@@ -150,33 +153,36 @@
 
             <div class="flex flex-col gap-1.5">
               <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Notes / Terms</label>
-              <Textarea 
+              <v-textarea 
                 v-model="form.notes" 
                 placeholder="Additional notes, payment terms, warranty info…" 
                 rows="2" 
-                autoResize 
-                class="w-full rounded-xl text-xs" 
+                auto-grow 
+                hide-details
+                class="w-full text-xs" 
               />
             </div>
 
             <div v-if="activeForm.label === 'Service Agreement'" class="flex flex-col gap-1.5">
               <label class="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Authorization Statement</label>
-              <Textarea 
+              <v-textarea 
                 v-model="form.authStatement" 
                 rows="3" 
-                autoResize 
-                class="w-full rounded-xl text-xs"
+                auto-grow 
+                hide-details
+                class="w-full text-xs"
                 placeholder="I authorize the above repair shop to perform diagnostics and repairs on my device. I understand that..." 
               />
             </div>
 
-            <Button
-              label="Generate & Print"
-              icon="mdi mdi-printer"
-              severity="success"
+            <v-btn
+              prepend-icon="mdi-printer"
+              color="success"
               class="rounded-full text-xs font-bold mt-2 py-2.5 text-none w-full"
               @click="generateAndPrint"
-            />
+            >
+              Generate & Print
+            </v-btn>
           </div>
         </div>
       </div>
@@ -196,7 +202,7 @@
             <div class="flex justify-between items-start mb-8">
               <div>
                 <h2 class="text-lg font-black mb-1" :style="{ color: activeForm.color }">{{ activeForm.label.toUpperCase() }}</h2>
-                <p class="text-xs font-bold">{{ settings.businessName || 'Your Business Name' }}</p>
+                <p class="text-xs font-bold text-foreground">{{ settings.businessName || 'Your Business Name' }}</p>
                 <p class="text-[10px] text-muted-foreground">{{ settings.phone || '' }}</p>
                 <p class="text-[10px] text-muted-foreground">{{ settings.email || '' }}</p>
                 <p class="text-[10px] text-muted-foreground">{{ settings.address || '' }}</p>
@@ -214,11 +220,11 @@
             </div>
 
             <div 
-              class="rounded-xl p-4 mb-6 border" 
+              class="rounded-xl p-4 mb-6 border font-medium text-foreground" 
               :style="{ backgroundColor: `${activeForm.color}08`, borderColor: `${activeForm.color}20` }"
             >
               <p class="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Bill To</p>
-              <p class="text-xs font-bold">{{ previewCustomer?.name || 'Walk-in Customer' }}</p>
+              <p class="text-xs font-bold text-foreground">{{ previewCustomer?.name || 'Walk-in Customer' }}</p>
               <p v-if="previewCustomer?.phone" class="text-[10px] text-muted-foreground">{{ previewCustomer.phone }}</p>
               <p v-if="previewCustomer?.email" class="text-[10px] text-muted-foreground">{{ previewCustomer.email }}</p>
             </div>
@@ -229,12 +235,12 @@
               :style="{ backgroundColor: `${activeForm.color}06`, borderColor: `${activeForm.color}14` }"
             >
               <p class="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Ticket #{{ previewTicket.id }}</p>
-              <p class="text-xs font-medium">{{ previewTicket.device }} {{ previewTicket.deviceModel }}</p>
+              <p class="text-xs font-medium text-foreground">{{ previewTicket.device }} {{ previewTicket.deviceModel }}</p>
               <p class="text-[10px] text-muted-foreground mt-0.5">{{ previewTicket.issue }}</p>
             </div>
 
             <div v-if="activeForm.label !== 'Service Agreement'" class="mb-6">
-              <table class="w-full text-left text-xs mb-4">
+              <table class="w-full text-left text-xs mb-4 text-foreground">
                 <thead>
                   <tr class="border-b border-border text-muted-foreground uppercase tracking-wider font-bold">
                     <th class="py-2 text-[10px]">Description</th>
@@ -248,7 +254,7 @@
                     <td class="py-2 font-medium">{{ li.description || '—' }}</td>
                     <td class="py-2 text-center text-muted-foreground">{{ li.qty }}</td>
                     <td class="py-2 text-right text-muted-foreground">{{ formatCurrency(li.price) }}</td>
-                    <td class="py-2 text-right font-bold">{{ formatCurrency(li.qty * li.price) }}</td>
+                    <td class="py-2 text-right font-bold text-foreground">{{ formatCurrency(li.qty * li.price) }}</td>
                   </tr>
                   <tr v-if="!previewLineItems.length">
                     <td colspan="4" class="py-4 text-center text-muted-foreground italic text-[11px]">Line items will appear here…</td>
@@ -301,13 +307,14 @@
           </div>
           <h3 class="text-base font-black">Recent Documents</h3>
         </div>
-        <Button 
-          label="Clear" 
+        <v-btn 
           variant="text" 
-          severity="secondary" 
+          color="secondary" 
           class="text-xs text-none font-bold" 
           @click="invoiceHistory = []" 
-        />
+        >
+          Clear
+        </v-btn>
       </div>
       
       <div class="flex flex-col gap-2">
@@ -327,10 +334,10 @@
           </div>
           <div class="flex items-center gap-3 shrink-0">
             <span class="text-xs font-black text-emerald-600 dark:text-emerald-400">{{ formatCurrency(inv.total) }}</span>
-            <Button 
-              icon="mdi mdi-printer" 
+            <v-btn 
+              icon="mdi-printer" 
               variant="text" 
-              severity="secondary" 
+              color="secondary" 
               class="rounded-full !w-8 !h-8" 
               @click="reprintInvoice(inv)" 
             />

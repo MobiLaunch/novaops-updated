@@ -1,256 +1,281 @@
 <template>
-  <Dialog
-    v-model:visible="isOpen"
-    modal
-    :draggable="false"
-    class="w-full max-w-4xl mx-4"
-    :show-header="false"
-    pt:content:class="!p-0 flex flex-col max-h-[90dvh]"
+  <v-dialog
+    v-model="isOpen"
+    max-width="900"
+    persistent
   >
-    <div class="flex items-center gap-3 p-4 border-b border-border shrink-0">
-      <div class="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center">
-        <i class="mdi mdi-wrench-outline"></i>
-      </div>
-      <div class="flex-1">
-        <span class="font-black block">New Repair Ticket</span>
-        <span class="text-xs text-muted-foreground">Step {{ displayStep }} of {{ totalSteps }}</span>
-      </div>
-      <Button variant="text" rounded class="!w-9 !h-9" @click="handleCancel">
-        <i class="mdi mdi-close"></i>
-      </Button>
-    </div>
-
-    <ProgressBar :value="(displayStep / totalSteps) * 100" class="h-0.5 shrink-0 rounded-none" />
-
-    <div class="p-6 overflow-y-auto flex-1 min-h-0">
-          <div v-show="currentStep === 1">
-            <p class="text-[10px] font-black text-muted-foreground uppercase mb-4">Select Brand</p>
-            <div v-if="loadingBrands" class="flex justify-center py-10">
-              <ProgressSpinner style="width: 32px; height: 32px" stroke-width="4" />
-            </div>
-            <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-              <button
-                v-for="brand in allBrands"
-                :key="brand"
-                type="button"
-                class="m3-step-chip flex items-center gap-2"
-                :class="{ 'm3-step-chip--active': selectedBrand === brand }"
-                @click="selectBrand(brand)"
-              >
-                <img v-if="brandLogoUrl(brand)" :src="brandLogoUrl(brand)" :alt="brand" class="w-6 h-6 object-contain" />
-                <span class="text-xs font-bold">{{ brand }}</span>
-              </button>
-              <button type="button" class="m3-step-chip flex items-center gap-2" :class="{ 'm3-step-chip--active': isOtherBrand }" @click="selectOtherBrand">
-                <i class="mdi mdi-dots-horizontal-circle-outline"></i>
-                <span class="text-xs font-bold">Other</span>
-              </button>
-            </div>
-            <div v-if="isOtherBrand" class="mt-6 pt-6 border-t border-border flex flex-col gap-3">
-              <InputText v-model="customBrand" placeholder="e.g. Motorola, OnePlus..." class="w-full rounded-xl" @keyup.enter="confirmOtherBrand" />
-              <Button class="w-full font-bold" :disabled="!customBrand" @click="confirmOtherBrand">
-                Continue with "{{ customBrand || '...' }}"
-              </Button>
-            </div>
+    <v-card class="rounded-2xl max-h-[90dvh] flex flex-col">
+      <v-card-item class="border-b border-border shrink-0 py-3 px-4">
+        <div class="flex items-center gap-3 w-full">
+          <div class="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center shrink-0">
+            <i class="mdi mdi-wrench-outline text-lg"></i>
           </div>
-
-          <div v-show="currentStep === 2">
-            <div class="flex items-center gap-2 mb-4">
-              <button type="button" class="m3-back-btn" @click="goBackFromStep2"><i class="mdi mdi-arrow-left"></i></button>
-              <p class="text-[10px] font-black text-muted-foreground uppercase m-0">{{ selectedBrand }} — Category</p>
-            </div>
-            <template v-if="isOtherBrand">
-              <Message severity="info" :closable="false" class="mb-4 text-sm">Custom device entry for {{ selectedBrand }}</Message>
-              <p class="text-[10px] font-black text-muted-foreground uppercase mb-2">Device Category</p>
-              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
-                <button
-                  v-for="cat in commonCategories"
-                  :key="cat.label"
-                  type="button"
-                  class="m3-step-chip flex items-center gap-2"
-                  :class="{ 'm3-step-chip--active': selectedCategory === cat.label }"
-                  @click="selectedCategory = cat.label; customCategory = ''"
-                >
-                  <span class="w-5 h-5 shrink-0 category-icon" v-html="cat.icon"></span>
-                  <span class="text-xs font-bold">{{ cat.label }}</span>
-                </button>
-              </div>
-              <InputText v-model="customCategory" placeholder="Or type custom category..." class="w-full rounded-xl mb-3" @focus="selectedCategory = ''" @input="selectedCategory = customCategory" />
-              <InputText v-model="customModel" placeholder="Model / Device Name" class="w-full rounded-xl" />
-            </template>
-            <template v-else>
-              <div v-if="loadingCategories" class="flex justify-center py-10"><ProgressSpinner stroke-width="4" /></div>
-              <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <button
-                  v-for="cat in categories"
-                  :key="cat"
-                  type="button"
-                  class="m3-step-chip text-left font-bold"
-                  :class="{ 'm3-step-chip--active': selectedCategory === cat }"
-                  @click="selectCategory(cat)"
-                >{{ cat }}</button>
-              </div>
-            </template>
+          <div class="flex-grow min-w-0">
+            <div class="font-black text-sm text-foreground">New Repair Ticket</div>
+            <div class="text-xs text-muted-foreground mt-0.5">Step {{ displayStep }} of {{ totalSteps }}</div>
           </div>
+          <v-btn icon="mdi-close" variant="text" color="secondary" class="!w-9 !h-9 shrink-0" @click="handleCancel" />
+        </div>
+      </v-card-item>
 
-          <div v-show="currentStep === 3">
-            <div class="flex items-center gap-2 mb-4">
-              <button type="button" class="m3-back-btn" @click="currentStep = 2"><i class="mdi mdi-arrow-left"></i></button>
-              <p class="text-[10px] font-black text-muted-foreground uppercase m-0">Select Model</p>
-            </div>
-            <InputText v-model="modelSearch" placeholder="Search models..." class="w-full rounded-xl mb-4" />
-            <div v-if="loadingModels" class="flex justify-center py-10"><ProgressSpinner stroke-width="4" /></div>
-            <div v-else class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-60 overflow-y-auto mb-4">
-              <button
-                v-for="model in filteredModels"
-                :key="model"
-                type="button"
-                class="m3-step-chip text-xs font-bold"
-                :class="{ 'm3-step-chip--active': selectedModel === model }"
-                @click="selectModel(model)"
-              >{{ model }}</button>
-              <p v-if="filteredModels.length === 0" class="col-span-full text-center text-sm text-muted-foreground">No models match "{{ modelSearch }}"</p>
-            </div>
-            <hr class="border-border my-4" />
-            <InputText v-model="customModel" placeholder="Or enter custom model..." class="w-full rounded-xl" @keyup.enter="handleCustomModelEnter" />
+      <v-progress-linear :model-value="(displayStep / totalSteps) * 100" height="2" class="shrink-0" color="primary" />
+
+      <v-card-text class="p-6 overflow-y-auto flex-1 min-h-0 bg-background">
+        <!-- Step 1: Select Brand -->
+        <div v-show="currentStep === 1">
+          <p class="text-[10px] font-black text-muted-foreground uppercase mb-4 tracking-wider">Select Brand</p>
+          <div v-if="loadingBrands" class="flex justify-center py-10">
+            <v-progress-circular indeterminate color="primary" size="32" width="4" />
           </div>
-
-          <div v-show="currentStep === 4">
-            <div class="flex items-center gap-2 mb-4">
-              <button type="button" class="m3-back-btn" @click="currentStep = 3"><i class="mdi mdi-arrow-left"></i></button>
-              <p class="text-[10px] font-black text-muted-foreground uppercase m-0">Select Issue</p>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <button
-                v-for="issue in issues"
-                :key="issue.name"
-                type="button"
-                class="m3-step-chip flex items-start gap-3 text-left"
-                :class="{ 'm3-step-chip--active': selectedIssue === issue.name }"
-                @click="selectIssue(issue.name)"
-              >
-                <i class="mdi text-lg shrink-0" :class="issue.icon"></i>
-                <div>
-                  <div class="text-sm font-bold">{{ issue.name }}</div>
-                  <div class="text-xs text-muted-foreground">{{ issue.description }}</div>
-                </div>
-              </button>
-            </div>
-            <hr class="border-border my-4" />
-            <Textarea v-model="customIssue" rows="3" placeholder="Or describe custom issue..." class="w-full rounded-xl" />
-          </div>
-
-          <div v-show="currentStep === 5">
-            <div class="flex items-center gap-2 mb-4">
-              <button type="button" class="m3-back-btn" @click="currentStep = 4"><i class="mdi mdi-arrow-left"></i></button>
-              <p class="text-[10px] font-black text-muted-foreground uppercase m-0">Ticket Details</p>
-            </div>
-            <Message severity="info" :closable="false" class="mb-5">
-              <strong>{{ selectedBrand }} {{ selectedModel || customModel }}</strong> — {{ selectedIssue || customIssue }}
-            </Message>
-            <div class="mb-4"><CustomerSelect v-model="ticketData.customerId" /></div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-              <InputText v-model="ticketData.serialNumber" placeholder="Serial Number (optional)" class="rounded-xl" />
-              <Select v-model="ticketData.priority" :options="priorityOptions" option-label="label" option-value="value" placeholder="Priority" class="w-full" />
-            </div>
-            <Textarea v-model="ticketData.deviceDescription" rows="2" placeholder="Device condition…" class="w-full rounded-xl mb-4" />
-            <p class="text-[10px] font-black text-muted-foreground uppercase mb-2">Photos (optional — up to 6)</p>
-            <div
-              class="photo-dropzone"
-              :class="{ 'photo-dropzone--drag': isDragging, 'photo-dropzone--has-files': photoAttachments.length > 0 }"
-              @dragover.prevent="isDragging = true"
-              @dragleave.prevent="isDragging = false"
-              @drop.prevent="handlePhotoDrop"
-              @click="triggerPhotoInput"
+          <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            <button
+              v-for="brand in allBrands"
+              :key="brand"
+              type="button"
+              class="m3-step-chip flex items-center gap-2 text-foreground"
+              :class="{ 'm3-step-chip--active': selectedBrand === brand }"
+              @click="selectBrand(brand)"
             >
-              <input ref="photoInputRef" type="file" accept="image/*" multiple class="hidden" @change="handlePhotoSelect" />
-              <div v-if="!photoAttachments.length" class="text-center py-4 text-muted-foreground">
-                <i class="mdi mdi-camera-outline text-3xl block mb-2"></i>
-                <div class="text-sm font-bold">Drop photos or click to browse</div>
-              </div>
-              <div v-else class="grid grid-cols-4 sm:grid-cols-6 gap-2 w-full">
-                <div v-for="(photo, idx) in photoAttachments" :key="idx" class="photo-thumb">
-                  <img :src="photo.preview" alt="" class="w-full aspect-square object-cover" />
-                  <button type="button" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/70 text-white text-xs" @click.stop="removePhoto(idx)">×</button>
-                </div>
-              </div>
-            </div>
-            <p class="text-[10px] font-black text-muted-foreground uppercase mb-2 mt-6">Customer Signature (optional)</p>
-            <SignaturePad v-model="ticketData.signature" :width="550" :height="150" />
+              <img v-if="brandLogoUrl(brand)" :src="brandLogoUrl(brand)" :alt="brand" class="w-6 h-6 object-contain" />
+              <span class="text-xs font-bold">{{ brand }}</span>
+            </button>
+            <button 
+              type="button" 
+              class="m3-step-chip flex items-center gap-2 text-foreground" 
+              :class="{ 'm3-step-chip--active': isOtherBrand }" 
+              @click="selectOtherBrand"
+            >
+              <i class="mdi mdi-dots-horizontal-circle-outline"></i>
+              <span class="text-xs font-bold">Other</span>
+            </button>
           </div>
-    </div>
+          <div v-if="isOtherBrand" class="mt-6 pt-6 border-t border-border flex flex-col gap-3">
+            <v-text-field v-model="customBrand" placeholder="e.g. Motorola, OnePlus..." hide-details class="w-full" @keyup.enter="confirmOtherBrand" />
+            <v-btn color="primary" class="w-full font-bold rounded-xl h-11 text-none" :disabled="!customBrand" @click="confirmOtherBrand">
+              Continue with "{{ customBrand || '...' }}"
+            </v-btn>
+          </div>
+        </div>
 
-    <div class="flex items-center gap-2 p-4 border-t border-border bg-muted/30 shrink-0">
-      <Button label="Devices" variant="outlined" class="text-none text-xs" @click="showDeviceMgr = true">
-        <i class="mdi mdi-cog mr-1"></i>
-      </Button>
-      <div class="flex-1"></div>
-      <Button label="Cancel" variant="text" class="text-none" @click="handleCancel" />
-      <Button v-if="currentStep < 5" label="Next" class="text-none font-bold" :disabled="!canProceed" @click="nextStep" />
-      <Button v-else label="Create Ticket" class="text-none font-bold" :disabled="!canCreate || creating" :loading="creating" @click="createTicket" />
-    </div>
-  </Dialog>
+        <!-- Step 2: Select Category -->
+        <div v-show="currentStep === 2">
+          <div class="flex items-center gap-2 mb-4">
+            <button type="button" class="m3-back-btn text-foreground" @click="goBackFromStep2"><i class="mdi mdi-arrow-left"></i></button>
+            <p class="text-[10px] font-black text-muted-foreground uppercase m-0 tracking-wider">{{ selectedBrand }} — Category</p>
+          </div>
+          <template v-if="isOtherBrand">
+            <v-alert type="info" variant="tonal" class="mb-4 text-xs">Custom device entry for {{ selectedBrand }}</v-alert>
+            <p class="text-[10px] font-black text-muted-foreground uppercase mb-2 tracking-wider">Device Category</p>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+              <button
+                v-for="cat in commonCategories"
+                :key="cat.label"
+                type="button"
+                class="m3-step-chip flex items-center gap-2 text-foreground"
+                :class="{ 'm3-step-chip--active': selectedCategory === cat.label }"
+                @click="selectedCategory = cat.label; customCategory = ''"
+              >
+                <span class="w-5 h-5 shrink-0 category-icon text-foreground" v-html="cat.icon"></span>
+                <span class="text-xs font-bold">{{ cat.label }}</span>
+              </button>
+            </div>
+            <v-text-field v-model="customCategory" placeholder="Or type custom category..." hide-details class="w-full mb-3" @focus="selectedCategory = ''" @input="selectedCategory = customCategory" />
+            <v-text-field v-model="customModel" placeholder="Model / Device Name" hide-details class="w-full" />
+          </template>
+          <template v-else>
+            <div v-if="loadingCategories" class="flex justify-center py-10">
+              <v-progress-circular indeterminate color="primary" size="32" width="4" />
+            </div>
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button
+                v-for="cat in categories"
+                :key="cat"
+                type="button"
+                class="m3-step-chip text-left font-bold text-foreground"
+                :class="{ 'm3-step-chip--active': selectedCategory === cat }"
+                @click="selectCategory(cat)"
+              >{{ cat }}</button>
+            </div>
+          </template>
+        </div>
 
-  <Dialog v-model:visible="showDeviceMgr" modal header="Device Catalog" class="w-full max-w-2xl mx-4">
-    <Tabs v-model:value="mgrTab">
-      <TabList>
-        <Tab value="Brands">Brands</Tab>
-        <Tab value="Categories">Categories</Tab>
-        <Tab value="Models">Models</Tab>
-      </TabList>
-      <TabPanels class="pt-4">
-        <TabPanel value="Brands">
-          <div class="flex flex-wrap gap-2 mb-4 items-end">
-            <InputText v-model="newBrandName" placeholder="Brand name" class="flex-1 rounded-xl" @keyup.enter="addBrand" />
-            <InputText v-model="newBrandIcon" placeholder="Icon slug" class="w-32 rounded-xl" />
-            <Button label="Add" :disabled="!newBrandName.trim()" @click="addBrand" />
+        <!-- Step 3: Select Model -->
+        <div v-show="currentStep === 3">
+          <div class="flex items-center gap-2 mb-4">
+            <button type="button" class="m3-back-btn text-foreground" @click="currentStep = 2"><i class="mdi mdi-arrow-left"></i></button>
+            <p class="text-[10px] font-black text-muted-foreground uppercase m-0 tracking-wider">Select Model</p>
           </div>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            <div v-for="b in catalogBrands" :key="b.id" class="flex items-center justify-between p-2 border border-border rounded-lg">
-              <span class="text-sm font-bold truncate">{{ b.name }}</span>
-              <Button variant="text" severity="danger" size="small" class="!w-7 !h-7" @click="deleteBrand(b.id)"><i class="mdi mdi-close"></i></Button>
-            </div>
+          <v-text-field v-model="modelSearch" placeholder="Search models..." hide-details class="w-full mb-4" />
+          <div v-if="loadingModels" class="flex justify-center py-10">
+            <v-progress-circular indeterminate color="primary" size="32" width="4" />
           </div>
-        </TabPanel>
-        <TabPanel value="Categories">
-          <div class="flex gap-2 mb-4">
-            <InputText v-model="newCatName" placeholder="Category name" class="flex-1 rounded-xl" @keyup.enter="addCategory" />
-            <Button label="Add" :disabled="!newCatName.trim()" @click="addCategory" />
+          <div v-else class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-60 overflow-y-auto mb-4">
+            <button
+              v-for="model in filteredModels"
+              :key="model"
+              type="button"
+              class="m3-step-chip text-xs font-bold text-foreground"
+              :class="{ 'm3-step-chip--active': selectedModel === model }"
+              @click="selectModel(model)"
+            >{{ model }}</button>
+            <p v-if="filteredModels.length === 0" class="col-span-full text-center text-sm text-muted-foreground">No models match "{{ modelSearch }}"</p>
           </div>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            <div v-for="c in catalogCategories" :key="c.id" class="flex items-center justify-between p-2 border border-border rounded-lg">
-              <span class="text-sm">{{ c.emoji || '📦' }} {{ c.name }}</span>
-              <Button variant="text" severity="danger" size="small" @click="deleteCategory(c.id)"><i class="mdi mdi-close"></i></Button>
-            </div>
+          <hr class="border-border my-4" />
+          <v-text-field v-model="customModel" placeholder="Or enter custom model..." hide-details class="w-full" @keyup.enter="handleCustomModelEnter" />
+        </div>
+
+        <!-- Step 4: Select Issue -->
+        <div v-show="currentStep === 4">
+          <div class="flex items-center gap-2 mb-4">
+            <button type="button" class="m3-back-btn text-foreground" @click="currentStep = isOtherBrand ? 2 : 3"><i class="mdi mdi-arrow-left"></i></button>
+            <p class="text-[10px] font-black text-muted-foreground uppercase m-0 tracking-wider">Select Issue</p>
           </div>
-        </TabPanel>
-        <TabPanel value="Models">
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
-            <Select v-model="newModelBrand" :options="allBrandsForMgr" placeholder="Brand" class="w-full" />
-            <Select v-model="newModelCategory" :options="allCategoriesForMgr" placeholder="Category" class="w-full" />
-            <InputText v-model="newModelName" placeholder="Model name" class="rounded-xl" @keyup.enter="addModel" />
-          </div>
-          <Button label="Add Model" class="mb-4" :disabled="!newModelName.trim() || !newModelBrand || !newModelCategory" @click="addModel" />
-          <ul v-if="catalogModels.length" class="m-0 p-0 list-none border border-border rounded-xl divide-y divide-border">
-            <li v-for="m in catalogModels" :key="m.id" class="flex items-center justify-between p-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button
+              v-for="issue in issues"
+              :key="issue.name"
+              type="button"
+              class="m3-step-chip flex items-start gap-3 text-left text-foreground"
+              :class="{ 'm3-step-chip--active': selectedIssue === issue.name }"
+              @click="selectIssue(issue.name)"
+            >
+              <i class="mdi text-lg shrink-0" :class="issue.icon"></i>
               <div>
-                <div class="text-sm font-bold">{{ m.name }}</div>
-                <div class="text-xs text-muted-foreground">{{ m.brand }} / {{ m.category }}</div>
+                <div class="text-sm font-bold">{{ issue.name }}</div>
+                <div class="text-xs text-muted-foreground mt-0.5">{{ issue.description }}</div>
               </div>
-              <Button variant="text" severity="danger" size="small" @click="deleteModel(m.id)"><i class="mdi mdi-close"></i></Button>
-            </li>
-          </ul>
-        </TabPanel>
-      </TabPanels>
-    </Tabs>
-    <template #footer>
-      <Button label="Done" @click="showDeviceMgr = false; fetchBrands()" />
-    </template>
-  </Dialog>
+            </button>
+          </div>
+          <hr class="border-border my-4" />
+          <v-textarea v-model="customIssue" rows="3" placeholder="Or describe custom issue..." hide-details class="w-full" />
+        </div>
+
+        <!-- Step 5: Details -->
+        <div v-show="currentStep === 5">
+          <div class="flex items-center gap-2 mb-4">
+            <button type="button" class="m3-back-btn text-foreground" @click="currentStep = 4"><i class="mdi mdi-arrow-left"></i></button>
+            <p class="text-[10px] font-black text-muted-foreground uppercase m-0 tracking-wider">Ticket Details</p>
+          </div>
+          <v-alert type="info" variant="tonal" class="mb-5 text-xs text-foreground">
+            <strong>{{ selectedBrand }} {{ selectedModel || customModel }}</strong> — {{ selectedIssue || customIssue }}
+          </v-alert>
+          <div class="mb-4"><CustomerSelect v-model="ticketData.customerId" /></div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+            <v-text-field v-model="ticketData.serialNumber" placeholder="Serial Number (optional)" hide-details class="w-full" />
+            <v-select v-model="ticketData.priority" :items="priorityOptions" item-title="label" item-value="value" placeholder="Priority" hide-details class="w-full" />
+          </div>
+          <v-textarea v-model="ticketData.deviceDescription" rows="2" placeholder="Device condition notes…" hide-details class="w-full mb-4" />
+          
+          <p class="text-[10px] font-black text-muted-foreground uppercase mb-2 tracking-wider">Photos (optional — up to 6)</p>
+          <div
+            class="photo-dropzone text-foreground"
+            :class="{ 'photo-dropzone--drag': isDragging, 'photo-dropzone--has-files': photoAttachments.length > 0 }"
+            @dragover.prevent="isDragging = true"
+            @dragleave.prevent="isDragging = false"
+            @drop.prevent="handlePhotoDrop"
+            @click="triggerPhotoInput"
+          >
+            <input ref="photoInputRef" type="file" accept="image/*" multiple class="hidden" @change="handlePhotoSelect" />
+            <div v-if="!photoAttachments.length" class="text-center py-4 text-muted-foreground">
+              <i class="mdi mdi-camera-outline text-3xl block mb-2"></i>
+              <div class="text-sm font-bold">Drop photos or click to browse</div>
+            </div>
+            <div v-else class="grid grid-cols-4 sm:grid-cols-6 gap-2 w-full">
+              <div v-for="(photo, idx) in photoAttachments" :key="idx" class="photo-thumb">
+                <img :src="photo.preview" alt="" class="w-full aspect-square object-cover" />
+                <button type="button" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/70 text-white text-xs flex items-center justify-center font-bold" @click.stop="removePhoto(idx)">×</button>
+              </div>
+            </div>
+          </div>
+          
+          <p class="text-[10px] font-black text-muted-foreground uppercase mb-2 mt-6 tracking-wider">Customer Signature (optional)</p>
+          <SignaturePad v-model="ticketData.signature" :width="550" :height="150" />
+        </div>
+      </v-card-text>
+
+      <v-card-actions class="px-6 py-4 border-t border-border bg-muted/30 shrink-0 justify-end">
+        <v-btn variant="outlined" color="secondary" class="text-none text-xs rounded-xl" @click="showDeviceMgr = true">
+          <i class="mdi mdi-cog mr-1"></i> Devices
+        </v-btn>
+        <v-spacer />
+        <v-btn variant="text" color="secondary" class="text-none" @click="handleCancel">Cancel</v-btn>
+        <v-btn v-if="currentStep < 5" color="primary" class="text-none font-bold rounded-xl" :disabled="!canProceed" @click="nextStep">Next</v-btn>
+        <v-btn v-else color="primary" class="text-none font-bold rounded-xl" :disabled="!canCreate || creating" :loading="creating" @click="createTicket">Create Ticket</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Device Manager dialog -->
+  <v-dialog v-model="showDeviceMgr" max-width="700">
+    <v-card class="rounded-xl">
+      <v-card-title class="text-base font-black pt-4 px-6 border-b">Device Catalog</v-card-title>
+      
+      <v-tabs v-model="mgrTab" color="primary" class="px-4 border-b">
+        <v-tab value="Brands">Brands</v-tab>
+        <v-tab value="Categories">Categories</v-tab>
+        <v-tab value="Models">Models</v-tab>
+      </v-tabs>
+      
+      <v-card-text class="pt-4 pb-4">
+        <v-window v-model="mgrTab">
+          <v-window-item value="Brands" class="pt-2">
+            <div class="flex flex-wrap gap-2 mb-4 align-end">
+              <v-text-field v-model="newBrandName" placeholder="Brand name" hide-details class="flex-grow" @keyup.enter="addBrand" />
+              <v-text-field v-model="newBrandIcon" placeholder="Icon slug" hide-details class="w-32" />
+              <v-btn color="primary" class="rounded-xl font-bold h-[48px]" :disabled="!newBrandName.trim()" @click="addBrand">Add</v-btn>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-60 overflow-y-auto">
+              <div v-for="b in catalogBrands" :key="b.id" class="flex items-center justify-between p-2 border border-border rounded-lg text-foreground bg-surface">
+                <span class="text-sm font-bold truncate">{{ b.name }}</span>
+                <v-btn variant="text" color="error" class="!w-7 !h-7 shrink-0" icon="mdi-close" density="compact" @click="deleteBrand(b.id)" />
+              </div>
+            </div>
+          </v-window-item>
+          
+          <v-window-item value="Categories" class="pt-2">
+            <div class="flex gap-2 mb-4 align-center">
+              <v-text-field v-model="newCatName" placeholder="Category name" hide-details class="flex-grow" @keyup.enter="addCategory" />
+              <v-btn color="primary" class="rounded-xl font-bold h-[48px]" :disabled="!newCatName.trim()" @click="addCategory">Add</v-btn>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-60 overflow-y-auto">
+              <div v-for="c in catalogCategories" :key="c.id" class="flex items-center justify-between p-2 border border-border rounded-lg text-foreground bg-surface">
+                <span class="text-sm">{{ c.emoji || '📦' }} {{ c.name }}</span>
+                <v-btn variant="text" color="error" class="!w-7 !h-7 shrink-0" icon="mdi-close" density="compact" @click="deleteCategory(c.id)" />
+              </div>
+            </div>
+          </v-window-item>
+          
+          <v-window-item value="Models" class="pt-2">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
+              <v-select v-model="newModelBrand" :items="allBrandsForMgr" placeholder="Brand" hide-details class="w-full" />
+              <v-select v-model="newModelCategory" :items="allCategoriesForMgr" placeholder="Category" hide-details class="w-full" />
+              <v-text-field v-model="newModelName" placeholder="Model name" hide-details class="w-full" @keyup.enter="addModel" />
+            </div>
+            <v-btn color="primary" class="mb-4 rounded-xl font-bold text-none w-full" :disabled="!newModelName.trim() || !newModelBrand || !newModelCategory" @click="addModel">Add Model</v-btn>
+            <ul v-if="catalogModels.length" class="m-0 p-0 list-none border border-border rounded-xl divide-y divide-border max-h-60 overflow-y-auto bg-surface">
+              <li v-for="m in catalogModels" :key="m.id" class="flex items-center justify-between p-3">
+                <div class="text-foreground">
+                  <div class="text-sm font-bold">{{ m.name }}</div>
+                  <div class="text-xs text-muted-foreground mt-0.5">{{ m.brand }} / {{ m.category }}</div>
+                </div>
+                <v-btn variant="text" color="error" icon="mdi-close" density="compact" @click="deleteModel(m.id)" />
+              </li>
+            </ul>
+          </v-window-item>
+        </v-window>
+      </v-card-text>
+      
+      <v-card-actions class="px-6 pb-4 pt-2 justify-end border-t bg-muted/10">
+        <v-btn color="primary" class="rounded-xl font-bold text-none px-6" @click="showDeviceMgr = false; fetchBrands()">Done</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
 import SignaturePad from '~/components/SignaturePad.vue'
 import CustomerSelect from '~/components/CustomerSelect.vue'
+import { ref, computed, watch } from 'vue'
 
 const props = defineProps<{
   modelValue: boolean
@@ -282,7 +307,6 @@ const commonCategories = [
 ]
 
 // ── Brand logos via Simple Icons CDN ─────────────────────────────
-// https://cdn.simpleicons.org/[slug]/[hex-color]
 const BRAND_SLUGS: Record<string, string> = {
   Apple:     'apple',
   Samsung:   'samsung',
@@ -309,7 +333,6 @@ const BRAND_SLUGS: Record<string, string> = {
 const brandLogoUrl = (brand: string): string => {
   const slug = BRAND_SLUGS[brand]
   if (!slug) return ''
-  // Simple Icons CDN: /slug/light-hex/dark-hex
   return `https://cdn.simpleicons.org/${slug}/555555/cccccc`
 }
 
@@ -318,19 +341,13 @@ const allBrands = computed(() => {
   const fromDevicesTable = brands.value || []
   const fromCatalog = catalogBrandNames.value || []
   const combinedNames = [...fromDevicesTable, ...fromCatalog]
-  
   const uniqueMap = new Map<string, string>()
   
-  // Add known brands first so they provide a nice fallback casing
   KNOWN_BRANDS.forEach(b => uniqueMap.set(b.toLowerCase(), b))
   
-  // Add DB/Catalog brands, overriding if they already exist to use the exact DB casing or keeping them if they don't
   combinedNames.forEach(b => {
     if (!b) return
     const lower = b.toLowerCase()
-    // We prefer the case provided in the DB if it is actually used, 
-    // or we can just only add if missing to prefer KNOWN_BRANDS casing. Let's prefer KNOWN_BRANDS casing for consistency,
-    // so we only set if missing:
     if (!uniqueMap.has(lower)) {
       uniqueMap.set(lower, b)
     }
@@ -339,16 +356,13 @@ const allBrands = computed(() => {
   return Array.from(uniqueMap.values()).sort((a, b) => a.localeCompare(b))
 })
 
-// Other / custom brand state
 const isOtherBrand = ref(false)
 const customBrand = ref('')
 const customCategory = ref('')
 
-// Step display — "Other" brand skips step 3, so total = 4
 const totalSteps = computed(() => isOtherBrand.value ? 4 : 5)
 const displayStep = computed(() => {
   if (!isOtherBrand.value) return currentStep.value
-  // Map internal steps: 1→1, 2→2, 4→3, 5→4
   if (currentStep.value <= 2) return currentStep.value
   if (currentStep.value === 4) return 3
   if (currentStep.value === 5) return 4
@@ -494,7 +508,6 @@ const selectIssue = (issue: string) => { selectedIssue.value = issue; customIssu
 
 const nextStep = () => {
   if (currentStep.value === 2 && isOtherBrand.value) {
-    // For "Other" brand, category+model are collected in step 2, jump straight to issues
     if (customCategory.value) selectedCategory.value = customCategory.value
     currentStep.value = 4
     return
@@ -541,6 +554,7 @@ const removePhoto = (idx: number) => {
   URL.revokeObjectURL(photoAttachments.value[idx].preview)
   photoAttachments.value.splice(idx, 1)
 }
+
 const createTicket = () => {
   if (!canCreate.value || creating.value) return
   creating.value = true
@@ -556,7 +570,6 @@ const createTicket = () => {
     signature: ticketData.value.signature,
     photos: photoAttachments.value.map(p => p.file)
   })
-  // Parent controls closing via v-model; reset after a tick so data is preserved during the async save
   setTimeout(() => { resetForm(); creating.value = false }, 300)
 }
 
@@ -567,19 +580,14 @@ const catalogBrands     = ref<any[]>([])
 const catalogCategories = ref<any[]>([])
 const catalogModels     = ref<any[]>([])
 
-// Add brand form
 const newBrandName = ref('')
 const newBrandIcon = ref('')
-// Add category form
 const newCatName    = ref('')
 const newCatEmoji   = ref('')
 const showEmojiPicker = ref(false)
-// Add model form
 const newModelBrand    = ref('')
 const newModelCategory = ref('')
 const newModelName     = ref('')
-
-const categoryEmojis = ['📱','💻','🖥️','⌚','🎮','🎧','📷','📺','🖨️','⌨️','🖱️','🔋','📡','🎙️','🕹️','📟','📠','🔭','📻']
 
 const loadCatalog = async () => {
   if (!$supabase) return
@@ -612,7 +620,7 @@ const deleteBrand = async (id: number) => {
 
 const addCategory = async () => {
   if (!newCatName.value.trim() || !$supabase) return
-  await from('device_categories').insert({ name: newCatName.value.trim(), emoji: newCatEmoji.value || '📦' })
+  await from('device_categories').insert({ name: newCatName.value.trim(), emoji: '📦' })
   newCatName.value = ''; newCatEmoji.value = ''; showEmojiPicker.value = false
   await loadCatalog()
 }
@@ -638,14 +646,12 @@ const deleteModel = async (id: number) => {
   await loadCatalog()
 }
 
-// Combined brand list for model picker (DB custom + known)
 const allBrandsForMgr = computed(() => {
   const custom = catalogBrands.value.map(b => b.name)
   const extra = KNOWN_BRANDS.filter(b => !custom.map(c => c.toLowerCase()).includes(b.toLowerCase()))
   return [...custom, ...extra].sort()
 })
 
-// Combined category list for model picker
 const allCategoriesForMgr = computed(() => {
   const custom = catalogCategories.value.map(c => c.name)
   const builtin = commonCategories.map(c => c.label)
@@ -655,7 +661,6 @@ const allCategoriesForMgr = computed(() => {
 
 watch(showDeviceMgr, (val) => { if (val) loadCatalog() })
 
-// Enrich allBrands with catalog brands
 const catalogBrandNames = computed(() => catalogBrands.value.map(b => b.name))
 
 const resetForm = () => {
@@ -798,7 +803,6 @@ const resetForm = () => {
   border-color: hsl(var(--border)/0.6);
   background: hsl(var(--muted)/0.2);
   box-shadow: none;
-  cursor: default;
 }
 .photo-thumb {
   position: relative;
@@ -813,44 +817,4 @@ const resetForm = () => {
   height: 100%;
   display: block;
 }
-
-/* ── Device Catalog Manager ── */
-.mgr-input {
-  height: 42px;
-  padding: 0 14px;
-  border-radius: 14px;
-  font-size: 13px;
-  font-weight: 500;
-  background: hsl(var(--muted)/0.5);
-  border: 2px solid hsl(var(--border)/0.7);
-  color: hsl(var(--foreground));
-  outline: none;
-  transition: all 0.2s ease;
-  width: 100%;
-}
-.mgr-input:focus {
-  border-color: #8b5cf6;
-  box-shadow: 0 0 0 3px #8b5cf615;
-  background: hsl(var(--background));
-}
-
-.mgr-add-btn {
-  height: 42px;
-  padding: 0 18px;
-  border-radius: 14px;
-  font-size: 13px;
-  font-weight: 800;
-  color: white;
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  flex-shrink: 0;
-}
-.mgr-add-btn:hover:not(:disabled) { transform: scale(1.04) translateY(-1px); box-shadow: 0 4px 16px #8b5cf640; }
-.mgr-add-btn:active:not(:disabled) { transform: scale(0.96); }
-.mgr-add-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 </style>
-

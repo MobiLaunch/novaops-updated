@@ -13,24 +13,18 @@
 
     <div class="relative search-field mb-4">
       <i class="mdi mdi-magnify absolute left-4 text-muted-foreground" style="top: 50%; transform: translateY(-50%);"></i>
-      <InputText
+      <v-text-field
         v-model="searchQuery"
         placeholder="Search for a device (e.g., iPhone 13, Galaxy S21)..."
-        class="w-full pl-11 pr-12 rounded-xl py-3"
+        class="w-full"
+        hide-details
+        prepend-inner-icon="mdi-magnify"
         @keyup.enter="performSearch"
       />
-      <button
-        type="button"
-        class="absolute right-3 text-primary"
-        style="top: 50%; transform: translateY(-50%);"
-        @click="performSearch"
-      >
-        <i class="mdi mdi-arrow-right-circle"></i>
-      </button>
     </div>
 
     <div v-if="loading" class="flex justify-center items-center my-12 py-12 flex-1">
-      <ProgressSpinner style="width: 64px; height: 64px" stroke-width="4" />
+      <v-progress-circular indeterminate size="64" width="4" color="primary" />
     </div>
 
     <div v-else-if="results.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -51,12 +45,12 @@
             <i class="mdi mdi-image-off-outline text-4xl text-muted-foreground"></i>
           </div>
           <div class="gradient-overlay absolute bottom-0 left-0 right-0 h-20"></div>
-          <Tag
-            :value="guide.difficulty || 'Unknown'"
-            :severity="difficultySeverity(guide.difficulty)"
-            class="absolute text-[10px] font-bold"
+          <v-chip
+            :color="difficultySeverity(guide.difficulty)"
+            size="small"
+            class="absolute font-bold text-[10px]"
             style="bottom: 12px; left: 12px; z-index: 2"
-          />
+          >{{ guide.difficulty || 'Unknown' }}</v-chip>
         </div>
         <div class="p-4 flex flex-col flex-1">
           <div class="text-[10px] font-black text-primary uppercase tracking-wider mb-1">{{ guide.category }}</div>
@@ -83,7 +77,7 @@
       </div>
       <h3 class="text-xl font-black mb-2 m-0">No guides found</h3>
       <p class="text-sm text-muted-foreground m-0">Try adjusting your search terms.</p>
-      <Button label="Clear Search" class="mt-6 font-bold text-none" @click="searchQuery = ''; hasSearched = false" />
+      <v-btn color="primary" class="mt-6 font-bold text-none" @click="searchQuery = ''; hasSearched = false">Clear Search</v-btn>
     </div>
 
     <div v-else class="flex flex-col items-center justify-center my-12 py-12 flex-1">

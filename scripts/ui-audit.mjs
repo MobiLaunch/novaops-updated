@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * NovaOps layout/UI audit — run: node scripts/ui-audit.mjs
- * Exits 1 if critical issues found (Vuetify remnants, broken icons).
+ * Exits 1 if critical issues found (PrimeVue remnants, broken icons).
  */
 import fs from 'fs'
 import path from 'path'
@@ -11,16 +11,22 @@ const SCAN_DIRS = ['pages', 'components', 'layouts']
 
 const CHECKS = [
   {
-    id: 'vuetify-components',
+    id: 'primevue-components',
     severity: 'critical',
-    label: 'Vuetify components (<v-*)',
-    re: /<v-[a-z]/gi,
+    label: 'PrimeVue components',
+    re: /<(Button|Dialog|DataTable|Column|InputText|Textarea|Select|InputNumber|ToggleSwitch|Checkbox|AutoComplete|DatePicker|Message|Tag|Tabs|TabList|Tab|TabPanels|TabPanel|Drawer|Popover|ProgressBar|Stepper|StepList|Step|StepPanels|StepPanel|Accordion|AccordionPanel|AccordionHeader|AccordionContent|FloatLabel|IconField|InputIcon|SelectButton|Knob)\b/,
   },
   {
-    id: 'vuetify-theme-vars',
+    id: 'primevue-theme-vars',
     severity: 'critical',
-    label: 'Vuetify theme CSS vars (--v-theme-)',
-    re: /--v-theme-/,
+    label: 'PrimeVue theme CSS vars (--p-)',
+    re: /--p-/,
+  },
+  {
+    id: 'primevue-imports',
+    severity: 'critical',
+    label: 'PrimeVue imports',
+    re: /from\s+['"]primevue\b/,
   },
   {
     id: 'broken-mdi-mashed',
@@ -33,12 +39,6 @@ const CHECKS = [
     severity: 'critical',
     label: 'Broken dynamic MDI (mustache in class)',
     re: /mdi mdi-\{\{/,
-  },
-  {
-    id: 'vuetify-layout-classes',
-    severity: 'medium',
-    label: 'Vuetify layout classes (d-flex, pa-, ma-, etc.)',
-    re: /\b(d-flex|d-none|pa-\d|ma-\d|text-medium-emphasis|font-weight-black|justify-space-between|flex-grow-1)\b/,
   },
   {
     id: 'missing-mdi-base',
@@ -130,10 +130,10 @@ if (pageShell.length) {
   console.log('')
 }
 
-const vuetifyFiles = (byCheck['vuetify-components'] || []).map(i => i.file)
-if (vuetifyFiles.length) {
-  console.log('## Migration priority (Vuetify pages)')
-  vuetifyFiles.sort().forEach(f => console.log(`- ${f}`))
+const primevueFiles = (byCheck['primevue-components'] || []).map(i => i.file)
+if (primevueFiles.length) {
+  console.log('## Remaining PrimeVue files')
+  primevueFiles.sort().forEach(f => console.log(`- ${f}`))
   console.log('')
 }
 

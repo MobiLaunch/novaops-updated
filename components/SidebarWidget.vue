@@ -7,13 +7,14 @@
           <i class="mdi mdi-calendar-clock text-violet"></i>
           Upcoming
         </div>
-        <Button 
-          label="View All" 
+        <v-btn 
           variant="text" 
-          severity="secondary" 
+          color="secondary" 
           class="text-[10px] font-bold text-none !py-0.5 !px-2" 
           @click="navigateTo('/bookings')" 
-        />
+        >
+          View All
+        </v-btn>
       </div>
       
       <div class="p-4 flex flex-col gap-2">
@@ -50,20 +51,20 @@
           <i class="mdi mdi-bell-outline text-blue"></i>
           Notifications
           <span 
-            v-slot="{}"
             v-if="unreadCount > 0" 
             class="bg-red-500/10 text-red-500 text-[9px] px-1.5 py-0.5 rounded-full font-bold"
           >
             {{ unreadCount }}
           </span>
         </div>
-        <Button 
-          label="Clear All" 
+        <v-btn 
           variant="text" 
-          severity="secondary" 
+          color="secondary" 
           class="text-[10px] font-bold text-none !py-0.5 !px-2" 
           @click="markAllRead" 
-        />
+        >
+          Clear All
+        </v-btn>
       </div>
 
       <div class="p-4 flex flex-col gap-2">

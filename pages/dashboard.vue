@@ -13,16 +13,15 @@
         <span v-if="lastSyncedLabel" class="text-[10px] text-muted-foreground flex items-center gap-1 opacity-60">
           <i class="mdi mdi-sync"></i> {{ lastSyncedLabel }}
         </span>
-        <Button label="New Ticket" size="small" class="font-bold text-none" @click="newTicketOpen = true">
-          <i class="mdi mdi-plus mr-1"></i>
-        </Button>
+        <v-btn size="small" color="primary" class="font-bold text-none" @click="newTicketOpen = true">
+          <i class="mdi mdi-plus mr-1"></i> New Ticket
+        </v-btn>
       </div>
     </header>
 
-    <Message
+    <v-alert
       v-if="weather.loaded"
-      :severity="bannerSeverity"
-      :closable="false"
+      :type="bannerSeverity"
       class="text-sm"
     >
       <span class="flex items-center justify-between gap-4 w-full flex-wrap">
@@ -33,7 +32,7 @@
         </span>
         <span class="text-2xl font-black">{{ weather.temp }}°</span>
       </span>
-    </Message>
+    </v-alert>
     <div
       v-else-if="!weather.loading"
       class="p-3 rounded-xl border border-border bg-muted/50 text-sm text-muted-foreground cursor-pointer text-center"
@@ -43,24 +42,24 @@
     </div>
 
     <div v-if="warrantyExpiringSoon.length || waitingForParts.length" class="flex flex-col gap-2">
-      <Message
+      <v-alert
         v-for="t in warrantyExpiringSoon.slice(0, 2)"
         :key="'w-' + t.id"
-        severity="warn"
-        :closable="true"
+        type="warning"
+        closable
         class="text-sm"
       >
         <strong>#{{ t.id }}</strong> — Warranty expiring in {{ warrantyDaysLeft(t) }} days · {{ t.device }}
-      </Message>
-      <Message
+      </v-alert>
+      <v-alert
         v-for="t in waitingForParts.slice(0, 2)"
         :key="'p-' + t.id"
-        severity="error"
-        :closable="true"
+        type="error"
+        closable
         class="text-sm"
       >
         <strong>#{{ t.id }}</strong> — Waiting for parts · {{ t.device }}
-      </Message>
+      </v-alert>
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-12 gap-3">
@@ -92,12 +91,12 @@
           >
             <i class="mdi text-lg" :class="stat.icon"></i>
           </div>
-          <Tag
+          <v-chip
             v-if="stat.chip"
-            :value="stat.chip"
-            :severity="stat.chipColor === 'warning' ? 'warn' : stat.chipColor === 'success' ? 'success' : 'secondary'"
-            class="text-[9px]"
-          />
+            :color="stat.chipColor === 'warning' ? 'warning' : stat.chipColor === 'success' ? 'success' : undefined"
+            size="x-small"
+            class="text-[9px] font-bold"
+          >{{ stat.chip }}</v-chip>
         </div>
         <div class="text-2xl font-black">{{ stat.value }}</div>
         <div class="text-xs text-muted-foreground">{{ stat.label }}</div>
@@ -156,61 +155,54 @@
             </div>
             <span class="text-sm font-bold">Recent Tickets</span>
           </div>
-          <Button label="View all" size="small" variant="outlined" class="text-none text-xs" @click="navigateTo('/bookings')" />
+          <v-btn size="small" variant="outlined" class="text-none text-xs" @click="navigateTo('/bookings')">View all</v-btn>
         </div>
 
-        <DataTable
-          :value="recentTickets"
-          :rows="8"
+        <v-data-table
+          :items="recentTickets"
+          :headers="[
+            { title: '#', key: 'id', width: '4rem' },
+            { title: 'Customer', key: 'customerId' },
+            { title: 'Device', key: 'device' },
+            { title: 'Status', key: 'status', width: '9rem' },
+            { title: 'Price', key: 'price', width: '6rem' },
+          ]"
+          :items-per-page="8"
+          hide-default-footer
           class="text-sm"
-          :pt="{ table: { class: 'w-full' } }"
         >
-          <Column field="id" header="#" style="width: 4rem">
-            <template #body="{ data }">
-              <span class="text-xs font-bold text-primary">#{{ data.id }}</span>
-            </template>
-          </Column>
-          <Column field="customerId" header="Customer">
-            <template #body="{ data }">
-              {{ getCustomerName(data.customerId) }}
-            </template>
-          </Column>
-          <Column field="device" header="Device">
-            <template #body="{ data }">
-              {{ data.device }} {{ data.deviceModel || '' }}
-            </template>
-          </Column>
-          <Column field="status" header="Status" style="width: 9rem">
-            <template #body="{ data }">
-              <div class="flex items-center gap-2 flex-wrap">
-                <Tag
-                  :value="data.status"
-                  :severity="statusSeverity(data.status)"
-                  class="text-[10px]"
-                />
-                <Tag
-                  v-if="ticketAge(data) >= 3 && data.status !== 'Completed' && data.status !== 'Delivered'"
-                  :value="`${ticketAge(data)}d`"
-                  :severity="ticketAge(data) >= 7 ? 'danger' : 'warn'"
-                  class="text-[10px]"
-                />
-              </div>
-            </template>
-          </Column>
-          <Column field="price" header="Price" style="width: 6rem">
-            <template #body="{ data }">
-              <span class="font-bold" :style="{ color: ticketStatusColor(data.status) }">
-                {{ formatCurrency(data.price) }}
-              </span>
-            </template>
-          </Column>
-          <template #empty>
+          <template #item.id="{ item }">
+            <span class="text-xs font-bold text-primary">#{{ item.id }}</span>
+          </template>
+          <template #item.customerId="{ item }">
+            {{ getCustomerName(item.customerId) }}
+          </template>
+          <template #item.device="{ item }">
+            {{ item.device }} {{ item.deviceModel || '' }}
+          </template>
+          <template #item.status="{ item }">
+            <div class="flex items-center gap-2 flex-wrap">
+              <v-chip :color="statusColor(item.status)" size="x-small" class="text-[10px] font-bold">{{ item.status }}</v-chip>
+              <v-chip
+                v-if="ticketAge(item) >= 3 && item.status !== 'Completed' && item.status !== 'Delivered'"
+                :color="ticketAge(item) >= 7 ? 'error' : 'warning'"
+                size="x-small"
+                class="text-[10px] font-bold"
+              >{{ ticketAge(item) }}d</v-chip>
+            </div>
+          </template>
+          <template #item.price="{ item }">
+            <span class="font-bold" :style="{ color: ticketStatusColor(item.status) }">
+              {{ formatCurrency(item.price) }}
+            </span>
+          </template>
+          <template #no-data>
             <div class="text-center py-10 text-muted-foreground">
               <i class="mdi mdi-ticket-outline text-5xl opacity-30 block mb-2"></i>
               <p class="text-sm m-0">No tickets yet — create your first one!</p>
             </div>
           </template>
-        </DataTable>
+        </v-data-table>
       </div>
     </div>
 

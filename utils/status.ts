@@ -1,4 +1,4 @@
-/** Ticket / appointment status colors and PrimeVue Tag severities */
+/** Ticket / appointment status colors and Vuetify Chip colors */
 
 export const TICKET_STATUS_HEX: Record<string, string> = {
   Open: '#3b82f6',
@@ -16,8 +16,8 @@ export function ticketStatusHex(status?: string) {
 export function ticketStatusSeverity(status?: string) {
   const map: Record<string, string> = {
     Open: 'info',
-    'In Progress': 'warn',
-    'Waiting for Parts': 'warn',
+    'In Progress': 'warning',
+    'Waiting for Parts': 'warning',
     Completed: 'success',
     Delivered: 'secondary',
     Closed: 'secondary',
@@ -29,7 +29,7 @@ export function prioritySeverity(priority?: string) {
   const map: Record<string, string> = {
     low: 'secondary',
     normal: 'info',
-    high: 'danger',
+    high: 'error',
   }
   return map[priority || 'normal'] || 'info'
 }
@@ -37,9 +37,9 @@ export function prioritySeverity(priority?: string) {
 export function housecallStatusSeverity(status?: string) {
   const map: Record<string, string> = {
     Scheduled: 'info',
-    'In Progress': 'warn',
+    'In Progress': 'warning',
     Completed: 'success',
-    Cancelled: 'danger',
+    Cancelled: 'error',
   }
   return map[status || ''] || 'secondary'
 }
@@ -48,11 +48,11 @@ export function vendorStatusSeverity(status?: string) {
   const map: Record<string, string> = {
     'Preparing to Ship': 'secondary',
     'Shipped to Vendor': 'info',
-    'In Repair': 'warn',
+    'In Repair': 'warning',
     'Shipped Back': 'info',
     Received: 'success',
     'Returned to Customer': 'success',
-    Cancelled: 'danger',
+    Cancelled: 'error',
   }
   return map[status || ''] || 'secondary'
 }

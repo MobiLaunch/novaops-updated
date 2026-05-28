@@ -1,13 +1,9 @@
 <template>
-  <Dialog
-    v-model:visible="isOpen"
-    modal
-    :draggable="false"
-    class="w-full max-w-[800px] mx-4"
-    :show-header="false"
-    pt:content:class="!p-0 !rounded-2xl overflow-hidden"
+  <v-dialog
+    v-model="isOpen"
+    max-width="800"
   >
-    <div class="flex flex-col bg-surface text-foreground" style="max-height: 90dvh">
+    <v-card class="rounded-2xl overflow-hidden flex flex-col max-h-[90dvh] bg-surface text-foreground">
 
       <!-- Header -->
       <div class="flex-shrink-0 px-6 pt-6 pb-4 border-b border-border/50 bg-surface">
@@ -116,7 +112,7 @@
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <i class="mdi mdi-trending-up text-base text-amber"></i>
-                <p class="text-xs font-black">Live Market Price</p>
+                <p class="text-xs font-black text-foreground">Live Market Price</p>
               </div>
               <button
                 class="flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed bg-amber-500 text-white"
@@ -130,7 +126,7 @@
             </div>
 
             <!-- Results -->
-            <div v-if="marketPriceResult" class="space-y-1.5">
+            <div v-if="marketPriceResult" class="space-y-1.5 text-foreground">
               <div class="flex items-center justify-between">
                 <span class="text-xs text-muted-foreground">eBay avg (sold listings)</span>
                 <span class="font-black text-sm text-amber-600 dark:text-amber-400">{{ currency }}{{ marketPriceResult.ebay_avg.toFixed(2) }}</span>
@@ -176,7 +172,7 @@
             <label class="wi-label">Overall Grade</label>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button v-for="g in conditionGrades" :key="g.value"
-                class="grade-chip"
+                class="grade-chip text-foreground"
                 :class="form.condition_grade === g.value ? 'grade-chip--active' : ''"
                 :style="form.condition_grade === g.value ? `background: ${g.color}15; border-color: ${g.color}50; color: ${g.color}` : ''"
                 @click="form.condition_grade = g.value">
@@ -192,7 +188,7 @@
               <label class="wi-label">Screen Condition</label>
               <div class="space-y-1.5">
                 <button v-for="s in screenConditions" :key="s.value"
-                  class="w-full flex items-center gap-3 p-3 rounded-[14px] text-left transition-all border"
+                  class="w-full flex items-center gap-3 p-3 rounded-[14px] text-left transition-all border text-foreground"
                   :style="form.screen_condition === s.value
                     ? `background: ${s.color}15; border-color: ${s.color}40; color: ${s.color}`
                     : 'background: hsl(var(--muted)/0.3); border-color: border;'"
@@ -277,7 +273,7 @@
               <label class="wi-label">Accessories Included</label>
               <div class="space-y-1.5">
                 <button v-for="acc in accessoryOptions" :key="acc.value"
-                  class="w-full flex items-center gap-2.5 p-2.5 rounded-[12px] text-xs font-bold transition-all border"
+                  class="w-full flex items-center gap-2.5 p-2.5 rounded-[12px] text-xs font-bold transition-all border text-foreground"
                   :style="form.accessories.includes(acc.value)
                     ? 'background: #10b98115; border-color: #10b98130; color: #10b981;'
                     : 'background: hsl(var(--muted)/0.3); border-color: transparent;'"
@@ -294,7 +290,7 @@
                 <div class="p-3 rounded-[14px] bg-muted/40 border">
                   <label class="flex items-start gap-3 cursor-pointer">
                     <input type="checkbox" v-model="form.icloud_locked" class="wi-check mt-0.5" />
-                    <div>
+                    <div class="text-foreground">
                       <p class="text-xs font-black">iCloud / Activation Lock</p>
                       <p class="text-[10px] text-muted-foreground mt-0.5">Device is locked to an Apple ID</p>
                     </div>
@@ -303,7 +299,7 @@
                 <div class="p-3 rounded-[14px] bg-muted/40 border">
                   <label class="flex items-start gap-3 cursor-pointer">
                     <input type="checkbox" v-model="form.frp_locked" class="wi-check mt-0.5" />
-                    <div>
+                    <div class="text-foreground">
                       <p class="text-xs font-black">Google FRP Lock</p>
                       <p class="text-[10px] text-muted-foreground mt-0.5">Factory Reset Protection active</p>
                     </div>
@@ -328,7 +324,7 @@
           <p class="step-hint">Review the calculated offer and adjust before presenting to the customer.</p>
 
           <!-- Pricing breakdown card -->
-          <div class="rounded-[22px] overflow-hidden border border-border/80">
+          <div class="rounded-[22px] overflow-hidden border border-border/80 text-foreground bg-surface">
             <div class="px-5 py-4" style="background: linear-gradient(135deg, #f59e0b0a, #d9770608)">
               <p class="text-xs font-black uppercase tracking-widest text-amber-500">Valuation Summary</p>
               <p class="text-sm text-muted-foreground mt-0.5 font-medium">{{ form.brand }} {{ form.model }} {{ form.storage }}</p>
@@ -380,7 +376,7 @@
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">{{ currency }}</span>
                 <input v-model.number="form.offer_price" type="number" min="0" step="0.50" class="wi-input pl-7 font-mono text-base font-black border-amber-500 focus:ring-amber-500/20" />
               </div>
-              <button class="h-11 px-4 rounded-[14px] text-xs font-bold transition-all border bg-muted/40"
+              <button class="h-11 px-4 rounded-[14px] text-xs font-bold transition-all border bg-muted/40 text-foreground"
                 @click="form.offer_price = calculatedOffer">Reset</button>
             </div>
           </div>
@@ -416,53 +412,52 @@
 
           <div class="space-y-1.5">
             <label class="wi-label">Internal Notes</label>
-            <textarea v-model="form.notes" class="wi-input resize-none" rows="2" placeholder="Any additional observations…" />
+            <textarea v-model="form.notes" class="wi-input resize-none text-foreground" rows="2" placeholder="Any additional observations…" />
           </div>
         </div>
 
       </div>
 
       <!-- Footer -->
-      <div class="flex-shrink-0 flex gap-3 px-6 pb-6 pt-4 border-t border-border/50 bg-surface">
-        <button v-if="currentStep > 1"
-          class="h-11 px-5 rounded-full text-xs font-bold transition-all hover:scale-[1.03] active:scale-95 flex items-center gap-1.5 border"
+      <v-card-actions class="flex-shrink-0 flex gap-3 px-6 pb-6 pt-4 border-t border-border/50 bg-surface justify-end">
+        <v-btn v-if="currentStep > 1"
+          variant="outlined"
+          color="secondary"
+          class="h-11 px-5 rounded-full text-xs font-bold text-none"
+          prepend-icon="mdi-chevron-left"
           @click="currentStep--">
-          <i class="mdi mdi-chevron-left text-base"></i> Back
-        </button>
-        <button class="h-11 px-5 rounded-full text-xs font-bold transition-all hover:scale-[1.03] active:scale-95 border"
-          @click="handleClose">Cancel</button>
+          Back
+        </v-btn>
+        <v-btn variant="outlined" color="secondary" class="h-11 px-5 rounded-full text-xs font-bold text-none"
+          @click="handleClose">Cancel</v-btn>
 
-        <div class="flex-grow" />
+        <v-spacer />
 
-        <button v-if="currentStep < TOTAL_STEPS"
-          class="h-11 px-6 rounded-full text-xs font-black text-white flex items-center gap-2 transition-all hover:scale-[1.03] hover:-translate-y-0.5 active:scale-95"
-          :class="[
-            canProceed
-              ? 'bg-amber-500 hover:shadow-lg active:shadow-sm'
-              : 'bg-muted text-muted-foreground cursor-not-allowed opacity-50'
-          ]"
+        <v-btn v-if="currentStep < TOTAL_STEPS"
+          color="warning"
+          class="h-11 px-6 rounded-full text-xs font-black text-white flex items-center gap-2 text-none"
           :disabled="!canProceed"
+          append-icon="mdi-chevron-right"
           @click="nextStep">
-          Next <i class="mdi mdi-chevron-right text-base"></i>
-        </button>
+          Next
+        </v-btn>
 
-        <button v-else
-          class="h-11 px-6 rounded-full text-xs font-black text-white flex items-center gap-2 transition-all hover:scale-[1.03] hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 bg-emerald-500"
+        <v-btn v-else
+          color="success"
+          class="h-11 px-6 rounded-full text-xs font-black text-white flex items-center gap-2 text-none"
           :disabled="saving"
           @click="saveTradeIn">
           <div v-if="saving" class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-          <i class="mdi mdi-check-circle-outline text-base" v-else></i>
+          <i v-else class="mdi mdi-check-circle-outline text-base"></i>
           {{ saving ? 'Saving…' : 'Save Trade-In' }}
-        </button>
-      </div>
-
-    </div>
-  </Dialog>
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
 import CustomerSelect from '~/components/CustomerSelect.vue'
-import Dialog from 'primevue/dialog'
 import { useAppStore } from '~/stores/app'
 import { storeToRefs } from 'pinia'
 import { ref, computed, watch, reactive } from 'vue'

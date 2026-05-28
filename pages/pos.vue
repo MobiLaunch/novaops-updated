@@ -2,16 +2,16 @@
   <div class="pos-root flex flex-col h-full max-h-full overflow-hidden -m-4 md:-m-6 p-4 md:p-6">
 
     <!-- Ticket payment mode -->
-    <Message
+    <v-alert
       v-if="ticketMode"
-      severity="success"
-      :closable="true"
+      type="success"
+      closable
       class="mb-4 shrink-0"
-      @close="ticketMode = null; cart = []"
+      @click:close="ticketMode = null; cart = []"
     >
       <span class="text-sm font-bold">Ticket #{{ ticketMode.ticketId }} — Collecting Payment</span>
       <p class="text-xs text-muted-foreground mt-1 mb-0">Completing this sale will mark the ticket as Completed.</p>
-    </Message>
+    </v-alert>
 
     <!-- Header -->
     <header class="flex items-center justify-between gap-4 mb-4 shrink-0 flex-wrap">
@@ -66,12 +66,15 @@
         v-show="!isCompact || mobileTab === 'products'"
         class="lg:col-span-5 xl:col-span-6 flex flex-col min-h-0 overflow-hidden"
       >
-        <div class="relative shrink-0 mb-2">
-          <i class="mdi mdi-magnify absolute left-3.5 text-muted-foreground" style="top: 50%; transform: translateY(-50%);"></i>
-          <InputText
+        <div class="shrink-0 mb-2">
+          <v-text-field
             v-model="searchQuery"
             placeholder="Search products & services…"
-            class="w-full pl-10 rounded-xl"
+            prepend-inner-icon="mdi-magnify"
+            hide-details
+            variant="outlined"
+            density="compact"
+            class="w-full rounded-xl"
           />
         </div>
 
@@ -166,22 +169,22 @@
       >
         <div class="flex flex-col h-full min-h-0 border border-border rounded-xl bg-surface overflow-hidden">
           <div class="flex items-center gap-2 px-4 py-3 border-b border-border bg-pink-500/5 shrink-0">
-            <i class="mdi mdi-shopping-outline-text-pink-500"></i>
+            <i class="mdi mdi-shopping-outline text-pink-500"></i>
             <span class="text-sm font-black flex-1">Current Sale</span>
             <span
               v-if="cart.length"
               class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-500/15 text-pink-600"
             >{{ cart.length }}</span>
-            <Button
-              severity="danger"
+            <v-btn
+              color="error"
               variant="text"
-              rounded
+              icon
               :disabled="!cart.length"
               class="!w-9 !h-9"
               @click="clearCart"
             >
               <i class="mdi mdi-delete-outline"></i>
-            </Button>
+            </v-btn>
           </div>
 
           <div class="flex-1 overflow-y-auto min-h-0">
@@ -217,25 +220,25 @@
                     v-if="!item.isService && !item.isTicket"
                     class="flex items-center gap-0.5 bg-muted rounded-lg px-1"
                   >
-                    <Button variant="text" size="small" class="!w-7 !h-7" @click="decrementItem(idx)">
+                    <v-btn variant="text" icon size="small" class="!w-7 !h-7" @click="decrementItem(idx)">
                       <i class="mdi mdi-minus text-sm"></i>
-                    </Button>
+                    </v-btn>
                     <span class="text-xs font-bold min-w-4 text-center">{{ item.quantity }}</span>
-                    <Button variant="text" size="small" class="!w-7 !h-7" @click="incrementItem(idx)">
+                    <v-btn variant="text" icon size="small" class="!w-7 !h-7" @click="incrementItem(idx)">
                       <i class="mdi mdi-plus text-sm"></i>
-                    </Button>
+                    </v-btn>
                   </div>
-                  <Button
+                  <v-btn
                     v-else
-                    severity="danger"
+                    color="error"
                     variant="text"
+                    icon
                     size="small"
-                    rounded
                     class="!w-7 !h-7"
                     @click="decrementItem(idx)"
                   >
                     <i class="mdi mdi-close text-sm"></i>
-                  </Button>
+                  </v-btn>
                   <span class="text-xs font-black text-pink-500 min-w-12 text-right">
                     {{ formatCurrency(item.price * item.quantity) }}
                   </span>
@@ -262,27 +265,25 @@
 
             <div v-show="showKeypad" class="mb-3">
               <div class="grid grid-cols-3 gap-1.5 mb-2">
-                <Button
+                <v-btn
                   v-for="k in [1,2,3,4,5,6,7,8,9]"
                   :key="k"
-                  :label="String(k)"
                   variant="outlined"
                   class="font-black text-lg py-3"
                   @click="handleKey(k)"
-                />
-                <Button label="C" severity="danger" variant="outlined" class="font-black text-lg py-3" @click="handleKey('C')" />
-                <Button label="0" variant="outlined" class="font-black text-lg py-3" @click="handleKey(0)" />
-                <Button variant="outlined" class="py-3" @click="handleKey('⌫')">
+                >{{ k }}</v-btn>
+                <v-btn color="error" variant="outlined" class="font-black text-lg py-3" @click="handleKey('C')">C</v-btn>
+                <v-btn variant="outlined" class="font-black text-lg py-3" @click="handleKey(0)">0</v-btn>
+                <v-btn variant="outlined" class="py-3" @click="handleKey('⌫')">
                   <i class="mdi mdi-backspace-outline text-lg"></i>
-                </Button>
+                </v-btn>
               </div>
-              <Button
-                label="Add to cart"
+              <v-btn
                 class="w-full font-black text-none"
                 style="background: linear-gradient(135deg, #ec4899, #db2777); border: none; color: white;"
                 :disabled="keypadAmount === '0'"
                 @click="addCustomToCart"
-              />
+              >Add to cart</v-btn>
             </div>
 
             <div class="flex justify-between text-xs font-bold text-muted-foreground">
@@ -296,15 +297,15 @@
               <span class="text-xl font-black text-pink-500">{{ formatCurrency(total) }}</span>
             </div>
 
-            <Button
+            <v-btn
               v-if="isCompact && cart.length"
               class="w-full mt-3 font-bold text-none"
-              severity="secondary"
+              color="secondary"
               @click="mobileTab = 'checkout'"
             >
               Continue to checkout
-              <i class="mdi mdi-arrow right-ml"></i>
-            </Button>
+              <i class="mdi mdi-arrow-right ml-1"></i>
+            </v-btn>
           </div>
         </div>
       </section>
@@ -349,10 +350,10 @@
             class="absolute inset-0 z-10 bg-surface/90 flex items-center justify-center cursor-pointer"
             @click="paymentMethod = 'Card'"
           >
-            <Button severity="primary" rounded>
+            <v-btn color="primary" rounded>
               <i class="mdi mdi-credit-card-outline mr-2"></i>
               Use card payment
-            </Button>
+            </v-btn>
           </div>
 
           <div class="flex items-center gap-2 px-4 py-2.5 bg-primary text-white">
@@ -369,110 +370,99 @@
                 v-if="cardLoading"
                 class="absolute inset-0 flex items-center justify-center gap-2 bg-surface rounded-xl"
               >
-                <ProgressSpinner style="width: 24px; height: 24px" stroke-width="4" />
+                <v-progress-circular indeterminate size="24" width="4" />
                 <span class="text-xs font-bold text-muted-foreground">Initializing secure form…</span>
               </div>
             </div>
 
-            <Message
+            <v-alert
               v-if="!squareCardSdkReady"
-              severity="warn"
-              :closable="false"
+              type="warning"
               class="mt-3 text-xs"
             >
               <span v-if="!squareConfigured">Square credentials missing —</span>
               <span v-else>Add your Square Application ID in Settings —</span>
               <NuxtLink to="/settings" class="font-bold underline ml-1">configure</NuxtLink>
-            </Message>
+            </v-alert>
           </div>
         </div>
 
-        <Message
+        <v-alert
           v-if="paymentMethod === 'Afterpay'"
-          severity="info"
-          :closable="false"
+          type="info"
           class="mb-3"
         >
           <div id="afterpay-button" class="w-full flex justify-center min-h-[48px] mb-2"></div>
           <p class="text-xs text-center m-0">4 interest-free payments. Min. order $35.</p>
-        </Message>
+        </v-alert>
 
-        <Message
+        <v-alert
           v-else-if="paymentMethod !== 'Card'"
-          :severity="paymentMethod === 'Cash' ? 'success' : 'secondary'"
-          :closable="false"
+          :type="paymentMethod === 'Cash' ? 'success' : 'info'"
           class="mb-3"
         >
           <span class="text-sm font-bold">{{ paymentMethod }} payment</span>
           <p class="text-xs m-0 mt-1">Record this payment, then tap complete sale below.</p>
-        </Message>
+        </v-alert>
 
         <div
           v-if="terminalStatus"
           class="flex items-center gap-2 p-3 rounded-xl bg-blue-500/10 text-blue-600 text-xs font-bold mb-3"
         >
-          <ProgressSpinner style="width: 16px; height: 16px" stroke-width="4" />
+          <v-progress-circular indeterminate size="16" width="3" />
           {{ terminalStatus }}
         </div>
 
         <div class="flex-1 min-h-2"></div>
 
-        <Button
-          :label="ctaLabel"
+        <v-btn
           class="w-full font-black text-none shrink-0 sticky bottom-0"
           style="background: linear-gradient(135deg, #ec4899, #db2777); border: none; color: white; min-height: 3.5rem;"
           :disabled="!cart.length || processing"
           :loading="processing"
           @click="handleCheckout"
-        />
+        >
+          {{ ctaLabel }}
+        </v-btn>
       </section>
     </div>
 
     <!-- Success dialog -->
-    <Dialog
-      :visible="!!saleResult"
-      modal
-      :closable="false"
-      :draggable="false"
-      class="w-full max-w-[320px]"
-      :show-header="false"
-      pt:content:class="!p-0 !rounded-2xl"
-      @update:visible="(v: boolean) => { if (!v) saleResult = null }"
-    >
-      <div v-if="saleResult" class="p-6 text-center flex flex-col items-center bg-surface rounded-2xl">
-        <div class="w-16 h-16 rounded-full bg-emerald-500 text-white flex items-center justify-center mb-4 shadow-lg">
+    <v-dialog :model-value="!!saleResult" max-width="320px" persistent>
+      <v-card class="rounded-xl pa-6 text-center bg-surface flex flex-col items-center">
+        <div class="w-16 h-16 rounded-full bg-emerald-500 text-white flex items-center justify-center mb-4 shadow-lg mx-auto">
           <i class="mdi mdi-check-circle-outline text-4xl"></i>
         </div>
         <h2 class="text-xl font-black m-0">Sale complete!</h2>
-        <p class="text-xs text-muted-foreground font-bold mt-1 mb-4">Receipt #{{ saleResult.receiptId }}</p>
+        <p class="text-xs text-muted-foreground font-bold mt-1 mb-4">Receipt #{{ saleResult?.receiptId }}</p>
 
         <div class="w-full bg-muted rounded-xl p-4 text-left flex flex-col gap-2 mb-4">
           <div class="flex justify-between text-sm">
             <span class="text-muted-foreground">Amount</span>
-            <span class="font-black">{{ formatCurrency(saleResult.amount) }}</span>
+            <span class="font-black">{{ formatCurrency(saleResult?.amount || 0) }}</span>
           </div>
           <div class="flex justify-between text-sm">
             <span class="text-muted-foreground">Method</span>
-            <span class="font-black">{{ saleResult.method }}</span>
+            <span class="font-black">{{ saleResult?.method }}</span>
           </div>
-          <div v-if="saleResult.customer" class="flex justify-between text-sm">
+          <div v-if="saleResult?.customer" class="flex justify-between text-sm">
             <span class="text-muted-foreground">Customer</span>
-            <span class="font-black truncate ml-2">{{ saleResult.customer }}</span>
+            <span class="font-black truncate ml-2">{{ saleResult?.customer }}</span>
           </div>
         </div>
 
-        <Button label="Done" severity="success" class="w-full font-black mb-2 text-none" @click="saleResult = null" />
-        <Button
-          severity="secondary"
+        <v-btn color="success" class="w-full font-black mb-2 text-none" @click="saleResult = null">Done</v-btn>
+        <v-btn
+          color="secondary"
           variant="outlined"
           class="w-full font-bold text-none"
           @click="reprintLastReceipt"
         >
           <i class="mdi mdi-printer mr-2"></i>
           Print receipt
-        </Button>
-      </div>
-    </Dialog>
+        </v-btn>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -1121,8 +1111,8 @@ onUnmounted(() => {
 .pos-product-card {
   padding: 0.75rem;
   border-radius: 0.75rem;
-  border: 1px solid var(--p-content-border-color, hsl(var(--border)));
-  background: var(--p-content-background, #fff);
+  border: 1px solid rgba(var(--v-border-color, 0, 0, 0), var(--v-border-opacity, 0.12));
+  background: rgb(var(--v-theme-surface));
   transition: transform 0.2s ease, box-shadow 0.2s, border-color 0.18s;
 }
 

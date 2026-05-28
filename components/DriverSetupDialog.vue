@@ -1,8 +1,10 @@
 <template>
-  <Teleport to="body">
-    <Transition name="dsd-fade">
-      <div v-if="modelValue" class="dsd-overlay" @click.self="close">
-        <div class="dsd-panel">
+  <v-dialog
+    :model-value="modelValue"
+    @update:model-value="close"
+    max-width="580"
+  >
+    <div class="dsd-panel">
 
           <!-- ── Header ─────────────────────────────────────────────── -->
           <div class="dsd-header">
@@ -151,10 +153,8 @@
             </div>
           </div>
 
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
+    </div>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">

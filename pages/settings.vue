@@ -38,53 +38,54 @@
             <div class="grid grid-cols-12 gap-3">
               <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5">
                 <label class="text-[10px] font-bold text-muted-foreground uppercase">Business Name</label>
-                <InputText v-model="form.businessName" placeholder="Your Repair Shop" class="w-full rounded-xl" />
+                <v-text-field v-model="form.businessName" placeholder="Your Repair Shop" class="w-full text-xs" hide-details />
               </div>
               <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5">
                 <label class="text-[10px] font-bold text-muted-foreground uppercase">Phone</label>
-                <InputText v-model="form.phone" placeholder="(555) 123-4567" class="w-full rounded-xl" />
+                <v-text-field v-model="form.phone" placeholder="(555) 123-4567" class="w-full text-xs" hide-details />
               </div>
               <div class="col-span-12 flex flex-col gap-1.5">
                 <label class="text-[10px] font-bold text-muted-foreground uppercase">Email</label>
-                <InputText v-model="form.email" type="email" placeholder="contact@yourshop.com" class="w-full rounded-xl" />
+                <v-text-field v-model="form.email" type="email" placeholder="contact@yourshop.com" class="w-full text-xs" hide-details />
               </div>
               <div class="col-span-12 flex flex-col gap-1.5">
                 <label class="text-[10px] font-bold text-muted-foreground uppercase">Address</label>
-                <Textarea v-model="form.address" :rows="2" placeholder="123 Main St, City, State ZIP" class="w-full rounded-xl" />
+                <v-textarea v-model="form.address" :rows="2" placeholder="123 Main St, City, State ZIP" class="w-full text-xs" hide-details auto-grow />
               </div>
               <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5 field-narrow">
                 <label class="text-[10px] font-bold text-muted-foreground uppercase">Currency Symbol</label>
-                <InputText v-model="form.currency" placeholder="$" class="w-full rounded-xl" />
+                <v-text-field v-model="form.currency" placeholder="$" class="w-full text-xs" hide-details />
               </div>
               <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5 field-narrow">
                 <label class="text-[10px] font-bold text-muted-foreground uppercase">Tax Rate (%)</label>
-                <InputText v-model.number="form.taxRate" type="number" step="0.01" placeholder="0.00" class="w-full rounded-xl" />
+                <v-text-field v-model.number="form.taxRate" type="number" step="0.01" placeholder="0.00" class="w-full text-xs" hide-details />
               </div>
               <div class="col-span-12 flex flex-col gap-1.5">
                 <label class="text-[10px] font-bold text-muted-foreground uppercase">Ticket Statuses</label>
-                <InputText v-model="form.statuses" placeholder="Open, In Progress, Waiting for Parts, Completed, Delivered" class="w-full rounded-xl" />
+                <v-text-field v-model="form.statuses" placeholder="Open, In Progress, Waiting for Parts, Completed, Delivered" class="w-full text-xs" hide-details />
                 <p class="text-[10px] text-muted-foreground m-0">Separate each status with a comma</p>
               </div>
               <div class="col-span-12 sm:col-span-6 flex flex-col gap-1.5 field-narrow">
                 <label class="text-[10px] font-bold text-muted-foreground uppercase">Screen Lock PIN</label>
-                <InputText v-model="form.pin" type="password" maxlength="4" placeholder="4-digit PIN" class="w-full rounded-xl" style="font-family:monospace;letter-spacing:.25em" />
+                <v-text-field v-model="form.pin" type="password" maxlength="4" placeholder="4-digit PIN" class="w-full text-xs" style="font-family:monospace;letter-spacing:.25em" hide-details />
                 <p class="text-[10px] text-muted-foreground m-0">Screen locks after 3 minutes of inactivity</p>
               </div>
             </div>
             <div class="flex items-center gap-3 flex-wrap mt-4 pt-4 border-t border-border">
-              <Button label="Save Business Settings" class="text-none" :loading="saving" @click="saveSettings">
-                <i class="mdi mdi-content-save mr-1"></i>
-              </Button>
-              <Message
+              <v-btn color="primary" class="text-none font-bold rounded-xl" :loading="saving" @click="saveSettings">
+                <i class="mdi mdi-content-save mr-1"></i> Save Business Settings
+              </v-btn>
+              <v-alert
                 v-if="saveMsg"
-                :severity="saveMsg.ok ? 'success' : 'error'"
-                :closable="true"
-                class="message-inline"
-                @close="saveMsg = null"
+                :type="saveMsg.ok ? 'success' : 'error'"
+                closable
+                density="compact"
+                class="message-inline text-xs"
+                @click:close="saveMsg = null"
               >
-                <template v-if="saveMsg.ok"><strong>Settings saved</strong></template>
-                <template v-else><strong>Save failed</strong><span v-if="saveMsg.text"> — {{ saveMsg.text }}</span></template>
-              </Message>
+                <span v-if="saveMsg.ok"><strong>Settings saved</strong></span>
+                <span v-else><strong>Save failed</strong><span v-if="saveMsg.text"> — {{ saveMsg.text }}</span></span>
+              </v-alert>
             </div>
           </div>
         </div>
@@ -104,41 +105,42 @@
               <h2 class="text-sm font-black m-0">Supabase Database</h2>
               <p class="text-xs text-muted-foreground m-0">Your live data backend — tickets, customers, inventory</p>
             </div>
-            <Tag
-              :value="sbConn.status.connected ? `Connected · ${sbConn.projectRef.value}` : sbConn.hasCredentials.value ? 'Credentials saved' : 'Not connected'"
-              :severity="sbConn.status.connected ? 'success' : sbConn.hasCredentials.value ? 'warn' : 'danger'"
-              class="text-xs shrink-0"
-            />
+            <v-chip
+              :color="sbConn.status.connected ? 'success' : sbConn.hasCredentials.value ? 'warning' : 'error'"
+              class="text-xs shrink-0 font-bold text-white"
+            >
+              {{ sbConn.status.connected ? `Connected · ${sbConn.projectRef.value}` : sbConn.hasCredentials.value ? 'Credentials saved' : 'Not connected' }}
+            </v-chip>
           </div>
           <div class="p-6">
-            <Message v-if="sbConn.status.connected" severity="success" :closable="false" class="mb-4">
-              <div class="flex items-center justify-between gap-3 flex-wrap">
-                <span class="text-xs font-bold">Connected to Supabase — <code class="text-xs">{{ sbUrl }}</code></span>
-                <Button label="Change" variant="text" size="small" severity="success" class="text-none" @click="showSbModal = true" />
+            <v-alert v-if="sbConn.status.connected" type="success" variant="tonal" class="mb-4 text-xs">
+              <div class="flex items-center justify-between gap-3 flex-wrap w-full">
+                <span class="font-bold">Connected to Supabase — <code class="text-xs">{{ sbUrl }}</code></span>
+                <v-btn variant="text" size="small" color="success" class="text-none font-bold rounded-xl" @click="showSbModal = true">Change</v-btn>
               </div>
-            </Message>
+            </v-alert>
             <div v-else>
-              <Message severity="info" :closable="false" class="mb-4">
-                <span class="text-xs font-medium">
+              <v-alert type="info" variant="tonal" class="mb-4 text-xs">
+                <span class="font-medium">
                   NovaOps stores all your repair shop data in your own private Supabase database.
                   Create a free project at <strong>supabase.com</strong> then paste your credentials here.
                 </span>
-              </Message>
+              </v-alert>
               <div class="flex gap-3 flex-wrap">
                 <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer" class="inline-block">
-                  <Button label="Open Supabase" severity="success" class="text-none">
-                    <i class="mdi mdi-open-in-new mr-1"></i>
-                  </Button>
+                  <v-btn color="success" class="text-none text-white font-bold rounded-xl">
+                    <i class="mdi mdi-open-in-new mr-1"></i> Open Supabase
+                  </v-btn>
                 </a>
-                <Button label="Enter Credentials" severity="success" variant="outlined" class="text-none" @click="showSbModal = true">
-                  <i class="mdi mdi-link mr-1"></i>
-                </Button>
+                <v-btn color="success" variant="outlined" class="text-none font-bold rounded-xl" @click="showSbModal = true">
+                  <i class="mdi mdi-link mr-1"></i> Enter Credentials
+                </v-btn>
               </div>
             </div>
             <div v-if="sbConn.hasCredentials.value" class="mt-3">
-              <Button label="Disconnect Supabase" variant="text" size="small" severity="danger" class="text-none" @click="confirmSbDisconnect = true">
-                <i class="mdi mdi-link-off mr-1"></i>
-              </Button>
+              <v-btn variant="text" size="small" color="error" class="text-none font-bold rounded-xl" @click="confirmSbDisconnect = true">
+                <i class="mdi mdi-link-off mr-1"></i> Disconnect Supabase
+              </v-btn>
             </div>
           </div>
         </div>
@@ -156,45 +158,49 @@
               <h2 class="text-sm font-black m-0">Square Terminal Integration</h2>
               <p class="text-xs text-muted-foreground m-0">Connect your Square account and pair a physical terminal</p>
             </div>
-            <Tag
-              :value="squareStatus === 'connected' ? 'Connected' : squareStatus === 'checking' ? 'Checking…' : 'Disconnected'"
-              :severity="squareStatus === 'connected' ? 'success' : squareStatus === 'checking' ? 'warn' : 'danger'"
-              class="text-xs shrink-0"
-            />
+            <v-chip
+              :color="squareStatus === 'connected' ? 'success' : squareStatus === 'checking' ? 'warning' : 'error'"
+              class="text-xs shrink-0 font-bold text-white"
+            >
+              {{ squareStatus === 'connected' ? 'Connected' : squareStatus === 'checking' ? 'Checking…' : 'Disconnected' }}
+            </v-chip>
           </div>
           <div class="p-6">
             <div class="grid grid-cols-12 gap-3 mb-3">
               <div class="col-span-12 flex flex-col gap-1.5">
                 <label class="text-[10px] font-bold text-muted-foreground uppercase">Square Access Token</label>
-                <InputText
+                <v-text-field
                   v-model="form.squareAccessToken"
                   type="password"
                   placeholder="EAAAl…"
-                  class="w-full rounded-xl"
+                  class="w-full text-xs"
                   style="font-family:monospace"
                   autocomplete="off"
+                  hide-details
                   @blur="debouncedSquareCheck"
                 />
                 <p class="text-[10px] text-muted-foreground m-0">Stored securely — never sent to the browser after save</p>
               </div>
               <div class="col-span-12 flex flex-col gap-1.5">
                 <label class="text-[10px] font-bold text-muted-foreground uppercase">Location ID</label>
-                <InputText
+                <v-text-field
                   v-model="form.squareLocationId"
                   placeholder="L1234…"
-                  class="w-full rounded-xl"
+                  class="w-full text-xs"
                   style="font-family:monospace"
+                  hide-details
                   @blur="debouncedSquareCheck"
                 />
               </div>
               <div class="col-span-12 flex flex-col gap-1.5">
                 <label class="text-[10px] font-bold text-muted-foreground uppercase">Application ID (required for card form in POS)</label>
-                <InputText
+                <v-text-field
                   v-model="form.squareApplicationId"
                   placeholder="sandbox-sq0idb… or sq0idb…"
-                  class="w-full rounded-xl"
+                  class="w-full text-xs"
                   style="font-family:monospace"
                   autocomplete="off"
+                  hide-details
                 />
                 <p class="text-[10px] text-muted-foreground m-0">Square Developer Dashboard → Your application → Application ID (public, not the access token)</p>
               </div>
@@ -205,24 +211,24 @@
                   <div class="text-sm font-bold">Use Square Sandbox</div>
                   <div class="text-xs text-muted-foreground">Test mode — use sandbox credentials</div>
                 </div>
-                <ToggleSwitch v-model="form.squareSandbox" @update:model-value="debouncedSquareCheck" />
+                <v-switch v-model="form.squareSandbox" color="primary" inset hide-details density="compact" @update:model-value="debouncedSquareCheck" />
               </div>
             </div>
-            <Message
+            <v-alert
               v-if="squareTestMsg"
-              :severity="squareStatus === 'connected' ? 'success' : 'error'"
-              :closable="false"
-              class="mb-4"
+              :type="squareStatus === 'connected' ? 'success' : 'error'"
+              variant="tonal"
+              class="mb-4 text-xs"
             >
               {{ squareTestMsg }}
-            </Message>
+            </v-alert>
             <div class="flex gap-3 flex-wrap">
-              <Button label="Save Credentials" variant="outlined" class="text-none" :loading="savingSquare" @click="saveSquareSettings">
-                <i class="mdi mdi-content-save mr-1"></i>
-              </Button>
-              <Button label="Test Connection" severity="success" variant="outlined" class="text-none" :loading="squareStatus === 'checking'" @click="testSquareConnection">
-                <i class="mdi mdi-refresh mr-1"></i>
-              </Button>
+              <v-btn color="primary" variant="outlined" class="text-none font-bold rounded-xl" :loading="savingSquare" @click="saveSquareSettings">
+                <i class="mdi mdi-content-save mr-1"></i> Save Credentials
+              </v-btn>
+              <v-btn color="success" variant="outlined" class="text-none font-bold rounded-xl" :loading="squareStatus === 'checking'" @click="testSquareConnection">
+                <i class="mdi mdi-refresh mr-1"></i> Test Connection
+              </v-btn>
             </div>
           </div>
         </div>
@@ -242,10 +248,10 @@
             </div>
           </div>
           <div class="p-6">
-            <Message severity="info" :closable="false" class="mb-5">
-              <div class="text-xs font-bold mb-1">Windows USB Setup (Zadig)</div>
-              <div class="text-xs">Windows blocks direct USB printer access. Download <a href="https://zadig.akeo.ie" target="_blank" rel="noopener noreferrer" class="font-bold">zadig.akeo.ie</a>, select your printer, and install the <strong>WinUSB</strong> driver once to enable WebUSB printing.</div>
-            </Message>
+            <v-alert type="info" variant="tonal" class="mb-5 text-xs">
+              <div class="font-bold mb-1">Windows USB Setup (Zadig)</div>
+              <div>Windows blocks direct USB printer access. Download <a href="https://zadig.akeo.ie" target="_blank" rel="noopener noreferrer" class="font-bold">zadig.akeo.ie</a>, select your printer, and install the <strong>WinUSB</strong> driver once to enable WebUSB printing.</div>
+            </v-alert>
 
             <!-- Thermal Printer -->
             <div class="bg-muted rounded-xl p-4 mb-4">
@@ -259,7 +265,7 @@
                     <div v-if="!pairedThermalPrinter" class="text-xs text-muted-foreground">No device linked</div>
                   </div>
                 </div>
-                <Button v-if="!pairedThermalPrinter" label="Pair a Device" size="small" severity="info" variant="outlined" class="text-none" @click="pairUSBPrinter('thermal')" />
+                <v-btn v-if="!pairedThermalPrinter" size="small" color="info" variant="outlined" class="text-none font-bold rounded-xl" @click="pairUSBPrinter('thermal')">Pair a Device</v-btn>
               </div>
               <div v-if="pairedThermalPrinter" class="flex items-center justify-between gap-3 p-3 rounded-lg" style="background:rgba(0,0,0,0.05)">
                 <div>
@@ -267,8 +273,8 @@
                   <div class="text-xs font-mono text-muted-foreground">S/N: {{ pairedThermalPrinter.serialNumber || 'Unknown' }}</div>
                 </div>
                 <div class="flex gap-2">
-                  <Button label="Relink" size="small" variant="outlined" class="text-none" @click="pairUSBPrinter('thermal')" />
-                  <Button label="Remove" size="small" variant="text" severity="danger" class="text-none" @click="removeUSBPrinter('thermal')" />
+                  <v-btn size="small" variant="outlined" color="primary" class="text-none font-bold rounded-xl" @click="pairUSBPrinter('thermal')">Relink</v-btn>
+                  <v-btn size="small" variant="text" color="error" class="text-none font-bold rounded-xl" @click="removeUSBPrinter('thermal')">Remove</v-btn>
                 </div>
               </div>
             </div>
@@ -285,7 +291,7 @@
                     <div v-if="!pairedLabelPrinter" class="text-xs text-muted-foreground">No device linked</div>
                   </div>
                 </div>
-                <Button v-if="!pairedLabelPrinter" label="Pair a Device" size="small" severity="info" variant="outlined" class="text-none" @click="pairUSBPrinter('label')" />
+                <v-btn v-if="!pairedLabelPrinter" size="small" color="info" variant="outlined" class="text-none font-bold rounded-xl" @click="pairUSBPrinter('label')">Pair a Device</v-btn>
               </div>
               <div v-if="pairedLabelPrinter" class="flex items-center justify-between gap-3 p-3 rounded-lg" style="background:rgba(0,0,0,0.05)">
                 <div>
@@ -293,8 +299,8 @@
                   <div class="text-xs font-mono text-muted-foreground">S/N: {{ pairedLabelPrinter.serialNumber || 'Unknown' }}</div>
                 </div>
                 <div class="flex gap-2">
-                  <Button label="Relink" size="small" variant="outlined" class="text-none" @click="pairUSBPrinter('label')" />
-                  <Button label="Remove" size="small" variant="text" severity="danger" class="text-none" @click="removeUSBPrinter('label')" />
+                  <v-btn size="small" variant="outlined" color="primary" class="text-none font-bold rounded-xl" @click="pairUSBPrinter('label')">Relink</v-btn>
+                  <v-btn size="small" variant="text" color="error" class="text-none font-bold rounded-xl" @click="removeUSBPrinter('label')">Remove</v-btn>
                 </div>
               </div>
             </div>
@@ -306,33 +312,33 @@
                   <div class="text-sm font-bold">Auto-Print Receipts</div>
                   <div class="text-xs text-muted-foreground">Prompt to print receipt after POS checkout</div>
                 </div>
-                <ToggleSwitch v-model="printerSettings.autoPrintReceipt" @update:model-value="savePrinterSettings" />
+                <v-switch v-model="printerSettings.autoPrintReceipt" color="primary" inset hide-details density="compact" @update:model-value="savePrinterSettings" />
               </div>
-              <Button label="Test Receipt Print" size="small" variant="outlined" class="text-none mb-4" @click="testReceiptPrint">
-                <i class="mdi mdi-printer mr-1"></i>
-              </Button>
+              <v-btn size="small" color="primary" variant="outlined" class="text-none font-bold rounded-xl mb-4" @click="testReceiptPrint">
+                <i class="mdi mdi-printer mr-1"></i> Test Receipt Print
+              </v-btn>
               <hr class="border-border mb-4" />
               <div class="flex items-center justify-between mb-4 gap-3">
                 <div>
                   <div class="text-sm font-bold">Auto-Print Barcode Labels</div>
                   <div class="text-xs text-muted-foreground">Prompt to print barcode label when a ticket is created</div>
                 </div>
-                <ToggleSwitch v-model="printerSettings.autoPrintBarcode" @update:model-value="savePrinterSettings" />
+                <v-switch v-model="printerSettings.autoPrintBarcode" color="primary" inset hide-details density="compact" @update:model-value="savePrinterSettings" />
               </div>
-              <Button label="Test Label Print" size="small" variant="outlined" class="text-none" @click="testBarcodePrint">
-                <i class="mdi mdi-barcode mr-1"></i>
-              </Button>
+              <v-btn size="small" color="primary" variant="outlined" class="text-none font-bold rounded-xl" @click="testBarcodePrint">
+                <i class="mdi mdi-barcode mr-1"></i> Test Label Print
+              </v-btn>
             </div>
 
-            <Message
+            <v-alert
               v-if="printerMsg"
-              :severity="printerMsg.type"
-              :closable="true"
-              class="mt-4"
-              @close="printerMsg = null"
+              :type="printerMsg.type"
+              closable
+              class="mt-4 text-xs"
+              @click:close="printerMsg = null"
             >
               <strong>{{ printerMsg.text }}</strong>
-            </Message>
+            </v-alert>
           </div>
         </div>
 
@@ -360,13 +366,13 @@
                 class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                 :style="`background:${notif.color}18`"
               >
-                <i class="mdi text-base" :class="notif.icon"></i>
+                <i class="mdi text-base" :style="`color:${notif.color}`" :class="notif.icon"></i>
               </div>
               <div class="flex-1 min-w-0">
-                <div class="text-sm font-bold">{{ notif.label }}</div>
+                <div class="text-sm font-bold text-foreground">{{ notif.label }}</div>
                 <div class="text-xs text-muted-foreground">{{ notif.desc }}</div>
               </div>
-              <ToggleSwitch :model-value="notif.enabled" @update:model-value="toggleNotif(key)" />
+              <v-switch :model-value="notif.enabled" color="primary" inset hide-details density="compact" @update:model-value="toggleNotif(key)" />
             </div>
           </div>
         </div>
@@ -400,14 +406,14 @@
                   {{ userInitials }}
                 </div>
                 <div class="min-w-0">
-                  <div class="text-sm font-bold truncate">{{ userEmail }}</div>
+                  <div class="text-sm font-bold truncate text-foreground">{{ userEmail }}</div>
                   <div class="text-xs text-muted-foreground truncate">{{ form.businessName || 'NovaOps' }}</div>
                 </div>
               </div>
             </div>
-            <Button label="Sign Out" severity="danger" variant="outlined" class="btn-block text-none" @click="handleSignOut">
-              <i class="mdi mdi-logout mr-1"></i>
-            </Button>
+            <v-btn color="error" variant="outlined" class="w-full text-none font-bold rounded-xl" @click="handleSignOut">
+              <i class="mdi mdi-logout mr-1"></i> Sign Out
+            </v-btn>
           </div>
         </div>
 
@@ -426,12 +432,12 @@
             </div>
           </div>
           <div class="p-6 flex flex-col gap-3">
-            <Button label="Export All Data" severity="info" variant="outlined" class="btn-block text-none" @click="handleExport">
-              <i class="mdi mdi-download mr-1"></i>
-            </Button>
-            <Button label="Import Data" variant="outlined" class="btn-block text-none" @click="router.push('/tools')">
-              <i class="mdi mdi-upload mr-1"></i>
-            </Button>
+            <v-btn color="info" variant="outlined" class="w-full text-none font-bold rounded-xl" @click="handleExport">
+              <i class="mdi mdi-download mr-1"></i> Export All Data
+            </v-btn>
+            <v-btn variant="outlined" class="w-full text-none font-bold rounded-xl" @click="router.push('/tools')">
+              <i class="mdi mdi-upload mr-1"></i> Import Data
+            </v-btn>
           </div>
         </div>
 
@@ -450,19 +456,20 @@
             </div>
           </div>
           <div class="p-6">
-            <Button label="Run Diagnostics" severity="success" class="btn-block text-none mb-4" :loading="isRunningDiag" @click="runDiagnostics">
-              <i class="mdi mdi-play-circle-outline mr-1"></i>
-            </Button>
+            <v-btn color="success" class="w-full text-none text-white font-bold rounded-xl mb-4" :loading="isRunningDiag" @click="runDiagnostics">
+              <i class="mdi mdi-play-circle-outline mr-1"></i> Run Diagnostics
+            </v-btn>
             <div v-if="diagResults.length" class="flex flex-col gap-2" style="max-height:300px;overflow-y:auto">
-              <Message
+              <v-alert
                 v-for="(res, idx) in diagResults"
                 :key="idx"
-                :severity="res.status === 'success' ? 'success' : res.status === 'error' ? 'error' : 'info'"
-                :closable="false"
+                :type="res.status === 'success' ? 'success' : res.status === 'error' ? 'error' : 'info'"
+                variant="tonal"
+                class="text-xs"
               >
                 <strong>{{ res.step }}</strong>
-                <span v-if="res.message" class="block text-xs mt-0.5">{{ res.message }}</span>
-              </Message>
+                <span v-if="res.message" class="block text-[11px] mt-0.5">{{ res.message }}</span>
+              </v-alert>
             </div>
           </div>
         </div>
@@ -482,9 +489,9 @@
             </div>
           </div>
           <div class="p-6">
-            <Button label="Reset All Data" severity="danger" class="btn-block text-none" @click="confirmReset">
-              <i class="mdi mdi-delete-sweep mr-1"></i>
-            </Button>
+            <v-btn color="error" class="w-full text-none text-white font-bold rounded-xl" @click="confirmReset">
+              <i class="mdi mdi-delete-sweep mr-1"></i> Reset All Data
+            </v-btn>
           </div>
         </div>
 
@@ -492,94 +499,109 @@
     </div>
 
     <!-- ── Supabase Connect Dialog ── -->
-    <Dialog v-model:visible="showSbModal" modal :draggable="false" class="w-full max-w-[560px] mx-4">
-      <template #header>
-        <div class="flex items-center gap-3 flex-1 min-w-0">
-          <div
-            class="w-11 h-11 rounded-xl flex items-center justify-center text-white shrink-0"
-            style="background:linear-gradient(135deg,#3ecf8e,#1a9e6a);box-shadow:0 4px 16px #3ecf8e30"
+    <v-dialog v-model="showSbModal" max-width="560">
+      <v-card class="rounded-xl">
+        <v-card-item class="pb-3 border-b">
+          <div class="flex items-center gap-3 w-full">
+            <div
+              class="w-11 h-11 rounded-xl flex items-center justify-center text-white shrink-0"
+              style="background:linear-gradient(135deg,#3ecf8e,#1a9e6a);box-shadow:0 4px 16px #3ecf8e30"
+            >
+              <i class="mdi mdi-database-outline text-xl"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="font-black text-sm text-foreground">Connect to Supabase</div>
+              <div class="text-[10px] text-muted-foreground mt-0.5">Paste your project URL and anon key from the dashboard</div>
+            </div>
+            <v-btn variant="text" icon="mdi-close" size="small" class="shrink-0" @click="showSbModal = false" />
+          </div>
+        </v-card-item>
+
+        <v-card-text class="pt-4 pb-4">
+          <v-alert type="info" variant="tonal" class="mb-5 text-xs">
+            <div>
+              <strong>1.</strong> Go to <strong>supabase.com/dashboard</strong> → your project<br>
+              <strong>2.</strong> Click <strong>Project Settings → API</strong><br>
+              <strong>3.</strong> Copy <strong>Project URL</strong> and <strong>anon / public</strong> key below
+            </div>
+          </v-alert>
+          <div class="flex flex-col gap-3">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[10px] font-bold text-muted-foreground uppercase">Project URL</label>
+              <v-text-field
+                v-model="sbForm.url"
+                type="url"
+                placeholder="https://xxxxxxxxxxxx.supabase.co"
+                hide-details
+                class="w-full text-xs"
+                style="font-family:monospace"
+                autocomplete="off"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[10px] font-bold text-muted-foreground uppercase">Anon / Public Key</label>
+              <v-text-field
+                v-model="sbForm.key"
+                type="password"
+                placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…"
+                hide-details
+                class="w-full text-xs"
+                style="font-family:monospace"
+                autocomplete="off"
+              />
+              <p class="text-[10px] text-muted-foreground m-0">Use the anon key — not the service_role key.</p>
+            </div>
+            <v-alert v-slot:text v-if="sbConn.status.error" type="error" class="text-xs">{{ sbConn.status.error }}</v-alert>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="px-6 py-4 border-t border-border/60 justify-end gap-2">
+          <v-btn variant="text" color="secondary" class="text-none font-bold rounded-full" @click="showSbModal = false">Cancel</v-btn>
+          <v-btn
+            color="success"
+            class="text-none text-white font-bold rounded-full px-5"
+            :loading="sbConn.status.checking"
+            :disabled="!sbForm.url || !sbForm.key"
+            @click="handleSbConnect"
           >
-            <i class="mdi mdi-database-outline"></i>
-          </div>
-          <div class="flex-1 min-w-0">
-            <span class="font-black block">Connect to Supabase</span>
-            <span class="text-xs text-muted-foreground">Paste your project URL and anon key from the dashboard</span>
-          </div>
-          <Button variant="text" size="small" class="text-none shrink-0" @click="showSbModal = false">
-            <i class="mdi mdi-close"></i>
-          </Button>
-        </div>
-      </template>
-      <Message severity="info" :closable="false" class="mb-5">
-        <div class="text-xs">
-          <strong>1.</strong> Go to <strong>supabase.com/dashboard</strong> → your project<br>
-          <strong>2.</strong> Click <strong>Project Settings → API</strong><br>
-          <strong>3.</strong> Copy <strong>Project URL</strong> and <strong>anon / public</strong> key below
-        </div>
-      </Message>
-      <div class="flex flex-col gap-3">
-        <div class="flex flex-col gap-1.5">
-          <label class="text-[10px] font-bold text-muted-foreground uppercase">Project URL</label>
-          <InputText
-            v-model="sbForm.url"
-            type="url"
-            placeholder="https://xxxxxxxxxxxx.supabase.co"
-            class="w-full rounded-xl"
-            style="font-family:monospace"
-            autocomplete="off"
-          />
-        </div>
-        <div class="flex flex-col gap-1.5">
-          <label class="text-[10px] font-bold text-muted-foreground uppercase">Anon / Public Key</label>
-          <InputText
-            v-model="sbForm.key"
-            type="password"
-            placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…"
-            class="w-full rounded-xl"
-            style="font-family:monospace"
-            autocomplete="off"
-          />
-          <p class="text-[10px] text-muted-foreground m-0">Use the anon key — not the service_role key.</p>
-        </div>
-        <Message v-if="sbConn.status.error" severity="error" :closable="false">{{ sbConn.status.error }}</Message>
-      </div>
-      <template #footer>
-        <Button label="Cancel" variant="text" class="text-none" @click="showSbModal = false" />
-        <Button
-          label="Connect &amp; Save"
-          severity="success"
-          class="text-none"
-          :loading="sbConn.status.checking"
-          :disabled="!sbForm.url || !sbForm.key"
-          @click="handleSbConnect"
-        >
-          <i class="mdi mdi-database-check mr-1"></i>
-        </Button>
-      </template>
-    </Dialog>
+            <i class="mdi mdi-database-check mr-1"></i> Connect &amp; Save
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- ── Supabase Disconnect Confirm ── -->
-    <Dialog v-model:visible="confirmSbDisconnect" modal header="Disconnect Supabase?" class="w-full max-w-sm mx-4">
-      <div class="flex items-start gap-3 mb-2">
-        <div class="w-11 h-11 rounded-lg bg-red-500/10 text-red-600 flex items-center justify-center shrink-0">
-          <i class="mdi mdi-alert-circle-outline text-xl"></i>
-        </div>
-        <p class="text-sm text-muted-foreground m-0">Your data stays safe in Supabase. You'll need to reconnect to access it again.</p>
-      </div>
-      <template #footer>
-        <Button label="Cancel" variant="text" class="text-none" @click="confirmSbDisconnect = false" />
-        <Button label="Disconnect" severity="danger" variant="outlined" class="text-none" @click="sbConn.disconnect(); confirmSbDisconnect = false" />
-      </template>
-    </Dialog>
+    <v-dialog v-model="confirmSbDisconnect" max-width="400">
+      <v-card class="rounded-xl">
+        <v-card-title class="text-sm font-black pt-4 px-6">Disconnect Supabase?</v-card-title>
+        <v-card-text class="py-2 px-6">
+          <div class="flex items-start gap-3 mb-2">
+            <div class="w-11 h-11 rounded-lg bg-red-500/10 text-red-600 flex items-center justify-center shrink-0">
+              <i class="mdi mdi-alert-circle-outline text-xl"></i>
+            </div>
+            <p class="text-xs text-muted-foreground m-0 leading-relaxed">Your data stays safe in Supabase. You'll need to reconnect to access it again.</p>
+          </div>
+        </v-card-text>
+        <v-card-actions class="px-6 pb-4 pt-2 justify-end gap-2">
+          <v-btn variant="text" color="secondary" class="text-none font-bold rounded-full" @click="confirmSbDisconnect = false">Cancel</v-btn>
+          <v-btn color="error" variant="outlined" class="text-none font-bold rounded-full" @click="sbConn.disconnect(); confirmSbDisconnect = false">Disconnect</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- ── General Confirm Dialog ── -->
-    <Dialog v-model:visible="confirmDialog.open" modal :header="confirmDialog.title" class="w-full max-w-[420px] mx-4">
-      <p class="text-sm m-0">{{ confirmDialog.message }}</p>
-      <template #footer>
-        <Button label="Cancel" variant="text" class="text-none" @click="confirmDialog.open = false" />
-        <Button :label="confirmDialog.confirmLabel" severity="danger" class="text-none" @click="confirmDialog.onConfirm()" />
-      </template>
-    </Dialog>
+    <v-dialog v-model="confirmDialog.open" max-width="420">
+      <v-card class="rounded-xl">
+        <v-card-title class="text-sm font-black pt-4 px-6">{{ confirmDialog.title }}</v-card-title>
+        <v-card-text class="py-2 px-6">
+          <p class="text-xs text-muted-foreground leading-relaxed m-0">{{ confirmDialog.message }}</p>
+        </v-card-text>
+        <v-card-actions class="px-6 pb-4 pt-2 justify-end gap-2">
+          <v-btn variant="text" color="secondary" class="text-none font-bold rounded-full" @click="confirmDialog.open = false">Cancel</v-btn>
+          <v-btn color="error" class="text-none text-white font-bold rounded-full" @click="confirmDialog.onConfirm()">{{ confirmDialog.confirmLabel }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
   </div>
 </template>

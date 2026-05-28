@@ -18,22 +18,24 @@
       />
     </div>
     <div class="flex gap-2 mt-1">
-      <Button 
-        label="Clear" 
-        icon="mdi mdi-close" 
+      <v-btn 
         variant="outlined" 
-        severity="secondary" 
+        color="secondary" 
+        prepend-icon="mdi-close" 
         class="rounded-full text-xs font-bold text-none" 
         @click="clear" 
-      />
-      <Button 
-        label="Save Signature" 
-        icon="mdi mdi-content-save" 
+      >
+        Clear
+      </v-btn>
+      <v-btn 
         variant="outlined" 
-        severity="primary" 
+        color="primary" 
+        prepend-icon="mdi-content-save" 
         class="rounded-full text-xs font-bold text-none" 
         @click="save" 
-      />
+      >
+        Save Signature
+      </v-btn>
     </div>
   </div>
 </template>

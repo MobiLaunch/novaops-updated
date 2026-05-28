@@ -4,7 +4,7 @@
     <div class="absolute inset-0 pointer-events-none overflow-hidden">
       <div
         class="absolute rounded-full opacity-10 blur-3xl"
-        style="top: -10rem; left: 50%; transform: translateX(-50%); width: 500px; height: 500px; background: radial-gradient(circle, var(--p-primary-500, #6366f1), transparent);"
+        style="top: -10rem; left: 50%; transform: translateX(-50%); width: 500px; height: 500px; background: radial-gradient(circle, #6366f1, transparent);"
       />
       <div
         class="absolute rounded-full opacity-10 blur-3xl"
@@ -17,7 +17,7 @@
       <div class="text-center flex flex-col items-center gap-4 mb-8">
         <div
           class="w-20 h-20 rounded-xl flex items-center justify-center text-white shadow-lg"
-          style="background: linear-gradient(135deg, var(--p-primary-500, #6366f1) 0%, #8b5cf6 100%);"
+          style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);"
         >
           <i class="mdi mdi-shield-lock-outline text-4xl"></i>
         </div>
@@ -49,24 +49,23 @@
       </div>
 
       <div class="grid grid-cols-3 gap-2 w-full mb-8">
-        <Button
+        <v-btn
           v-for="num in [1,2,3,4,5,6,7,8,9]"
           :key="num"
-          :label="String(num)"
           variant="outlined"
-          class="font-black text-xl py-4 h-16"
+          class="font-black text-xl h-16"
           @click="addDigit(num)"
-        />
-        <Button severity="danger" variant="outlined" class="h-16" @click="clearPin">
+        >{{ num }}</v-btn>
+        <v-btn color="error" variant="outlined" class="h-16" @click="clearPin">
           <i class="mdi mdi-close-circle-outline text-2xl"></i>
-        </Button>
-        <Button :label="'0'" variant="outlined" class="font-black text-xl py-4 h-16" @click="addDigit(0)" />
-        <Button variant="outlined" class="h-16" @click="backspace">
+        </v-btn>
+        <v-btn variant="outlined" class="font-black text-xl h-16" @click="addDigit(0)">0</v-btn>
+        <v-btn variant="outlined" class="h-16" @click="backspace">
           <i class="mdi mdi-backspace-outline text-2xl"></i>
-        </Button>
+        </v-btn>
       </div>
 
-      <Button label="Sign out instead" variant="text" severity="secondary" class="text-xs font-bold underline" @click="logout" />
+      <v-btn variant="text" color="secondary" class="text-xs font-bold underline text-none" @click="logout">Sign out instead</v-btn>
     </div>
   </div>
 </template>

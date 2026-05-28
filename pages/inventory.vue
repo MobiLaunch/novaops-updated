@@ -14,227 +14,251 @@
         </div>
       </div>
       <div class="flex flex-wrap gap-2">
-        <Button label="Print Labels" variant="outlined" class="text-none" @click="handleBatchPrint"><i class="mdi mdi-printer mr-1"></i></Button>
-        <Button label="Low Stock" variant="outlined" class="text-none" @click="checkLowStock"><i class="mdi mdi-alert-outline mr-1"></i></Button>
-        <Button label="Add Item" class="text-none font-bold text-white" style="background: linear-gradient(135deg,#8b5cf6,#7c3aed)" @click="openNew">
-          <i class="mdi mdi-plus mr-1"></i>
-        </Button>
+        <v-btn variant="outlined" class="text-none" @click="handleBatchPrint"><i class="mdi mdi-printer mr-1"></i> Print Labels</v-btn>
+        <v-btn variant="outlined" class="text-none" @click="checkLowStock"><i class="mdi mdi-alert-outline mr-1"></i> Low Stock</v-btn>
+        <v-btn class="text-none font-bold text-white" style="background: linear-gradient(135deg,#8b5cf6,#7c3aed)" @click="openNew">
+          <i class="mdi mdi-plus mr-1"></i> Add Item
+        </v-btn>
       </div>
     </header>
 
-    <Tabs v-model:value="activeTab">
-      <TabList>
-        <Tab value="stock"><i class="mdi mdi-package-variant-closed mr-1"></i> Stock & Services</Tab>
-        <Tab value="services"><i class="mdi mdi-wrench-outline mr-1"></i> Service Pricing</Tab>
-        <Tab value="tradein"><i class="mdi mdi-swap-horizontal mr-1"></i> Trade-In</Tab>
-      </TabList>
+    <v-tabs v-model="activeTab" bg-color="transparent" color="primary" align-tabs="start">
+      <v-tab value="stock"><i class="mdi mdi-package-variant-closed mr-1"></i> Stock & Services</v-tab>
+      <v-tab value="services"><i class="mdi mdi-wrench-outline mr-1"></i> Service Pricing</v-tab>
+      <v-tab value="tradein"><i class="mdi mdi-swap-horizontal mr-1"></i> Trade-In</v-tab>
+    </v-tabs>
 
-      <TabPanels class="pt-4">
-        <TabPanel value="stock">
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-            <div
-              v-for="stat in stats"
-              :key="stat.label"
-              class="kpi-card stat-card"
-              :style="`background:${stat.color}12; outline:2px solid ${stat.color}28`"
-            >
-              <div class="flex items-center justify-between mb-3">
-                <div class="w-10 h-10 rounded-lg flex items-center justify-center" :style="`background:${stat.color}24;color:${stat.color}`">
-                  <i class="mdi text-xl" :class="stat.icon"></i>
-                </div>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" :style="`background:${stat.color}20;color:${stat.color}`">{{ stat.badge }}</span>
+    <v-window v-model="activeTab" class="pt-4">
+      <v-window-item value="stock">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+          <div
+            v-for="stat in stats"
+            :key="stat.label"
+            class="kpi-card stat-card"
+            :style="`background:${stat.color}12; outline:2px solid ${stat.color}28`"
+          >
+            <div class="flex items-center justify-between mb-3">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center" :style="`background:${stat.color}24;color:${stat.color}`">
+                <i class="mdi text-xl" :class="stat.icon"></i>
               </div>
-              <div class="text-xs text-muted-foreground">{{ stat.label }}</div>
-              <div class="text-2xl font-black" :style="`color:${stat.color}`">{{ stat.value }}</div>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" :style="`background:${stat.color}20;color:${stat.color}`">{{ stat.badge }}</span>
             </div>
+            <div class="text-xs text-muted-foreground">{{ stat.label }}</div>
+            <div class="text-2xl font-black" :style="`color:${stat.color}`">{{ stat.value }}</div>
           </div>
+        </div>
 
-          <div class="bg-surface border border-border rounded-xl p-4 mb-4 flex flex-wrap items-center gap-3">
-            <div class="search-field-wrap flex-1 min-w-[200px]">
-              <i class="mdi mdi-magnify"></i>
-              <InputText v-model="q" placeholder="Search by name, SKU, or category…" class="w-full" />
-            </div>
-            <div class="flex flex-wrap gap-2">
-              <button
-                v-for="t in typeOptions"
-                :key="t.value ?? 'all'"
-                type="button"
-                class="filter-chip"
-                :class="{ 'filter-chip--active': typeFilter === t.value }"
-                @click="typeFilter = t.value"
-              >{{ t.label }}</button>
-            </div>
-            <div v-if="dynamicCategories.length" class="flex flex-wrap gap-2">
-              <button
-                v-for="cat in ['All', ...dynamicCategories]"
-                :key="cat"
-                type="button"
-                class="filter-chip"
-                :class="{ 'filter-chip--active': selectedCat === (cat === 'All' ? null : cat) }"
-                @click="selectedCat = cat === 'All' ? null : cat"
-              >{{ cat }}</button>
-            </div>
+        <div class="bg-surface border border-border rounded-xl p-4 mb-4 flex flex-wrap items-center gap-3">
+          <v-text-field
+            v-model="q"
+            placeholder="Search by name, SKU, or category…"
+            prepend-inner-icon="mdi-magnify"
+            hide-details
+            variant="outlined"
+            density="compact"
+            class="flex-1 min-w-[200px] rounded-full"
+          />
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="t in typeOptions"
+              :key="t.value ?? 'all'"
+              type="button"
+              class="filter-chip"
+              :class="{ 'filter-chip--active': typeFilter === t.value }"
+              @click="typeFilter = t.value"
+            >{{ t.label }}</button>
           </div>
+          <div v-if="dynamicCategories.length" class="flex flex-wrap gap-2">
+            <button
+              v-for="cat in ['All', ...dynamicCategories]"
+              :key="cat"
+              type="button"
+              class="filter-chip"
+              :class="{ 'filter-chip--active': selectedCat === (cat === 'All' ? null : cat) }"
+              @click="selectedCat = cat === 'All' ? null : cat"
+            >{{ cat }}</button>
+          </div>
+        </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            <div
-              v-for="item in filtered"
-              :key="item.id"
-              class="item-card bg-surface border border-border rounded-xl p-4 flex flex-col cursor-pointer h-full"
-              @click="openEdit(item)"
-            >
-              <div class="flex items-start justify-between mb-3">
-                <div
-                  class="w-12 h-12 rounded-xl flex items-center justify-center"
-                  :style="item.itemType === 'service' ? 'background:#22d3ee18;color:#22d3ee' : 'background:#8b5cf620;color:#8b5cf6'"
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          <div
+            v-for="item in filtered"
+            :key="item.id"
+            class="item-card bg-surface border border-border rounded-xl p-4 flex flex-col cursor-pointer h-full"
+            @click="openEdit(item)"
+          >
+            <div class="flex items-start justify-between mb-3">
+              <div
+                class="w-12 h-12 rounded-xl flex items-center justify-center"
+                :style="item.itemType === 'service' ? 'background:#22d3ee18;color:#22d3ee' : 'background:#8b5cf620;color:#8b5cf6'"
+              >
+                <i class="mdi text-xl" :class="item.itemType === 'service' ? 'mdi-wrench-outline' : 'mdi-package-variant-closed'"></i>
+              </div>
+              <div class="flex flex-col items-end gap-1">
+                <v-chip size="x-small" class="text-[9px] font-bold">
+                  {{ item.itemType === 'service' ? 'SERVICE' : 'PRODUCT' }}
+                </v-chip>
+                <v-chip
+                  :color="item.itemType === 'service' ? 'info' : item.stock <= (item.low || 5) ? 'error' : 'success'"
+                  size="x-small"
+                  class="text-[9px] font-bold"
                 >
-                  <i class="mdi text-xl" :class="item.itemType === 'service' ? 'mdi-wrench-outline' : 'mdi-package-variant-closed'"></i>
-                </div>
-                <div class="flex flex-col items-end gap-1">
-                  <Tag :value="item.itemType === 'service' ? 'SERVICE' : 'PRODUCT'" />
-                  <Tag
-                    :value="item.itemType === 'service' ? 'AVAILABLE' : item.stock <= (item.low || 5) ? 'LOW' : 'IN STOCK'"
-                    :severity="item.itemType === 'service' ? 'info' : item.stock <= (item.low || 5) ? 'danger' : 'success'"
-                  />
-                </div>
-              </div>
-              <div class="flex-1 mb-3 min-w-0">
-                <div class="text-sm font-black mb-1 truncate">{{ item.name }}</div>
-                <div class="text-xs text-muted-foreground truncate">
-                  {{ item.itemType !== 'service' ? `SKU: ${item.sku || '—'}` : (item.description || '') }}
-                </div>
-                <div class="text-xs text-muted-foreground">{{ item.category }}</div>
-              </div>
-              <hr class="border-border mb-3" />
-              <div class="flex items-end justify-between">
-                <div>
-                  <div class="text-lg font-black" :style="item.itemType === 'service' ? 'color:#22d3ee' : 'color:#8b5cf6'">{{ formatCurrency(item.price) }}</div>
-                  <div v-if="item.itemType !== 'service'" class="text-xs text-muted-foreground">Cost: {{ formatCurrency(item.cost || 0) }}</div>
-                  <div v-else class="text-xs text-muted-foreground">
-                    {{ item.estimated_minutes || item.duration ? `~${item.estimated_minutes || item.duration} min` : 'Labor rate' }}
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="text-xl font-black">{{ item.itemType !== 'service' ? item.stock : '∞' }}</div>
-                  <div class="text-[10px] font-bold text-muted-foreground">{{ item.itemType !== 'service' ? 'UNITS' : 'UNLIMITED' }}</div>
-                </div>
+                  {{ item.itemType === 'service' ? 'AVAILABLE' : item.stock <= (item.low || 5) ? 'LOW' : 'IN STOCK' }}
+                </v-chip>
               </div>
             </div>
-            <div v-if="!filtered.length" class="col-span-full text-center py-12 border border-dashed border-border rounded-xl">
-              <i class="mdi mdi-package-variant-closed text-5xl text-violet-500 opacity-40 block mb-2"></i>
-              <p class="font-black m-0">No items found</p>
-              <p class="text-sm text-muted-foreground">{{ q ? 'Try a different search' : 'Add your first item' }}</p>
-            </div>
-          </div>
-        </TabPanel>
-
-        <TabPanel value="services">
-          <div class="bg-surface border border-border rounded-xl overflow-hidden">
-            <div class="p-4 border-b border-border flex items-center gap-3" style="background:#10b98108">
-              <div class="w-10 h-10 rounded-xl text-white flex items-center justify-center" style="background:linear-gradient(135deg,#10b981,#059669)">
-                <i class="mdi mdi-wrench-outline"></i>
+            <div class="flex-1 mb-3 min-w-0">
+              <div class="text-sm font-black mb-1 truncate">{{ item.name }}</div>
+              <div class="text-xs text-muted-foreground truncate">
+                {{ item.itemType !== 'service' ? `SKU: ${item.sku || '—'}` : (item.description || '') }}
               </div>
+              <div class="text-xs text-muted-foreground">{{ item.category }}</div>
+            </div>
+            <hr class="border-border mb-3" />
+            <div class="flex items-end justify-between">
               <div>
-                <div class="font-black text-sm">Service Pricing</div>
-                <div class="text-xs text-muted-foreground">Manage repair services, prices, and time estimates</div>
+                <div class="text-lg font-black" :style="item.itemType === 'service' ? 'color:#22d3ee' : 'color:#8b5cf6'">{{ formatCurrency(item.price) }}</div>
+                <div v-if="item.itemType !== 'service'" class="text-xs text-muted-foreground">Cost: {{ formatCurrency(item.cost || 0) }}</div>
+                <div v-else class="text-xs text-muted-foreground">
+                  {{ item.estimated_minutes || item.duration ? `~${item.estimated_minutes || item.duration} min` : 'Labor rate' }}
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-xl font-black">{{ item.itemType !== 'service' ? item.stock : '∞' }}</div>
+                <div class="text-[10px] font-bold text-muted-foreground">{{ item.itemType !== 'service' ? 'UNITS' : 'UNLIMITED' }}</div>
               </div>
             </div>
-            <div class="p-6">
-              <div v-if="!servicesList.length" class="text-center py-10 text-muted-foreground">
-                <i class="mdi mdi-wrench-outline text-5xl opacity-40 block mb-2"></i>
-                <p class="font-bold m-0">No services yet</p>
-                <p class="text-xs">Use Add Item with type Service</p>
-              </div>
-              <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                <div
-                  v-for="svc in servicesList"
-                  :key="svc.id"
-                  class="item-card border border-emerald-500/30 rounded-xl p-4 cursor-pointer"
-                  @click="openEdit(svc)"
-                >
-                  <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 rounded-lg bg-emerald-500/15 text-emerald-600 flex items-center justify-center">
-                      <i class="mdi mdi-wrench-outline"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <div class="text-sm font-bold truncate">{{ svc.name }}</div>
-                      <div class="text-xs text-muted-foreground truncate">{{ svc.category || 'Services' }}</div>
-                    </div>
+          </div>
+          <div v-if="!filtered.length" class="col-span-full text-center py-12 border border-dashed border-border rounded-xl">
+            <i class="mdi mdi-package-variant-closed text-5xl text-violet-500 opacity-40 block mb-2"></i>
+            <p class="font-black m-0">No items found</p>
+            <p class="text-sm text-muted-foreground">{{ q ? 'Try a different search' : 'Add your first item' }}</p>
+          </div>
+        </div>
+      </v-window-item>
+
+      <v-window-item value="services">
+        <div class="bg-surface border border-border rounded-xl overflow-hidden">
+          <div class="p-4 border-b border-border flex items-center gap-3" style="background:#10b98108">
+            <div class="w-10 h-10 rounded-xl text-white flex items-center justify-center" style="background:linear-gradient(135deg,#10b981,#059669)">
+              <i class="mdi mdi-wrench-outline"></i>
+            </div>
+            <div>
+              <div class="font-black text-sm">Service Pricing</div>
+              <div class="text-xs text-muted-foreground">Manage repair services, prices, and time estimates</div>
+            </div>
+          </div>
+          <div class="p-6">
+            <div v-if="!servicesList.length" class="text-center py-10 text-muted-foreground">
+              <i class="mdi mdi-wrench-outline text-5xl opacity-40 block mb-2"></i>
+              <p class="font-bold m-0">No services yet</p>
+              <p class="text-xs">Use Add Item with type Service</p>
+            </div>
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div
+                v-for="svc in servicesList"
+                :key="svc.id"
+                class="item-card border border-emerald-500/30 rounded-xl p-4 cursor-pointer"
+                @click="openEdit(svc)"
+              >
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-lg bg-emerald-500/15 text-emerald-600 flex items-center justify-center">
+                    <i class="mdi mdi-wrench-outline"></i>
                   </div>
-                  <div class="flex items-center justify-between">
-                    <span class="text-lg font-black text-emerald-600">{{ formatCurrency(svc.price) }}</span>
-                    <Tag v-if="svc.estimated_minutes" :value="svc.estimated_minutes + ' min'" severity="success" />
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm font-bold truncate">{{ svc.name }}</div>
+                    <div class="text-xs text-muted-foreground truncate">{{ svc.category || 'Services' }}</div>
                   </div>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-lg font-black text-emerald-600">{{ formatCurrency(svc.price) }}</span>
+                  <v-chip v-if="svc.estimated_minutes" color="success" size="x-small" class="font-bold">{{ svc.estimated_minutes }} min</v-chip>
                 </div>
               </div>
             </div>
           </div>
-        </TabPanel>
+        </div>
+      </v-window-item>
 
-        <TabPanel value="tradein">
-          <div class="text-center py-12 px-6 border border-amber-500/30 rounded-xl bg-amber-500/5 max-w-lg mx-auto">
-            <i class="mdi mdi-swap-horizontal text-5xl text-amber-500 block mb-4"></i>
-            <h2 class="text-xl font-black m-0 mb-2">Trade-In Evaluator</h2>
-            <p class="text-sm text-muted-foreground mb-6">
-              Assess customer devices, calculate condition-based offers, and add purchased devices to inventory.
-            </p>
-            <Button label="Start New Evaluation" severity="warn" class="text-none font-bold" @click="tradeInWizardOpen = true">
-              <i class="mdi mdi-calculator mr-1"></i>
-            </Button>
-          </div>
-        </TabPanel>
-      </TabPanels>
-    </Tabs>
+      <v-window-item value="tradein">
+        <div class="text-center py-12 px-6 border border-amber-500/30 rounded-xl bg-amber-500/5 max-w-lg mx-auto">
+          <i class="mdi mdi-swap-horizontal text-5xl text-amber-500 block mb-4"></i>
+          <h2 class="text-xl font-black m-0 mb-2">Trade-In Evaluator</h2>
+          <p class="text-sm text-muted-foreground mb-6">
+            Assess customer devices, calculate condition-based offers, and add purchased devices to inventory.
+          </p>
+          <v-btn color="warning" class="text-none font-bold" @click="tradeInWizardOpen = true">
+            <i class="mdi mdi-calculator mr-1"></i> Start New Evaluation
+          </v-btn>
+        </div>
+      </v-window-item>
+    </v-window>
 
-    <Dialog v-model:visible="newOpen" modal :header="editingItem ? 'Edit Item' : 'Add Item'" class="w-full max-w-lg mx-4">
-      <p class="text-xs text-muted-foreground mt-0 mb-4">{{ form.itemType === 'service' ? 'Service or labor item' : 'Inventory details' }}</p>
-      <SelectButton
-        v-model="form.itemType"
-        :options="[{ label: 'Product', value: 'product' }, { label: 'Service', value: 'service' }]"
-        option-label="label"
-        option-value="value"
-        :allow-empty="false"
-        class="mb-4 w-full"
-      />
-      <div class="flex flex-col gap-3">
-        <InputText
-          v-model="form.name"
-          :placeholder="form.itemType === 'service' ? 'Service name' : 'Item name'"
-          class="w-full rounded-xl"
-        />
-        <template v-if="form.itemType === 'product'">
-          <div class="grid grid-cols-2 gap-3">
-            <InputText v-model="form.sku" placeholder="SKU" class="rounded-xl" />
-            <Select v-model="form.category" :options="allCategories" placeholder="Category" class="w-full" />
-            <InputText v-model.number="form.price" type="number" placeholder="Price" class="rounded-xl" />
-            <InputText v-model.number="form.cost" type="number" placeholder="Cost" class="rounded-xl" />
-            <InputText v-model.number="form.stock" type="number" placeholder="Stock qty" class="rounded-xl" />
-            <InputText v-model.number="form.low" type="number" placeholder="Low stock alert" class="rounded-xl" />
-          </div>
-        </template>
-        <template v-else>
-          <div class="grid grid-cols-2 gap-3">
-            <InputText v-model.number="form.price" type="number" placeholder="Price ($)" class="rounded-xl" />
-            <InputText v-model.number="form.estimated_minutes" type="number" placeholder="Duration (min)" class="rounded-xl" />
-          </div>
-          <InputText v-model="form.category" placeholder="Category" class="rounded-xl w-full" />
-          <Textarea v-model="form.description" rows="2" placeholder="Description" class="w-full rounded-xl" />
-        </template>
-      </div>
-      <template #footer>
-        <Button v-if="editingItem" label="Print Label" variant="outlined" class="text-none mr-auto" @click="printCurrentLabel" />
-        <Button label="Cancel" variant="text" class="text-none" @click="newOpen = false; editingItem = null" />
-        <Button :label="editingItem ? 'Save Changes' : 'Add Item'" class="text-none font-bold" :loading="isSaving" @click="saveItem" />
-      </template>
-    </Dialog>
+    <v-dialog v-model="newOpen" max-width="500px">
+      <v-card class="rounded-xl pa-4">
+        <v-card-title class="pa-0 mb-1 text-lg font-bold">
+          {{ editingItem ? 'Edit Item' : 'Add Item' }}
+        </v-card-title>
+        <p class="text-xs text-muted-foreground mt-0 mb-4">{{ form.itemType === 'service' ? 'Service or labor item' : 'Inventory details' }}</p>
+        
+        <v-btn-toggle
+          v-model="form.itemType"
+          mandatory
+          color="primary"
+          variant="outlined"
+          class="mb-4 w-full justify-center"
+        >
+          <v-btn value="product" class="text-none flex-grow-1">Product</v-btn>
+          <v-btn value="service" class="text-none flex-grow-1">Service</v-btn>
+        </v-btn-toggle>
 
-    <Dialog v-model:visible="batchPrintConfirmOpen" modal :header="`Print ${batchPrintCount} labels?`" class="w-full max-w-sm mx-4">
-      <p class="text-sm text-muted-foreground m-0">Make sure your label printer is ready.</p>
-      <template #footer>
-        <Button label="Cancel" variant="text" class="text-none" @click="batchPrintConfirmOpen = false" />
-        <Button label="Print All" severity="warn" class="text-none" @click="executeBatchPrint" />
-      </template>
-    </Dialog>
+        <div class="flex flex-col gap-3">
+          <v-text-field
+            v-model="form.name"
+            :placeholder="form.itemType === 'service' ? 'Service name' : 'Item name'"
+            hide-details
+            variant="outlined"
+            density="compact"
+            class="w-full rounded-xl"
+          />
+          <template v-if="form.itemType === 'product'">
+            <div class="grid grid-cols-2 gap-3">
+              <v-text-field v-model="form.sku" placeholder="SKU" hide-details variant="outlined" density="compact" class="rounded-xl" />
+              <v-select v-model="form.category" :items="allCategories" placeholder="Category" hide-details variant="outlined" density="compact" class="w-full" />
+              <v-text-field v-model.number="form.price" type="number" placeholder="Price" hide-details variant="outlined" density="compact" class="rounded-xl" />
+              <v-text-field v-model.number="form.cost" type="number" placeholder="Cost" hide-details variant="outlined" density="compact" class="rounded-xl" />
+              <v-text-field v-model.number="form.stock" type="number" placeholder="Stock qty" hide-details variant="outlined" density="compact" class="rounded-xl" />
+              <v-text-field v-model.number="form.low" type="number" placeholder="Low stock alert" hide-details variant="outlined" density="compact" class="rounded-xl" />
+            </div>
+          </template>
+          <template v-else>
+            <div class="grid grid-cols-2 gap-3">
+              <v-text-field v-model.number="form.price" type="number" placeholder="Price ($)" hide-details variant="outlined" density="compact" class="rounded-xl" />
+              <v-text-field v-model.number="form.estimated_minutes" type="number" placeholder="Duration (min)" hide-details variant="outlined" density="compact" class="rounded-xl" />
+            </div>
+            <v-text-field v-model="form.category" placeholder="Category" hide-details variant="outlined" density="compact" class="rounded-xl w-full" />
+            <v-textarea v-model="form.description" rows="2" placeholder="Description" hide-details variant="outlined" density="compact" class="w-full rounded-xl" />
+          </template>
+        </div>
+        
+        <div class="flex justify-end gap-2 mt-4">
+          <v-btn v-if="editingItem" variant="outlined" class="text-none mr-auto" @click="printCurrentLabel">Print Label</v-btn>
+          <v-btn variant="text" class="text-none" @click="newOpen = false; editingItem = null">Cancel</v-btn>
+          <v-btn color="primary" class="text-none font-bold" :loading="isSaving" @click="saveItem">{{ editingItem ? 'Save Changes' : 'Add Item' }}</v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="batchPrintConfirmOpen" max-width="400px">
+      <v-card class="rounded-xl pa-4">
+        <v-card-title class="pa-0 mb-3 text-lg font-bold">Print {{ batchPrintCount }} labels?</v-card-title>
+        <p class="text-sm text-muted-foreground m-0 mb-4">Make sure your label printer is ready.</p>
+        <div class="flex justify-end gap-2">
+          <v-btn variant="text" class="text-none" @click="batchPrintConfirmOpen = false">Cancel</v-btn>
+          <v-btn color="warning" class="text-none" @click="executeBatchPrint">Print All</v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
 
     <TradeInWizard v-model="tradeInWizardOpen" @saved="handleTradeInSaved" />
   </div>
