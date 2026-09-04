@@ -4,6 +4,7 @@ import { useHref, useNavigate } from "react-router-dom";
 import { RouterProvider } from "react-aria-components";
 
 import { AuthProvider } from "@/lib/AuthContext";
+import { ThemeProvider } from "@/lib/ThemeContext";
 
 function useAppHref(href: string) {
   const routerHref = useHref(href);
@@ -21,7 +22,9 @@ export function Provider({ children }: { children: ReactNode }) {
 
   return (
     <RouterProvider navigate={navigate} useHref={useAppHref}>
-      <AuthProvider>{children}</AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>{children}</AuthProvider>
+      </ThemeProvider>
     </RouterProvider>
   );
 }

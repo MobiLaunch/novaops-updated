@@ -53,9 +53,15 @@ export default function CommandPalette() {
       if (e.key === "Escape") setOpen(false);
     };
 
-    window.addEventListener("keydown", handler);
+    const openHandler = () => setOpen(true);
 
-    return () => window.removeEventListener("keydown", handler);
+    window.addEventListener("keydown", handler);
+    window.addEventListener("novaops:open-command-palette", openHandler);
+
+    return () => {
+      window.removeEventListener("keydown", handler);
+      window.removeEventListener("novaops:open-command-palette", openHandler);
+    };
   }, []);
 
   useEffect(() => {

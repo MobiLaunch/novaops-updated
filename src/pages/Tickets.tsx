@@ -325,7 +325,7 @@ export default function Tickets() {
                   value={creating?.device || ""}
                   onChange={(v) => setCreating((f) => f && { ...f, device: v })}
                 >
-                  <Label>Device *</Label>
+                  <Label>Device</Label>
                   <InputGroup>
                     <InputGroup.Input />
                   </InputGroup>
@@ -347,7 +347,7 @@ export default function Tickets() {
                   value={creating?.issue || ""}
                   onChange={(v) => setCreating((f) => f && { ...f, issue: v })}
                 >
-                  <Label>Issue *</Label>
+                  <Label>Issue</Label>
                   <InputGroup>
                     <InputGroup.Input />
                   </InputGroup>

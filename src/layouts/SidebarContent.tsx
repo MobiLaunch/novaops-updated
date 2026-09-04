@@ -29,7 +29,7 @@ interface NavItem {
   label: string;
 }
 
-const NAV_ITEMS: NavItem[] = [
+export const NAV_ITEMS: NavItem[] = [
   { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { path: "/tickets", icon: TicketIcon, label: "Tickets" },
   { path: "/customers", icon: Users, label: "Customers" },

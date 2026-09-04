@@ -14,6 +14,7 @@ import {
   TextField,
 } from "@heroui/react";
 
+import ThemeToggle from "@/components/ThemeToggle";
 import { useAuth } from "@/lib/AuthContext";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
@@ -51,6 +52,10 @@ export default function Login() {
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-6">
       <div className="pointer-events-none absolute -left-24 -top-28 size-[500px] rounded-full bg-[radial-gradient(ellipse,var(--accent-soft)_0%,transparent_70%)] blur-[80px]" />
       <div className="pointer-events-none absolute -bottom-20 -right-20 size-[400px] rounded-full bg-[radial-gradient(ellipse,var(--accent)_8%,transparent_70%)] opacity-40 blur-[80px]" />
+
+      <div className="absolute right-5 top-5 z-[1]">
+        <ThemeToggle />
+      </div>
 
       <main className="relative z-[1] w-full max-w-[420px]">
         <div className="mb-5 flex items-center gap-3">

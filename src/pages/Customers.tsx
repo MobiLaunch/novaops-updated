@@ -218,7 +218,7 @@ export default function Customers() {
                   value={editing?.name || ""}
                   onChange={(v) => setEditing((f) => f && { ...f, name: v })}
                 >
-                  <Label>Name *</Label>
+                  <Label>Name</Label>
                   <InputGroup>
                     <InputGroup.Input />
                   </InputGroup>

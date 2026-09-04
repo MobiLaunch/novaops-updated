@@ -505,7 +505,7 @@ export default function Messages() {
               <Modal.Body className="flex flex-col gap-4">
                 {sendError && <p className="m-0 text-sm text-danger">{sendError}</p>}
                 <TextField isRequired className="flex flex-col gap-1.5" type="email" value={composing?.to || ""} onChange={(v) => setComposing((f) => f && { ...f, to: v })}>
-                  <Label>To *</Label>
+                  <Label>To</Label>
                   <InputGroup>
                     <InputGroup.Input />
                   </InputGroup>

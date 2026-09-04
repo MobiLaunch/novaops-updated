@@ -126,6 +126,7 @@ export default function CalendarPage() {
                 <CalendarX className="size-8" />
               </span>
               <h4 className="m-0 text-lg font-bold text-foreground">{loading ? "Loading…" : "No appointments scheduled"}</h4>
+              {!loading && <p className="m-0 max-w-md text-sm text-muted">Shop appointments you create will show up here.</p>}
             </div>
           ) : (
             <div className="flex flex-col gap-2">
@@ -164,6 +165,7 @@ export default function CalendarPage() {
                 <CalendarX className="size-8" />
               </span>
               <h4 className="m-0 text-lg font-bold text-foreground">{loading ? "Loading…" : "No house calls scheduled"}</h4>
+              {!loading && <p className="m-0 max-w-md text-sm text-muted">On-site repair visits you schedule will show up here.</p>}
             </div>
           ) : (
             <div className="flex flex-col gap-2">
@@ -207,14 +209,14 @@ export default function CalendarPage() {
               </Modal.Header>
               <Modal.Body className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <TextField isRequired className="flex flex-col gap-1.5 sm:col-span-2" value={creatingAppt?.title || ""} onChange={(v) => setCreatingAppt((f) => f && { ...f, title: v })}>
-                  <Label>Title *</Label>
+                  <Label>Title</Label>
                   <InputGroup>
                     <InputGroup.Input />
                   </InputGroup>
                   <FieldError />
                 </TextField>
                 <TextField isRequired className="flex flex-col gap-1.5" type="date" value={creatingAppt?.date || ""} onChange={(v) => setCreatingAppt((f) => f && { ...f, date: v })}>
-                  <Label>Date *</Label>
+                  <Label>Date</Label>
                   <InputGroup>
                     <InputGroup.Input />
                   </InputGroup>
@@ -255,7 +257,7 @@ export default function CalendarPage() {
               </Modal.Header>
               <Modal.Body className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <TextField isRequired className="flex flex-col gap-1.5 sm:col-span-2" value={creatingCall?.description || ""} onChange={(v) => setCreatingCall((f) => f && { ...f, description: v })}>
-                  <Label>Description *</Label>
+                  <Label>Description</Label>
                   <InputGroup>
                     <InputGroup.Input placeholder="Screen repair at customer's home" />
                   </InputGroup>
@@ -268,7 +270,7 @@ export default function CalendarPage() {
                   </InputGroup>
                 </TextField>
                 <TextField isRequired className="flex flex-col gap-1.5" type="date" value={creatingCall?.date || ""} onChange={(v) => setCreatingCall((f) => f && { ...f, date: v })}>
-                  <Label>Date *</Label>
+                  <Label>Date</Label>
                   <InputGroup>
                     <InputGroup.Input />
                   </InputGroup>

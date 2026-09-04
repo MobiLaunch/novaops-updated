@@ -1,17 +1,25 @@
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
-import { Menu } from "lucide-react";
+import { Outlet, useLocation } from "react-router-dom";
+import { Menu, Search } from "lucide-react";
 import { Drawer } from "@heroui/react";
 
 import CommandPalette from "@/components/CommandPalette";
 import ElectronTitlebar from "@/components/ElectronTitlebar";
 import KeyboardShortcutsOverlay from "@/components/KeyboardShortcutsOverlay";
 import NotificationsPanel from "@/components/NotificationsPanel";
+import ThemeToggle from "@/components/ThemeToggle";
 
-import SidebarContent from "./SidebarContent";
+import SidebarContent, { NAV_ITEMS } from "./SidebarContent";
+
+function pageTitle(pathname: string) {
+  const match = NAV_ITEMS.find((item) => pathname === item.path || pathname.startsWith(`${item.path}/`));
+
+  return match?.label ?? "NovaOps";
+}
 
 export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
 
   return (
     <div className="flex h-screen min-h-screen w-full max-w-full flex-col overflow-hidden bg-background text-foreground">
@@ -45,8 +53,21 @@ export default function AppLayout() {
                 <Menu aria-hidden="true" className="size-5" />
               </button>
               <strong className="lg:hidden">NovaOps</strong>
+              <span className="hidden text-sm font-semibold text-muted lg:block">{pageTitle(location.pathname)}</span>
             </div>
-            <NotificationsPanel />
+            <div className="flex items-center gap-2">
+              <button
+                className="hidden items-center gap-2 rounded-full border border-border bg-surface px-3.5 py-2 text-sm text-muted transition-colors hover:border-accent/40 hover:text-foreground sm:flex"
+                type="button"
+                onClick={() => window.dispatchEvent(new Event("novaops:open-command-palette"))}
+              >
+                <Search className="size-4" />
+                <span>Search…</span>
+                <kbd className="ml-2 rounded-md border border-border bg-surface-secondary px-1.5 py-0.5 text-caption text-muted">⌘K</kbd>
+              </button>
+              <ThemeToggle />
+              <NotificationsPanel />
+            </div>
           </header>
 
           <main className="min-w-0 flex-1 px-3 py-4 pb-8 sm:px-5 sm:py-6 lg:px-6">
