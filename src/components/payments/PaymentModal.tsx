@@ -4,6 +4,7 @@ import { Banknote, CalendarClock, CircleAlert, CircleCheck, CreditCard, Tablet }
 
 import type { Ticket, TicketPayment } from "@/types/domain";
 import { afterpayCheckout, chargeCard, getSquareCredentials, getTerminalCheckoutStatus, startTerminalCheckout } from "@/lib/square";
+import { asArray } from "@/lib/utils";
 import SquareCardForm from "./SquareCardForm";
 
 type PaymentMethod = "cash" | "card" | "terminal" | "afterpay";
@@ -25,7 +26,9 @@ export default function PaymentModal({ ticket, onClose, onPaid }: PaymentModalPr
   const [processing, setProcessing] = useState(false);
   const [terminalStatus, setTerminalStatus] = useState<string | null>(null);
 
-  const balanceDue = ticket ? Number(ticket.price) - (ticket.payments || []).reduce((sum, p) => sum + Number(p.amount), 0) : 0;
+  const balanceDue = ticket
+    ? Number(ticket.price) - asArray<TicketPayment>(ticket.payments).reduce((sum, p) => sum + Number(p.amount), 0)
+    : 0;
 
   const finish = async (amount: number, methodLabel: string) => {
     const saved = await onPaid({ amount, method: methodLabel, at: new Date().toISOString() });

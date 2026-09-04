@@ -14,6 +14,7 @@ import type {
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./config";
+import { asArray } from "./utils";
 
 // ─── Supabase client ────────────────────────────────────────────────────────
 // Priority: .env vars → localStorage (set via Settings page) → empty. Env
@@ -222,7 +223,7 @@ export async function sbAssignPartToTicket(
   qty: number,
 ): Promise<{ data: Ticket | null; error: string | null }> {
   if (qty <= 0) return { data: null, error: "Quantity must be positive" };
-  const parts = [...(ticket.parts || []), { inventory_id: item.id, name: item.name, qty, price: item.price }];
+  const parts = [...asArray<Ticket["parts"][number]>(ticket.parts), { inventory_id: item.id, name: item.name, qty, price: item.price }];
   const { data, error } = await sbUpdateTicket(ticket.id, { parts });
 
   if (error || !data) return { data: null, error };
@@ -238,8 +239,8 @@ export async function sbRemovePartFromTicket(
   ticket: Ticket,
   index: number,
 ): Promise<{ data: Ticket | null; error: string | null }> {
-  const removed = (ticket.parts || [])[index];
-  const parts = (ticket.parts || []).filter((_, i) => i !== index);
+  const removed = asArray<Ticket["parts"][number]>(ticket.parts)[index];
+  const parts = asArray<Ticket["parts"][number]>(ticket.parts).filter((_, i) => i !== index);
   const { data, error } = await sbUpdateTicket(ticket.id, { parts });
 
   if (error || !data) return { data: null, error };

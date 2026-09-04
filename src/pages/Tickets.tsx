@@ -29,9 +29,10 @@ import {
   sbUpdateTicket,
 } from "@/lib/supabase";
 import { printBarcodeLabel } from "@/lib/print";
+import { asArray } from "@/lib/utils";
 
 function balanceDue(t: Ticket) {
-  return Number(t.price) - (t.payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
+  return Number(t.price) - asArray<TicketPayment>(t.payments).reduce((sum, p) => sum + Number(p.amount), 0);
 }
 
 const STATUSES: TicketStatus[] = ["Open", "In Progress", "Waiting for Parts", "Completed", "Delivered"];
@@ -166,7 +167,7 @@ export default function Tickets() {
 
   const handleRemovePart = async (index: number) => {
     if (!selected) return;
-    const removed = selected.parts[index];
+    const removed = asArray<Ticket["parts"][number]>(selected.parts)[index];
     const { data } = await sbRemovePartFromTicket(selected, index);
 
     if (data) {
@@ -180,7 +181,7 @@ export default function Tickets() {
 
   const handleAddNote = async () => {
     if (!selected || !noteDraft.trim()) return;
-    const notes = [...(selected.notes || []), { text: noteDraft.trim(), at: new Date().toISOString() }];
+    const notes = [...asArray<Ticket["notes"][number]>(selected.notes), { text: noteDraft.trim(), at: new Date().toISOString() }];
     const { data } = await sbUpdateTicket(selected.id, { notes });
 
     if (data) {
@@ -422,9 +423,10 @@ export default function Tickets() {
                       <div>
                         <span className="block text-micro font-bold uppercase text-muted">Balance Due</span>
                         <strong className="text-xl text-foreground">${balanceDue(selected).toFixed(2)}</strong>
-                        {(selected.payments || []).length > 0 && (
+                        {asArray<TicketPayment>(selected.payments).length > 0 && (
                           <p className="m-0 mt-1 text-xs text-muted">
-                            {selected.payments.length} payment{selected.payments.length !== 1 ? "s" : ""} recorded
+                            {asArray<TicketPayment>(selected.payments).length} payment
+                            {asArray<TicketPayment>(selected.payments).length !== 1 ? "s" : ""} recorded
                           </p>
                         )}
                       </div>
@@ -439,8 +441,10 @@ export default function Tickets() {
                     <div>
                       <span className="mb-2 block text-micro font-bold uppercase text-muted">Parts Used</span>
                       <div className="flex flex-col gap-2">
-                        {(selected.parts || []).length === 0 && <p className="m-0 text-sm text-muted">No parts assigned yet.</p>}
-                        {(selected.parts || []).map((p, idx) => (
+                        {asArray<Ticket["parts"][number]>(selected.parts).length === 0 && (
+                          <p className="m-0 text-sm text-muted">No parts assigned yet.</p>
+                        )}
+                        {asArray<Ticket["parts"][number]>(selected.parts).map((p, idx) => (
                           <div key={idx} className="flex items-center justify-between rounded-xl border border-border bg-surface p-3 text-sm">
                             <div className="flex items-center gap-2">
                               <Wrench className="size-4 text-accent" />
@@ -498,8 +502,10 @@ export default function Tickets() {
                     <div>
                       <span className="mb-2 block text-micro font-bold uppercase text-muted">Notes</span>
                       <div className="flex flex-col gap-2">
-                        {(selected.notes || []).length === 0 && <p className="m-0 text-sm text-muted">No notes yet.</p>}
-                        {(selected.notes || []).map((n, idx) => (
+                        {asArray<Ticket["notes"][number]>(selected.notes).length === 0 && (
+                          <p className="m-0 text-sm text-muted">No notes yet.</p>
+                        )}
+                        {asArray<Ticket["notes"][number]>(selected.notes).map((n, idx) => (
                           <div key={idx} className="rounded-xl border border-border bg-surface p-3 text-sm">
                             <p className="m-0">{n.text}</p>
                             <span className="text-xs text-muted">{new Date(n.at).toLocaleString()}</span>
