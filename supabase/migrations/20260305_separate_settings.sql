@@ -1,4 +1,16 @@
 -- ============================================================================
+-- ⚠️  DO NOT RUN — WILL ERROR against the live database.
+-- Section 1 does `ALTER TABLE settings ...`, but no `settings` table exists
+-- on the live shared database (it was a Nuxt-era table, never created
+-- there) — that ALTER (and the ENABLE ROW LEVEL SECURITY right after it)
+-- will fail with "relation settings does not exist". `services` and
+-- `square_config` are also unused by the current React app (Square
+-- credentials are stored in the browser via Settings, not the database).
+-- Use MASTER_SETUP.sql, which is the complete, accurate script for the
+-- live database. Kept for history.
+-- ============================================================================
+
+-- ============================================================================
 -- NovaOps — Separate Settings Tables Migration
 -- Run in Supabase SQL Editor: Dashboard → SQL Editor → New query → paste → Run
 --

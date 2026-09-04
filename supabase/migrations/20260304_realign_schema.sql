@@ -1,4 +1,12 @@
 -- ============================================================================
+-- ⚠️  DO NOT RUN — targets Nuxt-era tables/columns unused by the current
+-- React app (profiles.services/expenses/display_*, `services` table,
+-- vendor_repairs). Harmless if run, but pointless. Use MASTER_SETUP.sql,
+-- which is the complete, accurate script for the live database. Kept for
+-- history.
+-- ============================================================================
+
+-- ============================================================================
 -- NovaOps — Schema Realignment Migration
 -- Run in Supabase SQL Editor: Dashboard → SQL Editor → New query → paste → Run
 --

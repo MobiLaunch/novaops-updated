@@ -1,4 +1,20 @@
 -- ============================================================
+-- ⚠️  DO NOT RUN — superseded and unsafe against the live shared database.
+--
+-- This file predates NovaOps sharing a Supabase project with
+-- mobicare-business. Its `profiles` table and `handle_new_user` trigger
+-- assume `profiles` is NovaOps's own table; the real one is owned by
+-- mobicare-business (columns: id, full_name, phone) and is used by every
+-- website signup. Running this would either error (if it collides with
+-- the real table) or, worse, install a trigger that inserts into
+-- `profiles (id, email, business_name)` — columns that don't exist on the
+-- real table — breaking every new website account signup.
+--
+-- Use supabase/migrations/MASTER_SETUP.sql instead — it is the complete,
+-- accurate, safe script for the live database. Kept here only for history.
+-- ============================================================
+
+-- ============================================================
 -- NovaOps — Core Schema Migration
 -- Run this FIRST before any other migrations.
 -- Creates: profiles, tickets, customers, inventory,

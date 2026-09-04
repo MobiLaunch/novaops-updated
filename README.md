@@ -133,9 +133,10 @@ To manage bookings from NovaOps:
 2. Sign in to NovaOps with a Supabase account that's also a row in
    `public.staff_users` (role `admin`, `enabled = true`) — the same allowlist
    the website's admin portal checks.
-3. Run `supabase/migrations/20260904_bookings_ticket_link.sql` once in the
-   Supabase SQL editor. It adds the `novaops_ticket_id` column bookings use
-   to record which ticket they were converted into.
+3. Run `supabase/migrations/MASTER_SETUP.sql` once in the Supabase SQL
+   editor — among everything else it sets up, it adds the
+   `novaops_ticket_id` column bookings use to record which ticket they
+   were converted into.
 
 Without step 2, the Bookings page loads with zero rows (RLS denies silently,
 it doesn't error) — the in-app error message explains this too.
@@ -241,15 +242,27 @@ npm run dev
 
 ## Database schema
 
-`supabase/migrations/MASTER_SETUP.sql` is the idempotent one-shot setup for
-NovaOps's own tables (`profiles`, `customers`, `tickets`, `inventory`,
-`house_calls`, `appointments`, plus the Brand Manager social tables). Run it
-once in the Supabase SQL editor for a fresh project, then run every other
-`supabase/migrations/*.sql` file in date order (each is idempotent — safe to
-re-run). Notably: `20260905_parts_shipments.sql` (the `shipments` table +
-`profiles.supplier_emails`), `20260905_customer_messages.sql` (the
-`customer_messages` table), and `20260906_customer_messages_auto_profile.sql`
-(the trigger that lets the website send chat messages without knowing the
-shop's NovaOps user id). mobicare-business's own migrations (`categories`,
-`products`, `orders`, `bookings`, `staff_users`, etc.) are separate and live
-in that repo.
+**Run `supabase/migrations/MASTER_SETUP.sql` once** in the Supabase SQL
+editor — it's the complete, idempotent setup for every table the current
+React app needs (`customers`, `tickets`, `inventory`, `house_calls`,
+`appointments`, `messages`, `trade_ins`, `shipments`, `customer_messages`,
+`social_connections`), plus the two columns it needs added to tables the
+**mobicare-business website already owns** (`profiles.supplier_emails`,
+`bookings.novaops_ticket_id` — both plain `ALTER TABLE ADD COLUMN IF NOT
+EXISTS`, never a `CREATE TABLE`, since `profiles` and `bookings` are real
+tables in the same shared project with existing rows). Safe to re-run any
+time.
+
+You do **not** need to run any other file in `supabase/migrations/` after
+it — the handful of dated files after `MASTER_SETUP.sql` document the same
+changes broken out by feature (kept for history) and are already folded
+into it. The files dated before it (`00000000_core_schema.sql` and others)
+are from the previous Nuxt version of this app and are **not** compatible
+with the live database — each now has a "DO NOT RUN" warning at the top
+explaining why (the worst of them, `00000000_core_schema.sql`, would
+install a trigger that breaks every new signup on the website, because it
+assumes `profiles` has columns the real table doesn't).
+
+mobicare-business's own migrations (`categories`, `products`, `orders`,
+`bookings`, `staff_users`, etc.) are separate and live in that repo —
+`MASTER_SETUP.sql` never recreates anything already covered there.

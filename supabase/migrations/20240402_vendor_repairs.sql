@@ -1,3 +1,8 @@
+-- ⚠️  DO NOT RUN — not harmful, but unnecessary and unused.
+-- vendor_repairs was a Nuxt-era feature never ported to the current React
+-- app (no code references this table). Use MASTER_SETUP.sql, which is the
+-- complete, accurate script for the live database. Kept for history.
+
 -- ── vendor_repairs ──────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS vendor_repairs (
   id              bigserial PRIMARY KEY,
