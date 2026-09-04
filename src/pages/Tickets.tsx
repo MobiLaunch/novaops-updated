@@ -12,14 +12,22 @@ import {
   TextArea,
   TextField,
 } from "@heroui/react";
-import { ClipboardList, CreditCard, Eye, Plus, Printer, Ticket as TicketIcon } from "lucide-react";
+import { ClipboardList, CreditCard, Eye, Plus, Printer, Ticket as TicketIcon, Trash2, Wrench } from "lucide-react";
 
 import DataTable, { type DataTableColumn } from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
 import PaymentModal from "@/components/payments/PaymentModal";
 import SignaturePad from "@/components/SignaturePad";
-import type { Ticket, TicketPayment, TicketStatus } from "@/types/domain";
-import { sbCreateTicket, sbFetchTickets, sbUpdateTicket, sbUpsertCustomer } from "@/lib/supabase";
+import type { InventoryItem, Ticket, TicketPayment, TicketStatus } from "@/types/domain";
+import {
+  sbAssignPartToTicket,
+  sbCreateTicket,
+  sbFetchInventory,
+  sbFetchTickets,
+  sbFindOrCreateCustomer,
+  sbRemovePartFromTicket,
+  sbUpdateTicket,
+} from "@/lib/supabase";
 import { printBarcodeLabel } from "@/lib/print";
 
 function balanceDue(t: Ticket) {
@@ -56,6 +64,8 @@ export default function Tickets() {
   const [selected, setSelected] = useState<Ticket | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [payingTicket, setPayingTicket] = useState<Ticket | null>(null);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [partSelection, setPartSelection] = useState<{ inventoryId: string; qty: string }>({ inventoryId: "", qty: "1" });
 
   const load = async () => {
     setLoading(true);
@@ -67,6 +77,7 @@ export default function Tickets() {
 
   useEffect(() => {
     load();
+    sbFetchInventory().then(({ data }) => data && setInventory(data));
   }, []);
 
   useEffect(() => {
@@ -84,7 +95,7 @@ export default function Tickets() {
   const handleCreate = async () => {
     if (!creating?.device.trim() || !creating.issue.trim()) return;
     setSaving(true);
-    const { data: customer } = await sbUpsertCustomer({
+    const { data: customer } = await sbFindOrCreateCustomer({
       name: creating.customerName || "Walk-in",
       phone: creating.customerPhone,
     });
@@ -111,8 +122,8 @@ export default function Tickets() {
     await sbUpdateTicket(id, { status });
   };
 
-  const handlePaid = async (payment: TicketPayment) => {
-    if (!payingTicket) return;
+  const handlePaid = async (payment: TicketPayment): Promise<boolean> => {
+    if (!payingTicket) return false;
     const payments = [...(payingTicket.payments || []), payment];
     const { data } = await sbUpdateTicket(payingTicket.id, { payments });
 
@@ -120,7 +131,11 @@ export default function Tickets() {
       setTickets((ts) => ts.map((t) => (t.id === data.id ? data : t)));
       if (selected?.id === data.id) setSelected(data);
       setPayingTicket(null);
+
+      return true;
     }
+
+    return false;
   };
 
   const handleSaveSignature = async (dataUrl: string) => {
@@ -130,6 +145,36 @@ export default function Tickets() {
     if (data) {
       setSelected(data);
       setTickets((ts) => ts.map((t) => (t.id === data.id ? data : t)));
+    }
+  };
+
+  const handleAddPart = async () => {
+    if (!selected || !partSelection.inventoryId) return;
+    const item = inventory.find((i) => String(i.id) === partSelection.inventoryId);
+    const qty = Number(partSelection.qty) || 1;
+
+    if (!item) return;
+    const { data } = await sbAssignPartToTicket(selected, item, qty);
+
+    if (data) {
+      setSelected(data);
+      setTickets((ts) => ts.map((t) => (t.id === data.id ? data : t)));
+      setInventory((rows) => rows.map((r) => (r.id === item.id ? { ...r, stock: Math.max(r.stock - qty, 0) } : r)));
+      setPartSelection({ inventoryId: "", qty: "1" });
+    }
+  };
+
+  const handleRemovePart = async (index: number) => {
+    if (!selected) return;
+    const removed = selected.parts[index];
+    const { data } = await sbRemovePartFromTicket(selected, index);
+
+    if (data) {
+      setSelected(data);
+      setTickets((ts) => ts.map((t) => (t.id === data.id ? data : t)));
+      if (removed?.inventory_id) {
+        setInventory((rows) => rows.map((r) => (r.id === removed.inventory_id ? { ...r, stock: r.stock + removed.qty } : r)));
+      }
     }
   };
 
@@ -389,6 +434,65 @@ export default function Tickets() {
                           <span>Take Payment</span>
                         </Button>
                       )}
+                    </div>
+
+                    <div>
+                      <span className="mb-2 block text-micro font-bold uppercase text-muted">Parts Used</span>
+                      <div className="flex flex-col gap-2">
+                        {(selected.parts || []).length === 0 && <p className="m-0 text-sm text-muted">No parts assigned yet.</p>}
+                        {(selected.parts || []).map((p, idx) => (
+                          <div key={idx} className="flex items-center justify-between rounded-xl border border-border bg-surface p-3 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Wrench className="size-4 text-accent" />
+                              <div>
+                                <strong className="block text-foreground">{p.name}</strong>
+                                <span className="text-xs text-muted">
+                                  Qty {p.qty} · ${Number(p.price).toFixed(2)} each
+                                </span>
+                              </div>
+                            </div>
+                            <Button isIconOnly aria-label="Remove part" size="sm" variant="ghost" onPress={() => handleRemovePart(idx)}>
+                              <Trash2 className="size-4 text-danger" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-end gap-2">
+                        <Select
+                          className="min-w-[220px] flex-1"
+                          placeholder="Select a part…"
+                          selectedKey={partSelection.inventoryId || null}
+                          onSelectionChange={(key) => setPartSelection((s) => ({ ...s, inventoryId: String(key) }))}
+                        >
+                          <Select.Trigger>
+                            <Select.Value />
+                          </Select.Trigger>
+                          <Select.Popover>
+                            <ListBox>
+                              {inventory.map((i) => (
+                                <ListBox.Item key={i.id} id={String(i.id)}>
+                                  {i.name} ({i.stock} in stock)
+                                </ListBox.Item>
+                              ))}
+                            </ListBox>
+                          </Select.Popover>
+                        </Select>
+                        <TextField
+                          className="flex w-20 flex-col gap-1.5"
+                          type="number"
+                          value={partSelection.qty}
+                          onChange={(v) => setPartSelection((s) => ({ ...s, qty: v }))}
+                        >
+                          <Label>Qty</Label>
+                          <InputGroup>
+                            <InputGroup.Input />
+                          </InputGroup>
+                        </TextField>
+                        <Button isDisabled={!partSelection.inventoryId} variant="outline" onPress={handleAddPart}>
+                          <Plus className="size-4" />
+                          <span>Add Part</span>
+                        </Button>
+                      </div>
                     </div>
 
                     <div>

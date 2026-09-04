@@ -162,6 +162,39 @@ export interface Message {
   created_at: string;
 }
 
+export interface Shipment {
+  id: number;
+  profile_id: string;
+  ticket_id: number | null;
+  message_id: number | null;
+  appointment_id: number | null;
+  supplier_email: string;
+  supplier_name: string;
+  tracking_number: string;
+  carrier: string;
+  order_reference: string;
+  subject: string;
+  estimated_delivery_date: string | null;
+  estimated_delivery_time: string;
+  status: "in_transit" | "delivered" | "assigned" | "archived" | string;
+  notes: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomerMessage {
+  id: number;
+  profile_id: string;
+  customer_user_id: string | null;
+  ticket_id: number | null;
+  customer_name: string;
+  customer_email: string;
+  direction: "inbound" | "outbound";
+  body: string;
+  read: boolean;
+  created_at: string;
+}
+
 // Shape of a row from the shared `bookings` table — owned and written by
 // mobicare-business's /api/create-booking serverless function. See
 // mobicare-business/src/types/domain.ts's BookingRecord for the canonical

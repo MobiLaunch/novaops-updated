@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 import { setCors } from "./_squareClient.js";
+import { extractDeliveryDate, extractDeliveryTime, extractTrackingNumber, isSupplierEmail, supplierDisplayName } from "./_shipmentParser.js";
 
 // GET /api/fetch-emails?profileId=...&maxResults=50
 //
@@ -67,6 +68,67 @@ export default async function handler(req, res) {
     } catch {
       // Use existing token.
     }
+  }
+
+  const { data: profileRow } = await admin.from("profiles").select("supplier_emails").eq("id", profileId).maybeSingle();
+  const supplierEmails = profileRow?.supplier_emails?.length
+    ? profileRow.supplier_emails
+    : ["konok@mobilesentrix.com", "support@injuredgadgets.com"];
+
+  // Detects a parts-supplier shipping notification, extracts whatever
+  // tracking/delivery info the regexes in _shipmentParser.js can find, and
+  // upserts a `shipments` row plus a matching calendar entry in
+  // `appointments` — keyed by message so re-syncing Gmail never duplicates
+  // either. Best-effort: a miss just means no shipment row, never an error.
+  async function recordShipment(messageRow, fromEmail, subject, body) {
+    const fullText = `${subject}\n${body}`;
+    const tracking = extractTrackingNumber(fullText);
+    const deliveryDate = extractDeliveryDate(fullText);
+    const deliveryTime = deliveryDate ? extractDeliveryTime(fullText) : "";
+    const supplierName = supplierDisplayName(fromEmail);
+
+    const { data: existingShipment } = await admin
+      .from("shipments")
+      .select("appointment_id")
+      .eq("message_id", messageRow.id)
+      .maybeSingle();
+
+    let appointmentId = existingShipment?.appointment_id || null;
+
+    if (deliveryDate) {
+      const apptPatch = {
+        profile_id: profileId,
+        title: `📦 Parts delivery — ${supplierName}`,
+        description: `Tracking: ${tracking?.trackingNumber || "unknown"}${tracking?.carrier ? ` (${tracking.carrier})` : ""} — ${subject}`,
+        date: deliveryDate,
+        time: deliveryTime,
+        status: "scheduled",
+      };
+
+      if (appointmentId) {
+        await admin.from("appointments").update(apptPatch).eq("id", appointmentId);
+      } else {
+        const { data: appt } = await admin.from("appointments").insert(apptPatch).select().single();
+
+        appointmentId = appt?.id || null;
+      }
+    }
+
+    await admin.from("shipments").upsert(
+      {
+        profile_id: profileId,
+        message_id: messageRow.id,
+        appointment_id: appointmentId,
+        supplier_email: fromEmail,
+        supplier_name: supplierName,
+        tracking_number: tracking?.trackingNumber || "",
+        carrier: tracking?.carrier || "",
+        subject,
+        estimated_delivery_date: deliveryDate,
+        estimated_delivery_time: deliveryTime,
+      },
+      { onConflict: "message_id" },
+    );
   }
 
   const gmailHeaders = { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" };
@@ -168,24 +230,37 @@ export default async function handler(req, res) {
 
       const created_at = dateHeader ? new Date(dateHeader).toISOString() : new Date(parseInt(msg.internalDate || "0", 10)).toISOString();
 
-      const { error } = await admin.from("messages").upsert(
-        {
-          profile_id: profileId,
-          gmail_message_id: id,
-          customer_email: customerEmail,
-          customer_name: customerName,
-          channel: "email",
-          direction,
-          subject,
-          body: body || "(empty)",
-          read: direction === "outbound" || !msg.labelIds?.includes("UNREAD"),
-          delivered: direction === "outbound",
-          created_at,
-        },
-        { onConflict: "gmail_message_id" },
-      );
+      const { data: messageRow, error } = await admin
+        .from("messages")
+        .upsert(
+          {
+            profile_id: profileId,
+            gmail_message_id: id,
+            customer_email: customerEmail,
+            customer_name: customerName,
+            channel: "email",
+            direction,
+            subject,
+            body: body || "(empty)",
+            read: direction === "outbound" || !msg.labelIds?.includes("UNREAD"),
+            delivered: direction === "outbound",
+            created_at,
+          },
+          { onConflict: "gmail_message_id" },
+        )
+        .select()
+        .single();
 
-      if (!error) synced++;
+      if (!error && messageRow) {
+        synced++;
+        if (direction === "inbound" && isSupplierEmail(customerEmail, supplierEmails)) {
+          try {
+            await recordShipment(messageRow, customerEmail, subject, body);
+          } catch (shipErr) {
+            console.error("[fetch-emails] Shipment parse error:", shipErr.message);
+          }
+        }
+      }
     }
 
     return synced;

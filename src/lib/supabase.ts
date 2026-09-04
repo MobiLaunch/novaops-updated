@@ -2,9 +2,11 @@ import type {
   Appointment,
   BookingRecord,
   Customer,
+  CustomerMessage,
   HouseCall,
   InventoryItem,
   Message,
+  Shipment,
   Ticket,
   TradeIn,
 } from "@/types/domain";
@@ -98,6 +100,43 @@ export async function sbUpsertCustomer(
   return { data: data as Customer | null, error: error ? errMessage(error) : null };
 }
 
+// Looks up an existing customer by phone (preferred) or email before
+// creating a new row — sbUpsertCustomer alone always inserts when no `id`
+// is given, so every walk-in ticket or converted booking for a *repeat*
+// customer used to spawn a duplicate customer record instead of reusing
+// theirs. Callers that already know the customer's id should keep using
+// sbUpsertCustomer directly.
+export async function sbFindOrCreateCustomer(
+  info: { name: string; phone?: string; email?: string; address?: string },
+): Promise<{ data: Customer | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const phone = (info.phone || "").trim();
+  const email = (info.email || "").trim();
+
+  if (phone) {
+    const { data: existing } = await client.from("customers").select("*").eq("phone", phone).limit(1).maybeSingle();
+
+    if (existing) {
+      const patch: Partial<Customer> = {};
+
+      if (!existing.email && email) patch.email = email;
+      if (!existing.address && info.address) patch.address = info.address;
+
+      if (Object.keys(patch).length > 0) return sbUpsertCustomer({ id: existing.id, ...patch });
+
+      return { data: existing as Customer, error: null };
+    }
+  } else if (email) {
+    const { data: existing } = await client.from("customers").select("*").eq("email", email).limit(1).maybeSingle();
+
+    if (existing) return { data: existing as Customer, error: null };
+  }
+
+  return sbUpsertCustomer({ name: info.name, phone, email, address: info.address || "" });
+}
+
 // ─── Tickets ────────────────────────────────────────────────────────────────
 
 export async function sbFetchTickets(): Promise<{ data: Ticket[] | null; error: string | null }> {
@@ -173,6 +212,47 @@ export async function sbUpsertInventoryItem(
   return { data: data as InventoryItem | null, error: error ? errMessage(error) : null };
 }
 
+// Attaches an inventory part to a ticket (tickets.parts jsonb) and
+// decrements stock accordingly — the two writes aren't transactional, but
+// the ticket write happens first so a failure never silently takes stock
+// without recording where it went.
+export async function sbAssignPartToTicket(
+  ticket: Ticket,
+  item: InventoryItem,
+  qty: number,
+): Promise<{ data: Ticket | null; error: string | null }> {
+  if (qty <= 0) return { data: null, error: "Quantity must be positive" };
+  const parts = [...(ticket.parts || []), { inventory_id: item.id, name: item.name, qty, price: item.price }];
+  const { data, error } = await sbUpdateTicket(ticket.id, { parts });
+
+  if (error || !data) return { data: null, error };
+  await sbUpsertInventoryItem({ id: item.id, stock: Math.max(item.stock - qty, 0) });
+
+  return { data, error: null };
+}
+
+// Removes a part from a ticket by index and restores its stock (best
+// effort — if the original inventory item no longer exists, the ticket
+// edit still succeeds).
+export async function sbRemovePartFromTicket(
+  ticket: Ticket,
+  index: number,
+): Promise<{ data: Ticket | null; error: string | null }> {
+  const removed = (ticket.parts || [])[index];
+  const parts = (ticket.parts || []).filter((_, i) => i !== index);
+  const { data, error } = await sbUpdateTicket(ticket.id, { parts });
+
+  if (error || !data) return { data: null, error };
+
+  if (removed?.inventory_id) {
+    const { data: item } = await getClient()!.from("inventory").select("*").eq("id", removed.inventory_id).maybeSingle();
+
+    if (item) await sbUpsertInventoryItem({ id: item.id, stock: item.stock + removed.qty });
+  }
+
+  return { data, error: null };
+}
+
 // ─── Trade-ins ──────────────────────────────────────────────────────────────
 
 export async function sbFetchTradeIns(): Promise<{ data: TradeIn[] | null; error: string | null }> {
@@ -243,6 +323,107 @@ export async function sbMarkMessageRead(id: number): Promise<boolean> {
 
 export async function getCurrentProfileId(): Promise<string | null> {
   return currentUserId();
+}
+
+// ─── Profile settings (supplier email allowlist) ────────────────────────────
+
+export async function sbFetchSupplierEmails(): Promise<{ data: string[] | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const userId = await currentUserId();
+
+  if (!userId) return { data: null, error: "Not signed in" };
+  const { data, error } = await client.from("profiles").select("supplier_emails").eq("id", userId).maybeSingle();
+
+  return { data: (data?.supplier_emails as string[] | undefined) || [], error: error ? errMessage(error) : null };
+}
+
+export async function sbUpdateSupplierEmails(emails: string[]): Promise<boolean> {
+  const client = getClient();
+
+  if (!client) return false;
+  const userId = await currentUserId();
+
+  if (!userId) return false;
+  const { error } = await client.from("profiles").update({ supplier_emails: emails }).eq("id", userId);
+
+  return !error;
+}
+
+// ─── Parts shipments (auto-collected from supplier emails) ─────────────────
+
+export async function sbFetchShipments(): Promise<{ data: Shipment[] | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const { data, error } = await client
+    .from("shipments")
+    .select("*")
+    .order("estimated_delivery_date", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: false });
+
+  return { data: data as Shipment[] | null, error: error ? errMessage(error) : null };
+}
+
+export async function sbAssignShipmentToTicket(id: number, ticketId: number | null): Promise<boolean> {
+  const client = getClient();
+
+  if (!client) return false;
+  const { error } = await client
+    .from("shipments")
+    .update({ ticket_id: ticketId, status: ticketId ? "assigned" : "in_transit" })
+    .eq("id", id);
+
+  return !error;
+}
+
+export async function sbUpdateShipmentStatus(id: number, status: string): Promise<boolean> {
+  const client = getClient();
+
+  if (!client) return false;
+  const { error } = await client.from("shipments").update({ status }).eq("id", id);
+
+  return !error;
+}
+
+// ─── Customer chat (direct customer <-> shop messaging) ─────────────────────
+// Separate from the Gmail-synced `messages` table — this is written to
+// directly by a signed-in website customer (once the website grows a
+// composer for it; see README). The shop replies from here.
+
+export async function sbFetchCustomerMessages(): Promise<{ data: CustomerMessage[] | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const { data, error } = await client.from("customer_messages").select("*").order("created_at", { ascending: true });
+
+  return { data: data as CustomerMessage[] | null, error: error ? errMessage(error) : null };
+}
+
+export async function sbReplyToCustomerThread(
+  patch: Pick<CustomerMessage, "customer_email" | "customer_name"> & Partial<CustomerMessage>,
+): Promise<{ data: CustomerMessage | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const profileId = await currentUserId();
+  const { data, error } = await client
+    .from("customer_messages")
+    .insert({ ...patch, profile_id: profileId, direction: "outbound", read: true })
+    .select()
+    .single();
+
+  return { data: data as CustomerMessage | null, error: error ? errMessage(error) : null };
+}
+
+export async function sbMarkCustomerMessageRead(id: number): Promise<boolean> {
+  const client = getClient();
+
+  if (!client) return false;
+  const { error } = await client.from("customer_messages").update({ read: true }).eq("id", id);
+
+  return !error;
 }
 
 // ─── Appointments & house calls ─────────────────────────────────────────────
@@ -359,7 +540,7 @@ export async function sbConvertBookingToTicket(
 
   if (!client) return { ticket: null, error: "Supabase not configured" };
 
-  const { data: customer } = await sbUpsertCustomer({
+  const { data: customer } = await sbFindOrCreateCustomer({
     name: booking.customer_name,
     phone: booking.customer_phone || "",
     email: booking.customer_email || "",

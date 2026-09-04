@@ -11,7 +11,11 @@ type PaymentMethod = "cash" | "card" | "terminal" | "afterpay";
 interface PaymentModalProps {
   ticket: Ticket | null;
   onClose: () => void;
-  onPaid: (payment: TicketPayment) => void;
+  // Returns false if the charge succeeded but saving it to the ticket
+  // record failed — the modal then stays open with a loud warning instead
+  // of silently closing, since the money has already moved and a lost
+  // record here means an unrecorded payment.
+  onPaid: (payment: TicketPayment) => Promise<boolean>;
 }
 
 export default function PaymentModal({ ticket, onClose, onPaid }: PaymentModalProps) {
@@ -23,8 +27,17 @@ export default function PaymentModal({ ticket, onClose, onPaid }: PaymentModalPr
 
   const balanceDue = ticket ? Number(ticket.price) - (ticket.payments || []).reduce((sum, p) => sum + Number(p.amount), 0) : 0;
 
-  const finish = (amount: number, methodLabel: string) => {
-    onPaid({ amount, method: methodLabel, at: new Date().toISOString() });
+  const finish = async (amount: number, methodLabel: string) => {
+    const saved = await onPaid({ amount, method: methodLabel, at: new Date().toISOString() });
+
+    if (!saved) {
+      setError(
+        `Charged $${amount.toFixed(2)} via ${methodLabel}, but saving it to the ticket failed. ` +
+          "Write this payment down now and retry saving — do not charge the customer again.",
+      );
+
+      return;
+    }
     setCashAmount("");
     setTerminalStatus(null);
   };
@@ -33,7 +46,7 @@ export default function PaymentModal({ ticket, onClose, onPaid }: PaymentModalPr
     const amount = Number(cashAmount) || balanceDue;
 
     if (amount <= 0) return;
-    finish(amount, "cash");
+    void finish(amount, "cash");
   };
 
   const handleCardToken = async (sourceId: string) => {
@@ -43,7 +56,7 @@ export default function PaymentModal({ ticket, onClose, onPaid }: PaymentModalPr
     try {
       const result = await chargeCard(sourceId, Math.round(balanceDue * 100), `ticket-${ticket.id}`, `NovaOps Ticket #${ticket.id}`);
 
-      if (result.success) finish(balanceDue, "card");
+      if (result.success) await finish(balanceDue, "card");
       else setError("Card payment did not complete.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Card payment failed.");
@@ -74,7 +87,7 @@ export default function PaymentModal({ ticket, onClose, onPaid }: PaymentModalPr
 
         if (status.status === "COMPLETED") {
           setTerminalStatus("Payment completed.");
-          finish(balanceDue, "square-terminal");
+          await finish(balanceDue, "square-terminal");
 
           return;
         }
@@ -100,7 +113,7 @@ export default function PaymentModal({ ticket, onClose, onPaid }: PaymentModalPr
     try {
       const result = await afterpayCheckout(Math.round(balanceDue * 100));
 
-      if (result.status === "APPROVED") finish(balanceDue, "afterpay");
+      if (result.status === "APPROVED") await finish(balanceDue, "afterpay");
       else setError("Afterpay did not approve this checkout.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Afterpay checkout failed.");

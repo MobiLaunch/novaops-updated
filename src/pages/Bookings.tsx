@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button, Chip, ListBox, Modal, Select } from "@heroui/react";
 import { CalendarDays, CalendarX, CloudOff, ExternalLink, Home, RefreshCw, Store, Wrench } from "lucide-react";
 
@@ -28,6 +29,7 @@ const STATUS_STYLES: Record<string, string> = {
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export default function Bookings() {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState<BookingRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -289,9 +291,18 @@ export default function Bookings() {
                     </div>
 
                     {selected.novaops_ticket_id ? (
-                      <div className="flex items-center gap-2 rounded-2xl border border-success/30 bg-success/10 p-3 text-sm text-success">
-                        <ExternalLink className="size-4" />
-                        Converted to ticket #{selected.novaops_ticket_id}
+                      <div className="flex items-center justify-between gap-2 rounded-2xl border border-success/30 bg-success/10 p-3 text-sm text-success">
+                        <span className="flex items-center gap-2">
+                          <ExternalLink className="size-4" />
+                          Converted to ticket #{selected.novaops_ticket_id}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onPress={() => navigate(`/tickets?open=${selected.novaops_ticket_id}`)}
+                        >
+                          View Ticket
+                        </Button>
                       </div>
                     ) : (
                       <Button isDisabled={converting} variant="primary" onPress={handleConvert}>

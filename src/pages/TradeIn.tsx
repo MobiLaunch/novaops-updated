@@ -16,7 +16,7 @@ import { Eye, Loader2, Repeat, Search, Smartphone } from "lucide-react";
 import DataTable, { type DataTableColumn } from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
 import type { TradeIn } from "@/types/domain";
-import { sbCreateTradeIn, sbFetchTradeIns, sbUpdateTradeIn } from "@/lib/supabase";
+import { sbCreateTradeIn, sbFetchTradeIns, sbFindOrCreateCustomer, sbUpdateTradeIn } from "@/lib/supabase";
 
 // Deduction weights (% of market price) — ported verbatim from the original
 // TradeInWizard.vue pricing model so quoted offers don't silently change.
@@ -70,6 +70,8 @@ interface LookupResult {
 }
 
 const emptyForm = {
+  customerName: "",
+  customerPhone: "",
   brand: "",
   model: "",
   model_number: "",
@@ -186,8 +188,13 @@ export default function TradeInPage() {
   const handleSave = async () => {
     if (!form.brand.trim() && !form.model.trim()) return;
     setSaving(true);
+    const { customerName, customerPhone, ...deviceForm } = form;
+    const customer_id = customerName.trim()
+      ? (await sbFindOrCreateCustomer({ name: customerName, phone: customerPhone }))?.data?.id ?? null
+      : null;
     const { data } = await sbCreateTradeIn({
-      ...form,
+      ...deviceForm,
+      customer_id,
       market_price: effectiveMarketPrice || null,
       repair_cost_est: (form.functional_issues.length * FUNCTIONAL_ISSUE_COST + form.cosmetic_issues.length * COSMETIC_ISSUE_COST) || 0,
       offer_price: offerPrice,
@@ -304,6 +311,20 @@ export default function TradeInPage() {
                 <Modal.CloseTrigger />
               </Modal.Header>
               <Modal.Body className="flex flex-col gap-5">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <TextField className="flex flex-col gap-1.5" value={form.customerName} onChange={(v) => setForm((f) => ({ ...f, customerName: v }))}>
+                    <Label>Customer Name</Label>
+                    <InputGroup>
+                      <InputGroup.Input />
+                    </InputGroup>
+                  </TextField>
+                  <TextField className="flex flex-col gap-1.5" value={form.customerPhone} onChange={(v) => setForm((f) => ({ ...f, customerPhone: v }))}>
+                    <Label>Customer Phone</Label>
+                    <InputGroup>
+                      <InputGroup.Input />
+                    </InputGroup>
+                  </TextField>
+                </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <TextField className="flex flex-col gap-1.5" value={form.brand} onChange={(v) => setForm((f) => ({ ...f, brand: v }))}>
                     <Label>Brand</Label>

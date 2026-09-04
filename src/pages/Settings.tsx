@@ -1,11 +1,86 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Button, FieldError, InputGroup, Label, Switch, TextField } from "@heroui/react";
-import { CircleCheck, CircleX, PlugZap, Save, Tablet } from "lucide-react";
+import { CircleCheck, CircleX, Mail, PlugZap, Plus, Save, Tablet, X } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
-import { getSupabaseConfig, isSupabaseConfigured } from "@/lib/supabase";
+import { getSupabaseConfig, isSupabaseConfigured, sbFetchSupplierEmails, sbUpdateSupplierEmails } from "@/lib/supabase";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/config";
 import { checkDeviceStatus, checkPaymentReadiness, getSquareCredentials, pairSquareDevice, saveSquareCredentials, type PaymentReadiness } from "@/lib/square";
+
+function SupplierEmailsSettings() {
+  const [emails, setEmails] = useState<string[]>([]);
+  const [newEntry, setNewEntry] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    sbFetchSupplierEmails().then(({ data }) => {
+      setLoading(false);
+      if (data) setEmails(data);
+    });
+  }, []);
+
+  const persist = async (next: string[]) => {
+    setEmails(next);
+    setSaving(true);
+    setSaved(await sbUpdateSupplierEmails(next));
+    setSaving(false);
+  };
+
+  const handleAdd = () => {
+    const entry = newEntry.trim().toLowerCase();
+
+    if (!entry || emails.includes(entry)) return;
+    persist([...emails, entry]);
+    setNewEntry("");
+  };
+
+  const handleRemove = (entry: string) => {
+    persist(emails.filter((e) => e !== entry));
+  };
+
+  return (
+    <div className="max-w-xl rounded-[28px] border border-border bg-surface p-6">
+      <h3 className="m-0 mb-1 text-lg font-bold text-foreground">Parts Supplier Emails</h3>
+      <p className="m-0 mb-4 text-sm text-muted">
+        Shipping-notification emails from these addresses (or whole domains, e.g. <code className="rounded bg-surface-tertiary px-1 py-0.5">mobilesentrix.com</code>)
+        are automatically parsed for tracking numbers and delivery dates, shown in Messages → Parts Orders, and
+        added to the Calendar — see Messages → Sync Gmail.
+      </p>
+
+      {loading ? (
+        <p className="m-0 text-sm text-muted">Loading…</p>
+      ) : (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {emails.length === 0 && <p className="m-0 text-sm text-muted">No suppliers configured yet.</p>}
+          {emails.map((e) => (
+            <span key={e} className="flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1.5 text-xs font-bold text-accent">
+              <Mail className="size-3.5" />
+              {e}
+              <button aria-label={`Remove ${e}`} type="button" onClick={() => handleRemove(e)}>
+                <X className="size-3.5" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <TextField className="flex-1" value={newEntry} onChange={setNewEntry}>
+          <InputGroup>
+            <InputGroup.Input placeholder="support@injuredgadgets.com or mobilesentrix.com" />
+          </InputGroup>
+        </TextField>
+        <Button isDisabled={!newEntry.trim() || saving} variant="outline" onPress={handleAdd}>
+          <Plus className="size-4" />
+          <span>Add</span>
+        </Button>
+      </div>
+      {saved && <p className="m-0 mt-2 text-xs text-success">Saved.</p>}
+    </div>
+  );
+}
 
 function SquareSettings() {
   const current = getSquareCredentials();
@@ -237,6 +312,10 @@ export default function Settings() {
 
       <div className="mt-6">
         <SquareSettings />
+      </div>
+
+      <div className="mt-6">
+        <SupplierEmailsSettings />
       </div>
     </div>
   );

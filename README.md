@@ -40,6 +40,35 @@ reskin). It's being delivered in phases:
 - PWA/offline app shell (installable, `vite-plugin-pwa`) — API/Supabase
   calls are always network-only, never served stale
 
+**Phase 3 — done (bug fixes + deeper website/POS connections):**
+- Fixed: creating a ticket, converting a booking, or logging a trade-in used
+  to always insert a *new* customer row, even for a repeat customer — now
+  matched by phone/email first (`sbFindOrCreateCustomer`)
+- Fixed: Bookings had no way to jump to the ticket a conversion created —
+  "View Ticket" now deep-links into Tickets
+- Fixed: if a payment succeeded but saving it to the ticket failed, the
+  modal used to close silently, losing the record of a real charge — it now
+  stays open with an explicit warning instead
+- **Parts on tickets** — Ticket detail has a Parts Used section: attach an
+  inventory item + quantity to a ticket, stock decrements automatically,
+  removing a part restores it
+- **Parts Orders auto-tracking** — `api/fetch-emails` now recognizes
+  shipping-notification emails from your configured parts suppliers
+  (Settings → Parts Supplier Emails, matches by address or whole domain),
+  extracts a tracking number/carrier and estimated delivery date/time with
+  regex heuristics, and: (1) lists them under Messages → Parts Orders, where
+  you can assign a shipment to the ticket it's for, and (2) drops a "📦 Parts
+  delivery" entry on the Calendar for the estimated date. This is best-effort
+  text parsing, not a real carrier integration — always double-check what it
+  finds
+- **Customer Chat** — Messages → Customer Chat reads/replies to the new
+  `customer_messages` table (thread-per-customer, reply box included). The
+  POS side is fully wired; **the mobicare-business website doesn't have a
+  composer for it yet** — see "Customer chat: website side" below for
+  exactly what that needs
+- Reply capability in the Messages Inbox tab (opens a message, pre-fills
+  "Re: " + the sender's address)
+
 **Not ported** (out of scope for now — flag if you want these):
 - Electron desktop shell
 - Direct-to-USB thermal label/receipt printing (WebUSB) — labels still print
@@ -88,6 +117,44 @@ however your OAuth flow provisions it, then set `GOOGLE_CLIENT_ID` /
 `send-email` falls back to `SMTP_HOST` / SendGrid / Resend / Mailgun, or
 stores the message without delivering it.
 
+## Parts supplier tracking
+
+Add each supplier's email address (or just the domain, e.g. `mobilesentrix.com`
+to match any sender there) in Settings → Parts Supplier Emails — defaults to
+`konok@mobilesentrix.com` and `support@injuredgadgets.com`. Every Gmail sync
+(Messages → Sync Gmail) scans new inbound mail from those senders for a
+tracking number and delivery date, and surfaces it in Messages → Parts
+Orders plus the Calendar. It's regex-based against common phrasing
+("estimated delivery: ...", tracking-number formats for UPS/USPS/FedEx/DHL)
+— it will miss unusual formats, and anything it does find should be treated
+as a best guess, not confirmed carrier data.
+
+## Customer chat: website side
+
+Messages → Customer Chat on the POS reads and replies to a new
+`customer_messages` table (`supabase/migrations/20260905_customer_messages.sql`).
+That table exists now, and NovaOps can read/reply to it — but
+**mobicare-business has no composer for it yet**, so customers can't actually
+start a thread until that's built there. What it needs, in outline:
+
+1. A small chat UI on the website (e.g. on the customer's Account page or a
+   booking/order detail view) that inserts a row into `customer_messages` as
+   the signed-in customer: `{ profile_id: <the shop's NovaOps auth uid>,
+   customer_user_id: auth.uid(), customer_name, customer_email, direction:
+   'inbound', body }`. RLS only allows a customer to insert as themselves
+   with `direction = 'inbound'`, and only lets them read rows where
+   `customer_user_id = auth.uid()`.
+2. `profile_id` has to be the shop's NovaOps account id (a fixed value for a
+   single-shop deployment — read it once with `sbFetchSupplierEmails`-style
+   query or just hardcode it via an env var on the website, e.g.
+   `VITE_NOVAOPS_PROFILE_ID`).
+3. Optionally poll or subscribe (Supabase Realtime) so a customer sees the
+   shop's replies without refreshing.
+
+I didn't build this because it means changing the mobicare-business repo,
+which wasn't part of this session's scope — say the word and I'll do it next
+(need push access to that repo).
+
 ## Local development
 
 ```bash
@@ -100,6 +167,10 @@ npm run dev
 `supabase/migrations/MASTER_SETUP.sql` is the idempotent one-shot setup for
 NovaOps's own tables (`profiles`, `customers`, `tickets`, `inventory`,
 `house_calls`, `appointments`, plus the Brand Manager social tables). Run it
-once in the Supabase SQL editor for a fresh project. mobicare-business's own
-migrations (`categories`, `products`, `orders`, `bookings`, `staff_users`,
-etc.) are separate and live in that repo.
+once in the Supabase SQL editor for a fresh project, then run every other
+`supabase/migrations/*.sql` file in date order (each is idempotent — safe to
+re-run). Notably: `20260905_parts_shipments.sql` (the `shipments` table +
+`profiles.supplier_emails`) and `20260905_customer_messages.sql` (the
+`customer_messages` table). mobicare-business's own migrations (`categories`,
+`products`, `orders`, `bookings`, `staff_users`, etc.) are separate and live
+in that repo.
