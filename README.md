@@ -22,9 +22,11 @@ reskin). It's being delivered in phases:
 - Square: card payments (Web Payments SDK), Terminal checkout + device
   pairing, connection test, payment-readiness check, customers/orders/
   payments/payouts history — all as Vercel serverless functions under `api/`
-  (ported from `legacy-nuxt-server/`, which is now just historical reference)
-- AfterPay checkout (demo flow — see `api/afterpay/checkout.js`) and
-  AfterPay-via-Square payment processing
+  (ported from `legacy-nuxt-server/`, which is now just historical reference).
+  Every action lives behind one dynamic route, `api/square/[action].js` —
+  see "Serverless function count" below for why
+- AfterPay checkout (demo flow) and AfterPay-via-Square payment processing,
+  behind `api/afterpay/[action].js`
 - **Take Payment** flow on Tickets (Cash / Card / Terminal / Afterpay tabs),
   configured from Settings → Square Payments
 - Trade-in device valuation (`/trade-in`) — PriceCharting + Gemini-fallback
@@ -117,6 +119,25 @@ Vercel env vars, or configure them per-shop from Settings → Square Payments
 (stored in the browser, sent as request headers — no redeploy needed). Use
 Settings to pair a Terminal device and run "Check Payment Readiness" before
 taking a live payment.
+
+## Serverless function count (Vercel Hobby plan)
+
+Vercel's Hobby plan caps a deployment at **12 serverless functions**. Every
+file directly under `api/` (excluding ones starting with `_`, which are
+shared helper modules, not routes) counts as one. To stay well under that
+with room for new endpoints, every action for a given integration is
+handled by a single dynamic route file instead of one file per endpoint:
+
+- `api/square/[action].js` handles all `/api/square/*` requests
+  (`connection-test`, `payment`, `terminal`, etc.) — Vercel's `[param]`
+  filename syntax captures the path segment into `req.query.action`, which
+  the file dispatches on internally. Same for `api/afterpay/[action].js`.
+- This means the frontend's URLs (`src/lib/square.ts`) never changed —
+  `/api/square/payment` still works exactly as before.
+
+If a `Deployment ERROR` mentions `exceeded_serverless_functions_per_deployment`
+after adding a new endpoint, add it as another `case` inside the relevant
+`[action].js` file rather than a new top-level file.
 
 ## Messages (Gmail sync)
 
