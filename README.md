@@ -164,20 +164,20 @@ as a best guess, not confirmed carrier data.
 
 Messages → Customer Chat on the POS reads and replies to
 `customer_messages` (`supabase/migrations/20260905_customer_messages.sql`).
-A composer now exists on the website too — mobicare-business, branch
+A composer exists on the website too — mobicare-business, branch
 `claude/customer-chat-widget` (Account → Messages: chat-bubble thread + reply
-box, inserts as the signed-in customer). It's **pushed but not merged**, and
-needs one thing before it actually delivers messages to the shop:
+box, inserts as the signed-in customer). It's **pushed but not merged to
+main** yet — merge it (or open a PR) to ship it.
 
-Set `VITE_NOVAOPS_PROFILE_ID` in that repo's environment to the shop's
-NovaOps Supabase Auth user id (Supabase Dashboard → Authentication → Users →
-the account you sign into NovaOps with). Every message the website sends
-gets stamped with this as `profile_id`, which is how NovaOps's Messages →
-Customer Chat finds it (RLS there scopes everything to
-`profile_id = auth.uid()`). Without it, sending shows a clear
-"chat isn't configured yet" error instead of failing silently.
-
-Once that's set, merge the branch (or open a PR) to ship it.
+No environment variable or manual setup is needed for messages to actually
+reach the shop: the website inserts a `customer_messages` row without a
+`profile_id`, and `supabase/migrations/20260906_customer_messages_auto_profile.sql`
+adds a trigger (`customer_messages_fill_profile_id`) that fills it in from
+`public.staff_users` (the same admin allowlist the website's own admin
+portal trusts) before the row is written. Run that migration once in the
+Supabase SQL editor and both sides are connected — this assumes a
+single-shop deployment (one enabled `staff_users` row); revisit the trigger
+first if that ever changes.
 
 ## Desktop app
 
@@ -219,7 +219,9 @@ NovaOps's own tables (`profiles`, `customers`, `tickets`, `inventory`,
 once in the Supabase SQL editor for a fresh project, then run every other
 `supabase/migrations/*.sql` file in date order (each is idempotent — safe to
 re-run). Notably: `20260905_parts_shipments.sql` (the `shipments` table +
-`profiles.supplier_emails`) and `20260905_customer_messages.sql` (the
-`customer_messages` table). mobicare-business's own migrations (`categories`,
+`profiles.supplier_emails`), `20260905_customer_messages.sql` (the
+`customer_messages` table), and `20260906_customer_messages_auto_profile.sql`
+(the trigger that lets the website send chat messages without knowing the
+shop's NovaOps user id). mobicare-business's own migrations (`categories`,
 `products`, `orders`, `bookings`, `staff_users`, etc.) are separate and live
 in that repo.
