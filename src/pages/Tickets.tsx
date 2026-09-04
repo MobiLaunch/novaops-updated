@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Button,
   Chip,
@@ -11,12 +12,19 @@ import {
   TextArea,
   TextField,
 } from "@heroui/react";
-import { ClipboardList, Eye, Plus, Ticket as TicketIcon } from "lucide-react";
+import { ClipboardList, CreditCard, Eye, Plus, Printer, Ticket as TicketIcon } from "lucide-react";
 
 import DataTable, { type DataTableColumn } from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
-import type { Ticket, TicketStatus } from "@/types/domain";
+import PaymentModal from "@/components/payments/PaymentModal";
+import SignaturePad from "@/components/SignaturePad";
+import type { Ticket, TicketPayment, TicketStatus } from "@/types/domain";
 import { sbCreateTicket, sbFetchTickets, sbUpdateTicket, sbUpsertCustomer } from "@/lib/supabase";
+import { printBarcodeLabel } from "@/lib/print";
+
+function balanceDue(t: Ticket) {
+  return Number(t.price) - (t.payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
+}
 
 const STATUSES: TicketStatus[] = ["Open", "In Progress", "Waiting for Parts", "Completed", "Delivered"];
 const STATUS_STYLES: Record<string, string> = {
@@ -39,6 +47,7 @@ interface NewTicketForm {
 const emptyNewForm: NewTicketForm = { customerName: "", customerPhone: "", device: "", deviceModel: "", issue: "", price: "0" };
 
 export default function Tickets() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -46,6 +55,7 @@ export default function Tickets() {
   const [saving, setSaving] = useState(false);
   const [selected, setSelected] = useState<Ticket | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
+  const [payingTicket, setPayingTicket] = useState<Ticket | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -58,6 +68,18 @@ export default function Tickets() {
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    const openId = searchParams.get("open");
+
+    if (openId && tickets.length > 0) {
+      const match = tickets.find((t) => String(t.id) === openId);
+
+      if (match) setSelected(match);
+      searchParams.delete("open");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [tickets, searchParams, setSearchParams]);
 
   const handleCreate = async () => {
     if (!creating?.device.trim() || !creating.issue.trim()) return;
@@ -87,6 +109,28 @@ export default function Tickets() {
     setTickets((ts) => ts.map((t) => (t.id === id ? { ...t, status } : t)));
     if (selected?.id === id) setSelected((s) => s && { ...s, status });
     await sbUpdateTicket(id, { status });
+  };
+
+  const handlePaid = async (payment: TicketPayment) => {
+    if (!payingTicket) return;
+    const payments = [...(payingTicket.payments || []), payment];
+    const { data } = await sbUpdateTicket(payingTicket.id, { payments });
+
+    if (data) {
+      setTickets((ts) => ts.map((t) => (t.id === data.id ? data : t)));
+      if (selected?.id === data.id) setSelected(data);
+      setPayingTicket(null);
+    }
+  };
+
+  const handleSaveSignature = async (dataUrl: string) => {
+    if (!selected) return;
+    const { data } = await sbUpdateTicket(selected.id, { signature: dataUrl });
+
+    if (data) {
+      setSelected(data);
+      setTickets((ts) => ts.map((t) => (t.id === data.id ? data : t)));
+    }
   };
 
   const handleAddNote = async () => {
@@ -144,9 +188,16 @@ export default function Tickets() {
       key: "actions",
       header: "",
       render: (t) => (
-        <Button isIconOnly aria-label="View ticket" variant="ghost" onPress={() => setSelected(t)}>
-          <Eye className="size-4" />
-        </Button>
+        <div className="flex justify-end gap-1">
+          {balanceDue(t) > 0 && (
+            <Button isIconOnly aria-label="Take payment" variant="ghost" onPress={() => setPayingTicket(t)}>
+              <CreditCard className="size-4" />
+            </Button>
+          )}
+          <Button isIconOnly aria-label="View ticket" variant="ghost" onPress={() => setSelected(t)}>
+            <Eye className="size-4" />
+          </Button>
+        </div>
       ),
     },
   ];
@@ -295,6 +346,15 @@ export default function Tickets() {
                       </Chip>
                       <Modal.Heading>{selected.device}</Modal.Heading>
                     </div>
+                    <Button
+                      variant="outline"
+                      onPress={() =>
+                        printBarcodeLabel({ value: String(selected.id), name: `${selected.device} ${selected.device_model}`.trim(), format: "CODE128" })
+                      }
+                    >
+                      <Printer className="size-4" />
+                      <span>Print Tag</span>
+                    </Button>
                     <Modal.CloseTrigger />
                   </Modal.Header>
                   <Modal.Body className="flex flex-col gap-4">
@@ -311,6 +371,24 @@ export default function Tickets() {
                         <span className="block text-micro font-bold uppercase text-muted">Issue</span>
                         <p className="m-0">{selected.issue}</p>
                       </div>
+                    </div>
+
+                    <div className="flex items-center justify-between rounded-2xl border border-border p-4">
+                      <div>
+                        <span className="block text-micro font-bold uppercase text-muted">Balance Due</span>
+                        <strong className="text-xl text-foreground">${balanceDue(selected).toFixed(2)}</strong>
+                        {(selected.payments || []).length > 0 && (
+                          <p className="m-0 mt-1 text-xs text-muted">
+                            {selected.payments.length} payment{selected.payments.length !== 1 ? "s" : ""} recorded
+                          </p>
+                        )}
+                      </div>
+                      {balanceDue(selected) > 0 && (
+                        <Button variant="primary" onPress={() => setPayingTicket(selected)}>
+                          <CreditCard className="size-4" />
+                          <span>Take Payment</span>
+                        </Button>
+                      )}
                     </div>
 
                     <div>
@@ -336,6 +414,8 @@ export default function Tickets() {
                         </Button>
                       </div>
                     </div>
+
+                    <SignaturePad label="Customer Pickup Signature" value={selected.signature} onSave={handleSaveSignature} />
                   </Modal.Body>
                 </>
               )}
@@ -343,6 +423,8 @@ export default function Tickets() {
           </Modal.Container>
         </Modal.Backdrop>
       </Modal>
+
+      <PaymentModal ticket={payingTicket} onClose={() => setPayingTicket(null)} onPaid={handlePaid} />
     </div>
   );
 }

@@ -2,13 +2,16 @@ import type { LucideIcon } from "lucide-react";
 
 import { useLocation, useNavigate } from "react-router-dom";
 import {
+  CalendarClock,
   CalendarDays,
   CloudCheck,
   CloudOff,
   Database,
   LayoutDashboard,
   LogOut,
+  Mail,
   Package,
+  Repeat,
   SlidersHorizontal,
   Ticket as TicketIcon,
   Users,
@@ -30,7 +33,10 @@ const NAV_ITEMS: NavItem[] = [
   { path: "/tickets", icon: TicketIcon, label: "Tickets" },
   { path: "/customers", icon: Users, label: "Customers" },
   { path: "/inventory", icon: Package, label: "Inventory" },
-  { path: "/bookings", icon: CalendarDays, label: "Bookings" },
+  { path: "/trade-in", icon: Repeat, label: "Trade-In" },
+  { path: "/calendar", icon: CalendarDays, label: "Calendar" },
+  { path: "/messages", icon: Mail, label: "Messages" },
+  { path: "/bookings", icon: CalendarClock, label: "Bookings" },
   { path: "/settings", icon: SlidersHorizontal, label: "Settings" },
 ];
 

@@ -18,19 +18,37 @@ reskin). It's being delivered in phases:
   Ticket** action that creates a linked NovaOps ticket from a booking
 - Supabase-account sign-in (same auth as the website's admin portal)
 
-**Phase 2 — not yet ported** (business logic preserved for reference under
-`legacy-nuxt-server/`, since none of it runs as-is on Vite):
-- Square Terminal payments, connection/device status, payouts
-- AfterPay checkout
-- Email fetching / sending
-- Trade-in device price lookup (Gemini)
-- PWA/offline support, Electron desktop shell
-- Barcode/QR generation, signature capture, house-call scheduling, driver
-  setup, calendar/forms tabs, command palette
+**Phase 2 — done:**
+- Square: card payments (Web Payments SDK), Terminal checkout + device
+  pairing, connection test, payment-readiness check, customers/orders/
+  payments/payouts history — all as Vercel serverless functions under `api/`
+  (ported from `legacy-nuxt-server/`, which is now just historical reference)
+- AfterPay checkout (demo flow — see `api/afterpay/checkout.js`) and
+  AfterPay-via-Square payment processing
+- **Take Payment** flow on Tickets (Cash / Card / Terminal / Afterpay tabs),
+  configured from Settings → Square Payments
+- Trade-in device valuation (`/trade-in`) — PriceCharting + Gemini-fallback
+  market pricing, the original condition/deduction pricing model, saved to
+  the existing `trade_ins` table
+- Barcode/QR label printing (Inventory items, ticket tags) and canvas
+  signature capture on ticket pickup
+- Calendar (`/calendar`) for `appointments` and `house_calls`
+- Messages (`/messages`) — Gmail sync (`api/fetch-emails`) and sending
+  (`api/send-email`, Gmail API → SMTP → store-only fallback chain)
+- Command palette (Cmd/Ctrl+K) searching tickets, customers, inventory, and
+  pages
+- PWA/offline app shell (installable, `vite-plugin-pwa`) — API/Supabase
+  calls are always network-only, never served stale
 
-Porting these means re-implementing each `legacy-nuxt-server/server/api/*`
-route as a Vercel serverless function (the same convention mobicare-business
-uses under `api/`), since Vite has no server runtime of its own.
+**Not ported** (out of scope for now — flag if you want these):
+- Electron desktop shell
+- Direct-to-USB thermal label/receipt printing (WebUSB) — labels still print
+  fine through a normal printer via the browser print dialog
+- Driver/vendor-repair setup dialogs, import tooling, keyboard-shortcuts
+  overlay, notifications panel, weather widget — smaller QoL pieces from the
+  old app not yet carried over
+
+See `.env.example` for every environment variable Phase 2 features read.
 
 ## Connecting to your website's Supabase project
 
@@ -52,6 +70,23 @@ To manage bookings from NovaOps:
 
 Without step 2, the Bookings page loads with zero rows (RLS denies silently,
 it doesn't error) — the in-app error message explains this too.
+
+## Payments (Square)
+
+Set `SQUARE_ACCESS_TOKEN` / `SQUARE_LOCATION_ID` / `SQUARE_APPLICATION_ID` as
+Vercel env vars, or configure them per-shop from Settings → Square Payments
+(stored in the browser, sent as request headers — no redeploy needed). Use
+Settings to pair a Terminal device and run "Check Payment Readiness" before
+taking a live payment.
+
+## Messages (Gmail sync)
+
+`api/fetch-emails` and `api/send-email` read Gmail OAuth tokens from the
+`social_connections` table (`platform = 'gmail'`) — connect that per-profile
+however your OAuth flow provisions it, then set `GOOGLE_CLIENT_ID` /
+`GOOGLE_CLIENT_SECRET` for token refresh. Without a Gmail connection,
+`send-email` falls back to `SMTP_HOST` / SendGrid / Resend / Mailgun, or
+stores the message without delivering it.
 
 ## Local development
 

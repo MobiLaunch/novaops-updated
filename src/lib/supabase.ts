@@ -1,8 +1,12 @@
 import type {
+  Appointment,
   BookingRecord,
   Customer,
+  HouseCall,
   InventoryItem,
+  Message,
   Ticket,
+  TradeIn,
 } from "@/types/domain";
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
@@ -167,6 +171,140 @@ export async function sbUpsertInventoryItem(
     .single();
 
   return { data: data as InventoryItem | null, error: error ? errMessage(error) : null };
+}
+
+// ─── Trade-ins ──────────────────────────────────────────────────────────────
+
+export async function sbFetchTradeIns(): Promise<{ data: TradeIn[] | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const { data, error } = await client.from("trade_ins").select("*").order("created_at", { ascending: false });
+
+  return { data: data as TradeIn[] | null, error: error ? errMessage(error) : null };
+}
+
+export async function sbCreateTradeIn(
+  patch: Partial<TradeIn>,
+): Promise<{ data: TradeIn | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const profileId = await currentUserId();
+  const row = { ...patch, profile_id: profileId };
+  const { data, error } = await client.from("trade_ins").insert(row).select().single();
+
+  return { data: data as TradeIn | null, error: error ? errMessage(error) : null };
+}
+
+export async function sbUpdateTradeIn(
+  id: number,
+  patch: Partial<TradeIn>,
+): Promise<{ data: TradeIn | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const { data, error } = await client.from("trade_ins").update(patch).eq("id", id).select().single();
+
+  return { data: data as TradeIn | null, error: error ? errMessage(error) : null };
+}
+
+// ─── Messages ───────────────────────────────────────────────────────────────
+
+export async function sbFetchMessages(): Promise<{ data: Message[] | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const { data, error } = await client.from("messages").select("*").order("created_at", { ascending: false });
+
+  return { data: data as Message[] | null, error: error ? errMessage(error) : null };
+}
+
+export async function sbCreateMessage(
+  patch: Partial<Message>,
+): Promise<{ data: Message | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const profileId = await currentUserId();
+  const { data, error } = await client.from("messages").insert({ ...patch, profile_id: profileId }).select().single();
+
+  return { data: data as Message | null, error: error ? errMessage(error) : null };
+}
+
+export async function sbMarkMessageRead(id: number): Promise<boolean> {
+  const client = getClient();
+
+  if (!client) return false;
+  const { error } = await client.from("messages").update({ read: true }).eq("id", id);
+
+  return !error;
+}
+
+export async function getCurrentProfileId(): Promise<string | null> {
+  return currentUserId();
+}
+
+// ─── Appointments & house calls ─────────────────────────────────────────────
+
+export async function sbFetchAppointments(): Promise<{ data: Appointment[] | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const { data, error } = await client.from("appointments").select("*").order("date", { ascending: true });
+
+  return { data: data as Appointment[] | null, error: error ? errMessage(error) : null };
+}
+
+export async function sbCreateAppointment(
+  patch: Partial<Appointment>,
+): Promise<{ data: Appointment | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const profileId = await currentUserId();
+  const { data, error } = await client.from("appointments").insert({ ...patch, profile_id: profileId }).select().single();
+
+  return { data: data as Appointment | null, error: error ? errMessage(error) : null };
+}
+
+export async function sbUpdateAppointment(id: number, patch: Partial<Appointment>): Promise<boolean> {
+  const client = getClient();
+
+  if (!client) return false;
+  const { error } = await client.from("appointments").update(patch).eq("id", id);
+
+  return !error;
+}
+
+export async function sbFetchHouseCalls(): Promise<{ data: HouseCall[] | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const { data, error } = await client.from("house_calls").select("*").order("date", { ascending: true });
+
+  return { data: data as HouseCall[] | null, error: error ? errMessage(error) : null };
+}
+
+export async function sbCreateHouseCall(
+  patch: Partial<HouseCall>,
+): Promise<{ data: HouseCall | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const profileId = await currentUserId();
+  const { data, error } = await client.from("house_calls").insert({ ...patch, profile_id: profileId }).select().single();
+
+  return { data: data as HouseCall | null, error: error ? errMessage(error) : null };
+}
+
+export async function sbUpdateHouseCall(id: number, patch: Partial<HouseCall>): Promise<boolean> {
+  const client = getClient();
+
+  if (!client) return false;
+  const { error } = await client.from("house_calls").update(patch).eq("id", id);
+
+  return !error;
 }
 
 // ─── Bookings (shared with mobicare-business) ──────────────────────────────

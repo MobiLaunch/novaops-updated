@@ -3,6 +3,8 @@ import { Outlet } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { Drawer } from "@heroui/react";
 
+import CommandPalette from "@/components/CommandPalette";
+
 import SidebarContent from "./SidebarContent";
 
 export default function AppLayout() {
@@ -42,6 +44,8 @@ export default function AppLayout() {
           <Outlet />
         </main>
       </div>
+
+      <CommandPalette />
     </div>
   );
 }

@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button, FieldError, InputGroup, Label, Modal, TextField } from "@heroui/react";
-import { Package, PackageX, Plus, TriangleAlert } from "lucide-react";
+import { Package, PackageX, Plus, Printer, TriangleAlert } from "lucide-react";
 
 import DataTable, { type DataTableColumn } from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
 import type { InventoryItem } from "@/types/domain";
 import { sbFetchInventory, sbUpsertInventoryItem } from "@/lib/supabase";
+import { printBarcodeLabel } from "@/lib/print";
 
 const emptyForm: Partial<InventoryItem> = {
   name: "",
@@ -18,6 +20,7 @@ const emptyForm: Partial<InventoryItem> = {
 };
 
 export default function Inventory() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<Partial<InventoryItem> | null>(null);
@@ -34,6 +37,18 @@ export default function Inventory() {
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    const openId = searchParams.get("open");
+
+    if (openId && items.length > 0) {
+      const match = items.find((i) => String(i.id) === openId);
+
+      if (match) setEditing(match);
+      searchParams.delete("open");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [items, searchParams, setSearchParams]);
 
   const handleSave = async () => {
     if (!editing?.name?.trim()) return;
@@ -78,9 +93,20 @@ export default function Inventory() {
       key: "actions",
       header: "",
       render: (i) => (
-        <Button size="sm" variant="ghost" onPress={() => setEditing(i)}>
-          Edit
-        </Button>
+        <div className="flex justify-end gap-1">
+          <Button
+            isIconOnly
+            aria-label="Print barcode label"
+            size="sm"
+            variant="ghost"
+            onPress={() => printBarcodeLabel({ value: i.sku || String(i.id), name: i.name, price: i.price, format: "CODE128" })}
+          >
+            <Printer className="size-4" />
+          </Button>
+          <Button size="sm" variant="ghost" onPress={() => setEditing(i)}>
+            Edit
+          </Button>
+        </div>
       ),
     },
   ];

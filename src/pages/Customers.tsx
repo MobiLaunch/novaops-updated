@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FieldError, InputGroup, Label, Modal, TextField } from "@heroui/react";
 import { Button, Chip } from "@heroui/react";
 import { Plus, UserRoundX, Users } from "lucide-react";
@@ -11,6 +12,7 @@ import { sbFetchCustomers, sbUpsertCustomer } from "@/lib/supabase";
 const emptyForm: Partial<Customer> = { name: "", phone: "", email: "", address: "", notes: "" };
 
 export default function Customers() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<Partial<Customer> | null>(null);
@@ -27,6 +29,18 @@ export default function Customers() {
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    const openId = searchParams.get("open");
+
+    if (openId && customers.length > 0) {
+      const match = customers.find((c) => String(c.id) === openId);
+
+      if (match) setEditing(match);
+      searchParams.delete("open");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [customers, searchParams, setSearchParams]);
 
   const handleSave = async () => {
     if (!editing?.name?.trim()) return;

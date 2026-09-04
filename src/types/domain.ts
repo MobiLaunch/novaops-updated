@@ -85,6 +85,83 @@ export interface InventoryItem {
   updated_at: string;
 }
 
+export interface TradeIn {
+  id: number;
+  profile_id: string;
+  customer_id: number | null;
+  brand: string;
+  model: string;
+  model_number: string;
+  imei: string;
+  storage: string;
+  color: string;
+  condition_grade: "Excellent" | "Good" | "Fair" | "Poor" | string;
+  age_years: number;
+  screen_condition: "Perfect" | "Minor Scratches" | "Cracked" | "Shattered" | string;
+  battery_health: number;
+  functional_issues: string[];
+  cosmetic_issues: string[];
+  accessories: string[];
+  icloud_locked: boolean;
+  frp_locked: boolean;
+  market_price: number | null;
+  repair_cost_est: number | null;
+  offer_price: number | null;
+  estimated_resale: number | null;
+  estimated_profit: number | null;
+  status: "Pending" | "Accepted" | "Declined" | "Completed" | string;
+  notes: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ScheduleStatus = "scheduled" | "confirmed" | "completed" | "cancelled" | "no-show";
+
+export interface Appointment {
+  id: number;
+  profile_id: string;
+  customer_id: number | null;
+  title: string;
+  description: string;
+  date: string | null;
+  time: string;
+  status: ScheduleStatus | string;
+  notes: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HouseCall {
+  id: number;
+  profile_id: string;
+  customer_id: number | null;
+  description: string;
+  address: string;
+  date: string | null;
+  time: string;
+  status: "scheduled" | "completed" | "cancelled" | string;
+  notes: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Message {
+  id: number;
+  profile_id: string;
+  customer_id: number | null;
+  customer_name: string;
+  customer_email: string;
+  channel: "email" | "sms" | "chat" | string;
+  direction: "inbound" | "outbound";
+  subject: string;
+  body: string;
+  ticket_id: number | null;
+  read: boolean;
+  delivered: boolean;
+  gmail_message_id?: string | null;
+  created_at: string;
+}
+
 // Shape of a row from the shared `bookings` table — owned and written by
 // mobicare-business's /api/create-booking serverless function. See
 // mobicare-business/src/types/domain.ts's BookingRecord for the canonical
