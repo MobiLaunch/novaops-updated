@@ -7,6 +7,10 @@ node_modules/
 dist/
 nuxi_error.log
 
+# Electron packaging output
+dist-electron/
+release/
+
 # Vercel
 .vercel
 

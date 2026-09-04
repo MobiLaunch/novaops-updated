@@ -79,6 +79,7 @@ reskin). It's being delivered in phases:
   Inventory/Messages/Bookings/Settings)
 - Notifications bell in the header: pending bookings, low-stock inventory,
   unread Gmail messages, unread customer chats — polls every 60s
+- **Electron desktop shell** (`electron/`) — see "Desktop app" below
 
 **Not ported** (out of scope for now — flag if you want these):
 - Direct-to-USB thermal label/receipt printing (WebUSB) — labels still print
@@ -156,6 +157,31 @@ Customer Chat finds it (RLS there scopes everything to
 "chat isn't configured yet" error instead of failing silently.
 
 Once that's set, merge the branch (or open a PR) to ship it.
+
+## Desktop app
+
+`electron/` wraps the app in a native window (custom titlebar, app icon,
+tray, menu) — it's a **thin wrapper around the deployed web app, not an
+offline bundle**. It loads `NOVAOPS_APP_URL` (your deployed URL in
+production, `http://localhost:5173` in dev) over HTTPS, the same way a
+browser tab would; it does not run the `/api/*` serverless functions
+locally. That's deliberate: those functions use `SUPABASE_SERVICE_ROLE_KEY`
+and your Square access token, and a distributed desktop binary can always be
+unpacked, so those secrets must never be bundled inside one — they stay
+server-side on Vercel, exactly as they are for the web app.
+
+```bash
+npm run electron:dev     # runs the Vite dev server + Electron together
+npm run electron:build   # packages an installer via electron-builder
+```
+
+Before running `electron:build`, either set `NOVAOPS_APP_URL` in your build
+environment or edit `DEFAULT_PROD_URL` in `electron/main.cjs` to your actual
+deployed URL. Packaging was validated by launching the app headlessly
+(Xvfb) in this session — the window/tray/menu wiring runs without errors —
+but installer output (`.dmg`/`.exe`/`.AppImage`) should be smoke-tested on
+each real target OS before distributing it, code-signing included; this
+container can't produce or verify signed platform installers.
 
 ## Local development
 
