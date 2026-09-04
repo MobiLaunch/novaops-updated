@@ -1,0 +1,79 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+
+/* Tailwind CSS v4 dark: variant configured for both [data-theme="dark"] and .dark */
+@custom-variant dark (&:is(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  --text-display: clamp(2.2rem, 5.5vw, 3.8rem);
+  --text-heading-xl: clamp(1.8rem, 4vw, 2.6rem);
+  --text-heading-lg: clamp(1.6rem, 3.5vw, 2.2rem);
+  --text-heading: clamp(1.2rem, 3vw, 1.6rem);
+  --text-heading-sm: clamp(1.1rem, 2.5vw, 1.4rem);
+  --text-body-lg: clamp(15px, 2vw, 19px);
+  --text-body: clamp(13px, 2vw, 15px);
+  --text-micro: 10px;
+  --text-caption: 11px;
+  --text-label: 13px;
+  --text-body-sm: 15px;
+}
+
+/* ─── Light Mode Theme Tokens — Violet/blue, matching NovaOps's original brand ─── */
+:root,
+[data-theme="light"],
+.light {
+  color-scheme: light;
+  --background: #F8F7FC;
+  --foreground: #1A1523;
+  --surface: #FFFFFF;
+  --surface-secondary: #F2F0FA;
+  --surface-tertiary: #E7E3F6;
+  --overlay: #FFFFFF;
+  --overlay-foreground: #1A1523;
+  --border: #DCD7EE;
+  --separator: #E5E1F4;
+  --muted: #6B6480;
+  --accent: #7C3AED; /* Violet */
+  --accent-foreground: #FFFFFF;
+  --accent-soft: rgba(124, 58, 237, 0.12);
+  --accent-soft-foreground: #7C3AED;
+  --link: #7C3AED;
+  --focus: #7C3AED;
+  --default: #ECEAF7;
+  --default-foreground: #1A1523;
+}
+
+/* ─── Dark Mode Theme Tokens ─── */
+[data-theme="dark"],
+.dark {
+  color-scheme: dark;
+  --background: #0E0B17;
+  --foreground: #F4F2FA;
+  --surface: #17122A;
+  --surface-secondary: #1F1938;
+  --surface-tertiary: #292148;
+  --overlay: #17122A;
+  --overlay-foreground: #F4F2FA;
+  --border: #2E2650;
+  --separator: #241D42;
+  --muted: #A39CBD;
+  --accent: #A78BFA; /* Bright violet */
+  --accent-foreground: #100B22;
+  --accent-soft: rgba(167, 139, 250, 0.18);
+  --accent-soft-foreground: #C4B5FD;
+  --link: #C4B5FD;
+  --focus: #A78BFA;
+  --default: #1F1938;
+  --default-foreground: #F4F2FA;
+}
+
+html,
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  -webkit-font-smoothing: antialiased;
+}
