@@ -83,6 +83,34 @@ reskin). It's being delivered in phases:
   unread Gmail messages, unread customer chats — polls every 60s
 - **Electron desktop shell** (`electron/`) — see "Desktop app" below
 
+**Phase 5 — done (bug fixes + UI pass):**
+- Fixed: `customers.tags`/`ticket.parts`/`ticket.notes`/`ticket.payments` are
+  jsonb array columns — several places read them with `x || []`, which only
+  falls back on falsy values, so a truthy non-array (e.g. a row from before
+  a schema change) reached `.map()`/`.reduce()` and threw with no error
+  boundary. This was the likely cause of the Customers tab going blank.
+  `src/lib/utils.ts`'s `asArray()` normalizes these everywhere they're read.
+- Fixed a double-asterisk bug on every required form field — the label had
+  a manual `" *"` on top of the one `TextField`'s `isRequired` already
+  renders.
+- Customers page is richer: search, avatars, a Tickets column and Lifetime
+  Value column, and a read-only detail modal (contact info, stat tiles,
+  full ticket history).
+- Dashboard is richer: stat cards now carry a secondary line of context,
+  plus Recent Tickets and Upcoming Schedule (appointments + house calls +
+  pending bookings merged) sections.
+- **Dark mode actually works now** — the full dark palette already existed
+  in `globals.css` but nothing ever switched to it. Added a light/dark/
+  system toggle in the header (and on Login) that persists to
+  `localStorage` and follows the OS live when set to "system".
+- Settings page uses a responsive 2-column grid instead of three cards
+  stacked in the left ~40% of the screen.
+- The header now shows the current page and a "Search… ⌘K" button that
+  opens the command palette — previously only reachable by knowing the
+  keyboard shortcut.
+- Customer chat is fully wired end-to-end — see "Customer chat: website
+  side" below.
+
 **Not ported** (out of scope for now — flag if you want these):
 - Direct-to-USB thermal label/receipt printing (WebUSB) — labels still print
   fine through a normal printer via the browser print dialog
