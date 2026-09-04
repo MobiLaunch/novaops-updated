@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button, FieldError, InputGroup, Label, Modal, TextField } from "@heroui/react";
-import { Package, PackageX, Plus, Printer, TriangleAlert } from "lucide-react";
+import { Package, PackageX, Plus, Printer, Search, TriangleAlert } from "lucide-react";
 
 import DataTable, { type DataTableColumn } from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
 import type { InventoryItem } from "@/types/domain";
 import { sbFetchInventory, sbUpsertInventoryItem } from "@/lib/supabase";
 import { printBarcodeLabel } from "@/lib/print";
+import { formatCurrency } from "@/lib/utils";
 
 const emptyForm: Partial<InventoryItem> = {
   name: "",
@@ -25,6 +26,7 @@ export default function Inventory() {
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<Partial<InventoryItem> | null>(null);
   const [saving, setSaving] = useState(false);
+  const [query, setQuery] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -66,6 +68,16 @@ export default function Inventory() {
     }
   };
 
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+
+    if (!q) return items;
+
+    return items.filter((i) => `${i.name} ${i.sku} ${i.category}`.toLowerCase().includes(q));
+  }, [items, query]);
+
+  const totalStockValue = items.reduce((sum, i) => sum + Number(i.price || 0) * Number(i.stock || 0), 0);
+
   const columns: DataTableColumn<InventoryItem>[] = [
     {
       key: "name",
@@ -88,7 +100,12 @@ export default function Inventory() {
         </span>
       ),
     },
-    { key: "price", header: "Price", render: (i) => <span className="text-sm">${Number(i.price).toFixed(2)}</span> },
+    { key: "price", header: "Price", render: (i) => <span className="text-sm">{formatCurrency(i.price)}</span> },
+    {
+      key: "value",
+      header: "Stock Value",
+      render: (i) => <span className="text-sm font-semibold text-success">{formatCurrency(Number(i.price || 0) * Number(i.stock || 0))}</span>,
+    },
     {
       key: "actions",
       header: "",
@@ -120,18 +137,31 @@ export default function Inventory() {
             <span>New Item</span>
           </Button>
         }
-        description={`${items.length} item${items.length !== 1 ? "s" : ""} tracked`}
+        description={`${items.length} item${items.length !== 1 ? "s" : ""} tracked · ${formatCurrency(totalStockValue)} in stock value`}
         eyebrow="Inventory"
         title="Parts & Stock"
       />
+
+      {items.length > 0 && (
+        <div className="relative mb-4 max-w-sm">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
+          <input
+            className="w-full rounded-full border border-border bg-surface py-2.5 pl-10 pr-4 text-sm outline-none focus:border-accent"
+            placeholder="Search by name, SKU, or category…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+      )}
+
       <DataTable
         ariaLabel="Inventory"
         columns={columns}
-        data={items}
+        data={filtered}
         emptyState={{
           icon: loading ? Package : PackageX,
-          title: loading ? "Loading inventory…" : "No inventory yet",
-          description: "Parts and stock items you add will show up here.",
+          title: loading ? "Loading inventory…" : query ? "No matches" : "No inventory yet",
+          description: query ? `No items match "${query}".` : "Parts and stock items you add will show up here.",
         }}
         rowKey={(i) => String(i.id)}
       />
