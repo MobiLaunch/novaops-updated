@@ -4,6 +4,8 @@ import { Menu } from "lucide-react";
 import { Drawer } from "@heroui/react";
 
 import CommandPalette from "@/components/CommandPalette";
+import KeyboardShortcutsOverlay from "@/components/KeyboardShortcutsOverlay";
+import NotificationsPanel from "@/components/NotificationsPanel";
 
 import SidebarContent from "./SidebarContent";
 
@@ -27,17 +29,20 @@ export default function AppLayout() {
       </Drawer>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-surface/80 px-3 py-2 backdrop-blur-xl sm:px-5 lg:hidden">
-          <button
-            aria-expanded={mobileOpen}
-            aria-label={mobileOpen ? "Close side menu" : "Open side menu"}
-            className="flex size-11 shrink-0 items-center justify-center rounded-full text-foreground transition-colors hover:bg-surface-secondary"
-            type="button"
-            onClick={() => setMobileOpen((open) => !open)}
-          >
-            <Menu aria-hidden="true" className="size-5" />
-          </button>
-          <strong>NovaOps</strong>
+        <header className="sticky top-0 z-30 flex min-h-16 items-center justify-between gap-3 border-b border-border bg-surface/80 px-3 py-2 backdrop-blur-xl sm:px-5 lg:px-6">
+          <div className="flex items-center gap-3">
+            <button
+              aria-expanded={mobileOpen}
+              aria-label={mobileOpen ? "Close side menu" : "Open side menu"}
+              className="flex size-11 shrink-0 items-center justify-center rounded-full text-foreground transition-colors hover:bg-surface-secondary lg:hidden"
+              type="button"
+              onClick={() => setMobileOpen((open) => !open)}
+            >
+              <Menu aria-hidden="true" className="size-5" />
+            </button>
+            <strong className="lg:hidden">NovaOps</strong>
+          </div>
+          <NotificationsPanel />
         </header>
 
         <main className="min-w-0 flex-1 px-3 py-4 pb-8 sm:px-5 sm:py-6 lg:px-6">
@@ -46,6 +51,7 @@ export default function AppLayout() {
       </div>
 
       <CommandPalette />
+      <KeyboardShortcutsOverlay />
     </div>
   );
 }

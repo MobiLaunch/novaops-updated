@@ -62,20 +62,29 @@ reskin). It's being delivered in phases:
   text parsing, not a real carrier integration — always double-check what it
   finds
 - **Customer Chat** — Messages → Customer Chat reads/replies to the new
-  `customer_messages` table (thread-per-customer, reply box included). The
-  POS side is fully wired; **the mobicare-business website doesn't have a
-  composer for it yet** — see "Customer chat: website side" below for
-  exactly what that needs
+  `customer_messages` table (thread-per-customer, reply box included). A
+  matching composer (Account → Messages) was added to mobicare-business on
+  branch `claude/customer-chat-widget` — not merged yet, and needs
+  `VITE_NOVAOPS_PROFILE_ID` set there before it actually delivers messages
+  (see "Customer chat: website side" below)
 - Reply capability in the Messages Inbox tab (opens a message, pre-fills
   "Re: " + the sender's address)
 
+**Phase 4 — done:**
+- CSV import (`/import`) for Customers and Inventory — customer rows are
+  matched by phone/email (safe to re-run), inventory rows are always added
+  as new
+- Keyboard shortcuts: `Ctrl/⌘+K` search, `?` for a cheat-sheet overlay,
+  `G` then a letter to jump to a page (Dashboard/Tickets/Customers/
+  Inventory/Messages/Bookings/Settings)
+- Notifications bell in the header: pending bookings, low-stock inventory,
+  unread Gmail messages, unread customer chats — polls every 60s
+
 **Not ported** (out of scope for now — flag if you want these):
-- Electron desktop shell
 - Direct-to-USB thermal label/receipt printing (WebUSB) — labels still print
   fine through a normal printer via the browser print dialog
-- Driver/vendor-repair setup dialogs, import tooling, keyboard-shortcuts
-  overlay, notifications panel, weather widget — smaller QoL pieces from the
-  old app not yet carried over
+- Driver/vendor-repair setup dialogs, weather widget — smaller QoL pieces
+  from the old app not yet carried over
 
 See `.env.example` for every environment variable Phase 2 features read.
 
@@ -131,29 +140,22 @@ as a best guess, not confirmed carrier data.
 
 ## Customer chat: website side
 
-Messages → Customer Chat on the POS reads and replies to a new
-`customer_messages` table (`supabase/migrations/20260905_customer_messages.sql`).
-That table exists now, and NovaOps can read/reply to it — but
-**mobicare-business has no composer for it yet**, so customers can't actually
-start a thread until that's built there. What it needs, in outline:
+Messages → Customer Chat on the POS reads and replies to
+`customer_messages` (`supabase/migrations/20260905_customer_messages.sql`).
+A composer now exists on the website too — mobicare-business, branch
+`claude/customer-chat-widget` (Account → Messages: chat-bubble thread + reply
+box, inserts as the signed-in customer). It's **pushed but not merged**, and
+needs one thing before it actually delivers messages to the shop:
 
-1. A small chat UI on the website (e.g. on the customer's Account page or a
-   booking/order detail view) that inserts a row into `customer_messages` as
-   the signed-in customer: `{ profile_id: <the shop's NovaOps auth uid>,
-   customer_user_id: auth.uid(), customer_name, customer_email, direction:
-   'inbound', body }`. RLS only allows a customer to insert as themselves
-   with `direction = 'inbound'`, and only lets them read rows where
-   `customer_user_id = auth.uid()`.
-2. `profile_id` has to be the shop's NovaOps account id (a fixed value for a
-   single-shop deployment — read it once with `sbFetchSupplierEmails`-style
-   query or just hardcode it via an env var on the website, e.g.
-   `VITE_NOVAOPS_PROFILE_ID`).
-3. Optionally poll or subscribe (Supabase Realtime) so a customer sees the
-   shop's replies without refreshing.
+Set `VITE_NOVAOPS_PROFILE_ID` in that repo's environment to the shop's
+NovaOps Supabase Auth user id (Supabase Dashboard → Authentication → Users →
+the account you sign into NovaOps with). Every message the website sends
+gets stamped with this as `profile_id`, which is how NovaOps's Messages →
+Customer Chat finds it (RLS there scopes everything to
+`profile_id = auth.uid()`). Without it, sending shows a clear
+"chat isn't configured yet" error instead of failing silently.
 
-I didn't build this because it means changing the mobicare-business repo,
-which wasn't part of this session's scope — say the word and I'll do it next
-(need push access to that repo).
+Once that's set, merge the branch (or open a PR) to ship it.
 
 ## Local development
 

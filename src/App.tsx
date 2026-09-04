@@ -6,6 +6,7 @@ import Bookings from "@/pages/Bookings";
 import CalendarPage from "@/pages/Calendar";
 import Customers from "@/pages/Customers";
 import Dashboard from "@/pages/Dashboard";
+import Import from "@/pages/Import";
 import Inventory from "@/pages/Inventory";
 import Login from "@/pages/Login";
 import Messages from "@/pages/Messages";
@@ -33,6 +34,7 @@ export default function App() {
         <Route element={<CalendarPage />} path="/calendar" />
         <Route element={<Messages />} path="/messages" />
         <Route element={<Bookings />} path="/bookings" />
+        <Route element={<Import />} path="/import" />
         <Route element={<Settings />} path="/settings" />
       </Route>
       <Route element={<Navigate replace to="/dashboard" />} path="*" />
