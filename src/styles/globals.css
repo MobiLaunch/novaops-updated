@@ -18,53 +18,53 @@
   --text-body-sm: 15px;
 }
 
-/* ─── Light Mode Theme Tokens — Violet/blue, matching NovaOps's original brand ─── */
+/* ─── Light Mode Theme Tokens — default HeroUI v3 palette (neutral gray/white + blue accent) ─── */
 :root,
 [data-theme="light"],
 .light {
   color-scheme: light;
-  --background: #F8F7FC;
-  --foreground: #1A1523;
+  --background: oklch(0.9702 0 0);
+  --foreground: oklch(0.2103 0.0059 285.89);
   --surface: #FFFFFF;
-  --surface-secondary: #F2F0FA;
-  --surface-tertiary: #E7E3F6;
+  --surface-secondary: oklch(0.9524 0.0013 286.37);
+  --surface-tertiary: oklch(0.9373 0.0013 286.37);
   --overlay: #FFFFFF;
-  --overlay-foreground: #1A1523;
-  --border: #DCD7EE;
-  --separator: #E5E1F4;
-  --muted: #6B6480;
-  --accent: #7C3AED; /* Violet */
-  --accent-foreground: #FFFFFF;
-  --accent-soft: rgba(124, 58, 237, 0.12);
-  --accent-soft-foreground: #7C3AED;
-  --link: #7C3AED;
-  --focus: #7C3AED;
-  --default: #ECEAF7;
-  --default-foreground: #1A1523;
+  --overlay-foreground: oklch(0.2103 0.0059 285.89);
+  --border: oklch(90% 0.004 286.32);
+  --separator: oklch(92% 0.004 286.32);
+  --muted: oklch(0.5517 0.0138 285.94);
+  --accent: oklch(0.6204 0.195 253.83); /* HeroUI default blue */
+  --accent-foreground: oklch(0.9911 0 0);
+  --accent-soft: color-mix(in oklab, var(--accent) 15%, transparent);
+  --accent-soft-foreground: color-mix(in oklab, var(--accent) 70%, var(--foreground) 30%);
+  --link: var(--foreground);
+  --focus: var(--accent);
+  --default: oklch(94% 0.001 286.375);
+  --default-foreground: oklch(0.2103 0.0059 285.89);
 }
 
-/* ─── Dark Mode Theme Tokens ─── */
+/* ─── Dark Mode Theme Tokens — default HeroUI v3 palette ─── */
 [data-theme="dark"],
 .dark {
   color-scheme: dark;
-  --background: #0E0B17;
-  --foreground: #F4F2FA;
-  --surface: #17122A;
-  --surface-secondary: #1F1938;
-  --surface-tertiary: #292148;
-  --overlay: #17122A;
-  --overlay-foreground: #F4F2FA;
-  --border: #2E2650;
-  --separator: #241D42;
-  --muted: #A39CBD;
-  --accent: #A78BFA; /* Bright violet */
-  --accent-foreground: #100B22;
-  --accent-soft: rgba(167, 139, 250, 0.18);
-  --accent-soft-foreground: #C4B5FD;
-  --link: #C4B5FD;
-  --focus: #A78BFA;
-  --default: #1F1938;
-  --default-foreground: #F4F2FA;
+  --background: oklch(12% 0.005 285.823);
+  --foreground: oklch(0.9911 0 0);
+  --surface: oklch(0.2103 0.0059 285.89);
+  --surface-secondary: oklch(0.257 0.0037 286.14);
+  --surface-tertiary: oklch(0.2721 0.0024 247.91);
+  --overlay: oklch(0.2103 0.0059 285.89);
+  --overlay-foreground: oklch(0.9911 0 0);
+  --border: oklch(28% 0.006 286.033);
+  --separator: oklch(25% 0.006 286.033);
+  --muted: oklch(70.5% 0.015 286.067);
+  --accent: oklch(0.6204 0.195 253.83); /* HeroUI default blue */
+  --accent-foreground: oklch(0.9911 0 0);
+  --accent-soft: color-mix(in oklab, var(--accent) 12%, transparent);
+  --accent-soft-foreground: color-mix(in oklab, var(--accent) 80%, var(--foreground) 30%);
+  --link: var(--foreground);
+  --focus: var(--accent);
+  --default: oklch(27.4% 0.006 286.033);
+  --default-foreground: oklch(0.9911 0 0);
 }
 
 html,
@@ -76,4 +76,23 @@ body {
   padding: 0;
   transition: background-color 0.2s ease, color 0.2s ease;
   -webkit-font-smoothing: antialiased;
+}
+
+/* A wizard-style page (e.g. POS) remounts its step content by key when
+   moving forward/back — this makes that swap read as a deliberate "morph"
+   into the next phase instead of an instant, jarring cut. */
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.step-transition {
+  animation: step-in 0.22s ease-out;
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, ListBox, Select } from "@heroui/react";
 import {
+  ArrowLeft,
   Banknote,
   CheckCheck,
   CircleAlert,
@@ -12,7 +13,6 @@ import {
   ShoppingCart,
   Ticket as TicketIcon,
   Trash2,
-  Wrench,
   X,
 } from "lucide-react";
 
@@ -49,6 +49,8 @@ interface SaleResult {
   customerName?: string;
 }
 
+type Step = "shop" | "checkout";
+
 export default function POS() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -56,6 +58,7 @@ export default function POS() {
   const [shopSettings, setShopSettings] = useState<ShopSettings | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const [step, setStep] = useState<Step>("shop");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [cart, setCart] = useState<CartLine[]>([]);
@@ -166,6 +169,7 @@ export default function POS() {
     setSelectedCustomerId(null);
   };
 
+  const cartCount = cart.reduce((sum, l) => sum + l.quantity, 0);
   const subtotal = cart.reduce((sum, l) => sum + l.price * l.quantity, 0);
   const taxRate = Number(shopSettings?.tax_rate || 0);
   const taxAmount = subtotal * (taxRate / 100);
@@ -301,6 +305,7 @@ export default function POS() {
     setSaleResult({ id: sale.id, amount: total, method: payment.method, customerName: customer?.name });
     setCheckoutOpen(false);
     clearCart();
+    setStep("shop");
 
     return true;
   };
@@ -324,10 +329,39 @@ export default function POS() {
   return (
     <div>
       <PageHeader
-        description={`${inventory.length} item${inventory.length !== 1 ? "s" : ""} in catalog · scan a barcode or tap to add`}
+        description={
+          step === "shop"
+            ? `${inventory.length} item${inventory.length !== 1 ? "s" : ""} in catalog · scan a barcode or tap to add`
+            : "Review the sale, then charge it"
+        }
         eyebrow="Register"
         title="Point of Sale"
       />
+
+      {/* Step indicator */}
+      <div className="mb-4 flex items-center gap-2 text-sm font-bold">
+        <span className={`flex items-center gap-2 ${step === "shop" ? "text-accent" : "text-muted"}`}>
+          <span
+            className={`flex size-6 items-center justify-center rounded-full text-xs ${
+              step === "shop" ? "bg-accent text-accent-foreground" : "bg-surface-tertiary"
+            }`}
+          >
+            1
+          </span>
+          Shop
+        </span>
+        <span className="h-px w-6 bg-border" />
+        <span className={`flex items-center gap-2 ${step === "checkout" ? "text-accent" : "text-muted"}`}>
+          <span
+            className={`flex size-6 items-center justify-center rounded-full text-xs ${
+              step === "checkout" ? "bg-accent text-accent-foreground" : "bg-surface-tertiary"
+            }`}
+          >
+            2
+          </span>
+          Review &amp; Pay
+        </span>
+      </div>
 
       {scanFeedback && (
         <div
@@ -340,9 +374,8 @@ export default function POS() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-        {/* Products */}
-        <section className="flex flex-col gap-3 lg:col-span-5">
+      {step === "shop" ? (
+        <div key="shop" className="step-transition flex flex-col gap-3">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
             <input
@@ -379,33 +412,42 @@ export default function POS() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {filteredInventory.map((item) => (
-              <button
-                key={item.id}
-                className="flex flex-col items-start gap-2 rounded-2xl border border-border bg-surface p-3 text-left transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"
-                type="button"
-                onClick={() => addInventoryToCart(item)}
-              >
-                <div className="flex w-full items-start justify-between">
-                  <span className="flex size-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
-                    <Package className="size-4" />
-                  </span>
-                  <span
-                    className={`rounded px-1.5 py-0.5 text-[10px] font-black ${
-                      item.stock <= item.low ? "bg-warning/15 text-warning" : "bg-surface-tertiary text-muted"
-                    }`}
-                  >
-                    {item.stock}
-                  </span>
-                </div>
-                <div className="min-w-0">
-                  <strong className="block truncate text-sm leading-tight text-foreground">{item.name}</strong>
-                  <span className="block truncate text-xs text-muted">{item.sku || item.category}</span>
-                </div>
-                <strong className="text-sm text-accent">{formatCurrency(item.price)}</strong>
-              </button>
-            ))}
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {filteredInventory.map((item) => {
+              const line = cart.find((l) => l.kind === "inventory" && l.inventoryId === item.id);
+
+              return (
+                <button
+                  key={item.id}
+                  className="relative flex flex-col items-start gap-2 rounded-2xl border border-border bg-surface p-3 text-left transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md"
+                  type="button"
+                  onClick={() => addInventoryToCart(item)}
+                >
+                  {line && (
+                    <span className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-accent text-[10px] font-black text-accent-foreground">
+                      {line.quantity}
+                    </span>
+                  )}
+                  <div className="flex w-full items-start justify-between">
+                    <span className="flex size-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
+                      <Package className="size-4" />
+                    </span>
+                    <span
+                      className={`rounded px-1.5 py-0.5 text-[10px] font-black ${
+                        item.stock <= item.low ? "bg-warning/15 text-warning" : "bg-surface-tertiary text-muted"
+                      }`}
+                    >
+                      {item.stock}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <strong className="block truncate text-sm leading-tight text-foreground">{item.name}</strong>
+                    <span className="block truncate text-xs text-muted">{item.sku || item.category}</span>
+                  </div>
+                  <strong className="text-sm text-accent">{formatCurrency(item.price)}</strong>
+                </button>
+              );
+            })}
           </div>
 
           {!loading && filteredInventory.length === 0 && (
@@ -414,149 +456,175 @@ export default function POS() {
               <p className="m-0 text-sm text-muted">{query ? `No results for "${query}"` : "No inventory yet — add some in Inventory."}</p>
             </div>
           )}
-        </section>
 
-        {/* Cart */}
-        <section className="flex flex-col lg:col-span-3">
-          <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface">
-            <div className="flex items-center gap-2 border-b border-border bg-accent-soft/40 px-4 py-3">
-              <ShoppingCart className="size-4 text-accent" />
-              <span className="flex-1 text-sm font-black text-foreground">Current Sale</span>
-              {cart.length > 0 && (
-                <Button isIconOnly aria-label="Clear cart" size="sm" variant="ghost" onPress={clearCart}>
-                  <Trash2 className="size-4 text-danger" />
+          {/* Other ways to add to the sale — a ticket's balance, or a
+              one-off charge with no catalog item behind it. */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-border bg-surface p-4">
+              <span className="mb-2 block text-micro font-bold uppercase text-muted">Add a ticket balance</span>
+              <Select
+                placeholder={ticketsWithBalance.length ? "Select an open ticket…" : "No tickets with a balance due"}
+                selectedKey={null}
+                onSelectionChange={(key) => key && addTicketToCart(String(key))}
+              >
+                <Select.Trigger>
+                  <Select.Value />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox>
+                    {ticketsWithBalance.map((t) => (
+                      <ListBox.Item key={t.id} id={String(t.id)}>
+                        #{t.id} — {t.device} {t.device_model} · {formatCurrency(ticketBalanceDue(t))} due
+                      </ListBox.Item>
+                    ))}
+                  </ListBox>
+                </Select.Popover>
+              </Select>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-surface p-4">
+              <span className="mb-2 block text-micro font-bold uppercase text-muted">Custom amount</span>
+              <div className="flex gap-2">
+                <input
+                  className="flex-1 rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
+                  min="0"
+                  step="0.01"
+                  type="number"
+                  value={(Number(customCents) / 100).toFixed(2)}
+                  onChange={(e) => setCustomCents(String(Math.round(Number(e.target.value) * 100) || 0))}
+                />
+                <Button isDisabled={Number(customCents) <= 0} variant="outline" onPress={addCustomToCart}>
+                  <Plus className="size-4" />
+                  <span>Add</span>
                 </Button>
-              )}
+              </div>
             </div>
+          </div>
+        </div>
+      ) : (
+        <div key="checkout" className="step-transition flex flex-col gap-3">
+          <Button className="self-start" size="sm" variant="ghost" onPress={() => setStep("shop")}>
+            <ArrowLeft className="size-4" />
+            <span>Back to Shop</span>
+          </Button>
 
-            <div className="flex max-h-[360px] flex-col gap-1 overflow-y-auto p-2">
-              {cart.length === 0 ? (
-                <div className="flex flex-col items-center gap-2 p-8 text-center text-muted">
-                  <ShoppingCart className="size-8" />
-                  <p className="m-0 text-sm font-semibold">Cart is empty</p>
-                  <p className="m-0 text-xs">Tap a product or scan a barcode</p>
-                </div>
-              ) : (
-                cart.map((line) => (
-                  <div key={line.key} className="flex items-center gap-2 rounded-xl p-2 text-sm hover:bg-surface-secondary/60">
-                    <span
-                      className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${
-                        line.kind === "ticket" ? "bg-warning/15 text-warning" : "bg-accent-soft text-accent"
-                      }`}
-                    >
-                      {line.kind === "ticket" ? <TicketIcon className="size-4" /> : <Package className="size-4" />}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-xs font-bold text-foreground">{line.name}</div>
-                      <div className="text-[10px] text-muted">{formatCurrency(line.price)} ea.</div>
-                    </div>
-                    {line.kind === "inventory" ? (
-                      <div className="flex shrink-0 items-center gap-0.5 rounded-lg bg-surface-secondary px-1">
-                        <Button isIconOnly aria-label="Decrease quantity" size="sm" variant="ghost" onPress={() => decrementLine(line.key)}>
-                          <Minus className="size-3" />
-                        </Button>
-                        <span className="min-w-4 text-center text-xs font-bold">{line.quantity}</span>
-                        <Button isIconOnly aria-label="Increase quantity" size="sm" variant="ghost" onPress={() => incrementLine(line.key)}>
-                          <Plus className="size-3" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button isIconOnly aria-label={`Remove ${line.name}`} size="sm" variant="ghost" onPress={() => removeLine(line.key)}>
-                        <X className="size-3.5 text-danger" />
-                      </Button>
-                    )}
-                    <span className="w-14 shrink-0 text-right text-xs font-black text-accent">{formatCurrency(line.price * line.quantity)}</span>
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+            {/* Cart */}
+            <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface">
+              <div className="flex items-center gap-2 border-b border-border bg-accent-soft/40 px-4 py-3">
+                <ShoppingCart className="size-4 text-accent" />
+                <span className="flex-1 text-sm font-black text-foreground">Current Sale</span>
+                {cart.length > 0 && (
+                  <Button isIconOnly aria-label="Clear cart" size="sm" variant="ghost" onPress={clearCart}>
+                    <Trash2 className="size-4 text-danger" />
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex max-h-[360px] flex-col gap-1 overflow-y-auto p-2">
+                {cart.length === 0 ? (
+                  <div className="flex flex-col items-center gap-2 p-8 text-center text-muted">
+                    <ShoppingCart className="size-8" />
+                    <p className="m-0 text-sm font-semibold">Cart is empty</p>
+                    <p className="m-0 text-xs">Go back and tap a product or scan a barcode</p>
                   </div>
-                ))
-              )}
-            </div>
-
-            <div className="border-t border-border bg-surface-secondary/30 p-3">
-              <div className="flex items-center justify-between text-xs text-muted">
-                <span>Subtotal</span>
-                <span>{formatCurrency(subtotal)}</span>
+                ) : (
+                  cart.map((line) => (
+                    <div key={line.key} className="flex items-center gap-2 rounded-xl p-2 text-sm hover:bg-surface-secondary/60">
+                      <span
+                        className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${
+                          line.kind === "ticket" ? "bg-warning/15 text-warning" : "bg-accent-soft text-accent"
+                        }`}
+                      >
+                        {line.kind === "ticket" ? <TicketIcon className="size-4" /> : <Package className="size-4" />}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-xs font-bold text-foreground">{line.name}</div>
+                        <div className="text-[10px] text-muted">{formatCurrency(line.price)} ea.</div>
+                      </div>
+                      {line.kind === "inventory" ? (
+                        <div className="flex shrink-0 items-center gap-0.5 rounded-lg bg-surface-secondary px-1">
+                          <Button isIconOnly aria-label="Decrease quantity" size="sm" variant="ghost" onPress={() => decrementLine(line.key)}>
+                            <Minus className="size-3" />
+                          </Button>
+                          <span className="min-w-4 text-center text-xs font-bold">{line.quantity}</span>
+                          <Button isIconOnly aria-label="Increase quantity" size="sm" variant="ghost" onPress={() => incrementLine(line.key)}>
+                            <Plus className="size-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button isIconOnly aria-label={`Remove ${line.name}`} size="sm" variant="ghost" onPress={() => removeLine(line.key)}>
+                          <X className="size-3.5 text-danger" />
+                        </Button>
+                      )}
+                      <span className="w-14 shrink-0 text-right text-xs font-black text-accent">{formatCurrency(line.price * line.quantity)}</span>
+                    </div>
+                  ))
+                )}
               </div>
-              {taxRate > 0 && (
+
+              <div className="border-t border-border bg-surface-secondary/30 p-3">
                 <div className="flex items-center justify-between text-xs text-muted">
-                  <span>Tax ({taxRate}%)</span>
-                  <span>{formatCurrency(taxAmount)}</span>
+                  <span>Subtotal</span>
+                  <span>{formatCurrency(subtotal)}</span>
                 </div>
-              )}
-              <div className="mt-1.5 flex items-center justify-between border-t border-border pt-1.5">
-                <span className="text-sm font-black text-foreground">Total</span>
-                <span className="text-lg font-black text-accent">{formatCurrency(total)}</span>
+                {taxRate > 0 && (
+                  <div className="flex items-center justify-between text-xs text-muted">
+                    <span>Tax ({taxRate}%)</span>
+                    <span>{formatCurrency(taxAmount)}</span>
+                  </div>
+                )}
+                <div className="mt-1.5 flex items-center justify-between border-t border-border pt-1.5">
+                  <span className="text-sm font-black text-foreground">Total</span>
+                  <span className="text-lg font-black text-accent">{formatCurrency(total)}</span>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
 
-        {/* Checkout */}
-        <section className="flex flex-col gap-3 lg:col-span-4">
-          <div className="rounded-2xl border border-border bg-surface p-4">
-            <span className="mb-2 block text-micro font-bold uppercase text-muted">Customer (optional)</span>
-            <Select placeholder="Walk-in" selectedKey={selectedCustomerId} onSelectionChange={(key) => setSelectedCustomerId(key ? String(key) : null)}>
-              <Select.Trigger>
-                <Select.Value />
-              </Select.Trigger>
-              <Select.Popover>
-                <ListBox>
-                  {customers.map((c) => (
-                    <ListBox.Item key={c.id} id={String(c.id)}>
-                      {c.name}
-                    </ListBox.Item>
-                  ))}
-                </ListBox>
-              </Select.Popover>
-            </Select>
-          </div>
+            {/* Sale details */}
+            <div className="flex flex-col gap-3">
+              <div className="rounded-2xl border border-border bg-surface p-4">
+                <span className="mb-2 block text-micro font-bold uppercase text-muted">Customer (optional)</span>
+                <Select placeholder="Walk-in" selectedKey={selectedCustomerId} onSelectionChange={(key) => setSelectedCustomerId(key ? String(key) : null)}>
+                  <Select.Trigger>
+                    <Select.Value />
+                  </Select.Trigger>
+                  <Select.Popover>
+                    <ListBox>
+                      {customers.map((c) => (
+                        <ListBox.Item key={c.id} id={String(c.id)}>
+                          {c.name}
+                        </ListBox.Item>
+                      ))}
+                    </ListBox>
+                  </Select.Popover>
+                </Select>
+              </div>
 
-          <div className="rounded-2xl border border-border bg-surface p-4">
-            <span className="mb-2 block text-micro font-bold uppercase text-muted">Add a ticket balance</span>
-            <Select
-              placeholder={ticketsWithBalance.length ? "Select an open ticket…" : "No tickets with a balance due"}
-              selectedKey={null}
-              onSelectionChange={(key) => key && addTicketToCart(String(key))}
-            >
-              <Select.Trigger>
-                <Select.Value />
-              </Select.Trigger>
-              <Select.Popover>
-                <ListBox>
-                  {ticketsWithBalance.map((t) => (
-                    <ListBox.Item key={t.id} id={String(t.id)}>
-                      #{t.id} — {t.device} {t.device_model} · {formatCurrency(ticketBalanceDue(t))} due
-                    </ListBox.Item>
-                  ))}
-                </ListBox>
-              </Select.Popover>
-            </Select>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-surface p-4">
-            <span className="mb-2 block text-micro font-bold uppercase text-muted">Custom amount</span>
-            <div className="flex gap-2">
-              <input
-                className="flex-1 rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
-                min="0"
-                step="0.01"
-                type="number"
-                value={(Number(customCents) / 100).toFixed(2)}
-                onChange={(e) => setCustomCents(String(Math.round(Number(e.target.value) * 100) || 0))}
-              />
-              <Button isDisabled={Number(customCents) <= 0} variant="outline" onPress={addCustomToCart}>
-                <Plus className="size-4" />
-                <span>Add</span>
-              </Button>
+              <p className="m-0 text-xs text-muted">
+                Need to add another item or a ticket balance? <button className="font-bold text-accent underline-offset-2 hover:underline" type="button" onClick={() => setStep("shop")}>Go back to Shop</button>.
+              </p>
             </div>
           </div>
+        </div>
+      )}
 
-          <div className="flex-1" />
-
+      {/* Sticky action card — stays reachable at the bottom of the scroll
+          area so the primary action never disappears off a small screen. */}
+      <div className="sticky bottom-4 z-30 mt-4 rounded-2xl border border-border bg-surface/95 p-3 shadow-lg backdrop-blur">
+        {step === "shop" ? (
+          <Button fullWidth isDisabled={cart.length === 0} size="lg" variant="primary" onPress={() => setStep("checkout")}>
+            <ShoppingCart className="size-4" />
+            <span>
+              {cart.length === 0 ? "Add items to cart" : `Review Cart (${cartCount}) — ${formatCurrency(total)}`}
+            </span>
+          </Button>
+        ) : (
           <Button fullWidth isDisabled={cart.length === 0} size="lg" variant="primary" onPress={() => setCheckoutOpen(true)}>
             <Banknote className="size-4" />
-            <span>{cart.length === 0 ? "Add items to cart" : `Charge ${formatCurrency(total)}`}</span>
+            <span>{cart.length === 0 ? "Cart is empty" : `Charge ${formatCurrency(total)}`}</span>
           </Button>
-        </section>
+        )}
       </div>
 
       <PaymentModal
