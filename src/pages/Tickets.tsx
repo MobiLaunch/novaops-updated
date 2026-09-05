@@ -34,7 +34,8 @@ import {
   sbUpdateTicket,
 } from "@/lib/supabase";
 import { printBarcodeLabel } from "@/lib/print";
-import { asArray, ticketBalanceDue } from "@/lib/utils";
+import { toastWriteFailed } from "@/lib/toast";
+import { asArray, parseDateOnly, startOfToday, ticketBalanceDue } from "@/lib/utils";
 
 const STATUSES: TicketStatus[] = ["Open", "In Progress", "Waiting for Parts", "Completed", "Delivered"];
 const STATUS_STYLES: Record<string, string> = {
@@ -138,12 +139,21 @@ export default function Tickets() {
     }
   };
 
+  // Status drives a customer-facing email, so the write lands before
+  // anything else moves: no optimistic flash to undo, and no way to notify
+  // a customer about a change the database rejected.
   const handleStatusChange = async (id: number, status: string) => {
     const ticket = tickets.find((t) => t.id === id);
+    const { error } = await sbUpdateTicket(id, { status });
+
+    if (error) {
+      toastWriteFailed(`ticket #${id}`, error);
+
+      return;
+    }
 
     setTickets((ts) => ts.map((t) => (t.id === id ? { ...t, status } : t)));
     if (selected?.id === id) setSelected((s) => s && { ...s, status });
-    await sbUpdateTicket(id, { status });
 
     if (ticket && shopSettings?.notify_on_status_change) {
       await notifyCustomerOfStatusChange(ticket, status);
@@ -188,14 +198,16 @@ export default function Tickets() {
   };
 
   const applyTicketPatch = async (id: number, patch: Partial<Ticket>) => {
-    setTickets((ts) => ts.map((t) => (t.id === id ? { ...t, ...patch } : t)));
-    if (selected?.id === id) setSelected((s) => s && { ...s, ...patch });
-    const { data } = await sbUpdateTicket(id, patch);
+    const { data, error } = await sbUpdateTicket(id, patch);
 
-    if (data) {
-      setTickets((ts) => ts.map((t) => (t.id === id ? data : t)));
-      if (selected?.id === id) setSelected(data);
+    if (!data) {
+      toastWriteFailed(`ticket #${id}`, error);
+
+      return;
     }
+
+    setTickets((ts) => ts.map((t) => (t.id === id ? data : t)));
+    if (selected?.id === id) setSelected(data);
   };
 
   const handleDueDateChange = (id: number, dueDate: string) => applyTicketPatch(id, { due_date: dueDate || null });
@@ -318,8 +330,10 @@ export default function Tickets() {
       key: "due",
       header: "Due",
       render: (t) => {
-        if (!t.due_date) return <span className="text-sm text-muted">—</span>;
-        const overdue = new Date(t.due_date) < new Date(new Date().toDateString()) && t.status !== "Completed" && t.status !== "Delivered";
+        const due = parseDateOnly(t.due_date);
+
+        if (!due) return <span className="text-sm text-muted">—</span>;
+        const overdue = due < startOfToday() && t.status !== "Completed" && t.status !== "Delivered";
 
         return <span className={`text-sm ${overdue ? "font-semibold text-danger" : "text-foreground"}`}>{t.due_date}</span>;
       },

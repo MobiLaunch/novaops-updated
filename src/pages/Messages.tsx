@@ -30,6 +30,7 @@ import {
   sbReplyToCustomerThread,
   sbUpdateShipmentStatus,
 } from "@/lib/supabase";
+import { toastWriteFailed } from "@/lib/toast";
 
 const emptyCompose = { to: "", subject: "", body: "" };
 const SHIPMENT_STATUSES = ["in_transit", "delivered", "assigned", "archived"];
@@ -163,16 +164,26 @@ export default function Messages() {
     });
   };
 
+  // Commit only once the write lands, so a rejected change never sits on
+  // screen looking saved.
   const handleShipmentStatus = async (id: number, status: string) => {
+    if (!(await sbUpdateShipmentStatus(id, status))) {
+      toastWriteFailed("this shipment");
+
+      return;
+    }
     setShipments((ss) => ss.map((s) => (s.id === id ? { ...s, status } : s)));
-    await sbUpdateShipmentStatus(id, status);
   };
 
   const handleAssignShipment = async (id: number, ticketId: string) => {
     const ticket_id = ticketId ? Number(ticketId) : null;
 
+    if (!(await sbAssignShipmentToTicket(id, ticket_id))) {
+      toastWriteFailed("this parts-order assignment");
+
+      return;
+    }
     setShipments((ss) => ss.map((s) => (s.id === id ? { ...s, ticket_id, status: ticket_id ? "assigned" : "in_transit" } : s)));
-    await sbAssignShipmentToTicket(id, ticket_id);
   };
 
   const chatThreads = Object.values(

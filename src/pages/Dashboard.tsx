@@ -27,7 +27,7 @@ import {
   sbFetchMessages,
   sbFetchTickets,
 } from "@/lib/supabase";
-import { formatCurrency, timeAgo } from "@/lib/utils";
+import { formatCurrency, parseDateOnly, startOfToday, timeAgo } from "@/lib/utils";
 
 const STATUS_STYLES: Record<string, string> = {
   Open: "bg-accent-soft text-accent",
@@ -87,9 +87,7 @@ export default function Dashboard() {
   );
 
   const upcomingSchedule = useMemo(() => {
-    const today = new Date();
-
-    today.setHours(0, 0, 0, 0);
+    const today = startOfToday();
 
     const entries: ScheduleEntry[] = [
       ...appointments.map((a) => ({ key: `apt-${a.id}`, kind: "appointment" as const, title: a.title || "Appointment", date: a.date || "", time: a.time || "" })),
@@ -104,7 +102,11 @@ export default function Dashboard() {
     ];
 
     return entries
-      .filter((e) => e.date && new Date(e.date) >= today)
+      .filter((e) => {
+        const date = parseDateOnly(e.date);
+
+        return date !== null && date >= today;
+      })
       .sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`))
       .slice(0, 6);
   }, [appointments, houseCalls, pendingBookings]);

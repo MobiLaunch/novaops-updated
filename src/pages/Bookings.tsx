@@ -12,6 +12,7 @@ import {
   sbFetchBookings,
   sbUpdateBookingStatus,
 } from "@/lib/supabase";
+import { toastWriteFailed } from "@/lib/toast";
 
 // Reads the same `bookings` table the Mobicare website's booking widget
 // writes to (via its /api/create-booking function) — this is the "connect
@@ -51,10 +52,17 @@ export default function Bookings() {
     load();
   }, []);
 
+  // Bookings live in the website's table behind its own RLS, so a rejected
+  // write here is most likely a permissions problem — commit only once it
+  // lands, rather than showing a change the website never accepted.
   const handleStatusChange = async (id: string | number, status: string) => {
+    if (!(await sbUpdateBookingStatus(id, status))) {
+      toastWriteFailed("this booking");
+
+      return;
+    }
     setBookings((bs) => bs.map((b) => (b.id === id ? { ...b, status } : b)));
     if (selected?.id === id) setSelected((s) => s && { ...s, status });
-    await sbUpdateBookingStatus(id, status);
   };
 
   const handleConvert = async () => {

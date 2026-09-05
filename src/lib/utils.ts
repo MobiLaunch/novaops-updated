@@ -21,6 +21,26 @@ export function ticketBalanceDue(t: Ticket): number {
   return Number(t.price) - asArray<TicketPayment>(t.payments).reduce((sum, p) => sum + Number(p.amount), 0);
 }
 
+// Date-only columns (`tickets.due_date`, `appointments.date`, birthdays…)
+// come back as "YYYY-MM-DD". Passing that straight to `new Date()` parses it
+// as UTC midnight, which is the *previous day* everywhere west of UTC — so
+// comparing it against a local midnight makes "today" read as yesterday.
+// Appending a time forces local-time parsing instead.
+export function parseDateOnly(value: string | null | undefined): Date | null {
+  if (!value) return null;
+  const parsed = new Date(`${value.slice(0, 10)}T00:00:00`);
+
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+export function startOfToday(): Date {
+  const d = new Date();
+
+  d.setHours(0, 0, 0, 0);
+
+  return d;
+}
+
 export function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
 

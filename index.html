@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/posicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Colors the mobile browser chrome. Kept in sync with the active theme
+         by the script below (first paint) and by lib/ThemeContext (toggle). -->
+    <meta name="theme-color" content="#F5F5F5" />
     <title>NovaOps — Repair Shop Management</title>
     <script>
       (function () {
@@ -17,6 +20,10 @@
                 : "light";
 
           document.documentElement.setAttribute("data-theme", theme);
+
+          var meta = document.querySelector('meta[name="theme-color"]');
+
+          if (meta) meta.setAttribute("content", theme === "dark" ? "#060607" : "#F5F5F5");
         } catch (e) {}
       })();
     </script>

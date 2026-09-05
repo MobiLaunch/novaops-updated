@@ -6,12 +6,22 @@ export type Theme = "light" | "dark" | "system";
 
 const STORAGE_KEY = "novaops_theme";
 
+// The --background token for each theme (styles/globals.css), as hex for the
+// theme-color meta tag. Duplicated in index.html's first-paint script, which
+// runs before any module loads and so can't import this.
+const BROWSER_CHROME_COLOR: Record<"light" | "dark", string> = { light: "#F5F5F5", dark: "#060607" };
+
 function resolveTheme(theme: Theme): "light" | "dark" {
   if (theme === "system") {
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   }
 
   return theme;
+}
+
+function applyTheme(resolved: "light" | "dark") {
+  document.documentElement.setAttribute("data-theme", resolved);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", BROWSER_CHROME_COLOR[resolved]);
 }
 
 interface ThemeState {
@@ -31,14 +41,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">(() => resolveTheme(theme));
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", resolveTheme(theme));
+    applyTheme(resolveTheme(theme));
     setResolvedTheme(resolveTheme(theme));
 
     if (theme !== "system") return;
 
     const mql = window.matchMedia("(prefers-color-scheme: dark)");
     const handler = () => {
-      document.documentElement.setAttribute("data-theme", resolveTheme("system"));
+      applyTheme(resolveTheme("system"));
       setResolvedTheme(resolveTheme("system"));
     };
 

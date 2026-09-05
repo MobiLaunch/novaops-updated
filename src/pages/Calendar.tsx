@@ -22,6 +22,7 @@ import {
   sbUpdateAppointment,
   sbUpdateHouseCall,
 } from "@/lib/supabase";
+import { toastWriteFailed } from "@/lib/toast";
 
 const APPT_STATUSES = ["scheduled", "confirmed", "completed", "cancelled", "no-show"];
 const CALL_STATUSES = ["scheduled", "completed", "cancelled"];
@@ -79,14 +80,24 @@ export default function CalendarPage() {
     }
   };
 
+  // Commit only once the write lands, so a rejected change never sits on
+  // screen looking saved.
   const handleApptStatus = async (id: number, status: string) => {
+    if (!(await sbUpdateAppointment(id, { status }))) {
+      toastWriteFailed("this appointment");
+
+      return;
+    }
     setAppointments((rows) => rows.map((r) => (r.id === id ? { ...r, status } : r)));
-    await sbUpdateAppointment(id, { status });
   };
 
   const handleCallStatus = async (id: number, status: string) => {
+    if (!(await sbUpdateHouseCall(id, { status }))) {
+      toastWriteFailed("this house call");
+
+      return;
+    }
     setHouseCalls((rows) => rows.map((r) => (r.id === id ? { ...r, status } : r)));
-    await sbUpdateHouseCall(id, { status });
   };
 
   return (

@@ -21,8 +21,10 @@ export default defineConfig({
         name: "NovaOps — Repair Shop Management",
         short_name: "NovaOps",
         description: "Repair shop ticketing, inventory, and POS console.",
-        theme_color: "#7C3AED",
-        background_color: "#F8F7FC",
+        // Must track the accent/background tokens in styles/globals.css —
+        // these are the Android splash and task-switcher colors.
+        theme_color: "#0485F7",
+        background_color: "#F5F5F5",
         display: "standalone",
         start_url: "/dashboard",
         icons: [

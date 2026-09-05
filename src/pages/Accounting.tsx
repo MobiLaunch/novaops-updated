@@ -51,7 +51,7 @@ import {
   sbFetchWebsiteOrders,
 } from "@/lib/supabase";
 import { getSquarePayments, getSquarePayouts, type SquarePayment, type SquarePayout } from "@/lib/square";
-import { asArray, downloadCsv, formatCurrency, ticketBalanceDue } from "@/lib/utils";
+import { asArray, downloadCsv, formatCurrency, parseDateOnly, ticketBalanceDue } from "@/lib/utils";
 
 // ─────────────────────────────────────────────────────────────────────────
 // Shared chart primitives (unchanged from the old Reports page)
@@ -589,7 +589,9 @@ export default function Accounting() {
 
       if (balance <= 0.01) continue;
       openCount++;
-      const basis = new Date(t.due_date || t.created_at).getTime();
+      // due_date is date-only (parse it local, not UTC); created_at is a
+      // full timestamp and parses correctly on its own.
+      const basis = (parseDateOnly(t.due_date) ?? new Date(t.created_at)).getTime();
       const ageDays = Math.floor((now - basis) / 86400000);
 
       if (ageDays <= 0) buckets.current += balance;

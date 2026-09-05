@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { useHref, useNavigate } from "react-router-dom";
 import { RouterProvider } from "react-aria-components";
+import { Toast } from "@heroui/react";
 
 import { AuthProvider } from "@/lib/AuthContext";
 import { ThemeProvider } from "@/lib/ThemeContext";
@@ -24,6 +25,9 @@ export function Provider({ children }: { children: ReactNode }) {
     <RouterProvider navigate={navigate} useHref={useAppHref}>
       <ThemeProvider>
         <AuthProvider>{children}</AuthProvider>
+        {/* Lets any handler report a failed write (see lib/toast) without
+            every page owning its own error-banner state. */}
+        <Toast.Provider placement="bottom end" />
       </ThemeProvider>
     </RouterProvider>
   );
