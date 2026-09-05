@@ -246,6 +246,8 @@ function ShopSettingsPanel() {
   const [businessPhone, setBusinessPhone] = useState("");
   const [hours, setHours] = useState<Record<string, DayHours>>({});
   const [taxRate, setTaxRate] = useState("0");
+  const [taxFilingFrequency, setTaxFilingFrequency] = useState("quarterly");
+  const [incomeTaxReservePct, setIncomeTaxReservePct] = useState("25");
   const [receiptFooter, setReceiptFooter] = useState("");
   const [notifyOnStatusChange, setNotifyOnStatusChange] = useState(false);
   const [cannedResponses, setCannedResponses] = useState<CannedResponse[]>([]);
@@ -263,6 +265,8 @@ function ShopSettingsPanel() {
       setBusinessPhone(data.business_phone || "");
       setHours(data.business_hours || {});
       setTaxRate(String(data.tax_rate ?? 0));
+      setTaxFilingFrequency(data.tax_filing_frequency || "quarterly");
+      setIncomeTaxReservePct(String(data.income_tax_reserve_pct ?? 25));
       setReceiptFooter(data.receipt_footer || "");
       setNotifyOnStatusChange(!!data.notify_on_status_change);
       setCannedResponses(data.canned_responses || []);
@@ -294,6 +298,8 @@ function ShopSettingsPanel() {
       business_phone: businessPhone,
       business_hours: hours,
       tax_rate: Number(taxRate) || 0,
+      tax_filing_frequency: taxFilingFrequency,
+      income_tax_reserve_pct: Number(incomeTaxReservePct) || 0,
       receipt_footer: receiptFooter,
       notify_on_status_change: notifyOnStatusChange,
       canned_responses: cannedResponses,
@@ -396,6 +402,29 @@ function ShopSettingsPanel() {
           </Switch>
           <span className="text-sm text-foreground">Email customers when a ticket&rsquo;s status changes</span>
         </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-1.5">
+          <Label>Sales Tax Filing Frequency</Label>
+          <select
+            className="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
+            value={taxFilingFrequency}
+            onChange={(e) => setTaxFilingFrequency(e.target.value)}
+          >
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="annually">Annually</option>
+          </select>
+          <p className="m-0 text-xs text-muted">Drives the &ldquo;next filing due&rdquo; estimate on Accounting → Sales Tax.</p>
+        </div>
+        <TextField className="flex flex-col gap-1.5" type="number" value={incomeTaxReservePct} onChange={setIncomeTaxReservePct}>
+          <Label>Income Tax Reserve (%)</Label>
+          <InputGroup>
+            <InputGroup.Input />
+          </InputGroup>
+          <p className="m-0 text-xs text-muted">Share of net profit Accounting suggests setting aside — not a filing.</p>
+        </TextField>
       </div>
 
       <div className="mt-4 flex flex-col gap-1.5">

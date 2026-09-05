@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import RequireAuth from "@/components/RequireAuth";
 import AppLayout from "@/layouts/AppLayout";
+import Accounting from "@/pages/Accounting";
 import Bookings from "@/pages/Bookings";
 import CalendarPage from "@/pages/Calendar";
 import Customers from "@/pages/Customers";
@@ -11,7 +12,6 @@ import Inventory from "@/pages/Inventory";
 import Login from "@/pages/Login";
 import Messages from "@/pages/Messages";
 import POS from "@/pages/POS";
-import Reports from "@/pages/Reports";
 import Settings from "@/pages/Settings";
 import Tickets from "@/pages/Tickets";
 import TrackTicket from "@/pages/TrackTicket";
@@ -39,7 +39,8 @@ export default function App() {
         <Route element={<CalendarPage />} path="/calendar" />
         <Route element={<Messages />} path="/messages" />
         <Route element={<Bookings />} path="/bookings" />
-        <Route element={<Reports />} path="/reports" />
+        <Route element={<Accounting />} path="/accounting" />
+        <Route element={<Navigate replace to="/accounting" />} path="/reports" />
         <Route element={<Import />} path="/import" />
         <Route element={<Settings />} path="/settings" />
       </Route>

@@ -12,6 +12,7 @@ import type {
   Technician,
   Ticket,
   TradeIn,
+  WebsiteOrder,
 } from "@/types/domain";
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
@@ -619,6 +620,8 @@ const DEFAULT_SHOP_SETTINGS: Omit<ShopSettings, "profile_id" | "created_at" | "u
   business_phone: "",
   business_hours: {},
   tax_rate: 0,
+  tax_filing_frequency: "quarterly",
+  income_tax_reserve_pct: 25,
   receipt_footer: "",
   notify_on_status_change: false,
   canned_responses: [],
@@ -676,4 +679,22 @@ export async function sbCreatePosSale(
   const { data, error } = await client.from("pos_sales").insert({ ...sale, profile_id: profileId }).select().single();
 
   return { data: data as PosSale | null, error: error ? errMessage(error) : null };
+}
+
+// ─── Website orders (shared with mobicare-business, read for Accounting) ───
+// `orders` (+ its order_items child rows) is owned and written by the
+// storefront's checkout flow (Stripe-only). Same RLS shape as `bookings`:
+// an admin account (a row in public.staff_users) can read every order;
+// anyone else gets none back silently, not an error. See README.
+
+export async function sbFetchWebsiteOrders(): Promise<{ data: WebsiteOrder[] | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const { data, error } = await client
+    .from("orders")
+    .select("*, order_items(*)")
+    .order("created_at", { ascending: false });
+
+  return { data: data as WebsiteOrder[] | null, error: error ? errMessage(error) : null };
 }

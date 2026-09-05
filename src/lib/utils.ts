@@ -30,6 +30,30 @@ export function initials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+// Client-side CSV download for exportable tables (e.g. Accounting's
+// ledger) — no server round trip needed since the data's already loaded.
+export function downloadCsv(filename: string, rows: (string | number)[][]): void {
+  const csv = rows
+    .map((row) =>
+      row
+        .map((cell) => {
+          const str = String(cell ?? "");
+
+          return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+        })
+        .join(","),
+    )
+    .join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 export function timeAgo(dateStr: string | null | undefined): string {
   if (!dateStr) return "";
   const date = new Date(dateStr);

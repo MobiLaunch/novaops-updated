@@ -4,6 +4,7 @@ import { Modal } from "@heroui/react";
 import { Keyboard } from "lucide-react";
 
 const GO_TO: Record<string, { label: string; path: string }> = {
+  a: { label: "Accounting", path: "/accounting" },
   d: { label: "Dashboard", path: "/dashboard" },
   p: { label: "Point of Sale", path: "/pos" },
   t: { label: "Tickets", path: "/tickets" },
@@ -11,7 +12,6 @@ const GO_TO: Record<string, { label: string; path: string }> = {
   i: { label: "Inventory", path: "/inventory" },
   m: { label: "Messages", path: "/messages" },
   b: { label: "Bookings", path: "/bookings" },
-  r: { label: "Reports", path: "/reports" },
   s: { label: "Settings", path: "/settings" },
 };
 

@@ -2,7 +2,7 @@ import type { LucideIcon } from "lucide-react";
 
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  BarChart3,
+  Calculator,
   CalendarClock,
   CalendarDays,
   CloudCheck,
@@ -41,7 +41,7 @@ export const NAV_ITEMS: NavItem[] = [
   { path: "/calendar", icon: CalendarDays, label: "Calendar" },
   { path: "/messages", icon: Mail, label: "Messages" },
   { path: "/bookings", icon: CalendarClock, label: "Bookings" },
-  { path: "/reports", icon: BarChart3, label: "Reports" },
+  { path: "/accounting", icon: Calculator, label: "Accounting" },
   { path: "/import", icon: Upload, label: "Import" },
   { path: "/settings", icon: SlidersHorizontal, label: "Settings" },
 ];

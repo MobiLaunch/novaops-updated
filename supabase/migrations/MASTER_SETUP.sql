@@ -605,6 +605,12 @@ alter table shop_settings add column if not exists business_name    text not nul
 alter table shop_settings add column if not exists business_address text not null default '';
 alter table shop_settings add column if not exists business_phone   text not null default '';
 
+-- Added for the Accounting page's tax-estimate section: how often sales tax
+-- is filed (drives the "next filing due" estimate) and what share of net
+-- profit to set aside for income tax (a configurable reserve, not a filing).
+alter table shop_settings add column if not exists tax_filing_frequency   text         not null default 'quarterly';
+alter table shop_settings add column if not exists income_tax_reserve_pct numeric(5,2) not null default 25;
+
 alter table shop_settings enable row level security;
 drop policy if exists "shop_settings_owner" on shop_settings;
 create policy "shop_settings_owner" on shop_settings
@@ -663,4 +669,12 @@ create index if not exists bookings_novaops_ticket_id_idx on public.bookings(nov
 --    ticket's balance in one sale, saved to pos_sales — separate from a
 --    ticket's own payments history, though a ticket line item in a POS sale
 --    still records its payment on the ticket and marks it Completed.
+-- 10. The Accounting page (/accounting) also reads the website's `orders` +
+--     `order_items` tables directly (owned by mobicare-business, same as
+--     `bookings` — see note 2 above) to fold website sales into revenue,
+--     tax-collected, and the transaction ledger. Same staff_users
+--     requirement; without it, that one revenue source just reads as
+--     empty instead of erroring. Tax filing frequency and the income-tax
+--     reserve percentage used there live in shop_settings too (Settings →
+--     Shop Settings).
 -- ============================================================================

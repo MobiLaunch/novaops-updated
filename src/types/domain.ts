@@ -101,6 +101,8 @@ export interface DayHours {
   closed: boolean;
 }
 
+export type TaxFilingFrequency = "monthly" | "quarterly" | "annually";
+
 export interface ShopSettings {
   profile_id: string;
   business_name: string;
@@ -108,6 +110,8 @@ export interface ShopSettings {
   business_phone: string;
   business_hours: Record<string, DayHours>;
   tax_rate: number;
+  tax_filing_frequency: TaxFilingFrequency | string;
+  income_tax_reserve_pct: number;
   receipt_footer: string;
   notify_on_status_change: boolean;
   canned_responses: CannedResponse[];
@@ -268,6 +272,50 @@ export interface CustomerMessage {
 // definition this mirrors, and its Bookings.tsx admin page for the reference
 // UI this Bookings page is modeled after.
 export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled" | "no-show";
+
+// Shape of a row from the shared `orders` table (+ its `order_items` child
+// rows) — owned and written by mobicare-business's storefront checkout
+// (Stripe-only; see its stripe_payment_intent column). Read the same way as
+// `bookings` above: a NovaOps account must also be a row in
+// `public.staff_users` for RLS to return anything. Column names mirror that
+// repo's src/lib/supabase.ts (dbToOrder/sbInsertOrder) exactly.
+export type WebsiteOrderStatus =
+  | "paid"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled"
+  | "refunded"
+  | "payment_failed";
+
+export interface WebsiteOrderItem {
+  id?: number;
+  order_id?: string;
+  product_id: string;
+  name: string;
+  price: number;
+  qty: number;
+}
+
+export interface WebsiteOrder {
+  id: string;
+  user_id: string | null;
+  status: WebsiteOrderStatus | string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  shipping_address: string;
+  shipping_city: string;
+  shipping_state: string;
+  shipping_zip: string;
+  subtotal: number;
+  shipping_cost: number;
+  tax: number;
+  total: number;
+  stripe_payment_intent?: string | null;
+  order_items: WebsiteOrderItem[];
+  created_at: string;
+}
 
 export interface BookingRecord {
   id: string | number;

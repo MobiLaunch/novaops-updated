@@ -165,6 +165,44 @@ reskin). It's being delivered in phases:
   re-run it once (it's idempotent) to pick it up on an existing database.
 - Keyboard shortcut: `G` then `P` jumps to `/pos`.
 
+**Phase 8 — done (a full accounting suite, replacing Reports):**
+- **`/accounting`** (formerly `/reports`, which now redirects) — every
+  revenue and expense source normalized into one transaction ledger:
+  repair-ticket payments, POS sales, **website orders** (read live from
+  mobicare-business's `orders`/`order_items` tables — same shared-project,
+  same `staff_users` RLS gate as Bookings), and trade-in payouts (a cash
+  outflow). A shared date-range picker (7D/30D/90D/MTD/QTD/YTD/All/Custom)
+  drives every tab:
+  - **Overview** — total revenue, gross profit, tax collected, net profit,
+    trade-in payouts, and AR outstanding at a glance, plus a revenue trend
+    chart and breakdowns by source and payment method.
+  - **Revenue & P&L** — a real profit-and-loss statement (revenue by
+    source → COGS estimate → gross profit → trade-in payouts → net profit
+    → a suggested income-tax reserve), plus an accounts-receivable aging
+    report (current / 1-30 / 31-60 / 61-90 / 90+ days) for unpaid ticket
+    balances.
+  - **Sales Tax** — tax collected from POS + website sales, the effective
+    rate vs. your configured rate (flags a mismatch), a month-by-month
+    breakdown, and a next-filing-due estimate based on Settings → Shop
+    Settings' filing frequency.
+  - **Ledger** — every transaction, filterable by source, exportable to
+    CSV.
+  - **Square** — on-demand reconciliation against Square's own payment and
+    payout history (real settled deposits and processing fees), flagging
+    any gap vs. what NovaOps recorded internally.
+  - **Shop Insights** — the original Reports charts (tickets by status,
+    top issues, technician leaderboard, inventory value), now scoped to
+    the same date range.
+  - COGS is estimated from *current* inventory cost (website products
+    don't have a cost field at all, so website COGS isn't included) and
+    the tax-filing-due date is a planning estimate — both clearly labeled
+    as such in the UI, since NovaOps doesn't have a source of truth for
+    either.
+- New `shop_settings` columns: `tax_filing_frequency`, `income_tax_reserve_pct`
+  (Settings → Shop Settings) — see `supabase/migrations/MASTER_SETUP.sql`;
+  re-run it once (it's idempotent) to pick them up on an existing database.
+- Keyboard shortcut: `G` then `A` jumps to `/accounting`.
+
 **Not ported** (out of scope for now — flag if you want these):
 - Direct-to-USB thermal label/receipt printing (WebUSB) — labels still print
   fine through a normal printer via the browser print dialog
@@ -176,11 +214,12 @@ See `.env.example` for every environment variable Phase 2 features read.
 ## Connecting to your website's Supabase project
 
 NovaOps and mobicare-business share one Supabase project. Its `bookings`
-table is owned by mobicare-business (written by its `/api/create-booking`
-function) and is locked down by Row Level Security: only accounts listed in
-`public.staff_users` can read every row.
+and `orders` (+ `order_items`) tables are owned by mobicare-business
+(written by its `/api/create-booking` function and its storefront checkout,
+respectively) and are locked down by Row Level Security: only accounts
+listed in `public.staff_users` can read every row.
 
-To manage bookings from NovaOps:
+To manage bookings, or see website sales on Accounting, from NovaOps:
 
 1. Set `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` to the same values your
    mobicare-business deployment uses (see `.env.example`).
@@ -192,8 +231,9 @@ To manage bookings from NovaOps:
    `novaops_ticket_id` column bookings use to record which ticket they
    were converted into.
 
-Without step 2, the Bookings page loads with zero rows (RLS denies silently,
-it doesn't error) — the in-app error message explains this too.
+Without step 2, the Bookings page loads with zero rows and Accounting's
+website revenue reads as empty (RLS denies silently, it doesn't error) —
+the in-app messages on both pages explain this too.
 
 ## Payments (Square)
 

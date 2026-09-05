@@ -86,3 +86,40 @@ export const afterpayCheckout = (amountCents: number) =>
     method: "POST",
     body: { amountCents },
   });
+
+// ─── Accounting: real processor-side history (Accounting page) ─────────────
+// These read what Square actually settled — independent of what NovaOps
+// itself recorded — so Accounting can reconcile internal card/terminal
+// totals against real deposits and processing fees.
+
+export interface SquarePayment {
+  id: string;
+  amount: number;
+  currency: string;
+  tip: number;
+  fee: number;
+  status: string;
+  cardBrand: string | null;
+  lastFour: string | null;
+  receiptUrl: string | null;
+  createdAt: string;
+  orderId: string | null;
+  referenceId: string | null;
+  note: string;
+}
+
+export interface SquarePayout {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  arrivalDate: string | null;
+  createdAt: string;
+  type: string;
+}
+
+export const getSquarePayments = (days = 30) =>
+  squareRequest<{ success: boolean; payments: SquarePayment[]; count: number }>(`/api/square/payments?days=${days}`);
+
+export const getSquarePayouts = (days = 90) =>
+  squareRequest<{ success: boolean; payouts: SquarePayout[]; count: number }>(`/api/square/payouts?days=${days}`);
