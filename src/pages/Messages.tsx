@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Button,
+  Chip,
   FieldError,
   InputGroup,
   Label,
@@ -11,10 +12,10 @@ import {
   TextArea,
   TextField,
 } from "@heroui/react";
-import { CalendarDays, MessageCircle, Mail, MailX, Package, PackageX, Reply, RefreshCw, Send, Truck } from "lucide-react";
+import { CalendarDays, MessageCircle, MessageSquareText, Mail, MailX, Package, PackageX, Reply, RefreshCw, Send, Truck } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
-import type { CustomerMessage, Message, Shipment, Ticket } from "@/types/domain";
+import type { CannedResponse, CustomerMessage, Message, Shipment, Ticket } from "@/types/domain";
 import {
   getCurrentProfileId,
   sbAssignShipmentToTicket,
@@ -22,6 +23,7 @@ import {
   sbFetchCustomerMessages,
   sbFetchMessages,
   sbFetchShipments,
+  sbFetchShopSettings,
   sbFetchTickets,
   sbMarkCustomerMessageRead,
   sbMarkMessageRead,
@@ -55,6 +57,7 @@ export default function Messages() {
   const [viewing, setViewing] = useState<Message | null>(null);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [cannedResponses, setCannedResponses] = useState<CannedResponse[]>([]);
 
   const load = async () => {
     setLoading(true);
@@ -74,6 +77,7 @@ export default function Messages() {
 
   useEffect(() => {
     load();
+    sbFetchShopSettings().then(({ data }) => data && setCannedResponses(data.canned_responses || []));
   }, []);
 
   const handleSync = async () => {
@@ -283,7 +287,14 @@ export default function Messages() {
                   <Mail className={`mt-0.5 size-4 shrink-0 ${m.direction === "outbound" ? "text-muted" : "text-accent"}`} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <strong className="truncate text-sm text-foreground">{m.customer_name || m.customer_email}</strong>
+                      <span className="flex min-w-0 items-center gap-2">
+                        <strong className="truncate text-sm text-foreground">{m.customer_name || m.customer_email || "(No name)"}</strong>
+                        {m.channel === "portal" && (
+                          <Chip color="accent" size="sm" variant="soft">
+                            <Chip.Label>Track link</Chip.Label>
+                          </Chip>
+                        )}
+                      </span>
                       <span className="shrink-0 text-xs text-muted">{new Date(m.created_at).toLocaleString()}</span>
                     </div>
                     <p className="m-0 truncate text-sm text-foreground">{m.subject || "(No subject)"}</p>
@@ -478,12 +489,29 @@ export default function Messages() {
                           </div>
                         ))}
                       </Modal.Body>
-                      <Modal.Footer className="flex gap-2">
-                        <TextArea className="flex-1" rows={2} value={chatDraft} onChange={(e) => setChatDraft(e.target.value)} />
-                        <Button isDisabled={!chatDraft.trim() || sendingChat} variant="primary" onPress={handleSendChat}>
-                          <Send className="size-4" />
-                          <span>Send</span>
-                        </Button>
+                      <Modal.Footer className="flex flex-col items-stretch gap-2">
+                        {cannedResponses.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {cannedResponses.map((r) => (
+                              <button
+                                key={r.title}
+                                className="flex items-center gap-1 rounded-full border border-border bg-surface-secondary px-2.5 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-foreground"
+                                type="button"
+                                onClick={() => setChatDraft((d) => (d ? `${d} ${r.body}` : r.body))}
+                              >
+                                <MessageSquareText className="size-3" />
+                                {r.title}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        <div className="flex gap-2">
+                          <TextArea className="flex-1" rows={2} value={chatDraft} onChange={(e) => setChatDraft(e.target.value)} />
+                          <Button isDisabled={!chatDraft.trim() || sendingChat} variant="primary" onPress={handleSendChat}>
+                            <Send className="size-4" />
+                            <span>Send</span>
+                          </Button>
+                        </div>
                       </Modal.Footer>
                     </>
                   );
@@ -519,6 +547,21 @@ export default function Messages() {
                 </TextField>
                 <div className="flex flex-col gap-1.5">
                   <Label>Message</Label>
+                  {cannedResponses.length > 0 && (
+                    <div className="mb-1 flex flex-wrap gap-1.5">
+                      {cannedResponses.map((r) => (
+                        <button
+                          key={r.title}
+                          className="flex items-center gap-1 rounded-full border border-border bg-surface-secondary px-2.5 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-foreground"
+                          type="button"
+                          onClick={() => setComposing((f) => f && { ...f, body: f.body ? `${f.body} ${r.body}` : r.body })}
+                        >
+                          <MessageSquareText className="size-3" />
+                          {r.title}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <TextArea rows={6} value={composing?.body || ""} onChange={(e) => setComposing((f) => f && { ...f, body: e.target.value })} />
                 </div>
               </Modal.Body>

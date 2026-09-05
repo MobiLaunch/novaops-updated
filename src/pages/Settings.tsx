@@ -1,11 +1,35 @@
 import { useEffect, useState } from "react";
-import { Alert, Button, FieldError, InputGroup, Label, Switch, TextField } from "@heroui/react";
-import { CircleCheck, CircleX, Mail, PlugZap, Plus, Save, Tablet, X } from "lucide-react";
+import { Alert, Button, FieldError, InputGroup, Label, Switch, TextArea, TextField } from "@heroui/react";
+import { CircleCheck, CircleX, Mail, MessageSquarePlus, PlugZap, Plus, Save, Tablet, Trash2, UserRoundPlus, X } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
-import { getSupabaseConfig, isSupabaseConfigured, sbFetchSupplierEmails, sbUpdateSupplierEmails } from "@/lib/supabase";
+import type { CannedResponse, DayHours, Technician } from "@/types/domain";
+import {
+  getSupabaseConfig,
+  isSupabaseConfigured,
+  sbDeleteTechnician,
+  sbFetchShopSettings,
+  sbFetchSupplierEmails,
+  sbFetchTechnicians,
+  sbUpdateShopSettings,
+  sbUpdateSupplierEmails,
+  sbUpsertTechnician,
+} from "@/lib/supabase";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/config";
 import { checkDeviceStatus, checkPaymentReadiness, getSquareCredentials, pairSquareDevice, saveSquareCredentials, type PaymentReadiness } from "@/lib/square";
+
+const DAYS: { key: string; label: string }[] = [
+  { key: "mon", label: "Monday" },
+  { key: "tue", label: "Tuesday" },
+  { key: "wed", label: "Wednesday" },
+  { key: "thu", label: "Thursday" },
+  { key: "fri", label: "Friday" },
+  { key: "sat", label: "Saturday" },
+  { key: "sun", label: "Sunday" },
+];
+
+const DEFAULT_HOURS: DayHours = { open: "09:00", close: "18:00", closed: false };
+const TECHNICIAN_COLORS = ["#7C3AED", "#22C55E", "#3B82F6", "#F59E0B", "#EF4444", "#EC4899", "#14B8A6"];
 
 function SupplierEmailsSettings() {
   const [emails, setEmails] = useState<string[]>([]);
@@ -216,6 +240,251 @@ function SquareSettings() {
   );
 }
 
+function ShopSettingsPanel() {
+  const [hours, setHours] = useState<Record<string, DayHours>>({});
+  const [taxRate, setTaxRate] = useState("0");
+  const [receiptFooter, setReceiptFooter] = useState("");
+  const [notifyOnStatusChange, setNotifyOnStatusChange] = useState(false);
+  const [cannedResponses, setCannedResponses] = useState<CannedResponse[]>([]);
+  const [newCanned, setNewCanned] = useState({ title: "", body: "" });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    sbFetchShopSettings().then(({ data }) => {
+      setLoading(false);
+      if (!data) return;
+      setHours(data.business_hours || {});
+      setTaxRate(String(data.tax_rate ?? 0));
+      setReceiptFooter(data.receipt_footer || "");
+      setNotifyOnStatusChange(!!data.notify_on_status_change);
+      setCannedResponses(data.canned_responses || []);
+    });
+  }, []);
+
+  const dayHours = (key: string): DayHours => hours[key] || DEFAULT_HOURS;
+
+  const setDayHours = (key: string, patch: Partial<DayHours>) => {
+    setHours((h) => ({ ...h, [key]: { ...dayHours(key), ...patch } }));
+  };
+
+  const handleAddCanned = () => {
+    if (!newCanned.title.trim() || !newCanned.body.trim()) return;
+    setCannedResponses((rs) => [...rs, { title: newCanned.title.trim(), body: newCanned.body.trim() }]);
+    setNewCanned({ title: "", body: "" });
+  };
+
+  const handleRemoveCanned = (idx: number) => {
+    setCannedResponses((rs) => rs.filter((_, i) => i !== idx));
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaved(false);
+    const { data } = await sbUpdateShopSettings({
+      business_hours: hours,
+      tax_rate: Number(taxRate) || 0,
+      receipt_footer: receiptFooter,
+      notify_on_status_change: notifyOnStatusChange,
+      canned_responses: cannedResponses,
+    });
+
+    setSaving(false);
+    if (data) setSaved(true);
+  };
+
+  if (loading) {
+    return (
+      <div className="rounded-[28px] border border-border bg-surface p-6">
+        <p className="m-0 text-sm text-muted">Loading shop settings…</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-[28px] border border-border bg-surface p-6">
+      <h3 className="m-0 mb-1 text-lg font-bold text-foreground">Shop Settings</h3>
+      <p className="m-0 mb-4 text-sm text-muted">Business hours, tax rate, receipt footer, and customer notifications.</p>
+
+      <div className="flex flex-col gap-2">
+        <span className="mb-1 block text-micro font-bold uppercase text-muted">Business Hours</span>
+        {DAYS.map((d) => {
+          const dh = dayHours(d.key);
+
+          return (
+            <div key={d.key} className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface-secondary/40 p-2.5">
+              <span className="w-24 shrink-0 text-sm text-foreground">{d.label}</span>
+              {dh.closed ? (
+                <span className="flex-1 text-sm text-muted">Closed</span>
+              ) : (
+                <div className="flex flex-1 items-center gap-2">
+                  <input
+                    className="rounded-lg border border-border bg-surface px-2 py-1 text-sm"
+                    type="time"
+                    value={dh.open}
+                    onChange={(e) => setDayHours(d.key, { open: e.target.value })}
+                  />
+                  <span className="text-xs text-muted">to</span>
+                  <input
+                    className="rounded-lg border border-border bg-surface px-2 py-1 text-sm"
+                    type="time"
+                    value={dh.close}
+                    onChange={(e) => setDayHours(d.key, { close: e.target.value })}
+                  />
+                </div>
+              )}
+              <label className="flex shrink-0 items-center gap-2 text-xs text-muted">
+                <Switch isSelected={dh.closed} onChange={(v) => setDayHours(d.key, { closed: v })}>
+                  <Switch.Content>
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
+                  </Switch.Content>
+                </Switch>
+                Closed
+              </label>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <TextField className="flex flex-col gap-1.5" type="number" value={taxRate} onChange={setTaxRate}>
+          <Label>Tax Rate (%)</Label>
+          <InputGroup>
+            <InputGroup.Input />
+          </InputGroup>
+        </TextField>
+        <div className="flex items-end gap-3 pb-2">
+          <Switch isSelected={notifyOnStatusChange} onChange={setNotifyOnStatusChange}>
+            <Switch.Content>
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch.Content>
+          </Switch>
+          <span className="text-sm text-foreground">Email customers when a ticket&rsquo;s status changes</span>
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-col gap-1.5">
+        <Label>Receipt Footer</Label>
+        <TextArea placeholder="Thank you for choosing us! 90-day warranty on all repairs." rows={2} value={receiptFooter} onChange={(e) => setReceiptFooter(e.target.value)} />
+      </div>
+
+      <div className="mt-6 border-t border-border pt-4">
+        <span className="mb-2 flex items-center gap-1.5 text-micro font-bold uppercase text-muted">
+          <MessageSquarePlus className="size-3.5" />
+          Canned Replies
+        </span>
+        <p className="m-0 mb-3 text-xs text-muted">Quick-insert templates available in Messages and Customer Chat reply boxes.</p>
+
+        {cannedResponses.length > 0 && (
+          <div className="mb-3 flex flex-col gap-2">
+            {cannedResponses.map((r, idx) => (
+              <div key={idx} className="flex items-start justify-between gap-2 rounded-xl border border-border bg-surface-secondary/40 p-3">
+                <div className="min-w-0">
+                  <strong className="block text-sm text-foreground">{r.title}</strong>
+                  <p className="m-0 truncate text-xs text-muted">{r.body}</p>
+                </div>
+                <Button isIconOnly aria-label="Remove canned reply" size="sm" variant="ghost" onPress={() => handleRemoveCanned(idx)}>
+                  <Trash2 className="size-4 text-danger" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex flex-col gap-2 rounded-xl border border-dashed border-border p-3">
+          <TextField className="flex flex-col gap-1" value={newCanned.title} onChange={(v) => setNewCanned((c) => ({ ...c, title: v }))}>
+            <InputGroup>
+              <InputGroup.Input placeholder="Title, e.g. Ready for pickup" />
+            </InputGroup>
+          </TextField>
+          <TextArea placeholder="Message body…" rows={2} value={newCanned.body} onChange={(e) => setNewCanned((c) => ({ ...c, body: e.target.value }))} />
+          <Button isDisabled={!newCanned.title.trim() || !newCanned.body.trim()} variant="outline" onPress={handleAddCanned}>
+            <Plus className="size-4" />
+            <span>Add Canned Reply</span>
+          </Button>
+        </div>
+      </div>
+
+      <Button className="mt-6" isDisabled={saving} variant="primary" onPress={handleSave}>
+        <Save className="size-4" />
+        <span>{saving ? "Saving…" : saved ? "Saved!" : "Save Shop Settings"}</span>
+      </Button>
+    </div>
+  );
+}
+
+function TechniciansSettings() {
+  const [technicians, setTechnicians] = useState<Technician[]>([]);
+  const [newName, setNewName] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    sbFetchTechnicians().then(({ data }) => {
+      setLoading(false);
+      if (data) setTechnicians(data);
+    });
+  }, []);
+
+  const handleAdd = async () => {
+    if (!newName.trim()) return;
+    const color = TECHNICIAN_COLORS[technicians.length % TECHNICIAN_COLORS.length];
+    const { data } = await sbUpsertTechnician({ name: newName.trim(), color, active: true });
+
+    if (data) {
+      setTechnicians((ts) => [...ts, data]);
+      setNewName("");
+    }
+  };
+
+  const handleRemove = async (id: number) => {
+    setTechnicians((ts) => ts.filter((t) => t.id !== id));
+    await sbDeleteTechnician(id);
+  };
+
+  return (
+    <div className="rounded-[28px] border border-border bg-surface p-6">
+      <h3 className="m-0 mb-1 text-lg font-bold text-foreground">Technicians</h3>
+      <p className="m-0 mb-4 text-sm text-muted">Assign repairs to a technician from the Tickets page.</p>
+
+      {loading ? (
+        <p className="m-0 text-sm text-muted">Loading…</p>
+      ) : (
+        <div className="mb-4 flex flex-col gap-2">
+          {technicians.length === 0 && <p className="m-0 text-sm text-muted">No technicians added yet.</p>}
+          {technicians.map((t) => (
+            <div key={t.id} className="flex items-center justify-between gap-2 rounded-xl border border-border bg-surface-secondary/40 p-2.5">
+              <span className="flex items-center gap-2 text-sm text-foreground">
+                <span className="size-3 shrink-0 rounded-full" style={{ backgroundColor: t.color }} />
+                {t.name}
+              </span>
+              <Button isIconOnly aria-label={`Remove ${t.name}`} size="sm" variant="ghost" onPress={() => handleRemove(t.id)}>
+                <Trash2 className="size-4 text-danger" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <TextField className="flex-1" value={newName} onChange={setNewName}>
+          <InputGroup>
+            <InputGroup.Input placeholder="Technician name" />
+          </InputGroup>
+        </TextField>
+        <Button isDisabled={!newName.trim()} variant="outline" onPress={handleAdd}>
+          <UserRoundPlus className="size-4" />
+          <span>Add</span>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function Settings() {
   const envLocked = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
   const current = getSupabaseConfig();
@@ -312,6 +581,10 @@ export default function Settings() {
         </div>
 
         <SquareSettings />
+
+        <ShopSettingsPanel />
+
+        <TechniciansSettings />
 
         <div className="xl:col-span-2">
           <SupplierEmailsSettings />

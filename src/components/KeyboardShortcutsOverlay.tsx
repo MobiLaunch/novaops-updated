@@ -10,6 +10,7 @@ const GO_TO: Record<string, { label: string; path: string }> = {
   i: { label: "Inventory", path: "/inventory" },
   m: { label: "Messages", path: "/messages" },
   b: { label: "Bookings", path: "/bookings" },
+  r: { label: "Reports", path: "/reports" },
   s: { label: "Settings", path: "/settings" },
 };
 

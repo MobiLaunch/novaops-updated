@@ -111,6 +111,36 @@ reskin). It's being delivered in phases:
 - Customer chat is fully wired end-to-end — see "Customer chat: website
   side" below.
 
+**Phase 6 — done (more back-and-forth communication + more data):**
+- **Public repair tracking page** (`/track/:token`) — every ticket gets a
+  `public_token` (an unguessable uuid, separate from its sequential id);
+  "Track Repair Link" on a ticket's detail view copies a no-login-required
+  URL for the customer showing live status, balance due, and estimated
+  ready date, plus a two-way reply thread (`api/track-ticket.js`, service-
+  role only, rate-limited) that lands in Messages → Inbox tagged "Track
+  link" so replying is just like replying to any other message.
+- **Status-change email notifications** — when a ticket's status changes,
+  optionally emails the customer (reusing `api/send-email`) with the new
+  status and their tracking link. Off by default; enable in Settings →
+  Shop Settings.
+- **Canned replies** — manage a list of quick-reply templates in Settings
+  → Shop Settings; one click inserts one into the Messages Inbox compose
+  box or the Customer Chat reply box.
+- **Ticket customization** — due date, an assigned technician (color-coded,
+  managed in Settings → Technicians), and free-form labels, all editable
+  from a ticket's detail view and visible as new Tickets-list columns.
+- **Customer customization** — secondary phone, preferred contact method,
+  referral source, birthday, and a VIP flag (shown as a star badge in the
+  list and detail view).
+- **Reports** (`/reports`) — revenue over the last 30 days (line chart),
+  tickets by status, top repair issues, a technician revenue leaderboard,
+  and inventory value by category.
+- New tables: `technicians`, `shop_settings` (business hours, tax rate,
+  receipt footer, notification preference, canned replies) — see
+  `supabase/migrations/MASTER_SETUP.sql`, which now includes these plus
+  the `customers`/`tickets` column additions above; re-run it once (it's
+  idempotent) to pick them up on an existing database.
+
 **Not ported** (out of scope for now — flag if you want these):
 - Direct-to-USB thermal label/receipt printing (WebUSB) — labels still print
   fine through a normal printer via the browser print dialog

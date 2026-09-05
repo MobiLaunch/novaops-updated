@@ -12,17 +12,22 @@ import {
   TextArea,
   TextField,
 } from "@heroui/react";
-import { ClipboardList, CreditCard, Eye, Plus, Printer, Ticket as TicketIcon, Trash2, Wrench } from "lucide-react";
+import { CheckCheck, ClipboardList, CreditCard, Eye, Link as LinkIcon, Plus, Printer, Ticket as TicketIcon, Trash2, Wrench, X } from "lucide-react";
 
 import DataTable, { type DataTableColumn } from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
 import PaymentModal from "@/components/payments/PaymentModal";
 import SignaturePad from "@/components/SignaturePad";
-import type { InventoryItem, Ticket, TicketPayment, TicketStatus } from "@/types/domain";
+import type { Customer, InventoryItem, ShopSettings, Technician, Ticket, TicketPayment, TicketStatus } from "@/types/domain";
 import {
+  getCurrentProfileId,
   sbAssignPartToTicket,
+  sbCreateMessage,
   sbCreateTicket,
+  sbFetchCustomers,
   sbFetchInventory,
+  sbFetchShopSettings,
+  sbFetchTechnicians,
   sbFetchTickets,
   sbFindOrCreateCustomer,
   sbRemovePartFromTicket,
@@ -67,6 +72,23 @@ export default function Tickets() {
   const [payingTicket, setPayingTicket] = useState<Ticket | null>(null);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [partSelection, setPartSelection] = useState<{ inventoryId: string; qty: string }>({ inventoryId: "", qty: "1" });
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [shopSettings, setShopSettings] = useState<ShopSettings | null>(null);
+  const [technicians, setTechnicians] = useState<Technician[]>([]);
+  const [labelDraft, setLabelDraft] = useState("");
+
+  const handleCopyTrackLink = async (ticket: Ticket) => {
+    const url = `${window.location.origin}/track/${ticket.public_token}`;
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      window.prompt("Copy this tracking link:", url);
+    }
+  };
 
   const load = async () => {
     setLoading(true);
@@ -79,6 +101,9 @@ export default function Tickets() {
   useEffect(() => {
     load();
     sbFetchInventory().then(({ data }) => data && setInventory(data));
+    sbFetchCustomers().then(({ data }) => data && setCustomers(data));
+    sbFetchShopSettings().then(({ data }) => data && setShopSettings(data));
+    sbFetchTechnicians().then(({ data }) => data && setTechnicians(data));
   }, []);
 
   useEffect(() => {
@@ -118,9 +143,80 @@ export default function Tickets() {
   };
 
   const handleStatusChange = async (id: number, status: string) => {
+    const ticket = tickets.find((t) => t.id === id);
+
     setTickets((ts) => ts.map((t) => (t.id === id ? { ...t, status } : t)));
     if (selected?.id === id) setSelected((s) => s && { ...s, status });
     await sbUpdateTicket(id, { status });
+
+    if (ticket && shopSettings?.notify_on_status_change) {
+      await notifyCustomerOfStatusChange(ticket, status);
+    }
+  };
+
+  // Best-effort — a failed notification should never block the status
+  // change itself, so errors here are swallowed rather than surfaced.
+  const notifyCustomerOfStatusChange = async (ticket: Ticket, status: string) => {
+    const customer = customers.find((c) => c.id === ticket.customer_id);
+
+    if (!customer?.email) return;
+
+    const trackUrl = `${window.location.origin}/track/${ticket.public_token}`;
+    const subject = `Update on your repair — ${ticket.device} ${ticket.device_model}`.trim();
+    const body = `Hi ${customer.name.split(" ")[0] || "there"},\n\nYour repair status has been updated to: ${status}.\n\nTrack your repair anytime: ${trackUrl}\n\nThanks,\nThe repair team`;
+
+    try {
+      const profileId = await getCurrentProfileId();
+      const res = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: customer.email, subject, body, profileId }),
+      });
+      const data = await res.json();
+
+      await sbCreateMessage({
+        customer_id: customer.id,
+        customer_email: customer.email,
+        customer_name: customer.name,
+        channel: "email",
+        direction: "outbound",
+        subject,
+        body,
+        ticket_id: ticket.id,
+        read: true,
+        delivered: !!data.delivered,
+      });
+    } catch {
+      // Notification failure shouldn't interrupt the shop's workflow.
+    }
+  };
+
+  const applyTicketPatch = async (id: number, patch: Partial<Ticket>) => {
+    setTickets((ts) => ts.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+    if (selected?.id === id) setSelected((s) => s && { ...s, ...patch });
+    const { data } = await sbUpdateTicket(id, patch);
+
+    if (data) {
+      setTickets((ts) => ts.map((t) => (t.id === id ? data : t)));
+      if (selected?.id === id) setSelected(data);
+    }
+  };
+
+  const handleDueDateChange = (id: number, dueDate: string) => applyTicketPatch(id, { due_date: dueDate || null });
+
+  const handleAssignedToChange = (id: number, technicianId: string) =>
+    applyTicketPatch(id, { assigned_to: technicianId ? Number(technicianId) : null });
+
+  const handleAddLabel = (ticket: Ticket) => {
+    const label = labelDraft.trim();
+
+    if (!label || ticket.labels.includes(label)) return;
+    applyTicketPatch(ticket.id, { labels: [...ticket.labels, label] });
+    setLabelDraft("");
+  };
+
+  const handleRemoveLabel = (ticket: Ticket, label: string) => {
+    applyTicketPatch(ticket.id, { labels: ticket.labels.filter((l) => l !== label) });
   };
 
   const handlePaid = async (payment: TicketPayment): Promise<boolean> => {
@@ -206,6 +302,32 @@ export default function Tickets() {
     },
     { key: "issue", header: "Issue", render: (t) => <span className="text-sm">{t.issue}</span> },
     { key: "price", header: "Price", render: (t) => <span className="text-sm font-semibold">${Number(t.price).toFixed(2)}</span> },
+    {
+      key: "technician",
+      header: "Technician",
+      render: (t) => {
+        const tech = technicians.find((x) => x.id === t.assigned_to);
+
+        return tech ? (
+          <span className="flex items-center gap-1.5 text-sm">
+            <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: tech.color }} />
+            {tech.name}
+          </span>
+        ) : (
+          <span className="text-sm text-muted">Unassigned</span>
+        );
+      },
+    },
+    {
+      key: "due",
+      header: "Due",
+      render: (t) => {
+        if (!t.due_date) return <span className="text-sm text-muted">—</span>;
+        const overdue = new Date(t.due_date) < new Date(new Date().toDateString()) && t.status !== "Completed" && t.status !== "Delivered";
+
+        return <span className={`text-sm ${overdue ? "font-semibold text-danger" : "text-foreground"}`}>{t.due_date}</span>;
+      },
+    },
     {
       key: "status",
       header: "Status",
@@ -392,6 +514,10 @@ export default function Tickets() {
                       </Chip>
                       <Modal.Heading>{selected.device}</Modal.Heading>
                     </div>
+                    <Button variant="outline" onPress={() => handleCopyTrackLink(selected)}>
+                      {linkCopied ? <CheckCheck className="size-4 text-success" /> : <LinkIcon className="size-4" />}
+                      <span>{linkCopied ? "Copied!" : "Track Repair Link"}</span>
+                    </Button>
                     <Button
                       variant="outline"
                       onPress={() =>
@@ -416,6 +542,64 @@ export default function Tickets() {
                       <div className="col-span-2">
                         <span className="block text-micro font-bold uppercase text-muted">Issue</span>
                         <p className="m-0">{selected.issue}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 rounded-2xl border border-border p-4 sm:grid-cols-2">
+                      <div className="flex flex-col gap-1.5">
+                        <Label>Due Date</Label>
+                        <input
+                          className="rounded-xl border border-border bg-surface px-3 py-2 text-sm"
+                          type="date"
+                          value={selected.due_date || ""}
+                          onChange={(e) => handleDueDateChange(selected.id, e.target.value)}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <Label>Technician</Label>
+                        <Select
+                          placeholder="Unassigned"
+                          selectedKey={selected.assigned_to ? String(selected.assigned_to) : null}
+                          onSelectionChange={(key) => handleAssignedToChange(selected.id, key ? String(key) : "")}
+                        >
+                          <Select.Trigger>
+                            <Select.Value />
+                          </Select.Trigger>
+                          <Select.Popover>
+                            <ListBox>
+                              {technicians.map((t) => (
+                                <ListBox.Item key={t.id} id={String(t.id)}>
+                                  {t.name}
+                                </ListBox.Item>
+                              ))}
+                            </ListBox>
+                          </Select.Popover>
+                        </Select>
+                      </div>
+                      <div className="flex flex-col gap-1.5 sm:col-span-2">
+                        <Label>Labels</Label>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {selected.labels.map((label) => (
+                            <span key={label} className="flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-bold text-accent">
+                              {label}
+                              <button aria-label={`Remove ${label}`} type="button" onClick={() => handleRemoveLabel(selected, label)}>
+                                <X className="size-3" />
+                              </button>
+                            </span>
+                          ))}
+                          <input
+                            className="min-w-[120px] flex-1 rounded-full border border-dashed border-border bg-transparent px-3 py-1 text-xs outline-none focus:border-accent"
+                            placeholder="Add a label + Enter"
+                            value={labelDraft}
+                            onChange={(e) => setLabelDraft(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                handleAddLabel(selected);
+                              }
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
 

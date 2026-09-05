@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Modal } from "@heroui/react";
 import {
+  BarChart3,
   CalendarDays,
   LayoutDashboard,
   Mail,
@@ -24,6 +25,7 @@ const NAV_LINKS = [
   { label: "Trade-In", path: "/trade-in", icon: Repeat },
   { label: "Calendar", path: "/calendar", icon: CalendarDays },
   { label: "Messages", path: "/messages", icon: Mail },
+  { label: "Reports", path: "/reports", icon: BarChart3 },
   { label: "Settings", path: "/settings", icon: SlidersHorizontal },
 ];
 

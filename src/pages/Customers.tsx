@@ -1,15 +1,47 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Alert, Button, Chip, FieldError, InputGroup, Label, Modal, TextField } from "@heroui/react";
-import { CircleAlert, Mail, MapPin, Phone, Plus, RefreshCw, Search, Ticket as TicketIcon, UserRoundX, Users, Wrench } from "lucide-react";
+import { Alert, Button, Chip, FieldError, InputGroup, Label, ListBox, Modal, Select, Switch, TextField } from "@heroui/react";
+import {
+  Cake,
+  CircleAlert,
+  Gift,
+  Mail,
+  MapPin,
+  Phone,
+  Plus,
+  RefreshCw,
+  Search,
+  Star,
+  Ticket as TicketIcon,
+  UserRoundX,
+  Users,
+  Wrench,
+} from "lucide-react";
 
 import DataTable, { type DataTableColumn } from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
-import type { Customer, Ticket } from "@/types/domain";
+import type { Customer, PreferredContact, Ticket } from "@/types/domain";
 import { sbFetchCustomers, sbFetchTickets, sbUpsertCustomer } from "@/lib/supabase";
 import { asArray, formatCurrency, initials } from "@/lib/utils";
 
-const emptyForm: Partial<Customer> = { name: "", phone: "", email: "", address: "", notes: "" };
+const emptyForm: Partial<Customer> = {
+  name: "",
+  phone: "",
+  email: "",
+  address: "",
+  notes: "",
+  secondary_phone: "",
+  preferred_contact: "phone",
+  referral_source: "",
+  birthday: null,
+  vip: false,
+};
+
+const CONTACT_METHODS: { value: PreferredContact; label: string }[] = [
+  { value: "phone", label: "Phone" },
+  { value: "email", label: "Email" },
+  { value: "sms", label: "Text (SMS)" },
+];
 
 function Avatar({ name }: { name: string }) {
   return (
@@ -94,7 +126,10 @@ export default function Customers() {
       render: (c) => (
         <button className="flex items-center gap-3 text-left" type="button" onClick={() => setViewing(c)}>
           <Avatar name={c.name} />
-          <strong className="text-sm text-foreground hover:text-accent">{c.name}</strong>
+          <span className="flex items-center gap-1.5">
+            <strong className="text-sm text-foreground hover:text-accent">{c.name}</strong>
+            {c.vip && <Star className="size-3.5 fill-warning text-warning" />}
+          </span>
         </button>
       ),
     },
@@ -205,16 +240,16 @@ export default function Customers() {
       {/* Edit / new customer */}
       <Modal>
         <Modal.Backdrop isOpen={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
-          <Modal.Container size="md">
+          <Modal.Container scroll="inside" size="md">
             <Modal.Dialog>
               <Modal.Header>
                 <Modal.Heading>{editing?.id ? "Edit Customer" : "New Customer"}</Modal.Heading>
                 <Modal.CloseTrigger />
               </Modal.Header>
-              <Modal.Body className="flex flex-col gap-4">
+              <Modal.Body className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <TextField
                   isRequired
-                  className="flex flex-col gap-1.5"
+                  className="flex flex-col gap-1.5 sm:col-span-2"
                   value={editing?.name || ""}
                   onChange={(v) => setEditing((f) => f && { ...f, name: v })}
                 >
@@ -254,6 +289,68 @@ export default function Customers() {
                     <InputGroup.Input />
                   </InputGroup>
                 </TextField>
+                <TextField
+                  className="flex flex-col gap-1.5"
+                  value={editing?.secondary_phone || ""}
+                  onChange={(v) => setEditing((f) => f && { ...f, secondary_phone: v })}
+                >
+                  <Label>Secondary Phone</Label>
+                  <InputGroup>
+                    <InputGroup.Input />
+                  </InputGroup>
+                </TextField>
+                <div className="flex flex-col gap-1.5">
+                  <Label>Preferred Contact Method</Label>
+                  <Select
+                    selectedKey={editing?.preferred_contact || "phone"}
+                    onSelectionChange={(key) => setEditing((f) => f && { ...f, preferred_contact: String(key) as PreferredContact })}
+                  >
+                    <Select.Trigger>
+                      <Select.Value />
+                    </Select.Trigger>
+                    <Select.Popover>
+                      <ListBox>
+                        {CONTACT_METHODS.map((m) => (
+                          <ListBox.Item key={m.value} id={m.value}>
+                            {m.label}
+                          </ListBox.Item>
+                        ))}
+                      </ListBox>
+                    </Select.Popover>
+                  </Select>
+                </div>
+                <TextField
+                  className="flex flex-col gap-1.5"
+                  value={editing?.referral_source || ""}
+                  onChange={(v) => setEditing((f) => f && { ...f, referral_source: v })}
+                >
+                  <Label>How did they find us?</Label>
+                  <InputGroup>
+                    <InputGroup.Input placeholder="Google, referral, walk-in…" />
+                  </InputGroup>
+                </TextField>
+                <div className="flex flex-col gap-1.5">
+                  <Label>Birthday</Label>
+                  <input
+                    className="rounded-xl border border-border bg-surface px-3 py-2 text-sm"
+                    type="date"
+                    value={editing?.birthday || ""}
+                    onChange={(e) => setEditing((f) => f && { ...f, birthday: e.target.value || null })}
+                  />
+                </div>
+                <div className="flex items-center gap-3 pt-6">
+                  <Switch isSelected={!!editing?.vip} onChange={(v) => setEditing((f) => f && { ...f, vip: v })}>
+                    <Switch.Content>
+                      <Switch.Control>
+                        <Switch.Thumb />
+                      </Switch.Control>
+                    </Switch.Content>
+                  </Switch>
+                  <span className="flex items-center gap-1.5 text-sm text-foreground">
+                    <Star className="size-4 text-warning" />
+                    VIP customer
+                  </span>
+                </div>
               </Modal.Body>
               <Modal.Footer>
                 <Button variant="outline" onPress={() => setEditing(null)}>
@@ -278,7 +375,17 @@ export default function Customers() {
                   <Modal.Header>
                     <div className="flex items-center gap-3">
                       <Avatar name={viewing.name} />
-                      <Modal.Heading>{viewing.name}</Modal.Heading>
+                      <div className="flex items-center gap-2">
+                        <Modal.Heading>{viewing.name}</Modal.Heading>
+                        {viewing.vip && (
+                          <Chip color="warning" size="sm" variant="soft">
+                            <Chip.Label className="flex items-center gap-1">
+                              <Star className="size-3 fill-warning" />
+                              VIP
+                            </Chip.Label>
+                          </Chip>
+                        )}
+                      </div>
                     </div>
                     <Button variant="outline" onPress={() => setEditing(viewing)}>
                       Edit
@@ -299,6 +406,24 @@ export default function Customers() {
                         <MapPin className="size-4 text-accent" />
                         {viewing.address || "No address"}
                       </div>
+                      {viewing.secondary_phone && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="size-4 text-muted" />
+                          {viewing.secondary_phone} <span className="text-xs text-muted">(alt)</span>
+                        </div>
+                      )}
+                      {viewing.birthday && (
+                        <div className="flex items-center gap-2">
+                          <Cake className="size-4 text-accent" />
+                          {new Date(`${viewing.birthday}T00:00:00`).toLocaleDateString()}
+                        </div>
+                      )}
+                      {viewing.referral_source && (
+                        <div className="flex items-center gap-2">
+                          <Gift className="size-4 text-accent" />
+                          Found us via {viewing.referral_source}
+                        </div>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">

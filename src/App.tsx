@@ -10,14 +10,17 @@ import Import from "@/pages/Import";
 import Inventory from "@/pages/Inventory";
 import Login from "@/pages/Login";
 import Messages from "@/pages/Messages";
+import Reports from "@/pages/Reports";
 import Settings from "@/pages/Settings";
 import Tickets from "@/pages/Tickets";
+import TrackTicket from "@/pages/TrackTicket";
 import TradeIn from "@/pages/TradeIn";
 
 export default function App() {
   return (
     <Routes>
       <Route element={<Login />} path="/login" />
+      <Route element={<TrackTicket />} path="/track/:token" />
       <Route
         element={
           <RequireAuth>
@@ -34,6 +37,7 @@ export default function App() {
         <Route element={<CalendarPage />} path="/calendar" />
         <Route element={<Messages />} path="/messages" />
         <Route element={<Bookings />} path="/bookings" />
+        <Route element={<Reports />} path="/reports" />
         <Route element={<Import />} path="/import" />
         <Route element={<Settings />} path="/settings" />
       </Route>
