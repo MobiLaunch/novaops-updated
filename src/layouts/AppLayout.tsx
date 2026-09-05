@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Menu, Search } from "lucide-react";
-import { Drawer } from "@heroui/react";
+import { Drawer, Spinner } from "@heroui/react";
 
 import CommandPalette from "@/components/CommandPalette";
 import ElectronTitlebar from "@/components/ElectronTitlebar";
@@ -71,7 +71,17 @@ export default function AppLayout() {
           </header>
 
           <main className="min-w-0 flex-1 px-3 py-4 pb-8 sm:px-5 sm:py-6 lg:px-6">
-            <Outlet />
+            {/* Scoped to the content area so switching pages never blanks the
+                sidebar or header while the next route's chunk loads. */}
+            <Suspense
+              fallback={
+                <div className="flex min-h-[60vh] items-center justify-center">
+                  <Spinner size="lg" />
+                </div>
+              }
+            >
+              <Outlet />
+            </Suspense>
           </main>
         </div>
       </div>

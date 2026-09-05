@@ -698,3 +698,41 @@ export async function sbFetchWebsiteOrders(): Promise<{ data: WebsiteOrder[] | n
 
   return { data: data as WebsiteOrder[] | null, error: error ? errMessage(error) : null };
 }
+
+// ─── Notification badge counts ─────────────────────────────────────────────
+// The header bell polls this on a timer from every page, so it must stay
+// cheap: three of the four are `head: true` count queries that transfer no
+// rows at all. Low stock is the exception — PostgREST can't compare two
+// columns (`stock <= low`) in a filter, so it reads just those two integers
+// per item and counts client-side, which is still a fraction of a full
+// inventory row with its text and timestamps.
+
+export interface NotificationCounts {
+  pendingBookings: number;
+  lowStock: number;
+  unreadMail: number;
+  unreadChats: number;
+}
+
+export async function sbFetchNotificationCounts(): Promise<NotificationCounts> {
+  const client = getClient();
+  const empty: NotificationCounts = { pendingBookings: 0, lowStock: 0, unreadMail: 0, unreadChats: 0 };
+
+  if (!client) return empty;
+
+  const [bookings, inventory, mail, chats] = await Promise.all([
+    client.from("bookings").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    client.from("inventory").select("stock, low"),
+    client.from("messages").select("id", { count: "exact", head: true }).eq("direction", "inbound").eq("read", false),
+    client.from("customer_messages").select("id", { count: "exact", head: true }).eq("direction", "inbound").eq("read", false),
+  ]);
+
+  const lowStockRows = (inventory.data as { stock: number; low: number }[] | null) || [];
+
+  return {
+    pendingBookings: bookings.count || 0,
+    lowStock: lowStockRows.filter((i) => Number(i.stock) <= Number(i.low)).length,
+    unreadMail: mail.count || 0,
+    unreadChats: chats.count || 0,
+  };
+}

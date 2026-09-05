@@ -16,6 +16,10 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
+      // Registered by hand in main.tsx so the customer-facing /track/:token
+      // page doesn't install a service worker and precache the whole staff
+      // app onto a device that will only ever read one repair status.
+      injectRegister: null,
       includeAssets: ["posicon.svg", "icon.ico"],
       manifest: {
         name: "NovaOps — Repair Shop Management",

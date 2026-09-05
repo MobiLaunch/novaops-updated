@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, CalendarDays, Mail, MessageCircle, TriangleAlert } from "lucide-react";
 
-import { sbFetchBookings, sbFetchCustomerMessages, sbFetchInventory, sbFetchMessages, isSupabaseConfigured } from "@/lib/supabase";
+import { isSupabaseConfigured, sbFetchNotificationCounts } from "@/lib/supabase";
 
 interface NotificationItem {
   key: string;
@@ -19,36 +19,20 @@ export default function NotificationsPanel() {
 
   const load = async () => {
     if (!isSupabaseConfigured()) return;
-    const [{ data: bookings }, { data: inventory }, { data: messages }, { data: chats }] = await Promise.all([
-      sbFetchBookings(),
-      sbFetchInventory(),
-      sbFetchMessages(),
-      sbFetchCustomerMessages(),
-    ]);
-
+    const { pendingBookings, lowStock, unreadMail, unreadChats } = await sbFetchNotificationCounts();
     const next: NotificationItem[] = [];
-    const pendingBookings = (bookings || []).filter((b) => b.status === "pending").length;
 
     if (pendingBookings > 0) {
       next.push({ key: "bookings", icon: CalendarDays, label: `${pendingBookings} pending booking${pendingBookings !== 1 ? "s" : ""}`, path: "/bookings" });
     }
-
-    const lowStock = (inventory || []).filter((i) => i.stock <= i.low).length;
-
     if (lowStock > 0) {
       next.push({ key: "inventory", icon: TriangleAlert, label: `${lowStock} item${lowStock !== 1 ? "s" : ""} low on stock`, path: "/inventory" });
     }
-
-    const unreadMail = (messages || []).filter((m) => m.direction === "inbound" && !m.read).length;
-
     if (unreadMail > 0) {
       next.push({ key: "mail", icon: Mail, label: `${unreadMail} unread message${unreadMail !== 1 ? "s" : ""}`, path: "/messages" });
     }
-
-    const unreadChat = (chats || []).filter((m) => m.direction === "inbound" && !m.read).length;
-
-    if (unreadChat > 0) {
-      next.push({ key: "chat", icon: MessageCircle, label: `${unreadChat} unread customer chat${unreadChat !== 1 ? "s" : ""}`, path: "/messages" });
+    if (unreadChats > 0) {
+      next.push({ key: "chat", icon: MessageCircle, label: `${unreadChats} unread customer chat${unreadChats !== 1 ? "s" : ""}`, path: "/messages" });
     }
 
     setItems(next);
@@ -57,8 +41,19 @@ export default function NotificationsPanel() {
   useEffect(() => {
     load();
     const interval = setInterval(load, 60000);
+    // A background tab shouldn't keep polling — and coming back to a tab
+    // that's been idle for an hour should refresh immediately rather than
+    // showing hour-old counts until the next tick.
+    const onVisible = () => {
+      if (document.visibilityState === "visible") load();
+    };
 
-    return () => clearInterval(interval);
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
 
   useEffect(() => {
