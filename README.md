@@ -77,8 +77,8 @@ reskin). It's being delivered in phases:
   matched by phone/email (safe to re-run), inventory rows are always added
   as new
 - Keyboard shortcuts: `Ctrl/⌘+K` search, `?` for a cheat-sheet overlay,
-  `G` then a letter to jump to a page (Dashboard/Tickets/Customers/
-  Inventory/Messages/Bookings/Settings)
+  `G` then a letter to jump to a page (Dashboard/Point of Sale/Tickets/
+  Customers/Inventory/Messages/Bookings/Reports/Settings)
 - Notifications bell in the header: pending bookings, low-stock inventory,
   unread Gmail messages, unread customer chats — polls every 60s
 - **Electron desktop shell** (`electron/`) — see "Desktop app" below
@@ -140,6 +140,30 @@ reskin). It's being delivered in phases:
   `supabase/migrations/MASTER_SETUP.sql`, which now includes these plus
   the `customers`/`tickets` column additions above; re-run it once (it's
   idempotent) to pick them up on an existing database.
+
+**Phase 7 — done (the actual point-of-sale register):**
+- **`/pos`** — a retail checkout register, separate from a repair ticket's
+  own "Take Payment" flow. Search/filter the product grid (inventory in
+  stock, plus service-type items), tap to add to a cart, adjust quantity,
+  or ring up a one-off custom amount. A cart can also pull in an existing
+  ticket's remaining balance (`ticketBalanceDue`, price minus payments
+  already made) as a line item, so a retail item and a repair pickup settle
+  in one transaction.
+- **Barcode scanning** — a physical scanner (or manual "type it fast, hit
+  Enter") adds an inventory item by SKU, or a ticket's balance via a
+  `TKT-<id>` code, using the same window-level keydown-buffer pattern as
+  the keyboard shortcuts overlay.
+- **Checkout** reuses the same Cash / Card / Terminal / Afterpay
+  `PaymentModal` as Tickets' "Take Payment" (now generalized to take an
+  amount/reference/note instead of a ticket) — completing a sale writes a
+  `pos_sales` row, deducts inventory stock, and (for a ticket line) records
+  the payment on that ticket and marks it Completed.
+- **Printable receipt** on the success screen, using Settings → Shop
+  Settings' new business name/address/phone fields.
+- New table: `pos_sales` (id, customer, items jsonb, subtotal/tax/total,
+  payment method, status) — see `supabase/migrations/MASTER_SETUP.sql`;
+  re-run it once (it's idempotent) to pick it up on an existing database.
+- Keyboard shortcut: `G` then `P` jumps to `/pos`.
 
 **Not ported** (out of scope for now — flag if you want these):
 - Direct-to-USB thermal label/receipt printing (WebUSB) — labels still print
@@ -276,7 +300,8 @@ npm run dev
 editor — it's the complete, idempotent setup for every table the current
 React app needs (`customers`, `tickets`, `inventory`, `house_calls`,
 `appointments`, `messages`, `trade_ins`, `shipments`, `customer_messages`,
-`social_connections`), plus the two columns it needs added to tables the
+`social_connections`, `technicians`, `shop_settings`, `pos_sales`), plus
+the two columns it needs added to tables the
 **mobicare-business website already owns** (`profiles.supplier_emails`,
 `bookings.novaops_ticket_id` — both plain `ALTER TABLE ADD COLUMN IF NOT
 EXISTS`, never a `CREATE TABLE`, since `profiles` and `bookings` are real

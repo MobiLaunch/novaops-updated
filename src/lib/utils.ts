@@ -1,3 +1,5 @@
+import type { Ticket, TicketPayment } from "@/types/domain";
+
 // Supabase jsonb/array columns can come back as null, an unexpected shape
 // (e.g. `{}` instead of `[]`, if a row predates a schema change or was
 // inserted by an older client), or simply missing on an old row. `x || []`
@@ -10,6 +12,13 @@ export function asArray<T>(value: unknown): T[] {
 
 export function formatCurrency(amount: number | string | null | undefined): string {
   return `$${Number(amount || 0).toFixed(2)}`;
+}
+
+// A ticket's price minus whatever's already been paid against it — shared by
+// Tickets, PaymentModal, and the POS register (which can add a ticket's
+// balance to a cart alongside retail items).
+export function ticketBalanceDue(t: Ticket): number {
+  return Number(t.price) - asArray<TicketPayment>(t.payments).reduce((sum, p) => sum + Number(p.amount), 0);
 }
 
 export function initials(name: string): string {

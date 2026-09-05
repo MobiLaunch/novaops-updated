@@ -11,8 +11,8 @@
 -- already exist there and are owned by that repo. This script only adds
 -- new columns to each of the first two (never recreates, never drops
 -- them) and never touches `staff_users` at all. Every other table below —
--- customers, tickets, inventory, house_calls, appointments, messages,
--- trade_ins, shipments, customer_messages, social_connections,
+-- customers, tickets, inventory, pos_sales, house_calls, appointments,
+-- messages, trade_ins, shipments, customer_messages, social_connections,
 -- technicians, shop_settings — is new and belongs entirely to NovaOps.
 --
 -- Do NOT run 00000000_core_schema.sql, 20240401_inventory_services.sql,
@@ -195,7 +195,38 @@ exception when duplicate_object then null; end $$;
 
 
 -- ============================================================================
--- 5. house_calls
+-- 5. pos_sales  (retail checkout — /pos — separate from tickets, which are
+--    repair jobs; a ticket's own balance can still be added to a POS sale
+--    as a line item, so mixed carts settle in one transaction)
+-- ============================================================================
+
+create table if not exists pos_sales (
+  id              bigserial     primary key,
+  profile_id      uuid          not null references auth.users(id) on delete cascade,
+  customer_id     bigint        references customers(id) on delete set null,
+  items           jsonb         not null default '[]',  -- [{name, price, quantity, sku?, ticketId?}]
+  subtotal        numeric(10,2) not null default 0,
+  tax             numeric(10,2) not null default 0,
+  total           numeric(10,2) not null default 0,
+  payment_method  text          not null default 'cash',
+  note            text          not null default '',
+  status          text          not null default 'completed', -- completed | refunded | voided
+  created_at      timestamptz   not null default now()
+);
+
+create index if not exists pos_sales_profile_id_idx on pos_sales (profile_id);
+create index if not exists pos_sales_customer_id_idx on pos_sales (customer_id);
+create index if not exists pos_sales_created_at_idx on pos_sales (profile_id, created_at desc);
+
+alter table pos_sales enable row level security;
+drop policy if exists "pos_sales_owner" on pos_sales;
+create policy "pos_sales_owner" on pos_sales
+  using     (profile_id = auth.uid())
+  with check (profile_id = auth.uid());
+
+
+-- ============================================================================
+-- 6. house_calls
 -- ============================================================================
 
 create table if not exists house_calls (
@@ -229,7 +260,7 @@ exception when duplicate_object then null; end $$;
 
 
 -- ============================================================================
--- 6. appointments
+-- 7. appointments
 -- ============================================================================
 
 create table if not exists appointments (
@@ -263,7 +294,7 @@ exception when duplicate_object then null; end $$;
 
 
 -- ============================================================================
--- 7. messages  (Gmail-synced customer email log — Messages → Inbox)
+-- 8. messages  (Gmail-synced customer email log — Messages → Inbox)
 -- ============================================================================
 
 create table if not exists messages (
@@ -305,7 +336,7 @@ exception when duplicate_object then null; end $$;
 
 
 -- ============================================================================
--- 8. trade_ins
+-- 9. trade_ins
 -- ============================================================================
 
 create table if not exists trade_ins (
@@ -361,7 +392,7 @@ exception when duplicate_object then null; end $$;
 
 
 -- ============================================================================
--- 9. shipments  (parts-order tracking, auto-collected from supplier emails)
+-- 10. shipments  (parts-order tracking, auto-collected from supplier emails)
 -- ============================================================================
 
 create table if not exists shipments (
@@ -405,7 +436,7 @@ exception when duplicate_object then null; end $$;
 
 
 -- ============================================================================
--- 10. customer_messages  (direct customer <-> shop chat — website Account
+-- 11. customer_messages  (direct customer <-> shop chat — website Account
 --     → Messages sends here; NovaOps Messages → Customer Chat replies)
 -- ============================================================================
 
@@ -480,7 +511,7 @@ create trigger customer_messages_fill_profile_id
 
 
 -- ============================================================================
--- 11. social_connections  (Gmail OAuth tokens for Messages → Sync Gmail)
+-- 12. social_connections  (Gmail OAuth tokens for Messages → Sync Gmail)
 -- ============================================================================
 
 create table if not exists social_connections (
@@ -525,7 +556,7 @@ exception when duplicate_object then null; end $$;
 
 
 -- ============================================================================
--- 12. technicians  (assignment + color-coding on tickets)
+-- 13. technicians  (assignment + color-coding on tickets)
 -- ============================================================================
 
 create table if not exists technicians (
@@ -552,7 +583,7 @@ create index if not exists tickets_assigned_to_idx on tickets (assigned_to);
 
 
 -- ============================================================================
--- 13. shop_settings  (one row per shop — business hours, tax rate, receipt
+-- 14. shop_settings  (one row per shop — business hours, tax rate, receipt
 --     footer, customer-notification preferences, canned message replies)
 -- ============================================================================
 
@@ -566,6 +597,13 @@ create table if not exists shop_settings (
   created_at                timestamptz  not null default now(),
   updated_at                timestamptz  not null default now()
 );
+
+-- Added columns (kept as ALTER so this stays safe against a shop_settings
+-- table that already exists from an earlier run of this file) — used on
+-- printed receipts (POS → checkout → success → Print Receipt).
+alter table shop_settings add column if not exists business_name    text not null default '';
+alter table shop_settings add column if not exists business_address text not null default '';
+alter table shop_settings add column if not exists business_phone   text not null default '';
 
 alter table shop_settings enable row level security;
 drop policy if exists "shop_settings_owner" on shop_settings;
@@ -581,7 +619,7 @@ exception when duplicate_object then null; end $$;
 
 
 -- ============================================================================
--- 14. bookings — ALTER ONLY. Owned by mobicare-business; NovaOps just needs
+-- 15. bookings — ALTER ONLY. Owned by mobicare-business; NovaOps just needs
 --     a column to record which ticket a booking was converted into.
 -- ============================================================================
 
@@ -621,4 +659,8 @@ create index if not exists bookings_novaops_ticket_id_idx on public.bookings(nov
 -- 8. Business hours, tax rate, receipt footer, auto-notify-on-status-change,
 --    and canned quick replies all live in shop_settings, edited from
 --    Settings → Shop Settings.
+-- 9. The retail register (/pos) rings up inventory items and (optionally) a
+--    ticket's balance in one sale, saved to pos_sales — separate from a
+--    ticket's own payments history, though a ticket line item in a POS sale
+--    still records its payment on the ticket and marks it Completed.
 -- ============================================================================

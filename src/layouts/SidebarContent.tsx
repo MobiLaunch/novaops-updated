@@ -13,6 +13,7 @@ import {
   Mail,
   Package,
   Repeat,
+  ShoppingCart,
   SlidersHorizontal,
   Upload,
   Ticket as TicketIcon,
@@ -32,6 +33,7 @@ interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { path: "/pos", icon: ShoppingCart, label: "Point of Sale" },
   { path: "/tickets", icon: TicketIcon, label: "Tickets" },
   { path: "/customers", icon: Users, label: "Customers" },
   { path: "/inventory", icon: Package, label: "Inventory" },

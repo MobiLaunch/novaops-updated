@@ -56,6 +56,83 @@ export function printHtmlContent(html: string) {
   }, 2000);
 }
 
+export interface ReceiptData {
+  businessName: string;
+  businessAddress: string;
+  businessPhone: string;
+  date: string;
+  items: Array<{ name: string; qty: number; price: number }>;
+  subtotal: number;
+  tax: number;
+  total: number;
+  currency: string;
+  ticketRef?: string;
+  customerName?: string;
+}
+
+export function printReceipt(data: ReceiptData) {
+  const formatMoney = (amount: number) => `${data.currency}${(amount || 0).toFixed(2)}`;
+  const itemsHtml = data.items
+    .map(
+      (item) => `
+    <tr>
+      <td style="padding: 4px 0;">
+        <div style="font-weight: 900;">${item.name}</div>
+        <div style="font-size: 11px; font-weight: 700;">${item.qty} x ${formatMoney(item.price)}</div>
+      </td>
+      <td style="text-align: right; padding: 4px 0; font-weight: 900;">${formatMoney(item.qty * item.price)}</td>
+    </tr>
+  `,
+    )
+    .join("");
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Receipt</title>
+      <meta charset="utf-8">
+      <style>
+        html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body {
+          font-family: 'Courier New', Courier, monospace;
+          font-size: 13px; color: #000; font-weight: 700;
+          -webkit-font-smoothing: none; text-rendering: geometricPrecision;
+          margin: 0; padding: 10px; max-width: 300px; margin-left: auto; margin-right: auto;
+        }
+        h1 { font-size: 18px; margin: 0 0 5px 0; text-align: center; font-weight: 900; }
+        .header-info { text-align: center; font-size: 12px; margin-bottom: 15px; }
+        .divider { border-top: 1px dashed #000; margin: 10px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        .totals-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+        .totals-row.bold { font-weight: 900; font-size: 15px; margin-top: 5px; }
+        .footer { text-align: center; font-size: 12px; margin-top: 20px; }
+        @media print { @page { margin: 0; size: auto; } body { margin: 0; padding: 8mm 4mm; max-width: none; } }
+      </style>
+    </head>
+    <body>
+      <h1>${data.businessName || "Receipt"}</h1>
+      <div class="header-info">
+        ${data.businessAddress ? `<div>${data.businessAddress}</div>` : ""}
+        ${data.businessPhone ? `<div>${data.businessPhone}</div>` : ""}
+        <div style="margin-top: 5px;">${data.date}</div>
+        ${data.ticketRef ? `<div style="margin-top: 5px; font-weight: bold;">Ref: ${data.ticketRef}</div>` : ""}
+        ${data.customerName ? `<div>Customer: ${data.customerName}</div>` : ""}
+      </div>
+      <div class="divider"></div>
+      <table><tbody>${itemsHtml}</tbody></table>
+      <div class="divider"></div>
+      <div class="totals-row"><span>Subtotal</span><span>${formatMoney(data.subtotal)}</span></div>
+      <div class="totals-row"><span>Tax</span><span>${formatMoney(data.tax)}</span></div>
+      <div class="totals-row bold"><span>Total</span><span>${formatMoney(data.total)}</span></div>
+      <div class="footer">Thank you for your business!</div>
+    </body>
+    </html>
+  `;
+
+  printHtmlContent(html);
+}
+
 export interface BarcodeLabelData {
   value: string;
   name: string;

@@ -241,6 +241,9 @@ function SquareSettings() {
 }
 
 function ShopSettingsPanel() {
+  const [businessName, setBusinessName] = useState("");
+  const [businessAddress, setBusinessAddress] = useState("");
+  const [businessPhone, setBusinessPhone] = useState("");
   const [hours, setHours] = useState<Record<string, DayHours>>({});
   const [taxRate, setTaxRate] = useState("0");
   const [receiptFooter, setReceiptFooter] = useState("");
@@ -255,6 +258,9 @@ function ShopSettingsPanel() {
     sbFetchShopSettings().then(({ data }) => {
       setLoading(false);
       if (!data) return;
+      setBusinessName(data.business_name || "");
+      setBusinessAddress(data.business_address || "");
+      setBusinessPhone(data.business_phone || "");
       setHours(data.business_hours || {});
       setTaxRate(String(data.tax_rate ?? 0));
       setReceiptFooter(data.receipt_footer || "");
@@ -283,6 +289,9 @@ function ShopSettingsPanel() {
     setSaving(true);
     setSaved(false);
     const { data } = await sbUpdateShopSettings({
+      business_name: businessName,
+      business_address: businessAddress,
+      business_phone: businessPhone,
       business_hours: hours,
       tax_rate: Number(taxRate) || 0,
       receipt_footer: receiptFooter,
@@ -306,6 +315,27 @@ function ShopSettingsPanel() {
     <div className="rounded-[28px] border border-border bg-surface p-6">
       <h3 className="m-0 mb-1 text-lg font-bold text-foreground">Shop Settings</h3>
       <p className="m-0 mb-4 text-sm text-muted">Business hours, tax rate, receipt footer, and customer notifications.</p>
+
+      <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <TextField className="flex flex-col gap-1.5 sm:col-span-2" value={businessName} onChange={setBusinessName}>
+          <Label>Business Name</Label>
+          <InputGroup>
+            <InputGroup.Input placeholder="Appears on printed receipts" />
+          </InputGroup>
+        </TextField>
+        <TextField className="flex flex-col gap-1.5" value={businessAddress} onChange={setBusinessAddress}>
+          <Label>Address</Label>
+          <InputGroup>
+            <InputGroup.Input />
+          </InputGroup>
+        </TextField>
+        <TextField className="flex flex-col gap-1.5" value={businessPhone} onChange={setBusinessPhone}>
+          <Label>Phone</Label>
+          <InputGroup>
+            <InputGroup.Input />
+          </InputGroup>
+        </TextField>
+      </div>
 
       <div className="flex flex-col gap-2">
         <span className="mb-1 block text-micro font-bold uppercase text-muted">Business Hours</span>

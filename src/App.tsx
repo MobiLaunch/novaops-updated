@@ -10,6 +10,7 @@ import Import from "@/pages/Import";
 import Inventory from "@/pages/Inventory";
 import Login from "@/pages/Login";
 import Messages from "@/pages/Messages";
+import POS from "@/pages/POS";
 import Reports from "@/pages/Reports";
 import Settings from "@/pages/Settings";
 import Tickets from "@/pages/Tickets";
@@ -30,6 +31,7 @@ export default function App() {
       >
         <Route index element={<Navigate replace to="/dashboard" />} />
         <Route element={<Dashboard />} path="/dashboard" />
+        <Route element={<POS />} path="/pos" />
         <Route element={<Tickets />} path="/tickets" />
         <Route element={<Customers />} path="/customers" />
         <Route element={<Inventory />} path="/inventory" />

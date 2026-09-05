@@ -5,6 +5,7 @@ import { Keyboard } from "lucide-react";
 
 const GO_TO: Record<string, { label: string; path: string }> = {
   d: { label: "Dashboard", path: "/dashboard" },
+  p: { label: "Point of Sale", path: "/pos" },
   t: { label: "Tickets", path: "/tickets" },
   c: { label: "Customers", path: "/customers" },
   i: { label: "Inventory", path: "/inventory" },

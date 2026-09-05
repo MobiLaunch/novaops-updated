@@ -34,11 +34,7 @@ import {
   sbUpdateTicket,
 } from "@/lib/supabase";
 import { printBarcodeLabel } from "@/lib/print";
-import { asArray } from "@/lib/utils";
-
-function balanceDue(t: Ticket) {
-  return Number(t.price) - asArray<TicketPayment>(t.payments).reduce((sum, p) => sum + Number(p.amount), 0);
-}
+import { asArray, ticketBalanceDue } from "@/lib/utils";
 
 const STATUSES: TicketStatus[] = ["Open", "In Progress", "Waiting for Parts", "Completed", "Delivered"];
 const STATUS_STYLES: Record<string, string> = {
@@ -357,7 +353,7 @@ export default function Tickets() {
       header: "",
       render: (t) => (
         <div className="flex justify-end gap-1">
-          {balanceDue(t) > 0 && (
+          {ticketBalanceDue(t) > 0 && (
             <Button isIconOnly aria-label="Take payment" variant="ghost" onPress={() => setPayingTicket(t)}>
               <CreditCard className="size-4" />
             </Button>
@@ -606,7 +602,7 @@ export default function Tickets() {
                     <div className="flex items-center justify-between rounded-2xl border border-border p-4">
                       <div>
                         <span className="block text-micro font-bold uppercase text-muted">Balance Due</span>
-                        <strong className="text-xl text-foreground">${balanceDue(selected).toFixed(2)}</strong>
+                        <strong className="text-xl text-foreground">${ticketBalanceDue(selected).toFixed(2)}</strong>
                         {asArray<TicketPayment>(selected.payments).length > 0 && (
                           <p className="m-0 mt-1 text-xs text-muted">
                             {asArray<TicketPayment>(selected.payments).length} payment
@@ -614,7 +610,7 @@ export default function Tickets() {
                           </p>
                         )}
                       </div>
-                      {balanceDue(selected) > 0 && (
+                      {ticketBalanceDue(selected) > 0 && (
                         <Button variant="primary" onPress={() => setPayingTicket(selected)}>
                           <CreditCard className="size-4" />
                           <span>Take Payment</span>
@@ -718,7 +714,15 @@ export default function Tickets() {
         </Modal.Backdrop>
       </Modal>
 
-      <PaymentModal ticket={payingTicket} onClose={() => setPayingTicket(null)} onPaid={handlePaid} />
+      <PaymentModal
+        amount={payingTicket ? ticketBalanceDue(payingTicket) : 0}
+        note={payingTicket ? `NovaOps Ticket #${payingTicket.id}` : ""}
+        open={!!payingTicket}
+        referenceId={payingTicket ? `ticket-${payingTicket.id}` : ""}
+        title={payingTicket ? `Take Payment — Ticket #${payingTicket.id}` : ""}
+        onClose={() => setPayingTicket(null)}
+        onPaid={handlePaid}
+      />
     </div>
   );
 }

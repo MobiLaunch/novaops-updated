@@ -9,6 +9,7 @@ import {
   Package,
   Repeat,
   Search,
+  ShoppingCart,
   SlidersHorizontal,
   Ticket as TicketIcon,
   Users,
@@ -19,6 +20,7 @@ import { sbFetchCustomers, sbFetchInventory, sbFetchTickets } from "@/lib/supaba
 
 const NAV_LINKS = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { label: "Point of Sale", path: "/pos", icon: ShoppingCart },
   { label: "Tickets", path: "/tickets", icon: TicketIcon },
   { label: "Customers", path: "/customers", icon: Users },
   { label: "Inventory", path: "/inventory", icon: Package },

@@ -103,6 +103,9 @@ export interface DayHours {
 
 export interface ShopSettings {
   profile_id: string;
+  business_name: string;
+  business_address: string;
+  business_phone: string;
   business_hours: Record<string, DayHours>;
   tax_rate: number;
   receipt_footer: string;
@@ -110,6 +113,28 @@ export interface ShopSettings {
   canned_responses: CannedResponse[];
   created_at: string;
   updated_at: string;
+}
+
+export interface PosSaleItem {
+  name: string;
+  price: number;
+  quantity: number;
+  sku?: string;
+  ticketId?: number;
+}
+
+export interface PosSale {
+  id: number;
+  profile_id: string;
+  customer_id: number | null;
+  items: PosSaleItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  payment_method: string;
+  note: string;
+  status: "completed" | "refunded" | "voided" | string;
+  created_at: string;
 }
 
 export interface InventoryItem {

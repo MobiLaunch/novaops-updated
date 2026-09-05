@@ -2,40 +2,41 @@ import { useState } from "react";
 import { Alert, Button, InputGroup, Label, Modal, Spinner, Tabs, TextField } from "@heroui/react";
 import { Banknote, CalendarClock, CircleAlert, CircleCheck, CreditCard, Tablet } from "lucide-react";
 
-import type { Ticket, TicketPayment } from "@/types/domain";
+import type { TicketPayment } from "@/types/domain";
 import { afterpayCheckout, chargeCard, getSquareCredentials, getTerminalCheckoutStatus, startTerminalCheckout } from "@/lib/square";
-import { asArray } from "@/lib/utils";
 import SquareCardForm from "./SquareCardForm";
 
 type PaymentMethod = "cash" | "card" | "terminal" | "afterpay";
 
 interface PaymentModalProps {
-  ticket: Ticket | null;
+  open: boolean;
+  title: string;
+  amount: number;
+  // Used as the Square idempotency/reference id and note — must be unique
+  // per checkout attempt (e.g. `ticket-42` or `pos-${Date.now()}`).
+  referenceId: string;
+  note?: string;
   onClose: () => void;
-  // Returns false if the charge succeeded but saving it to the ticket
-  // record failed — the modal then stays open with a loud warning instead
-  // of silently closing, since the money has already moved and a lost
-  // record here means an unrecorded payment.
+  // Returns false if the charge succeeded but saving the result failed —
+  // the modal then stays open with a loud warning instead of silently
+  // closing, since the money has already moved and a lost record here
+  // means an unrecorded payment.
   onPaid: (payment: TicketPayment) => Promise<boolean>;
 }
 
-export default function PaymentModal({ ticket, onClose, onPaid }: PaymentModalProps) {
+export default function PaymentModal({ open, title, amount, referenceId, note, onClose, onPaid }: PaymentModalProps) {
   const [method, setMethod] = useState<PaymentMethod>("cash");
   const [cashAmount, setCashAmount] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [terminalStatus, setTerminalStatus] = useState<string | null>(null);
 
-  const balanceDue = ticket
-    ? Number(ticket.price) - asArray<TicketPayment>(ticket.payments).reduce((sum, p) => sum + Number(p.amount), 0)
-    : 0;
-
-  const finish = async (amount: number, methodLabel: string) => {
-    const saved = await onPaid({ amount, method: methodLabel, at: new Date().toISOString() });
+  const finish = async (paidAmount: number, methodLabel: string) => {
+    const saved = await onPaid({ amount: paidAmount, method: methodLabel, at: new Date().toISOString() });
 
     if (!saved) {
       setError(
-        `Charged $${amount.toFixed(2)} via ${methodLabel}, but saving it to the ticket failed. ` +
+        `Charged $${paidAmount.toFixed(2)} via ${methodLabel}, but saving it failed. ` +
           "Write this payment down now and retry saving — do not charge the customer again.",
       );
 
@@ -46,20 +47,19 @@ export default function PaymentModal({ ticket, onClose, onPaid }: PaymentModalPr
   };
 
   const handleCash = () => {
-    const amount = Number(cashAmount) || balanceDue;
+    const paidAmount = Number(cashAmount) || amount;
 
-    if (amount <= 0) return;
-    void finish(amount, "cash");
+    if (paidAmount <= 0) return;
+    void finish(paidAmount, "cash");
   };
 
   const handleCardToken = async (sourceId: string) => {
-    if (!ticket) return;
     setProcessing(true);
     setError(null);
     try {
-      const result = await chargeCard(sourceId, Math.round(balanceDue * 100), `ticket-${ticket.id}`, `NovaOps Ticket #${ticket.id}`);
+      const result = await chargeCard(sourceId, Math.round(amount * 100), referenceId, note);
 
-      if (result.success) await finish(balanceDue, "card");
+      if (result.success) await finish(amount, "card");
       else setError("Card payment did not complete.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Card payment failed.");
@@ -69,7 +69,6 @@ export default function PaymentModal({ ticket, onClose, onPaid }: PaymentModalPr
   };
 
   const handleTerminal = async () => {
-    if (!ticket) return;
     const { deviceId } = getSquareCredentials();
 
     if (!deviceId) {
@@ -81,7 +80,7 @@ export default function PaymentModal({ ticket, onClose, onPaid }: PaymentModalPr
     setError(null);
     setTerminalStatus("Sending to terminal…");
     try {
-      const { checkoutId } = await startTerminalCheckout(Math.round(balanceDue * 100), deviceId, `ticket-${ticket.id}`, `NovaOps Ticket #${ticket.id}`);
+      const { checkoutId } = await startTerminalCheckout(Math.round(amount * 100), deviceId, referenceId, note);
 
       setTerminalStatus("Waiting for customer to tap/insert card…");
       for (let i = 0; i < 40; i++) {
@@ -90,7 +89,7 @@ export default function PaymentModal({ ticket, onClose, onPaid }: PaymentModalPr
 
         if (status.status === "COMPLETED") {
           setTerminalStatus("Payment completed.");
-          await finish(balanceDue, "square-terminal");
+          await finish(amount, "square-terminal");
 
           return;
         }
@@ -114,9 +113,9 @@ export default function PaymentModal({ ticket, onClose, onPaid }: PaymentModalPr
     setProcessing(true);
     setError(null);
     try {
-      const result = await afterpayCheckout(Math.round(balanceDue * 100));
+      const result = await afterpayCheckout(Math.round(amount * 100));
 
-      if (result.status === "APPROVED") await finish(balanceDue, "afterpay");
+      if (result.status === "APPROVED") await finish(amount, "afterpay");
       else setError("Afterpay did not approve this checkout.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Afterpay checkout failed.");
@@ -127,19 +126,19 @@ export default function PaymentModal({ ticket, onClose, onPaid }: PaymentModalPr
 
   return (
     <Modal>
-      <Modal.Backdrop isOpen={!!ticket} onOpenChange={(open) => !open && onClose()}>
+      <Modal.Backdrop isOpen={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
         <Modal.Container size="md">
           <Modal.Dialog>
-            {ticket && (
+            {open && (
               <>
                 <Modal.Header>
-                  <Modal.Heading>Take Payment — Ticket #{ticket.id}</Modal.Heading>
+                  <Modal.Heading>{title}</Modal.Heading>
                   <Modal.CloseTrigger />
                 </Modal.Header>
                 <Modal.Body className="flex flex-col gap-4">
                   <div className="rounded-2xl bg-surface-secondary/60 p-4 text-center">
-                    <span className="block text-micro font-bold uppercase text-muted">Balance Due</span>
-                    <strong className="text-3xl font-extrabold text-foreground">${balanceDue.toFixed(2)}</strong>
+                    <span className="block text-micro font-bold uppercase text-muted">Amount Due</span>
+                    <strong className="text-3xl font-extrabold text-foreground">${amount.toFixed(2)}</strong>
                   </div>
 
                   {error && (
@@ -184,7 +183,7 @@ export default function PaymentModal({ ticket, onClose, onPaid }: PaymentModalPr
                         <TextField className="flex flex-col gap-1.5" type="number" value={cashAmount} onChange={setCashAmount}>
                           <Label>Amount received</Label>
                           <InputGroup>
-                            <InputGroup.Input placeholder={balanceDue.toFixed(2)} />
+                            <InputGroup.Input placeholder={amount.toFixed(2)} />
                           </InputGroup>
                         </TextField>
                         <Button variant="primary" onPress={handleCash}>

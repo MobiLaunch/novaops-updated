@@ -6,6 +6,7 @@ import type {
   HouseCall,
   InventoryItem,
   Message,
+  PosSale,
   Shipment,
   ShopSettings,
   Technician,
@@ -613,6 +614,9 @@ export async function sbDeleteTechnician(id: number): Promise<boolean> {
 // replies, customer-notification preferences) — one row per shop ──────────
 
 const DEFAULT_SHOP_SETTINGS: Omit<ShopSettings, "profile_id" | "created_at" | "updated_at"> = {
+  business_name: "",
+  business_address: "",
+  business_phone: "",
   business_hours: {},
   tax_rate: 0,
   receipt_footer: "",
@@ -649,4 +653,27 @@ export async function sbUpdateShopSettings(patch: Partial<ShopSettings>): Promis
     .single();
 
   return { data: data as ShopSettings | null, error: error ? errMessage(error) : null };
+}
+
+// ─── POS sales (retail checkout, /pos) ──────────────────────────────────────
+
+export async function sbFetchPosSales(): Promise<{ data: PosSale[] | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const { data, error } = await client.from("pos_sales").select("*").order("created_at", { ascending: false });
+
+  return { data: data as PosSale[] | null, error: error ? errMessage(error) : null };
+}
+
+export async function sbCreatePosSale(
+  sale: Omit<PosSale, "id" | "profile_id" | "created_at">,
+): Promise<{ data: PosSale | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const profileId = await currentUserId();
+  const { data, error } = await client.from("pos_sales").insert({ ...sale, profile_id: profileId }).select().single();
+
+  return { data: data as PosSale | null, error: error ? errMessage(error) : null };
 }
