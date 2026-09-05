@@ -2,6 +2,8 @@
 // query results can be used directly without a conversion layer — see
 // supabase/migrations/MASTER_SETUP.sql for the source of truth.
 
+export type PreferredContact = "phone" | "email" | "sms";
+
 export interface Customer {
   id: number;
   profile_id: string;
@@ -12,6 +14,11 @@ export interface Customer {
   drivers_license: string;
   tags: string[];
   notes: string;
+  secondary_phone: string;
+  preferred_contact: PreferredContact | string;
+  referral_source: string;
+  birthday: string | null;
+  vip: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -66,6 +73,41 @@ export interface Ticket {
   time_log: unknown[];
   tracking: Record<string, unknown> | null;
   diagnostics: Record<string, unknown> | null;
+  due_date: string | null;
+  labels: string[];
+  assigned_to: number | null;
+  public_token: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Technician {
+  id: number;
+  profile_id: string;
+  name: string;
+  color: string;
+  active: boolean;
+  created_at: string;
+}
+
+export interface CannedResponse {
+  title: string;
+  body: string;
+}
+
+export interface DayHours {
+  open: string;
+  close: string;
+  closed: boolean;
+}
+
+export interface ShopSettings {
+  profile_id: string;
+  business_hours: Record<string, DayHours>;
+  tax_rate: number;
+  receipt_footer: string;
+  notify_on_status_change: boolean;
+  canned_responses: CannedResponse[];
   created_at: string;
   updated_at: string;
 }

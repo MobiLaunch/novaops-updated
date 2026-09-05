@@ -7,6 +7,8 @@ import type {
   InventoryItem,
   Message,
   Shipment,
+  ShopSettings,
+  Technician,
   Ticket,
   TradeIn,
 } from "@/types/domain";
@@ -572,4 +574,79 @@ export async function sbConvertBookingToTicket(
   });
 
   return { ticket, error: null };
+}
+
+// ─── Technicians (ticket assignment) ────────────────────────────────────────
+
+export async function sbFetchTechnicians(): Promise<{ data: Technician[] | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const { data, error } = await client.from("technicians").select("*").order("name", { ascending: true });
+
+  return { data: data as Technician[] | null, error: error ? errMessage(error) : null };
+}
+
+export async function sbUpsertTechnician(
+  patch: Partial<Technician> & { id?: number },
+): Promise<{ data: Technician | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const profileId = await currentUserId();
+  const row = { ...patch, profile_id: profileId };
+  const { data, error } = await client.from("technicians").upsert(row).select().single();
+
+  return { data: data as Technician | null, error: error ? errMessage(error) : null };
+}
+
+export async function sbDeleteTechnician(id: number): Promise<boolean> {
+  const client = getClient();
+
+  if (!client) return false;
+  const { error } = await client.from("technicians").delete().eq("id", id);
+
+  return !error;
+}
+
+// ─── Shop settings (business hours, tax rate, receipt footer, canned
+// replies, customer-notification preferences) — one row per shop ──────────
+
+const DEFAULT_SHOP_SETTINGS: Omit<ShopSettings, "profile_id" | "created_at" | "updated_at"> = {
+  business_hours: {},
+  tax_rate: 0,
+  receipt_footer: "",
+  notify_on_status_change: false,
+  canned_responses: [],
+};
+
+export async function sbFetchShopSettings(): Promise<{ data: ShopSettings | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const userId = await currentUserId();
+
+  if (!userId) return { data: null, error: "Not signed in" };
+  const { data, error } = await client.from("shop_settings").select("*").eq("profile_id", userId).maybeSingle();
+
+  if (error) return { data: null, error: errMessage(error) };
+  if (data) return { data: data as ShopSettings, error: null };
+
+  return { data: { ...DEFAULT_SHOP_SETTINGS, profile_id: userId, created_at: "", updated_at: "" }, error: null };
+}
+
+export async function sbUpdateShopSettings(patch: Partial<ShopSettings>): Promise<{ data: ShopSettings | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const userId = await currentUserId();
+
+  if (!userId) return { data: null, error: "Not signed in" };
+  const { data, error } = await client
+    .from("shop_settings")
+    .upsert({ ...patch, profile_id: userId })
+    .select()
+    .single();
+
+  return { data: data as ShopSettings | null, error: error ? errMessage(error) : null };
 }

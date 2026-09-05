@@ -9,11 +9,11 @@
 -- IMPORTANT — this Supabase project's database is SHARED with the
 -- mobicare-business website. `profiles`, `bookings`, and `staff_users`
 -- already exist there and are owned by that repo. This script only adds
--- one new column to each of the first two (never recreates, never drops
+-- new columns to each of the first two (never recreates, never drops
 -- them) and never touches `staff_users` at all. Every other table below —
 -- customers, tickets, inventory, house_calls, appointments, messages,
--- trade_ins, shipments, customer_messages, social_connections — is new
--- and belongs entirely to NovaOps.
+-- trade_ins, shipments, customer_messages, social_connections,
+-- technicians, shop_settings — is new and belongs entirely to NovaOps.
 --
 -- Do NOT run 00000000_core_schema.sql, 20240401_inventory_services.sql,
 -- 20240402_vendor_repairs.sql, 20260304_realign_schema.sql,
@@ -35,7 +35,9 @@
 -- ============================================================================
 
 
--- ── 0. Helper: updated_at auto-stamp function ─────────────────────────────
+-- ── 0. Extensions + helper: updated_at auto-stamp function ────────────────
+create extension if not exists pgcrypto;
+
 create or replace function set_updated_at()
 returns trigger language plpgsql as $$
 begin
@@ -89,6 +91,14 @@ do $$ begin
     for each row execute function set_updated_at();
 exception when duplicate_object then null; end $$;
 
+-- Added columns (kept as ALTER so this stays safe to run against a
+-- customers table that already exists from an earlier run of this file).
+alter table customers add column if not exists secondary_phone   text not null default '';
+alter table customers add column if not exists preferred_contact text not null default 'phone'; -- phone | email | sms
+alter table customers add column if not exists referral_source   text not null default '';
+alter table customers add column if not exists birthday          date;
+alter table customers add column if not exists vip                boolean not null default false;
+
 
 -- ============================================================================
 -- 3. tickets
@@ -136,6 +146,17 @@ do $$ begin
     before update on tickets
     for each row execute function set_updated_at();
 exception when duplicate_object then null; end $$;
+
+-- Added columns. public_token powers the public "track your repair" page
+-- (api/track-ticket.js) — an unguessable id, never the ticket's own
+-- sequential bigint id, so a repair can be shared with a customer without
+-- exposing or letting them guess at other tickets. assigned_to is added
+-- further down, after the technicians table it references exists.
+alter table tickets add column if not exists due_date     date;
+alter table tickets add column if not exists labels       text[] not null default '{}';
+alter table tickets add column if not exists public_token uuid   not null default gen_random_uuid();
+
+create unique index if not exists tickets_public_token_key on tickets(public_token);
 
 
 -- ============================================================================
@@ -504,7 +525,63 @@ exception when duplicate_object then null; end $$;
 
 
 -- ============================================================================
--- 12. bookings — ALTER ONLY. Owned by mobicare-business; NovaOps just needs
+-- 12. technicians  (assignment + color-coding on tickets)
+-- ============================================================================
+
+create table if not exists technicians (
+  id          bigserial    primary key,
+  profile_id  uuid         not null references auth.users(id) on delete cascade,
+  name        text         not null,
+  color       text         not null default '#7C3AED',
+  active      boolean      not null default true,
+  created_at  timestamptz  not null default now()
+);
+
+create index if not exists technicians_profile_id_idx on technicians (profile_id);
+
+alter table technicians enable row level security;
+drop policy if exists "technicians_owner" on technicians;
+create policy "technicians_owner" on technicians
+  using     (profile_id = auth.uid())
+  with check (profile_id = auth.uid());
+
+-- tickets.assigned_to references technicians, so it's added here, after
+-- the table it points to exists.
+alter table tickets add column if not exists assigned_to bigint references technicians(id) on delete set null;
+create index if not exists tickets_assigned_to_idx on tickets (assigned_to);
+
+
+-- ============================================================================
+-- 13. shop_settings  (one row per shop — business hours, tax rate, receipt
+--     footer, customer-notification preferences, canned message replies)
+-- ============================================================================
+
+create table if not exists shop_settings (
+  profile_id                uuid         primary key references auth.users(id) on delete cascade,
+  business_hours            jsonb        not null default '{}',   -- { "mon": {"open":"09:00","close":"18:00","closed":false}, ... }
+  tax_rate                  numeric(5,2) not null default 0,
+  receipt_footer            text         not null default '',
+  notify_on_status_change   boolean      not null default false,
+  canned_responses          jsonb        not null default '[]',   -- [{ "title": "...", "body": "..." }]
+  created_at                timestamptz  not null default now(),
+  updated_at                timestamptz  not null default now()
+);
+
+alter table shop_settings enable row level security;
+drop policy if exists "shop_settings_owner" on shop_settings;
+create policy "shop_settings_owner" on shop_settings
+  using     (profile_id = auth.uid())
+  with check (profile_id = auth.uid());
+
+do $$ begin
+  create trigger shop_settings_updated_at
+    before update on shop_settings
+    for each row execute function set_updated_at();
+exception when duplicate_object then null; end $$;
+
+
+-- ============================================================================
+-- 14. bookings — ALTER ONLY. Owned by mobicare-business; NovaOps just needs
 --     a column to record which ticket a booking was converted into.
 -- ============================================================================
 
@@ -536,4 +613,12 @@ create index if not exists bookings_novaops_ticket_id_idx on public.bookings(nov
 --    Emails.
 -- 5. Customer chat (website Account → Messages) works immediately, no
 --    extra config — see README "Customer chat: website side".
+-- 6. Every ticket now has a public_token — the "Track Repair" link on a
+--    ticket (Tickets → open a ticket) points customers to
+--    /track/<public_token>, a page with no login required.
+-- 7. Add technicians from Settings → Technicians before assigning tickets
+--    to one.
+-- 8. Business hours, tax rate, receipt footer, auto-notify-on-status-change,
+--    and canned quick replies all live in shop_settings, edited from
+--    Settings → Shop Settings.
 -- ============================================================================
