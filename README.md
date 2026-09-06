@@ -351,9 +351,10 @@ time.
 
 ### Re-run it after pulling this change
 
-Customers, Inventory, and Messages serve one page of rows at a time instead
-of downloading their whole table, and they read through database objects
-that `MASTER_SETUP.sql` creates in section 16:
+Customers, Inventory, Tickets, and Messages serve one page of rows at a time
+instead of downloading their whole table, and Accounting reads its period
+rather than everything. They rely on database objects that
+`MASTER_SETUP.sql` creates in section 16:
 
 | Object | Used for |
 | --- | --- |
@@ -361,6 +362,9 @@ that `MASTER_SETUP.sql` creates in section 16:
 | `customers_with_stats` | Customer rows with their ticket count and lifetime value, aggregated in Postgres rather than by joining every ticket and sale in the browser. |
 | `inventory_summary`, `inventory_categories` | The Inventory header totals and the category suggestions. |
 | `customer_chat_threads` | One row per customer conversation for the Messages chat tab. |
+| `tickets_with_customer` | The ticket list, searched across the customer's name as well as the ticket's own fields — a PostgREST `or()` only spans columns of the row it filters, so the name has to be a real column. |
+| `ticket_receivables` | Outstanding balances. Accounts receivable is a live snapshot, not scoped to Accounting's date range, and PostgREST can't compare a price against a sum of a jsonb array. Also picks the tickets the register can take a payment for. |
+| `ticket_paid_total()` | The defensive sum of a ticket's payments array, shared by the two views above. |
 | `pg_trgm` GIN indexes | Make the `ILIKE '%term%'` searches on those pages usable. |
 
 Every view is `security_invoker`, so row-level security applies as the

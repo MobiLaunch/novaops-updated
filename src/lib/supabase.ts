@@ -145,6 +145,47 @@ export async function sbFindOrCreateCustomer(
   return sbUpsertCustomer({ name: info.name, phone, email, address: info.address || "" });
 }
 
+// PostgREST returns an embedded relation as a nested object (or a
+// one-element array on older versions). Every list that shows a customer's
+// name joins it on this way instead of downloading the customer table to
+// look ids up, so they all flatten it the same way.
+type WithCustomerEmbed = { customers?: { name: string } | { name: string }[] | null };
+
+function flattenCustomer<T extends WithCustomerEmbed>(rows: T[] | null): (Omit<T, "customers"> & { customer_name: string })[] {
+  return (rows || []).map((row) => {
+    const { customers, ...rest } = row;
+    const joined = Array.isArray(customers) ? customers[0] : customers;
+
+    return { ...rest, customer_name: joined?.name || "" };
+  });
+}
+
+// Feeds the customer pickers on the register, the calendar, and the ticket
+// form. They used to be handed the whole customer table; now they ask for
+// the handful of names matching what's been typed.
+export async function sbSearchCustomers(term: string, limit = 20): Promise<Customer[]> {
+  const client = getClient();
+
+  if (!client) return [];
+  const search = sanitiseSearch(term);
+  let query = client.from("customers").select("*").order("name").limit(limit);
+
+  if (search) query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%,email.ilike.%${search}%`);
+
+  const { data } = await query;
+
+  return (data as Customer[] | null) || [];
+}
+
+export async function sbFetchCustomerById(id: number): Promise<Customer | null> {
+  const client = getClient();
+
+  if (!client) return null;
+  const { data } = await client.from("customers").select("*").eq("id", id).maybeSingle();
+
+  return (data as Customer | null) || null;
+}
+
 // ─── Paged list queries ─────────────────────────────────────────────────────
 // Customers, Inventory, and Messages used to download their whole table and
 // search, count, and total it in the browser. Each now asks for one page at a
@@ -212,6 +253,64 @@ export async function sbFetchCustomersPage(opts: {
   return { rows: (rows.data as unknown as CustomerWithStats[]) || [], total: count.count || 0, error: null };
 }
 
+// One page of the ticket list, searched and status-filtered in Postgres. The
+// page used to fetch every ticket in the shop (and every customer, to label
+// them) and filter in the browser. Reads tickets_with_customer so one or()
+// can span the ticket's own fields and its customer's name.
+export async function sbFetchTicketsPage(opts: {
+  search?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<Page<Ticket>> {
+  const client = getClient();
+
+  if (!client) return emptyPage("Supabase not configured");
+  const pageSize = opts.pageSize ?? LIST_PAGE_SIZE;
+  const [from, to] = rangeFor(opts.page ?? 0, pageSize);
+  const term = sanitiseSearch(opts.search || "");
+
+  let query = client
+    .from("tickets_with_customer")
+    .select(`${TICKET_LIST_BASE_COLUMNS}, customer_name`, { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (opts.status && opts.status !== "all") query = query.eq("status", opts.status);
+  if (term) {
+    query = query.or(
+      `device.ilike.%${term}%,device_model.ilike.%${term}%,issue.ilike.%${term}%,` +
+        `customer_name.ilike.%${term}%,labels_text.ilike.%${term}%,serial_number.ilike.%${term}%`,
+    );
+  }
+
+  const { data, count, error } = await query;
+
+  if (error) return emptyPage(errMessage(error));
+
+  return { rows: (data as unknown as Ticket[]) || [], total: count || 0, error: null };
+}
+
+// Counts per status for the filter chips, without reading the tickets.
+export async function sbFetchTicketStatusCounts(statuses: string[]): Promise<Record<string, number>> {
+  const client = getClient();
+  const out: Record<string, number> = {};
+
+  if (!client) return out;
+
+  const results = await Promise.all([
+    client.from("tickets").select("id", { count: "exact", head: true }),
+    ...statuses.map((status) => client.from("tickets").select("id", { count: "exact", head: true }).eq("status", status)),
+  ]);
+
+  out.all = results[0].count || 0;
+  statuses.forEach((status, i) => {
+    out[status] = results[i + 1].count || 0;
+  });
+
+  return out;
+}
+
 // The tickets shown on one customer's record, fetched when that record is
 // opened rather than by pulling every ticket in the shop up front.
 export async function sbFetchCustomerTickets(customerId: number): Promise<Ticket[]> {
@@ -225,7 +324,7 @@ export async function sbFetchCustomerTickets(customerId: number): Promise<Ticket
     .order("updated_at", { ascending: false })
     .limit(50);
 
-  return (data as unknown as Ticket[]) || [];
+  return flattenCustomer(data as never) as unknown as Ticket[];
 }
 
 export async function sbFetchInventoryPage(opts: {
@@ -381,6 +480,162 @@ export async function sbFetchChatMessages(customerEmail: string): Promise<Custom
     .order("created_at", { ascending: true });
 
   return (data as CustomerMessage[] | null) || [];
+}
+
+// ─── Accounting ─────────────────────────────────────────────────────────────
+// The Accounting page used to read every ticket, sale, order, trade-in, and
+// customer in the shop and filter to the selected period in the browser. The
+// period is now pushed into the queries.
+//
+// Two figures deliberately aren't period-scoped and so aren't fetched that
+// way: accounts receivable (a ticket unpaid for a year still belongs in the
+// aging buckets, so it comes from the ticket_receivables view) and the open
+// ticket count (a head count).
+
+export interface TicketReceivable {
+  id: number;
+  customer_id: number | null;
+  device: string;
+  device_model: string;
+  due_date: string | null;
+  created_at: string;
+  price: number;
+  paid: number;
+  balance_due: number;
+}
+
+export interface AccountingData {
+  tickets: Ticket[];
+  posSales: PosSale[];
+  tradeIns: TradeIn[];
+  receivables: TicketReceivable[];
+  openTicketCount: number;
+  lowStockCount: number;
+  // Every ticket ever, so the page can tell "this period was quiet" apart
+  // from "this shop has no data yet" — the period-scoped reads can't.
+  totalTicketCount: number;
+  error: string | null;
+}
+
+// Columns Accounting reads — notably not signature or photos.
+const ACCOUNTING_TICKET_COLUMNS =
+  "id, customer_id, device, device_model, issue, status, price, parts, payments, assigned_to, due_date, created_at, updated_at, customers(name)";
+
+export async function sbFetchAccounting(start: Date, end: Date): Promise<AccountingData> {
+  const client = getClient();
+  const empty: AccountingData = {
+    tickets: [],
+    posSales: [],
+    tradeIns: [],
+    receivables: [],
+    openTicketCount: 0,
+    lowStockCount: 0,
+    totalTicketCount: 0,
+    error: null,
+  };
+
+  if (!client) return { ...empty, error: "Supabase not configured" };
+
+  const from = start.toISOString();
+  const to = end.toISOString();
+
+  const [tickets, sales, trades, receivables, openCount, lowStock, totalCount] = await Promise.all([
+    // A payment recorded at time T always leaves updated_at >= T, so this
+    // can't miss a ticket that was paid during the period — it only ever
+    // over-fetches ones edited for some other reason, which the client-side
+    // date check then ignores.
+    client.from("tickets").select(ACCOUNTING_TICKET_COLUMNS).gte("updated_at", from).order("updated_at", { ascending: false }),
+    client.from("pos_sales").select("*, customers(name)").gte("created_at", from).lte("created_at", to),
+    client.from("trade_ins").select("*, customers(name)").gte("updated_at", from).lte("updated_at", to),
+    client.from("ticket_receivables").select("*"),
+    client.from("tickets").select("id", { count: "exact", head: true }).not("status", "in", "(Completed,Delivered)"),
+    client.from("inventory").select("id", { count: "exact", head: true }).eq("is_low", true),
+    client.from("tickets").select("id", { count: "exact", head: true }),
+  ]);
+
+  return {
+    tickets: flattenCustomer(tickets.data as never) as unknown as Ticket[],
+    posSales: flattenCustomer(sales.data as never) as unknown as PosSale[],
+    tradeIns: flattenCustomer(trades.data as never) as unknown as TradeIn[],
+    receivables: ((receivables.data as TicketReceivable[] | null) || []).map((r) => ({
+      ...r,
+      price: Number(r.price),
+      paid: Number(r.paid),
+      balance_due: Number(r.balance_due),
+    })),
+    openTicketCount: openCount.count || 0,
+    lowStockCount: lowStock.count || 0,
+    totalTicketCount: totalCount.count || 0,
+    error: tickets.error ? errMessage(tickets.error) : null,
+  };
+}
+
+// Tickets the register can add a balance for: exactly the ones with money
+// still owed. The page used to read every ticket in the shop and filter in
+// the browser; ticket_receivables already is that filter.
+export async function sbFetchTicketsWithBalance(): Promise<Ticket[]> {
+  const client = getClient();
+
+  if (!client) return [];
+
+  // ticket_receivables is already "tickets with money owed", so it picks the
+  // set; the tickets themselves are then fetched for those ids because the
+  // register needs each one's payments array to append to at checkout.
+  const { data: owing } = await client
+    .from("ticket_receivables")
+    .select("id")
+    .order("created_at", { ascending: false })
+    .limit(200);
+
+  const ids = ((owing as { id: number }[] | null) || []).map((r) => r.id);
+
+  if (ids.length === 0) return [];
+
+  const { data } = await client
+    .from("tickets_with_customer")
+    .select(`${TICKET_LIST_BASE_COLUMNS}, customer_name`)
+    .in("id", ids)
+    .not("status", "in", "(Delivered)")
+    .order("updated_at", { ascending: false });
+
+  return (data as unknown as Ticket[]) || [];
+}
+
+// Tickets that land on the calendar: the ones with a due date still ahead of
+// or around the month being viewed, rather than every ticket ever written.
+export async function sbFetchTicketsDueFrom(since: Date): Promise<Ticket[]> {
+  const client = getClient();
+
+  if (!client) return [];
+  const { data } = await client
+    .from("tickets_with_customer")
+    .select("id, customer_id, device, device_model, issue, status, due_date, customer_name")
+    .not("due_date", "is", null)
+    .gte("due_date", toDateKey(since))
+    .not("status", "in", "(Completed,Delivered)")
+    .order("due_date")
+    .limit(500);
+
+  return (data as unknown as Ticket[]) || [];
+}
+
+// Cost of goods needs the catalogue entries referenced by the period's sales
+// and ticket parts, not the whole catalogue.
+export async function sbFetchInventoryCosts(skus: string[], ids: number[]): Promise<InventoryItem[]> {
+  const client = getClient();
+
+  if (!client || (skus.length === 0 && ids.length === 0)) return [];
+  const columns = "id, sku, name, cost, price, stock, low";
+
+  const [bySku, byId] = await Promise.all([
+    skus.length ? client.from("inventory").select(columns).in("sku", skus) : Promise.resolve({ data: [] }),
+    ids.length ? client.from("inventory").select(columns).in("id", ids) : Promise.resolve({ data: [] }),
+  ]);
+
+  const rows = [...(((bySku.data as unknown as InventoryItem[]) || [])), ...(((byId.data as unknown as InventoryItem[]) || []))];
+  const seen = new Set<number>();
+
+  return rows.filter((r) => (seen.has(r.id) ? false : (seen.add(r.id), true)));
 }
 
 // ─── Bulk import ────────────────────────────────────────────────────────────
@@ -561,10 +816,14 @@ export async function sbBulkImportInventory(
 // ticket list downloaded every image in the shop's history to render a
 // table that shows neither. They're fetched per ticket by sbFetchTicketMedia
 // when one is actually opened.
-const TICKET_LIST_COLUMNS =
+const TICKET_LIST_BASE_COLUMNS =
   "id, profile_id, customer_id, device, device_model, device_description, issue, status, priority, price, " +
   "serial_number, warranty_days, warranty_start, notes, parts, payments, time_log, tracking, diagnostics, " +
   "due_date, labels, assigned_to, public_token, created_at, updated_at";
+
+// The same columns plus the customer's name, joined on rather than looked up
+// against a downloaded customer table.
+const TICKET_LIST_COLUMNS = `${TICKET_LIST_BASE_COLUMNS}, customers(name)`;
 
 export async function sbFetchTickets(): Promise<{ data: Ticket[] | null; error: string | null }> {
   const client = getClient();
@@ -575,7 +834,7 @@ export async function sbFetchTickets(): Promise<{ data: Ticket[] | null; error: 
     .select(TICKET_LIST_COLUMNS)
     .order("created_at", { ascending: false });
 
-  return { data: data as unknown as Ticket[] | null, error: error ? errMessage(error) : null };
+  return { data: flattenCustomer(data as never) as unknown as Ticket[], error: error ? errMessage(error) : null };
 }
 
 // The two columns sbFetchTickets leaves out, for the ticket detail view.
@@ -697,9 +956,9 @@ export async function sbFetchTradeIns(): Promise<{ data: TradeIn[] | null; error
   const client = getClient();
 
   if (!client) return { data: null, error: "Supabase not configured" };
-  const { data, error } = await client.from("trade_ins").select("*").order("created_at", { ascending: false });
+  const { data, error } = await client.from("trade_ins").select("*, customers(name)").order("created_at", { ascending: false });
 
-  return { data: data as TradeIn[] | null, error: error ? errMessage(error) : null };
+  return { data: flattenCustomer(data as never) as unknown as TradeIn[], error: error ? errMessage(error) : null };
 }
 
 export async function sbCreateTradeIn(
@@ -870,9 +1129,9 @@ export async function sbFetchAppointments(): Promise<{ data: Appointment[] | nul
   const client = getClient();
 
   if (!client) return { data: null, error: "Supabase not configured" };
-  const { data, error } = await client.from("appointments").select("*").order("date", { ascending: true });
+  const { data, error } = await client.from("appointments").select("*, customers(name)").order("date", { ascending: true });
 
-  return { data: data as Appointment[] | null, error: error ? errMessage(error) : null };
+  return { data: flattenCustomer(data as never) as unknown as Appointment[], error: error ? errMessage(error) : null };
 }
 
 export async function sbCreateAppointment(
@@ -909,9 +1168,9 @@ export async function sbFetchHouseCalls(): Promise<{ data: HouseCall[] | null; e
   const client = getClient();
 
   if (!client) return { data: null, error: "Supabase not configured" };
-  const { data, error } = await client.from("house_calls").select("*").order("date", { ascending: true });
+  const { data, error } = await client.from("house_calls").select("*, customers(name)").order("date", { ascending: true });
 
-  return { data: data as HouseCall[] | null, error: error ? errMessage(error) : null };
+  return { data: flattenCustomer(data as never) as unknown as HouseCall[], error: error ? errMessage(error) : null };
 }
 
 export async function sbCreateHouseCall(
@@ -1115,10 +1374,10 @@ export async function sbFetchPosSales(limit?: number): Promise<{ data: PosSale[]
   const client = getClient();
 
   if (!client) return { data: null, error: "Supabase not configured" };
-  const query = client.from("pos_sales").select("*").order("created_at", { ascending: false });
+  const query = client.from("pos_sales").select("*, customers(name)").order("created_at", { ascending: false });
   const { data, error } = await (limit ? query.limit(limit) : query);
 
-  return { data: data as PosSale[] | null, error: error ? errMessage(error) : null };
+  return { data: flattenCustomer(data as never) as unknown as PosSale[], error: error ? errMessage(error) : null };
 }
 
 // Refunding or voiding a sale is a status change, not a delete — Accounting
@@ -1154,14 +1413,16 @@ export async function sbCreatePosSale(
 // an admin account (a row in public.staff_users) can read every order;
 // anyone else gets none back silently, not an error. See README.
 
-export async function sbFetchWebsiteOrders(): Promise<{ data: WebsiteOrder[] | null; error: string | null }> {
+// `since` limits the read to the reporting period Accounting asks for; the
+// table is the storefront's and grows with every website order.
+export async function sbFetchWebsiteOrders(since?: Date): Promise<{ data: WebsiteOrder[] | null; error: string | null }> {
   const client = getClient();
 
   if (!client) return { data: null, error: "Supabase not configured" };
-  const { data, error } = await client
-    .from("orders")
-    .select("*, order_items(*)")
-    .order("created_at", { ascending: false });
+  let query = client.from("orders").select("*, order_items(*)").order("created_at", { ascending: false });
+
+  if (since) query = query.gte("created_at", since.toISOString());
+  const { data, error } = await query;
 
   return { data: data as WebsiteOrder[] | null, error: error ? errMessage(error) : null };
 }

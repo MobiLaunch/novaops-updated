@@ -683,6 +683,49 @@ select distinct profile_id, category
 from inventory
 where category <> '';
 
+-- ─── Accounting ─────────────────────────────────────────────────────────────
+
+-- The total recorded against a ticket's payments array. Read defensively:
+-- jsonb_array_elements errors on a non-array, and a malformed amount would
+-- otherwise fail every query using it, so anything that doesn't look like a
+-- number contributes zero rather than raising.
+create or replace function ticket_paid_total(payments jsonb)
+returns numeric
+language sql
+immutable
+parallel safe
+as $fn$
+  select coalesce(sum(
+    case when p ->> 'amount' ~ '^-?[0-9]+(\.[0-9]+)?$'
+         then (p ->> 'amount')::numeric
+         else 0 end
+  ), 0)
+  from jsonb_array_elements(
+    case when jsonb_typeof(payments) = 'array' then payments else '[]'::jsonb end
+  ) as p
+$fn$;
+
+-- Accounts receivable is a live snapshot, not scoped to the report's date
+-- range: a ticket left unpaid for a year still belongs in the aging buckets.
+-- The Accounting page can't get that by date-filtering tickets, and PostgREST
+-- can't compare price against a sum of a jsonb array, so the outstanding
+-- balances come from here.
+create or replace view ticket_receivables
+with (security_invoker = true) as
+select
+  t.id,
+  t.profile_id,
+  t.customer_id,
+  t.device,
+  t.device_model,
+  t.due_date,
+  t.created_at,
+  t.price,
+  ticket_paid_total(t.payments)              as paid,
+  (t.price - ticket_paid_total(t.payments))  as balance_due
+from tickets t
+where t.price - ticket_paid_total(t.payments) > 0.01;
+
 -- ─── Customers ──────────────────────────────────────────────────────────────
 
 create index if not exists customers_name_trgm_idx  on customers using gin (name  gin_trgm_ops);
@@ -690,12 +733,9 @@ create index if not exists customers_phone_trgm_idx on customers using gin (phon
 create index if not exists customers_email_trgm_idx on customers using gin (email gin_trgm_ops);
 
 -- Lifetime value is what the customer has actually paid: the amounts recorded
--- in each ticket's payments array, plus completed retail sales. Mirrors what
--- the Customers page used to compute in the browser.
---
--- The payments array is read defensively — jsonb_array_elements errors on a
--- non-array, and a malformed amount would otherwise fail the whole view, so a
--- row that doesn't look like a number contributes zero rather than an error.
+-- in each ticket's payments array (via ticket_paid_total, which reads it
+-- defensively), plus completed retail sales. Mirrors what the Customers page
+-- used to compute in the browser.
 create or replace view customers_with_stats
 with (security_invoker = true) as
 select
@@ -705,17 +745,8 @@ select
 from customers c
 left join lateral (
   select
-    count(*) as ticket_count,
-    coalesce(sum((
-      select coalesce(sum(
-        case when p ->> 'amount' ~ '^-?[0-9]+(\.[0-9]+)?$'
-             then (p ->> 'amount')::numeric
-             else 0 end
-      ), 0)
-      from jsonb_array_elements(
-        case when jsonb_typeof(tk.payments) = 'array' then tk.payments else '[]'::jsonb end
-      ) as p
-    )), 0) as paid
+    count(*)                                     as ticket_count,
+    coalesce(sum(ticket_paid_total(tk.payments)), 0) as paid
   from tickets tk
   where tk.customer_id = c.id
 ) t on true
@@ -759,6 +790,43 @@ create index if not exists customer_messages_email_idx on customer_messages (pro
 
 create index if not exists tickets_updated_at_idx on tickets (profile_id, updated_at desc);
 create index if not exists tickets_customer_updated_idx on tickets (customer_id, updated_at desc);
+create index if not exists tickets_status_updated_idx on tickets (profile_id, status, updated_at desc);
+
+create index if not exists tickets_device_trgm_idx on tickets using gin (device       gin_trgm_ops);
+create index if not exists tickets_model_trgm_idx  on tickets using gin (device_model gin_trgm_ops);
+create index if not exists tickets_issue_trgm_idx  on tickets using gin (issue        gin_trgm_ops);
+
+-- The ticket list searches across the customer's name as well as the ticket's
+-- own fields, which an embedded relation can't do — a PostgREST or() only
+-- spans columns of the row it's filtering. Joining the name on as a real
+-- column makes one or() cover both, and means the list no longer downloads
+-- the customer table to label its rows.
+create or replace view tickets_with_customer
+with (security_invoker = true) as
+select
+  t.*,
+  coalesce(c.name, '')             as customer_name,
+  array_to_string(t.labels, ' ')   as labels_text
+from tickets t
+left join customers c on c.id = t.customer_id;
+
+
+-- ─── Grants ─────────────────────────────────────────────────────────────────
+-- Supabase's default privileges normally cover objects created here, but
+-- these are stated explicitly so the pages don't fail with "permission denied
+-- for view" on a project whose defaults were changed. security_invoker means
+-- a grant is not a way around row-level security — each caller still only
+-- sees their own rows.
+
+do $$
+begin
+  if exists (select 1 from pg_roles where rolname = 'authenticated') then
+    grant select on customers_with_stats, inventory_summary, inventory_categories,
+                    customer_chat_threads, tickets_with_customer, ticket_receivables to authenticated;
+    grant execute on function ticket_paid_total(jsonb) to authenticated;
+  end if;
+end $$;
+
 
 
 -- ============================================================================

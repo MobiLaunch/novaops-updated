@@ -16,7 +16,8 @@ import {
 } from "lucide-react";
 
 import type { Customer, InventoryItem, Ticket } from "@/types/domain";
-import { sbFetchCustomers, sbFetchInventory, sbFetchTickets } from "@/lib/supabase";
+import { sbFetchInventoryPage, sbFetchTicketsPage, sbSearchCustomers } from "@/lib/supabase";
+import { useDebounced } from "@/lib/utils";
 
 const NAV_LINKS = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -46,7 +47,8 @@ export default function CommandPalette() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
-  const [loadedOnce, setLoadedOnce] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const search = useDebounced(query, 200);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -68,13 +70,38 @@ export default function CommandPalette() {
     };
   }, []);
 
+  // Searches as you type instead of downloading every ticket, customer, and
+  // inventory item the first time the palette is opened.
   useEffect(() => {
-    if (!open || loadedOnce) return;
-    setLoadedOnce(true);
-    sbFetchTickets().then(({ data }) => data && setTickets(data));
-    sbFetchCustomers().then(({ data }) => data && setCustomers(data));
-    sbFetchInventory().then(({ data }) => data && setInventory(data));
-  }, [open, loadedOnce]);
+    const term = search.trim();
+
+    if (!open || !term) {
+      setTickets([]);
+      setCustomers([]);
+      setInventory([]);
+
+      return;
+    }
+
+    let cancelled = false;
+
+    setSearching(true);
+    Promise.all([
+      sbFetchTicketsPage({ search: term, pageSize: 6 }),
+      sbSearchCustomers(term, 6),
+      sbFetchInventoryPage({ search: term, pageSize: 6 }),
+    ]).then(([t, c, i]) => {
+      if (cancelled) return;
+      setSearching(false);
+      setTickets(t.rows);
+      setCustomers(c);
+      setInventory(i.rows);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, search]);
 
   const go = (path: string) => {
     navigate(path);
@@ -87,38 +114,29 @@ export default function CommandPalette() {
 
     if (!q) return [];
 
-    const ticketResults: Result[] = tickets
-      .filter((t) => `${t.device} ${t.device_model} ${t.issue} ${t.id}`.toLowerCase().includes(q))
-      .slice(0, 6)
-      .map((t) => ({
-        key: `t-${t.id}`,
-        label: `${t.device} ${t.device_model}`.trim(),
-        sublabel: `Ticket #${t.id} · ${t.status}`,
-        icon: TicketIcon,
-        onSelect: () => go(`/tickets?open=${t.id}`),
-      }));
+    const ticketResults: Result[] = tickets.map((t) => ({
+      key: `t-${t.id}`,
+      label: `${t.device} ${t.device_model}`.trim(),
+      sublabel: `Ticket #${t.id} · ${t.status}`,
+      icon: TicketIcon,
+      onSelect: () => go(`/tickets?open=${t.id}`),
+    }));
 
-    const customerResults: Result[] = customers
-      .filter((c) => `${c.name} ${c.phone} ${c.email}`.toLowerCase().includes(q))
-      .slice(0, 6)
-      .map((c) => ({
-        key: `c-${c.id}`,
-        label: c.name,
-        sublabel: c.phone || c.email || "Customer",
-        icon: Users,
-        onSelect: () => go(`/customers?open=${c.id}`),
-      }));
+    const customerResults: Result[] = customers.map((c) => ({
+      key: `c-${c.id}`,
+      label: c.name,
+      sublabel: c.phone || c.email || "Customer",
+      icon: Users,
+      onSelect: () => go(`/customers?open=${c.id}`),
+    }));
 
-    const inventoryResults: Result[] = inventory
-      .filter((i) => `${i.name} ${i.sku}`.toLowerCase().includes(q))
-      .slice(0, 6)
-      .map((i) => ({
-        key: `i-${i.id}`,
-        label: i.name,
-        sublabel: i.sku || "Inventory item",
-        icon: Package,
-        onSelect: () => go(`/inventory?open=${i.id}`),
-      }));
+    const inventoryResults: Result[] = inventory.map((i) => ({
+      key: `i-${i.id}`,
+      label: i.name,
+      sublabel: i.sku || "Inventory item",
+      icon: Package,
+      onSelect: () => go(`/inventory?open=${i.id}`),
+    }));
 
     const navResults: Result[] = NAV_LINKS.filter((n) => n.label.toLowerCase().includes(q)).map((n) => ({
       key: `nav-${n.path}`,
@@ -154,7 +172,9 @@ export default function CommandPalette() {
                   <p className="m-0">Type to search across everything, or press a page name.</p>
                 </div>
               ) : results.length === 0 ? (
-                <p className="m-0 p-8 text-center text-sm text-muted">No results for "{query}"</p>
+                <p className="m-0 p-8 text-center text-sm text-muted">
+                  {searching || search !== query ? "Searching…" : `No results for "${query}"`}
+                </p>
               ) : (
                 results.map((r) => (
                   <button

@@ -5,9 +5,7 @@ import {
   FieldError,
   InputGroup,
   Label,
-  ListBox,
   Modal,
-  Select,
   TextField,
 } from "@heroui/react";
 import {
@@ -24,6 +22,7 @@ import {
 } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
+import CustomerPicker from "@/components/CustomerPicker";
 import type { Appointment, BookingRecord, Customer, HouseCall, Ticket } from "@/types/domain";
 import {
   sbCreateAppointment,
@@ -32,9 +31,8 @@ import {
   sbDeleteHouseCall,
   sbFetchAppointments,
   sbFetchBookings,
-  sbFetchCustomers,
   sbFetchHouseCalls,
-  sbFetchTickets,
+  sbFetchTicketsDueFrom,
   sbUpdateAppointment,
   sbUpdateHouseCall,
 } from "@/lib/supabase";
@@ -85,8 +83,8 @@ interface CalEvent {
   houseCall?: HouseCall;
 }
 
-const emptyAppt = { title: "", description: "", date: "", time: "", customerId: "" };
-const emptyCall = { description: "", address: "", date: "", time: "", customerId: "" };
+const emptyAppt = { title: "", description: "", date: "", time: "", customer: null as Customer | null };
+const emptyCall = { description: "", address: "", date: "", time: "", customer: null as Customer | null };
 
 export default function CalendarPage() {
   const navigate = useNavigate();
@@ -94,7 +92,6 @@ export default function CalendarPage() {
   const [houseCalls, setHouseCalls] = useState<HouseCall[]>([]);
   const [bookings, setBookings] = useState<BookingRecord[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [view, setView] = useState<"month" | "upcoming">("month");
@@ -113,31 +110,31 @@ export default function CalendarPage() {
 
   const load = async () => {
     setLoading(true);
-    const [a, h, b, t, c] = await Promise.all([
-      sbFetchAppointments(),
-      sbFetchHouseCalls(),
-      sbFetchBookings(),
-      sbFetchTickets(),
-      sbFetchCustomers(),
-    ]);
+    const [a, h, b] = await Promise.all([sbFetchAppointments(), sbFetchHouseCalls(), sbFetchBookings()]);
 
     setLoading(false);
     if (a.data) setAppointments(a.data);
     if (h.data) setHouseCalls(h.data);
     if (b.data) setBookings(b.data);
-    if (t.data) setTickets(t.data);
-    if (c.data) setCustomers(c.data);
   };
 
   useEffect(() => {
     load();
   }, []);
 
+  // Repairs due are fetched for the month in view rather than by reading
+  // every ticket in the shop to find the handful that land on a day. Paging
+  // to an earlier month refetches from there.
+  useEffect(() => {
+    const from = new Date(viewMonth);
+
+    from.setMonth(from.getMonth() - 1);
+    sbFetchTicketsDueFrom(from).then(setTickets);
+  }, [viewMonth]);
+
   // Front desk and bench run this side by side — pick the tab back up and
   // it refreshes instead of showing whatever was there when you left.
   useRefetchOnFocus(load);
-
-  const customerById = useMemo(() => new Map(customers.map((c) => [c.id, c])), [customers]);
 
   // One list from every source that puts something on the shop's day — the
   // page used to show only its own two tables, so a website booking or a
@@ -147,15 +144,13 @@ export default function CalendarPage() {
 
     for (const a of appointments) {
       if (!a.date) continue;
-      const customer = a.customer_id ? customerById.get(a.customer_id) : undefined;
-
       all.push({
         key: `apt-${a.id}`,
         kind: "appointment",
         date: a.date.slice(0, 10),
         time: a.time || "",
         title: a.title || "Appointment",
-        subtitle: [customer?.name, a.description].filter(Boolean).join(" · "),
+        subtitle: [a.customer_name, a.description].filter(Boolean).join(" · "),
         status: a.status,
         appointment: a,
       });
@@ -163,15 +158,13 @@ export default function CalendarPage() {
 
     for (const h of houseCalls) {
       if (!h.date) continue;
-      const customer = h.customer_id ? customerById.get(h.customer_id) : undefined;
-
       all.push({
         key: `hc-${h.id}`,
         kind: "house-call",
         date: h.date.slice(0, 10),
         time: h.time || "",
         title: h.description || "House call",
-        subtitle: [customer?.name, h.address].filter(Boolean).join(" · "),
+        subtitle: [h.customer_name, h.address].filter(Boolean).join(" · "),
         status: h.status,
         houseCall: h,
       });
@@ -193,22 +186,20 @@ export default function CalendarPage() {
 
     for (const t of tickets) {
       if (!t.due_date || t.status === "Completed" || t.status === "Delivered") continue;
-      const customer = t.customer_id ? customerById.get(t.customer_id) : undefined;
-
       all.push({
         key: `due-${t.id}`,
         kind: "due",
         date: t.due_date.slice(0, 10),
         time: "",
         title: `Due: ${t.device} ${t.device_model}`.trim(),
-        subtitle: [customer?.name, t.issue].filter(Boolean).join(" · "),
+        subtitle: [t.customer_name, t.issue].filter(Boolean).join(" · "),
         status: t.status,
         refPath: `/tickets?open=${t.id}`,
       });
     }
 
     return all.sort(compareDateTime);
-  }, [appointments, houseCalls, bookings, tickets, customerById]);
+  }, [appointments, houseCalls, bookings, tickets]);
 
   const eventsByDate = useMemo(() => {
     const map = new Map<string, CalEvent[]>();
@@ -265,7 +256,7 @@ export default function CalendarPage() {
       description: creatingAppt.description,
       date: creatingAppt.date,
       time: creatingAppt.time,
-      customer_id: creatingAppt.customerId ? Number(creatingAppt.customerId) : null,
+      customer_id: creatingAppt.customer?.id ?? null,
       status: "scheduled",
     });
 
@@ -275,7 +266,7 @@ export default function CalendarPage() {
 
       return;
     }
-    setAppointments((rows) => [...rows, data]);
+    setAppointments((rows) => [...rows, { ...data, customer_name: creatingAppt.customer?.name || "" }]);
     setSelectedDate(creatingAppt.date);
     setCreatingAppt(null);
   };
@@ -288,7 +279,7 @@ export default function CalendarPage() {
       address: creatingCall.address,
       date: creatingCall.date,
       time: creatingCall.time,
-      customer_id: creatingCall.customerId ? Number(creatingCall.customerId) : null,
+      customer_id: creatingCall.customer?.id ?? null,
       status: "scheduled",
     });
 
@@ -298,7 +289,7 @@ export default function CalendarPage() {
 
       return;
     }
-    setHouseCalls((rows) => [...rows, data]);
+    setHouseCalls((rows) => [...rows, { ...data, customer_name: creatingCall.customer?.name || "" }]);
     setSelectedDate(creatingCall.date);
     setCreatingCall(null);
   };
@@ -367,26 +358,6 @@ export default function CalendarPage() {
     next.setMonth(next.getMonth() + delta);
     setViewMonth(next);
   };
-
-  const customerPicker = (value: string, onChange: (v: string) => void) => (
-    <div className="flex flex-col gap-1.5">
-      <Label>Customer (optional)</Label>
-      <Select placeholder="No customer" selectedKey={value || null} onSelectionChange={(k) => onChange(k ? String(k) : "")}>
-        <Select.Trigger>
-          <Select.Value />
-        </Select.Trigger>
-        <Select.Popover>
-          <ListBox>
-            {customers.map((c) => (
-              <ListBox.Item key={c.id} id={String(c.id)}>
-                {c.name}
-              </ListBox.Item>
-            ))}
-          </ListBox>
-        </Select.Popover>
-      </Select>
-    </div>
-  );
 
   return (
     <div>
@@ -610,7 +581,11 @@ export default function CalendarPage() {
                     onChange={(e) => setCreatingAppt((f) => f && { ...f, time: e.target.value })}
                   />
                 </div>
-                {customerPicker(creatingAppt?.customerId || "", (v) => setCreatingAppt((f) => f && { ...f, customerId: v }))}
+                <CustomerPicker
+                  label="Customer (optional)"
+                  value={creatingAppt?.customer ?? null}
+                  onChange={(c) => setCreatingAppt((f) => f && { ...f, customer: c })}
+                />
                 <TextField
                   className="flex flex-col gap-1.5"
                   value={creatingAppt?.description || ""}
@@ -685,7 +660,11 @@ export default function CalendarPage() {
                     onChange={(e) => setCreatingCall((f) => f && { ...f, time: e.target.value })}
                   />
                 </div>
-                {customerPicker(creatingCall?.customerId || "", (v) => setCreatingCall((f) => f && { ...f, customerId: v }))}
+                <CustomerPicker
+                  label="Customer (optional)"
+                  value={creatingCall?.customer ?? null}
+                  onChange={(c) => setCreatingCall((f) => f && { ...f, customer: c })}
+                />
               </Modal.Body>
               <Modal.Footer>
                 <Button variant="outline" onPress={() => setCreatingCall(null)}>

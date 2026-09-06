@@ -21,14 +21,15 @@ import {
 
 import PageHeader from "@/components/PageHeader";
 import PaymentModal from "@/components/payments/PaymentModal";
+import CustomerPicker from "@/components/CustomerPicker";
 import type { Customer, InventoryItem, PosSale, PosSaleItem, ShopSettings, Ticket, TicketPayment } from "@/types/domain";
 import {
   sbCreatePosSale,
-  sbFetchCustomers,
+  sbFetchCustomerById,
   sbFetchInventory,
   sbFetchPosSales,
   sbFetchShopSettings,
-  sbFetchTickets,
+  sbFetchTicketsWithBalance,
   sbUpdatePosSale,
   sbUpdateTicket,
   sbUpsertInventoryItem,
@@ -60,7 +61,6 @@ type Step = "shop" | "checkout";
 export default function POS() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
   const [shopSettings, setShopSettings] = useState<ShopSettings | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -69,7 +69,7 @@ export default function POS() {
   const [category, setCategory] = useState<string | null>(null);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [customCents, setCustomCents] = useState("0");
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [saleResult, setSaleResult] = useState<SaleResult | null>(null);
   const [lastReceiptItems, setLastReceiptItems] = useState<PosSaleItem[]>([]);
@@ -80,17 +80,11 @@ export default function POS() {
 
   const load = async () => {
     setLoading(true);
-    const [inv, tix, cust, settings] = await Promise.all([
-      sbFetchInventory(),
-      sbFetchTickets(),
-      sbFetchCustomers(),
-      sbFetchShopSettings(),
-    ]);
+    const [inv, tix, settings] = await Promise.all([sbFetchInventory(), sbFetchTicketsWithBalance(), sbFetchShopSettings()]);
 
     setLoading(false);
     if (inv.data) setInventory(inv.data);
-    if (tix.data) setTickets(tix.data);
-    if (cust.data) setCustomers(cust.data);
+    setTickets(tix);
     if (settings.data) setShopSettings(settings.data);
   };
 
@@ -154,7 +148,7 @@ export default function POS() {
         quantity: 1,
       },
     ]);
-    if (ticket.customer_id) setSelectedCustomerId(String(ticket.customer_id));
+    if (ticket.customer_id) sbFetchCustomerById(ticket.customer_id).then((c) => c && setSelectedCustomer(c));
   };
 
   const addCustomToCart = () => {
@@ -175,7 +169,7 @@ export default function POS() {
   const removeLine = (key: string) => setCart((lines) => lines.filter((l) => l.key !== key));
   const clearCart = () => {
     setCart([]);
-    setSelectedCustomerId(null);
+    setSelectedCustomer(null);
   };
 
   const cartCount = cart.reduce((sum, l) => sum + l.quantity, 0);
@@ -255,10 +249,10 @@ export default function POS() {
 
   const handleSaleComplete = async (payment: TicketPayment): Promise<boolean> => {
     const items: PosSaleItem[] = cart.map((l) => ({ name: l.name, price: l.price, quantity: l.quantity, sku: l.sku, ticketId: l.ticketId }));
-    const customer = selectedCustomerId ? customers.find((c) => c.id === Number(selectedCustomerId)) : undefined;
+    const customer = selectedCustomer;
 
     const { data: sale, error } = await sbCreatePosSale({
-      customer_id: selectedCustomerId ? Number(selectedCustomerId) : null,
+      customer_id: selectedCustomer?.id ?? null,
       items,
       subtotal,
       tax: taxAmount,
@@ -351,7 +345,6 @@ export default function POS() {
   };
 
   const reprintSale = (sale: PosSale) => {
-    const customer = sale.customer_id ? customers.find((c) => c.id === sale.customer_id) : undefined;
 
     printReceipt({
       businessName: shopSettings?.business_name || "Receipt",
@@ -364,7 +357,7 @@ export default function POS() {
       total: Number(sale.total),
       currency: "$",
       ticketRef: `S-${sale.id}`,
-      customerName: customer?.name,
+      customerName: sale.customer_name || undefined,
     });
   };
 
@@ -682,21 +675,13 @@ export default function POS() {
             {/* Sale details */}
             <div className="flex flex-col gap-3">
               <div className="rounded-2xl border border-border bg-surface p-4">
-                <span className="mb-2 block text-micro font-bold uppercase text-muted">Customer (optional)</span>
-                <Select placeholder="Walk-in" selectedKey={selectedCustomerId} onSelectionChange={(key) => setSelectedCustomerId(key ? String(key) : null)}>
-                  <Select.Trigger>
-                    <Select.Value />
-                  </Select.Trigger>
-                  <Select.Popover>
-                    <ListBox>
-                      {customers.map((c) => (
-                        <ListBox.Item key={c.id} id={String(c.id)}>
-                          {c.name}
-                        </ListBox.Item>
-                      ))}
-                    </ListBox>
-                  </Select.Popover>
-                </Select>
+                <CustomerPicker
+                  hint="Leave empty for a walk-in sale."
+                  label="Customer (optional)"
+                  placeholder="Search by name, phone, or email…"
+                  value={selectedCustomer}
+                  onChange={setSelectedCustomer}
+                />
               </div>
 
               <p className="m-0 text-xs text-muted">
@@ -741,7 +726,6 @@ export default function POS() {
                   <p className="m-0 py-8 text-center text-sm text-muted">No sales recorded yet.</p>
                 ) : (
                   recentSales.map((sale) => {
-                    const customer = sale.customer_id ? customers.find((c) => c.id === sale.customer_id) : undefined;
                     const reversed = sale.status !== "completed";
 
                     return (
@@ -758,7 +742,7 @@ export default function POS() {
                             </strong>
                             <span className="block text-xs text-muted">
                               {new Date(sale.created_at).toLocaleString()} · {sale.payment_method}
-                              {customer ? ` · ${customer.name}` : ""}
+                              {sale.customer_name ? ` · ${sale.customer_name}` : ""}
                             </span>
                             <span className="mt-1 block truncate text-xs text-muted">
                               {asArray<PosSaleItem>(sale.items)

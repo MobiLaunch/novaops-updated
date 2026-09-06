@@ -41,17 +41,15 @@ import type {
   WebsiteOrder,
 } from "@/types/domain";
 import {
-  sbFetchCustomers,
-  sbFetchInventory,
-  sbFetchPosSales,
+  sbFetchAccounting,
+  sbFetchInventoryCosts,
   sbFetchShopSettings,
   sbFetchTechnicians,
-  sbFetchTickets,
-  sbFetchTradeIns,
   sbFetchWebsiteOrders,
 } from "@/lib/supabase";
+import type { TicketReceivable } from "@/lib/supabase";
 import { getSquarePayments, getSquarePayouts, type SquarePayment, type SquarePayout } from "@/lib/square";
-import { asArray, downloadCsv, formatCurrency, parseDateOnly, ticketBalanceDue } from "@/lib/utils";
+import { asArray, downloadCsv, formatCurrency, parseDateOnly } from "@/lib/utils";
 
 // ─────────────────────────────────────────────────────────────────────────
 // Shared chart primitives (unchanged from the old Reports page)
@@ -322,17 +320,11 @@ interface RevenueEvent {
   refPath?: string;
 }
 
-function buildEvents(
-  tickets: Ticket[],
-  posSales: PosSale[],
-  websiteOrders: WebsiteOrder[],
-  tradeIns: TradeIn[],
-  customersById: Map<number, Customer>,
-): RevenueEvent[] {
+function buildEvents(tickets: Ticket[], posSales: PosSale[], websiteOrders: WebsiteOrder[], tradeIns: TradeIn[]): RevenueEvent[] {
   const events: RevenueEvent[] = [];
 
   for (const t of tickets) {
-    const customerName = t.customer_id ? customersById.get(t.customer_id)?.name || "" : "";
+    const customerName = t.customer_name || "";
 
     asArray<TicketPayment>(t.payments).forEach((p, idx) => {
       if (!p.at) return;
@@ -352,7 +344,7 @@ function buildEvents(
 
   for (const s of posSales) {
     if (s.status !== "completed") continue;
-    const customerName = s.customer_id ? customersById.get(s.customer_id)?.name || "" : "";
+    const customerName = s.customer_name || "";
 
     events.push({
       id: `pos-${s.id}`,
@@ -383,7 +375,7 @@ function buildEvents(
   for (const ti of tradeIns) {
     if (ti.status !== "Accepted" && ti.status !== "Completed") continue;
     if (!ti.offer_price) continue;
-    const customerName = ti.customer_id ? customersById.get(ti.customer_id)?.name || "" : "";
+    const customerName = ti.customer_name || "";
 
     events.push({
       id: `tradein-${ti.id}`,
@@ -477,9 +469,12 @@ export default function Accounting() {
   const [websiteOrders, setWebsiteOrders] = useState<WebsiteOrder[]>([]);
   const [websiteOrdersError, setWebsiteOrdersError] = useState<string | null>(null);
   const [tradeIns, setTradeIns] = useState<TradeIn[]>([]);
+  const [receivables, setReceivables] = useState<TicketReceivable[]>([]);
+  const [openTicketCount, setOpenTicketCount] = useState(0);
+  const [lowStockCount, setLowStockCount] = useState(0);
+  const [totalTicketCount, setTotalTicketCount] = useState(0);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
   const [shopSettings, setShopSettings] = useState<ShopSettings | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -494,32 +489,58 @@ export default function Accounting() {
   const [squarePayouts, setSquarePayouts] = useState<SquarePayout[]>([]);
   const [squareLoaded, setSquareLoaded] = useState(false);
 
+  const range = useMemo(() => getRangeBounds(rangeKey, customStart, customEnd), [rangeKey, customStart, customEnd]);
+
+  // Everything financial is fetched for the selected period rather than in
+  // full, so changing the period refetches instead of re-filtering a copy of
+  // the whole database held in the browser.
   useEffect(() => {
+    let cancelled = false;
+
     setLoading(true);
     Promise.all([
-      sbFetchTickets(),
-      sbFetchPosSales(),
-      sbFetchWebsiteOrders(),
-      sbFetchTradeIns(),
-      sbFetchInventory(),
+      sbFetchAccounting(range.start, range.end),
+      sbFetchWebsiteOrders(range.start),
       sbFetchTechnicians(),
-      sbFetchCustomers(),
       sbFetchShopSettings(),
-    ]).then(([t, pos, orders, ti, inv, tech, cust, settings]) => {
-      setLoading(false);
-      if (t.data) setTickets(t.data);
-      if (pos.data) setPosSales(pos.data);
+    ]).then(async ([data, orders, tech, settings]) => {
+      if (cancelled) return;
+      setTickets(data.tickets);
+      setPosSales(data.posSales);
+      setTradeIns(data.tradeIns);
+      setReceivables(data.receivables);
+      setOpenTicketCount(data.openTicketCount);
+      setLowStockCount(data.lowStockCount);
+      setTotalTicketCount(data.totalTicketCount);
       if (orders.data) setWebsiteOrders(orders.data);
       else if (orders.error) setWebsiteOrdersError(orders.error);
-      if (ti.data) setTradeIns(ti.data);
-      if (inv.data) setInventory(inv.data);
       if (tech.data) setTechnicians(tech.data);
-      if (cust.data) setCustomers(cust.data);
       if (settings.data) setShopSettings(settings.data);
-    });
-  }, []);
 
-  const customersById = useMemo(() => new Map(customers.map((c) => [c.id, c])), [customers]);
+      // Cost of goods only needs the catalogue entries this period's sales
+      // and ticket parts actually reference.
+      const skus = new Set<string>();
+      const ids = new Set<number>();
+
+      for (const sale of data.posSales) {
+        for (const line of asArray<{ sku?: string }>(sale.items)) if (line.sku) skus.add(line.sku);
+      }
+      for (const t of data.tickets) {
+        for (const part of asArray<{ inventory_id?: number }>(t.parts)) if (part.inventory_id) ids.add(part.inventory_id);
+      }
+      const costs = await sbFetchInventoryCosts([...skus], [...ids]);
+
+      if (!cancelled) {
+        setInventory(costs);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [range.start, range.end]);
+
   const inventoryBySku = useMemo(
     () => new Map(inventory.filter((i) => i.sku).map((i) => [i.sku.toUpperCase(), i])),
     [inventory],
@@ -527,11 +548,9 @@ export default function Accounting() {
   const inventoryById = useMemo(() => new Map(inventory.map((i) => [i.id, i])), [inventory]);
 
   const allEvents = useMemo(
-    () => buildEvents(tickets, posSales, websiteOrders, tradeIns, customersById),
-    [tickets, posSales, websiteOrders, tradeIns, customersById],
+    () => buildEvents(tickets, posSales, websiteOrders, tradeIns),
+    [tickets, posSales, websiteOrders, tradeIns],
   );
-
-  const range = useMemo(() => getRangeBounds(rangeKey, customStart, customEnd), [rangeKey, customStart, customEnd]);
 
   const inRange = (d: Date) => d.getTime() >= range.start.getTime() && d.getTime() <= range.end.getTime();
 
@@ -582,16 +601,12 @@ export default function Accounting() {
   const arAging = useMemo(() => {
     const now = Date.now();
     const buckets = { current: 0, d1_30: 0, d31_60: 0, d61_90: 0, d90plus: 0 };
-    let openCount = 0;
 
-    for (const t of tickets) {
-      const balance = ticketBalanceDue(t);
-
-      if (balance <= 0.01) continue;
-      openCount++;
+    for (const r of receivables) {
+      const balance = r.balance_due;
       // due_date is date-only (parse it local, not UTC); created_at is a
       // full timestamp and parses correctly on its own.
-      const basis = (parseDateOnly(t.due_date) ?? new Date(t.created_at)).getTime();
+      const basis = (parseDateOnly(r.due_date) ?? new Date(r.created_at)).getTime();
       const ageDays = Math.floor((now - basis) / 86400000);
 
       if (ageDays <= 0) buckets.current += balance;
@@ -603,8 +618,8 @@ export default function Accounting() {
 
     const total = Object.values(buckets).reduce((a, b) => a + b, 0);
 
-    return { buckets, total, openCount };
-  }, [tickets]);
+    return { buckets, total, openCount: receivables.length };
+  }, [receivables]);
 
   const revenueTrend = useMemo(() => {
     const granularity = pickGranularity(daysBetween(range.start, range.end));
@@ -721,8 +736,6 @@ export default function Accounting() {
   // original Reports page, scoped to the selected range for consistency.
   const ticketsInRange = useMemo(() => tickets.filter((t) => inRange(new Date(t.created_at))), [tickets, range]);
   const avgTicketValue = ticketsInRange.length ? ticketsInRange.reduce((s, t) => s + Number(t.price || 0), 0) / ticketsInRange.length : 0;
-  const openTickets = tickets.filter((t) => t.status !== "Completed" && t.status !== "Delivered").length;
-  const lowStockCount = inventory.filter((i) => i.stock <= i.low).length;
 
   const statusRows: BarRow[] = STATUS_ORDER.map((s) => ({
     key: s,
@@ -777,7 +790,11 @@ export default function Accounting() {
       .map(([label, value]) => ({ key: label, label, value }));
   }, [inventory]);
 
-  const nothingYet = tickets.length === 0 && posSales.length === 0 && websiteOrders.length === 0 && inventory.length === 0 && tradeIns.length === 0;
+  // Whether the shop has any data at all, not whether this period does — the
+  // period reads would otherwise show a brand-new-shop screen during a quiet
+  // month.
+  const nothingYet =
+    totalTicketCount === 0 && receivables.length === 0 && posSales.length === 0 && websiteOrders.length === 0 && tradeIns.length === 0;
 
   return (
     <div>
@@ -1146,7 +1163,7 @@ export default function Accounting() {
               <div className="flex flex-col gap-6">
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   <StatTile icon={TrendingUp} label="Avg. Ticket Value" tone="accent" value={formatCurrency(avgTicketValue)} sub={range.label} />
-                  <StatTile icon={Wrench} label="Open Tickets" tone="accent" value={String(openTickets)} />
+                  <StatTile icon={Wrench} label="Open Tickets" tone="accent" value={String(openTicketCount)} />
                   <StatTile icon={Package} label="Low Stock Items" tone="warning" value={String(lowStockCount)} />
                 </div>
 

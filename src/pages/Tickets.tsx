@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Button,
@@ -40,19 +40,21 @@ import {
   sbAssignPartToTicket,
   sbCreateMessage,
   sbCreateTicket,
-  sbFetchCustomers,
+  sbFetchCustomerById,
   sbFetchInventory,
   sbFetchShopSettings,
   sbFetchTechnicians,
   sbFetchTicketMedia,
-  sbFetchTickets,
+  sbFetchTicketStatusCounts,
+  sbFetchTicketsPage,
   sbFindOrCreateCustomer,
   sbRemovePartFromTicket,
   sbUpdateTicket,
 } from "@/lib/supabase";
+import { useServerList } from "@/lib/useServerList";
 import { printBarcodeLabel } from "@/lib/print";
 import { toastWriteFailed } from "@/lib/toast";
-import { asArray, parseDateOnly, startOfToday, ticketBalanceDue, useDebounced, useRefetchOnFocus } from "@/lib/utils";
+import { asArray, parseDateOnly, startOfToday, ticketBalanceDue, useRefetchOnFocus } from "@/lib/utils";
 
 const STATUSES: TicketStatus[] = ["Open", "In Progress", "Waiting for Parts", "Completed", "Delivered"];
 const STATUS_STYLES: Record<string, string> = {
@@ -154,10 +156,7 @@ function InlineField({
 export default function Tickets() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
-  const [query, setQuery] = useState("");
   const [creating, setCreating] = useState<NewTicketForm | null>(null);
   const [saving, setSaving] = useState(false);
   const [selected, setSelected] = useState<Ticket | null>(null);
@@ -166,7 +165,8 @@ export default function Tickets() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [partSelection, setPartSelection] = useState<{ inventoryId: string; qty: string }>({ inventoryId: "", qty: "1" });
   const [linkCopied, setLinkCopied] = useState(false);
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
   const [shopSettings, setShopSettings] = useState<ShopSettings | null>(null);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [labelDraft, setLabelDraft] = useState("");
@@ -183,34 +183,51 @@ export default function Tickets() {
     }
   };
 
-  const load = async () => {
-    setLoading(true);
-    const { data } = await sbFetchTickets();
+  // One page of tickets at a time, searched and status-filtered in Postgres.
+  // The page used to fetch every ticket in the shop, plus every customer to
+  // label them, and do both in the browser.
+  const fetchPage = useCallback(
+    (page: number, search: string) => sbFetchTicketsPage({ page, search, status: statusFilter }),
+    [statusFilter],
+  );
+  const list = useServerList<Ticket>(fetchPage, [statusFilter]);
+  const tickets = list.rows;
 
-    setLoading(false);
-    if (data) setTickets(data);
+  // Replaces a row after a write. sbUpdateTicket returns the ticket's own
+  // columns, so the joined customer name is carried across rather than lost.
+  const replaceTicket = (data: Ticket) => {
+    list.setRows((ts) => ts.map((t) => (t.id === data.id ? { ...data, customer_name: t.customer_name } : t)));
+    setSelected((cur) => (cur && cur.id === data.id ? { ...data, customer_name: cur.customer_name, signature: cur.signature } : cur));
   };
 
+  const loadCounts = () => sbFetchTicketStatusCounts(STATUSES).then(setStatusCounts);
+
   useEffect(() => {
-    load();
+    loadCounts();
     sbFetchInventory().then(({ data }) => data && setInventory(data));
-    sbFetchCustomers().then(({ data }) => data && setCustomers(data));
     sbFetchShopSettings().then(({ data }) => data && setShopSettings(data));
     sbFetchTechnicians().then(({ data }) => data && setTechnicians(data));
   }, []);
 
-  // Front desk and bench run this side by side — pick the tab back up and
-  // it refreshes instead of showing whatever was there when you left.
-  useRefetchOnFocus(load);
+  useRefetchOnFocus(loadCounts);
+
+  const load = () => {
+    list.reload();
+    loadCounts();
+  };
 
   // The list query skips the signature and photo columns, so they're pulled
   // in for the one ticket being opened. The modal shows immediately and the
   // signature fills in when it arrives.
   const openTicket = (ticket: Ticket) => {
     setSelected(ticket);
+    setSelectedCustomer(null);
     sbFetchTicketMedia(ticket.id).then(({ signature, photos }) =>
       setSelected((current) => (current && current.id === ticket.id ? { ...current, signature, photos } : current)),
     );
+    // The list carries only the customer's name; the panel shows their phone
+    // and email too, so the record is fetched for the ticket being opened.
+    if (ticket.customer_id) sbFetchCustomerById(ticket.customer_id).then(setSelectedCustomer);
   };
 
   useEffect(() => {
@@ -230,15 +247,14 @@ export default function Tickets() {
   useEffect(() => {
     const newFor = searchParams.get("new");
 
-    if (!newFor || customers.length === 0) return;
-    const customer = customers.find((c) => String(c.id) === newFor);
-
-    if (customer) {
-      setCreating({ ...emptyNewForm, customerName: customer.name, customerPhone: customer.phone });
-    }
+    if (!newFor) return;
     searchParams.delete("new");
     setSearchParams(searchParams, { replace: true });
-  }, [customers, searchParams, setSearchParams]);
+    // Fetched by id rather than found in a downloaded customer list.
+    sbFetchCustomerById(Number(newFor)).then((customer) => {
+      if (customer) setCreating({ ...emptyNewForm, customerName: customer.name, customerPhone: customer.phone });
+    });
+  }, [searchParams, setSearchParams]);
 
   const handleCreate = async () => {
     if (!creating?.device.trim() || !creating.issue.trim()) return;
@@ -259,7 +275,7 @@ export default function Tickets() {
 
     setSaving(false);
     if (ticket) {
-      setTickets((ts) => [ticket, ...ts]);
+      load();
       setCreating(null);
     }
   };
@@ -277,7 +293,8 @@ export default function Tickets() {
       return;
     }
 
-    setTickets((ts) => ts.map((t) => (t.id === id ? { ...t, status } : t)));
+    list.setRows((ts) => ts.map((t) => (t.id === id ? { ...t, status } : t)));
+    loadCounts();
     if (selected?.id === id) setSelected((s) => s && { ...s, status });
 
     if (ticket && shopSettings?.notify_on_status_change) {
@@ -288,7 +305,8 @@ export default function Tickets() {
   // Best-effort — a failed notification should never block the status
   // change itself, so errors here are swallowed rather than surfaced.
   const notifyCustomerOfStatusChange = async (ticket: Ticket, status: string) => {
-    const customer = customers.find((c) => c.id === ticket.customer_id);
+    if (!ticket.customer_id) return;
+    const customer = await sbFetchCustomerById(ticket.customer_id);
 
     if (!customer?.email) return;
 
@@ -331,7 +349,7 @@ export default function Tickets() {
       return false;
     }
 
-    setTickets((ts) => ts.map((t) => (t.id === id ? data : t)));
+    replaceTicket(data);
     if (selected?.id === id) setSelected(data);
 
     return true;
@@ -360,7 +378,7 @@ export default function Tickets() {
     const { data } = await sbUpdateTicket(payingTicket.id, { payments });
 
     if (data) {
-      setTickets((ts) => ts.map((t) => (t.id === data.id ? data : t)));
+      replaceTicket(data);
       if (selected?.id === data.id) setSelected(data);
       setPayingTicket(null);
 
@@ -376,7 +394,7 @@ export default function Tickets() {
 
     if (data) {
       setSelected(data);
-      setTickets((ts) => ts.map((t) => (t.id === data.id ? data : t)));
+      replaceTicket(data);
     }
   };
 
@@ -390,7 +408,7 @@ export default function Tickets() {
 
     if (data) {
       setSelected(data);
-      setTickets((ts) => ts.map((t) => (t.id === data.id ? data : t)));
+      replaceTicket(data);
       setInventory((rows) => rows.map((r) => (r.id === item.id ? { ...r, stock: Math.max(r.stock - qty, 0) } : r)));
       setPartSelection({ inventoryId: "", qty: "1" });
     }
@@ -403,7 +421,7 @@ export default function Tickets() {
 
     if (data) {
       setSelected(data);
-      setTickets((ts) => ts.map((t) => (t.id === data.id ? data : t)));
+      replaceTicket(data);
       if (removed?.inventory_id) {
         setInventory((rows) => rows.map((r) => (r.id === removed.inventory_id ? { ...r, stock: r.stock + removed.qty } : r)));
       }
@@ -416,31 +434,10 @@ export default function Tickets() {
     const { data } = await sbUpdateTicket(selected.id, { notes });
 
     if (data) {
-      setSelected(data);
-      setTickets((ts) => ts.map((t) => (t.id === data.id ? data : t)));
+      replaceTicket(data);
       setNoteDraft("");
     }
   };
-
-  // Re-filtering rebuilds the table's whole row collection, so that runs once
-  // typing pauses rather than on every keystroke.
-  const debouncedQuery = useDebounced(query);
-  const customerById = useMemo(() => new Map(customers.map((c) => [c.id, c])), [customers]);
-
-  const filtered = useMemo(() => {
-    const q = debouncedQuery.trim().toLowerCase();
-
-    return tickets.filter((t) => {
-      if (statusFilter !== "all" && t.status !== statusFilter) return false;
-      if (!q) return true;
-      const customerName = t.customer_id ? customerById.get(t.customer_id)?.name || "" : "";
-      const haystack = `${t.id} ${t.device} ${t.device_model} ${t.issue} ${customerName} ${asArray<string>(t.labels).join(" ")}`;
-
-      return haystack.toLowerCase().includes(q);
-    });
-  }, [tickets, statusFilter, debouncedQuery, customerById]);
-
-  const selectedCustomer = selected?.customer_id ? customerById.get(selected.customer_id) : undefined;
 
   const columns: DataTableColumn<Ticket>[] = [
     {
@@ -452,6 +449,13 @@ export default function Tickets() {
           <span className="text-xs text-muted">{t.device_model}</span>
         </div>
       ),
+    },
+    {
+      // The search matches on the customer's name, so it needs to be visible
+      // — otherwise a result set has rows with no apparent reason to be there.
+      key: "customer",
+      header: "Customer",
+      render: (t) => <span className="text-sm">{t.customer_name || <span className="text-muted">Walk-in</span>}</span>,
     },
     { key: "issue", header: "Issue", render: (t) => <span className="text-sm">{t.issue}</span> },
     { key: "price", header: "Price", render: (t) => <span className="text-sm font-semibold">${Number(t.price).toFixed(2)}</span> },
@@ -544,8 +548,8 @@ export default function Tickets() {
         <input
           className="w-full rounded-full border border-border bg-surface py-2.5 pl-10 pr-4 text-sm outline-none focus:border-accent"
           placeholder="Search device, issue, customer, label, or #id…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          value={list.query}
+          onChange={(e) => list.setQuery(e.target.value)}
         />
       </div>
 
@@ -560,6 +564,7 @@ export default function Tickets() {
             onClick={() => setStatusFilter(status)}
           >
             {status === "all" ? "All" : status}
+            {statusCounts[status] !== undefined && <span className="ml-1.5 opacity-60">{statusCounts[status]}</span>}
           </button>
         ))}
       </div>
@@ -567,17 +572,20 @@ export default function Tickets() {
       <DataTable
         ariaLabel="Tickets"
         columns={columns}
-        data={filtered}
+        data={tickets}
         emptyState={{
-          icon: loading ? TicketIcon : ClipboardList,
-          title: loading ? "Loading tickets…" : debouncedQuery ? "No matches" : "No tickets found",
-          description: debouncedQuery
-            ? `No tickets match "${debouncedQuery}"${statusFilter === "all" ? "" : ` in "${statusFilter}"`}.`
+          icon: list.loading ? TicketIcon : ClipboardList,
+          title: list.loading ? "Loading tickets…" : list.query ? "No matches" : "No tickets found",
+          description: list.query
+            ? `No tickets match "${list.query}"${statusFilter === "all" ? "" : ` in "${statusFilter}"`}.`
             : statusFilter === "all"
               ? "New tickets will appear here."
               : `No tickets currently marked "${statusFilter}".`,
         }}
+        page={list.page}
         rowKey={(t) => String(t.id)}
+        totalRows={list.total}
+        onPageChange={list.setPage}
       />
 
       {/* New ticket modal */}

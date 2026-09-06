@@ -104,6 +104,10 @@ export interface Ticket {
   public_token: string;
   created_at: string;
   updated_at: string;
+  // Joined from customers via the list queries' embed, not a column on
+  // tickets — so the pages that show a ticket's customer don't each have to
+  // download the whole customer table to look the name up.
+  customer_name?: string;
 }
 
 export interface Technician {
@@ -164,6 +168,8 @@ export interface PosSale {
   note: string;
   status: "completed" | "refunded" | "voided" | string;
   created_at: string;
+  // Joined from customers, as on Ticket above.
+  customer_name?: string;
 }
 
 export interface InventoryItem {
@@ -212,6 +218,8 @@ export interface TradeIn {
   notes: string;
   created_at: string;
   updated_at: string;
+  // Joined from customers, as on Ticket above.
+  customer_name?: string;
 }
 
 export type ScheduleStatus = "scheduled" | "confirmed" | "completed" | "cancelled" | "no-show";
@@ -228,6 +236,8 @@ export interface Appointment {
   notes: string;
   created_at: string;
   updated_at: string;
+  // Joined from customers, as on Ticket above.
+  customer_name?: string;
 }
 
 export interface HouseCall {
@@ -242,6 +252,8 @@ export interface HouseCall {
   notes: string;
   created_at: string;
   updated_at: string;
+  // Joined from customers, as on Ticket above.
+  customer_name?: string;
 }
 
 export interface Message {
