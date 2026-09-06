@@ -27,6 +27,7 @@ export default function Inventory() {
   const [editing, setEditing] = useState<Partial<InventoryItem> | null>(null);
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState("");
+  const [lowOnly, setLowOnly] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -52,6 +53,15 @@ export default function Inventory() {
     }
   }, [items, searchParams, setSearchParams]);
 
+  // ?filter=low — the "N items low on stock" notification links straight to
+  // the items it's talking about instead of the full catalogue.
+  useEffect(() => {
+    if (searchParams.get("filter") !== "low") return;
+    setLowOnly(true);
+    searchParams.delete("filter");
+    setSearchParams(searchParams, { replace: true });
+  }, [searchParams, setSearchParams]);
+
   const handleSave = async () => {
     if (!editing?.name?.trim()) return;
     setSaving(true);
@@ -71,12 +81,19 @@ export default function Inventory() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
-    if (!q) return items;
+    return items.filter((i) => {
+      if (lowOnly && i.stock > i.low) return false;
+      if (!q) return true;
 
-    return items.filter((i) => `${i.name} ${i.sku} ${i.category}`.toLowerCase().includes(q));
-  }, [items, query]);
+      return `${i.name} ${i.sku} ${i.category}`.toLowerCase().includes(q);
+    });
+  }, [items, query, lowOnly]);
 
   const totalStockValue = items.reduce((sum, i) => sum + Number(i.price || 0) * Number(i.stock || 0), 0);
+  const lowStockCount = items.filter((i) => i.stock <= i.low).length;
+  // Existing categories, offered as suggestions so the same thing doesn't get
+  // typed three different ways — POS filters its product grid by this field.
+  const categories = useMemo(() => Array.from(new Set(items.map((i) => i.category).filter(Boolean))).sort(), [items]);
 
   const columns: DataTableColumn<InventoryItem>[] = [
     {
@@ -100,7 +117,35 @@ export default function Inventory() {
         </span>
       ),
     },
-    { key: "price", header: "Price", render: (i) => <span className="text-sm">{formatCurrency(i.price)}</span> },
+    {
+      key: "price",
+      header: "Price / Cost",
+      render: (i) => (
+        <div>
+          <span className="block text-sm">{formatCurrency(i.price)}</span>
+          <span className="text-xs text-muted">cost {formatCurrency(i.cost)}</span>
+        </div>
+      ),
+    },
+    {
+      // Cost was tracked (Accounting uses it for COGS) but never shown here,
+      // so there was no way to spot an item selling at or below cost.
+      key: "margin",
+      header: "Margin",
+      render: (i) => {
+        const price = Number(i.price || 0);
+        const cost = Number(i.cost || 0);
+
+        if (!price || !cost) return <span className="text-sm text-muted">—</span>;
+        const pct = ((price - cost) / price) * 100;
+
+        return (
+          <span className={`text-sm font-semibold ${pct <= 0 ? "text-danger" : pct < 20 ? "text-warning" : "text-success"}`}>
+            {pct.toFixed(0)}%
+          </span>
+        );
+      },
+    },
     {
       key: "value",
       header: "Stock Value",
@@ -143,14 +188,37 @@ export default function Inventory() {
       />
 
       {items.length > 0 && (
-        <div className="relative mb-4 max-w-sm">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
-          <input
-            className="w-full rounded-full border border-border bg-surface py-2.5 pl-10 pr-4 text-sm outline-none focus:border-accent"
-            placeholder="Search by name, SKU, or category…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
+        <div className="mb-4 flex flex-col gap-3">
+          <div className="relative max-w-sm">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
+            <input
+              className="w-full rounded-full border border-border bg-surface py-2.5 pl-10 pr-4 text-sm outline-none focus:border-accent"
+              placeholder="Search by name, SKU, or category…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-colors ${
+                !lowOnly ? "border-accent bg-accent-soft text-accent" : "border-border bg-surface text-muted hover:bg-surface-secondary"
+              }`}
+              type="button"
+              onClick={() => setLowOnly(false)}
+            >
+              All Items
+            </button>
+            <button
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition-colors ${
+                lowOnly ? "border-warning bg-warning/15 text-warning" : "border-border bg-surface text-muted hover:bg-surface-secondary"
+              }`}
+              type="button"
+              onClick={() => setLowOnly(true)}
+            >
+              <TriangleAlert className="size-3.5" />
+              Low Stock ({lowStockCount})
+            </button>
+          </div>
         </div>
       )}
 
@@ -197,16 +265,20 @@ export default function Inventory() {
                     <InputGroup.Input />
                   </InputGroup>
                 </TextField>
-                <TextField
-                  className="flex flex-col gap-1.5"
-                  value={editing?.category || ""}
-                  onChange={(v) => setEditing((f) => f && { ...f, category: v })}
-                >
+                <div className="flex flex-col gap-1.5">
                   <Label>Category</Label>
-                  <InputGroup>
-                    <InputGroup.Input />
-                  </InputGroup>
-                </TextField>
+                  <input
+                    className="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
+                    list="inventory-categories"
+                    value={editing?.category || ""}
+                    onChange={(e) => setEditing((f) => f && { ...f, category: e.target.value })}
+                  />
+                  <datalist id="inventory-categories">
+                    {categories.map((c) => (
+                      <option key={c} value={c} />
+                    ))}
+                  </datalist>
+                </div>
                 <TextField
                   className="flex flex-col gap-1.5"
                   type="number"

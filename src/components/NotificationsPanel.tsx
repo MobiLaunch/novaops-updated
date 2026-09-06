@@ -26,7 +26,7 @@ export default function NotificationsPanel() {
       next.push({ key: "bookings", icon: CalendarDays, label: `${pendingBookings} pending booking${pendingBookings !== 1 ? "s" : ""}`, path: "/bookings" });
     }
     if (lowStock > 0) {
-      next.push({ key: "inventory", icon: TriangleAlert, label: `${lowStock} item${lowStock !== 1 ? "s" : ""} low on stock`, path: "/inventory" });
+      next.push({ key: "inventory", icon: TriangleAlert, label: `${lowStock} item${lowStock !== 1 ? "s" : ""} low on stock`, path: "/inventory?filter=low" });
     }
     if (unreadMail > 0) {
       next.push({ key: "mail", icon: Mail, label: `${unreadMail} unread message${unreadMail !== 1 ? "s" : ""}`, path: "/messages" });

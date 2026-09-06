@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Button,
   Chip,
@@ -12,7 +12,23 @@ import {
   TextArea,
   TextField,
 } from "@heroui/react";
-import { CheckCheck, ClipboardList, CreditCard, Eye, Link as LinkIcon, Plus, Printer, Ticket as TicketIcon, Trash2, Wrench, X } from "lucide-react";
+import {
+  CheckCheck,
+  ClipboardList,
+  CreditCard,
+  Eye,
+  Link as LinkIcon,
+  Mail,
+  Phone,
+  Plus,
+  Printer,
+  Search,
+  Ticket as TicketIcon,
+  Trash2,
+  UserRound,
+  Wrench,
+  X,
+} from "lucide-react";
 
 import DataTable, { type DataTableColumn } from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
@@ -35,7 +51,7 @@ import {
 } from "@/lib/supabase";
 import { printBarcodeLabel } from "@/lib/print";
 import { toastWriteFailed } from "@/lib/toast";
-import { asArray, parseDateOnly, startOfToday, ticketBalanceDue } from "@/lib/utils";
+import { asArray, parseDateOnly, startOfToday, ticketBalanceDue, useDebounced } from "@/lib/utils";
 
 const STATUSES: TicketStatus[] = ["Open", "In Progress", "Waiting for Parts", "Completed", "Delivered"];
 const STATUS_STYLES: Record<string, string> = {
@@ -57,11 +73,90 @@ interface NewTicketForm {
 
 const emptyNewForm: NewTicketForm = { customerName: "", customerPhone: "", device: "", deviceModel: "", issue: "", price: "0" };
 
+// A ticket's core details used to be frozen at creation, so a quote that
+// changed once the device was opened up couldn't be corrected. These save on
+// blur (or Enter) to match how due date, technician, and labels already
+// behave in this modal, rather than adding a second nested edit dialog.
+function InlineField({
+  label,
+  value,
+  type = "text",
+  multiline = false,
+  onSave,
+}: {
+  label: string;
+  value: string;
+  type?: "text" | "number";
+  multiline?: boolean;
+  onSave: (next: string) => Promise<boolean>;
+}) {
+  const [draft, setDraft] = useState(value);
+  const [saved, setSaved] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  // Re-sync when the row comes back from the server, or when a different
+  // ticket is opened into the same modal.
+  useEffect(() => setDraft(value), [value]);
+
+  const commit = async () => {
+    if (busy || draft === value) return;
+    setBusy(true);
+    const ok = await onSave(draft);
+
+    setBusy(false);
+    if (!ok) {
+      setDraft(value); // the failure already surfaced as a toast
+
+      return;
+    }
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1500);
+  };
+
+  const inputClass =
+    "w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none transition-colors focus:border-accent disabled:opacity-60";
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="flex items-center gap-2 text-micro font-bold uppercase text-muted">
+        {label}
+        {saved && <span className="font-bold text-success">Saved</span>}
+      </span>
+      {multiline ? (
+        <textarea
+          className={`${inputClass} min-h-[62px] resize-y`}
+          disabled={busy}
+          value={draft}
+          onBlur={commit}
+          onChange={(e) => setDraft(e.target.value)}
+        />
+      ) : (
+        <input
+          className={inputClass}
+          disabled={busy}
+          min={type === "number" ? "0" : undefined}
+          step={type === "number" ? "0.01" : undefined}
+          type={type}
+          value={draft}
+          onBlur={commit}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+            if (e.key === "Escape") setDraft(value);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 export default function Tickets() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [query, setQuery] = useState("");
   const [creating, setCreating] = useState<NewTicketForm | null>(null);
   const [saving, setSaving] = useState(false);
   const [selected, setSelected] = useState<Ticket | null>(null);
@@ -114,6 +209,21 @@ export default function Tickets() {
       setSearchParams(searchParams, { replace: true });
     }
   }, [tickets, searchParams, setSearchParams]);
+
+  // ?new=<customerId> — "New Ticket" from a customer's record, so their
+  // details don't have to be retyped (and can't be typo'd into a duplicate).
+  useEffect(() => {
+    const newFor = searchParams.get("new");
+
+    if (!newFor || customers.length === 0) return;
+    const customer = customers.find((c) => String(c.id) === newFor);
+
+    if (customer) {
+      setCreating({ ...emptyNewForm, customerName: customer.name, customerPhone: customer.phone });
+    }
+    searchParams.delete("new");
+    setSearchParams(searchParams, { replace: true });
+  }, [customers, searchParams, setSearchParams]);
 
   const handleCreate = async () => {
     if (!creating?.device.trim() || !creating.issue.trim()) return;
@@ -197,17 +307,19 @@ export default function Tickets() {
     }
   };
 
-  const applyTicketPatch = async (id: number, patch: Partial<Ticket>) => {
+  const applyTicketPatch = async (id: number, patch: Partial<Ticket>): Promise<boolean> => {
     const { data, error } = await sbUpdateTicket(id, patch);
 
     if (!data) {
       toastWriteFailed(`ticket #${id}`, error);
 
-      return;
+      return false;
     }
 
     setTickets((ts) => ts.map((t) => (t.id === id ? data : t)));
     if (selected?.id === id) setSelected(data);
+
+    return true;
   };
 
   const handleDueDateChange = (id: number, dueDate: string) => applyTicketPatch(id, { due_date: dueDate || null });
@@ -295,7 +407,25 @@ export default function Tickets() {
     }
   };
 
-  const filtered = statusFilter === "all" ? tickets : tickets.filter((t) => t.status === statusFilter);
+  // Re-filtering rebuilds the table's whole row collection, so that runs once
+  // typing pauses rather than on every keystroke.
+  const debouncedQuery = useDebounced(query);
+  const customerById = useMemo(() => new Map(customers.map((c) => [c.id, c])), [customers]);
+
+  const filtered = useMemo(() => {
+    const q = debouncedQuery.trim().toLowerCase();
+
+    return tickets.filter((t) => {
+      if (statusFilter !== "all" && t.status !== statusFilter) return false;
+      if (!q) return true;
+      const customerName = t.customer_id ? customerById.get(t.customer_id)?.name || "" : "";
+      const haystack = `${t.id} ${t.device} ${t.device_model} ${t.issue} ${customerName} ${asArray<string>(t.labels).join(" ")}`;
+
+      return haystack.toLowerCase().includes(q);
+    });
+  }, [tickets, statusFilter, debouncedQuery, customerById]);
+
+  const selectedCustomer = selected?.customer_id ? customerById.get(selected.customer_id) : undefined;
 
   const columns: DataTableColumn<Ticket>[] = [
     {
@@ -394,6 +524,16 @@ export default function Tickets() {
         title="Tickets"
       />
 
+      <div className="relative mb-3 max-w-sm">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
+        <input
+          className="w-full rounded-full border border-border bg-surface py-2.5 pl-10 pr-4 text-sm outline-none focus:border-accent"
+          placeholder="Search device, issue, customer, label, or #id…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
+
       <div className="mb-5 flex flex-wrap gap-2">
         {(["all", ...STATUSES] as const).map((status) => (
           <button
@@ -415,8 +555,12 @@ export default function Tickets() {
         data={filtered}
         emptyState={{
           icon: loading ? TicketIcon : ClipboardList,
-          title: loading ? "Loading tickets…" : "No tickets found",
-          description: statusFilter === "all" ? "New tickets will appear here." : `No tickets currently marked "${statusFilter}".`,
+          title: loading ? "Loading tickets…" : debouncedQuery ? "No matches" : "No tickets found",
+          description: debouncedQuery
+            ? `No tickets match "${debouncedQuery}"${statusFilter === "all" ? "" : ` in "${statusFilter}"`}.`
+            : statusFilter === "all"
+              ? "New tickets will appear here."
+              : `No tickets currently marked "${statusFilter}".`,
         }}
         rowKey={(t) => String(t.id)}
       />
@@ -540,18 +684,62 @@ export default function Tickets() {
                     <Modal.CloseTrigger />
                   </Modal.Header>
                   <Modal.Body className="flex flex-col gap-4">
-                    <div className="grid grid-cols-2 gap-4 rounded-2xl bg-surface-secondary/60 p-4 text-sm">
-                      <div>
-                        <span className="block text-micro font-bold uppercase text-muted">Model</span>
-                        <strong>{selected.device_model || "—"}</strong>
+                    {/* Whose device this is — previously the detail view never
+                        said, so you couldn't tell without leaving the page. */}
+                    <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-surface-secondary/60 p-4 text-sm">
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
+                        <UserRound className="size-4" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <strong className="block truncate text-foreground">{selectedCustomer?.name || "Walk-in"}</strong>
+                        <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted">
+                          {selectedCustomer?.phone && (
+                            <span className="flex items-center gap-1">
+                              <Phone className="size-3" />
+                              {selectedCustomer.phone}
+                            </span>
+                          )}
+                          {selectedCustomer?.email && (
+                            <span className="flex items-center gap-1">
+                              <Mail className="size-3" />
+                              {selectedCustomer.email}
+                            </span>
+                          )}
+                          {!selectedCustomer && "No customer record linked"}
+                        </span>
                       </div>
-                      <div>
-                        <span className="block text-micro font-bold uppercase text-muted">Price</span>
-                        <strong>${Number(selected.price).toFixed(2)}</strong>
-                      </div>
-                      <div className="col-span-2">
-                        <span className="block text-micro font-bold uppercase text-muted">Issue</span>
-                        <p className="m-0">{selected.issue}</p>
+                      {selectedCustomer && (
+                        <Button size="sm" variant="outline" onPress={() => navigate(`/customers?open=${selectedCustomer.id}`)}>
+                          View Customer
+                        </Button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 rounded-2xl border border-border p-4 sm:grid-cols-2">
+                      <InlineField
+                        label="Device"
+                        value={selected.device}
+                        onSave={(v) => applyTicketPatch(selected.id, { device: v.trim() })}
+                      />
+                      <InlineField
+                        label="Model"
+                        value={selected.device_model}
+                        onSave={(v) => applyTicketPatch(selected.id, { device_model: v.trim() })}
+                      />
+                      <InlineField
+                        label="Price"
+                        type="number"
+                        value={String(selected.price ?? 0)}
+                        onSave={(v) => applyTicketPatch(selected.id, { price: Number(v) || 0 })}
+                      />
+                      <div className="hidden sm:block" />
+                      <div className="sm:col-span-2">
+                        <InlineField
+                          multiline
+                          label="Issue"
+                          value={selected.issue}
+                          onSave={(v) => applyTicketPatch(selected.id, { issue: v.trim() })}
+                        />
                       </div>
                     </div>
 

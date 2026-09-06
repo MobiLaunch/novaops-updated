@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import type { Ticket, TicketPayment } from "@/types/domain";
 
 // Supabase jsonb/array columns can come back as null, an unexpected shape
@@ -39,6 +41,21 @@ export function startOfToday(): Date {
   d.setHours(0, 0, 0, 0);
 
   return d;
+}
+
+// Lets a text input stay instant while the expensive consumer (re-filtering
+// a table, which rebuilds its whole row collection) runs once the typing
+// pauses instead of on every keystroke.
+export function useDebounced<T>(value: T, delayMs = 200): T {
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delayMs);
+
+    return () => clearTimeout(timer);
+  }, [value, delayMs]);
+
+  return debounced;
 }
 
 export function initials(name: string): string {

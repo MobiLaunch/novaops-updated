@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Alert, Button, Chip, FieldError, InputGroup, Label, ListBox, Modal, Select, Switch, TextField } from "@heroui/react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Alert, Button, Chip, FieldError, InputGroup, Label, ListBox, Modal, Select, Switch, TextArea, TextField } from "@heroui/react";
 import {
   Cake,
   CircleAlert,
@@ -16,12 +16,13 @@ import {
   UserRoundX,
   Users,
   Wrench,
+  X,
 } from "lucide-react";
 
 import DataTable, { type DataTableColumn } from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
-import type { Customer, PreferredContact, Ticket } from "@/types/domain";
-import { sbFetchCustomers, sbFetchTickets, sbUpsertCustomer } from "@/lib/supabase";
+import type { Customer, PosSale, PreferredContact, Ticket } from "@/types/domain";
+import { sbFetchCustomers, sbFetchPosSales, sbFetchTickets, sbUpsertCustomer } from "@/lib/supabase";
 import { asArray, formatCurrency, initials } from "@/lib/utils";
 
 const emptyForm: Partial<Customer> = {
@@ -30,6 +31,7 @@ const emptyForm: Partial<Customer> = {
   email: "",
   address: "",
   notes: "",
+  tags: [],
   secondary_phone: "",
   preferred_contact: "phone",
   referral_source: "",
@@ -52,24 +54,32 @@ function Avatar({ name }: { name: string }) {
 }
 
 export default function Customers() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [posSales, setPosSales] = useState<PosSale[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<Partial<Customer> | null>(null);
   const [viewing, setViewing] = useState<Customer | null>(null);
   const [saving, setSaving] = useState(false);
+  const [tagDraft, setTagDraft] = useState("");
 
   const load = async () => {
     setLoading(true);
-    const [{ data, error }, { data: tix }] = await Promise.all([sbFetchCustomers(), sbFetchTickets()]);
+    const [{ data, error }, { data: tix }, { data: sales }] = await Promise.all([
+      sbFetchCustomers(),
+      sbFetchTickets(),
+      sbFetchPosSales(),
+    ]);
 
     setLoading(false);
     setLoadError(error);
     if (data) setCustomers(data);
     if (tix) setTickets(tix);
+    if (sales) setPosSales(sales);
   };
 
   useEffect(() => {
@@ -107,9 +117,41 @@ export default function Customers() {
     }
   };
 
-  const ticketsFor = (customerId: number) => tickets.filter((t) => t.customer_id === customerId);
-  const lifetimeValue = (customerId: number) =>
-    ticketsFor(customerId).reduce((sum, t) => sum + asArray<{ amount: number }>(t.payments).reduce((s, p) => s + Number(p.amount), 0), 0);
+  // Built once per data change instead of re-scanning every ticket and sale
+  // for each of the table's rows (which re-ran on every search keystroke).
+  // Lifetime value now counts retail too — a customer who only ever bought
+  // accessories used to read as $0.
+  const statsByCustomer = useMemo(() => {
+    const stats = new Map<number, { tickets: Ticket[]; value: number }>();
+    const bucket = (id: number) => {
+      let entry = stats.get(id);
+
+      if (!entry) {
+        entry = { tickets: [], value: 0 };
+        stats.set(id, entry);
+      }
+
+      return entry;
+    };
+
+    for (const t of tickets) {
+      if (t.customer_id == null) continue;
+      const entry = bucket(t.customer_id);
+
+      entry.tickets.push(t);
+      entry.value += asArray<{ amount: number }>(t.payments).reduce((s, p) => s + Number(p.amount || 0), 0);
+    }
+
+    for (const sale of posSales) {
+      if (sale.customer_id == null || sale.status !== "completed") continue;
+      bucket(sale.customer_id).value += Number(sale.total || 0);
+    }
+
+    return stats;
+  }, [tickets, posSales]);
+
+  const ticketsFor = (customerId: number) => statsByCustomer.get(customerId)?.tickets ?? [];
+  const lifetimeValue = (customerId: number) => statsByCustomer.get(customerId)?.value ?? 0;
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -351,6 +393,51 @@ export default function Customers() {
                     VIP customer
                   </span>
                 </div>
+
+                {/* Tags rendered as a table column and notes showed on the
+                    detail view, but neither could ever be set from the UI. */}
+                <div className="flex flex-col gap-1.5 sm:col-span-2">
+                  <Label>Tags</Label>
+                  <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-border p-2">
+                    {asArray<string>(editing?.tags).map((tag) => (
+                      <span key={tag} className="flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-bold text-accent">
+                        {tag}
+                        <button
+                          aria-label={`Remove ${tag}`}
+                          type="button"
+                          onClick={() => setEditing((f) => f && { ...f, tags: asArray<string>(f.tags).filter((x) => x !== tag) })}
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </span>
+                    ))}
+                    <input
+                      className="min-w-[140px] flex-1 bg-transparent px-2 py-1 text-sm outline-none"
+                      placeholder="Add a tag + Enter"
+                      value={tagDraft}
+                      onChange={(e) => setTagDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key !== "Enter") return;
+                        e.preventDefault();
+                        const tag = tagDraft.trim();
+
+                        if (!tag) return;
+                        setEditing((f) => (f && asArray<string>(f.tags).includes(tag) ? f : f && { ...f, tags: [...asArray<string>(f.tags), tag] }));
+                        setTagDraft("");
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5 sm:col-span-2">
+                  <Label>Notes</Label>
+                  <TextArea
+                    placeholder="Anything worth remembering about this customer…"
+                    rows={3}
+                    value={editing?.notes || ""}
+                    onChange={(e) => setEditing((f) => f && { ...f, notes: e.target.value })}
+                  />
+                </div>
               </Modal.Body>
               <Modal.Footer>
                 <Button variant="outline" onPress={() => setEditing(null)}>
@@ -445,13 +532,24 @@ export default function Customers() {
                     )}
 
                     <div>
-                      <span className="mb-2 block text-micro font-bold uppercase text-muted">Ticket History</span>
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <span className="text-micro font-bold uppercase text-muted">Ticket History</span>
+                        <Button size="sm" variant="outline" onPress={() => navigate(`/tickets?new=${viewing.id}`)}>
+                          <Plus className="size-3.5" />
+                          <span>New Ticket</span>
+                        </Button>
+                      </div>
                       {ticketsFor(viewing.id).length === 0 ? (
                         <p className="m-0 text-sm text-muted">No tickets yet.</p>
                       ) : (
                         <div className="flex flex-col gap-2">
                           {ticketsFor(viewing.id).map((t) => (
-                            <div key={t.id} className="flex items-center justify-between rounded-xl border border-border bg-surface p-3 text-sm">
+                            <button
+                              key={t.id}
+                              className="flex w-full items-center justify-between rounded-xl border border-border bg-surface p-3 text-left text-sm transition-colors hover:border-accent/40 hover:bg-accent-soft/30"
+                              type="button"
+                              onClick={() => navigate(`/tickets?open=${t.id}`)}
+                            >
                               <div className="flex items-center gap-2">
                                 <TicketIcon className="size-4 text-accent" />
                                 <div>
@@ -467,7 +565,7 @@ export default function Customers() {
                                 </Chip>
                                 <span className="mt-1 block text-xs text-muted">{formatCurrency(t.price)}</span>
                               </div>
-                            </div>
+                            </button>
                           ))}
                         </div>
                       )}
