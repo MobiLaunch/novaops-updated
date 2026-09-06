@@ -320,6 +320,13 @@ create index if not exists messages_customer_id_idx    on messages (profile_id, 
 create index if not exists messages_customer_email_idx on messages (profile_id, customer_email);
 create index if not exists messages_created_at_idx     on messages (profile_id, created_at desc);
 create index if not exists messages_ticket_id_idx      on messages (ticket_id) where ticket_id is not null;
+
+-- The create above is skipped on a project whose `messages` table predates
+-- Gmail sync, so the column it added has to be stated separately or the
+-- unique index below has nothing to build on. Every column added to a table
+-- after its first release needs this, not just a line in the create.
+alter table messages add column if not exists gmail_message_id text;
+
 create unique index if not exists messages_gmail_message_id_key on messages(gmail_message_id) where gmail_message_id is not null;
 
 alter table messages enable row level security;
