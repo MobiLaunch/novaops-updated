@@ -8,7 +8,7 @@ import PageHeader from "@/components/PageHeader";
 import type { InventoryItem } from "@/types/domain";
 import { sbFetchInventory, sbUpsertInventoryItem } from "@/lib/supabase";
 import { printBarcodeLabel } from "@/lib/print";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, useRefetchOnFocus } from "@/lib/utils";
 
 const emptyForm: Partial<InventoryItem> = {
   name: "",
@@ -40,6 +40,10 @@ export default function Inventory() {
   useEffect(() => {
     load();
   }, []);
+
+  // Front desk and bench run this side by side — pick the tab back up and
+  // it refreshes instead of showing whatever was there when you left.
+  useRefetchOnFocus(load);
 
   useEffect(() => {
     const openId = searchParams.get("open");

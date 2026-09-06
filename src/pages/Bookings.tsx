@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Chip, ListBox, Modal, Select } from "@heroui/react";
-import { CalendarDays, CalendarX, CloudOff, ExternalLink, Home, RefreshCw, Store, Wrench } from "lucide-react";
+import { CalendarDays, CalendarX, CloudOff, ExternalLink, Home, RefreshCw, Search, Store, Wrench } from "lucide-react";
 
 import DataTable, { type DataTableColumn } from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
@@ -13,6 +13,7 @@ import {
   sbUpdateBookingStatus,
 } from "@/lib/supabase";
 import { toastWriteFailed } from "@/lib/toast";
+import { useDebounced, useRefetchOnFocus } from "@/lib/utils";
 
 // Reads the same `bookings` table the Mobicare website's booking widget
 // writes to (via its /api/create-booking function) — this is the "connect
@@ -35,8 +36,10 @@ export default function Bookings() {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<BookingRecord | null>(null);
   const [converting, setConverting] = useState(false);
+  const debouncedQuery = useDebounced(query);
 
   const load = async () => {
     if (!isSupabaseConfigured()) return;
@@ -51,6 +54,10 @@ export default function Bookings() {
   useEffect(() => {
     load();
   }, []);
+
+  // Front desk and bench run this side by side — pick the tab back up and
+  // it refreshes instead of showing whatever was there when you left.
+  useRefetchOnFocus(load);
 
   // Bookings live in the website's table behind its own RLS, so a rejected
   // write here is most likely a permissions problem — commit only once it
@@ -81,7 +88,17 @@ export default function Bookings() {
     }
   };
 
-  const filtered = statusFilter === "all" ? bookings : bookings.filter((b) => b.status === statusFilter);
+  const filtered = useMemo(() => {
+    const q = debouncedQuery.trim().toLowerCase();
+
+    return bookings.filter((b) => {
+      if (statusFilter !== "all" && b.status !== statusFilter) return false;
+      if (!q) return true;
+      const haystack = `${b.customer_name} ${b.customer_phone || ""} ${b.customer_email || ""} ${b.service} ${b.device_type} ${b.device_model}`;
+
+      return haystack.toLowerCase().includes(q);
+    });
+  }, [bookings, statusFilter, debouncedQuery]);
 
   const columns: DataTableColumn<BookingRecord>[] = [
     {
@@ -190,6 +207,16 @@ export default function Bookings() {
           </Button>
         }
       />
+
+      <div className="relative mb-3 max-w-sm">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
+        <input
+          className="w-full rounded-full border border-border bg-surface py-2.5 pl-10 pr-4 text-sm outline-none focus:border-accent"
+          placeholder="Search name, phone, email, service, or device…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
 
       <div className="mb-5 flex flex-wrap gap-2">
         {(["all", ...STATUS_OPTIONS] as const).map((status) => (

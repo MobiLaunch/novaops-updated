@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Button,
   Chip,
@@ -12,7 +12,7 @@ import {
   TextArea,
   TextField,
 } from "@heroui/react";
-import { CalendarDays, MessageCircle, MessageSquareText, Mail, MailX, Package, PackageX, Reply, RefreshCw, Send, Truck } from "lucide-react";
+import { CalendarDays, MessageCircle, MessageSquareText, Mail, MailX, Package, PackageX, Reply, RefreshCw, Search, Send, Truck } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import type { CannedResponse, CustomerMessage, Message, Shipment, Ticket } from "@/types/domain";
@@ -31,6 +31,7 @@ import {
   sbUpdateShipmentStatus,
 } from "@/lib/supabase";
 import { toastWriteFailed } from "@/lib/toast";
+import { useDebounced, useRefetchOnFocus } from "@/lib/utils";
 
 const emptyCompose = { to: "", subject: "", body: "" };
 const SHIPMENT_STATUSES = ["in_transit", "delivered", "assigned", "archived"];
@@ -59,6 +60,9 @@ export default function Messages() {
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [cannedResponses, setCannedResponses] = useState<CannedResponse[]>([]);
+  const [inboxQuery, setInboxQuery] = useState("");
+  const [unreadOnly, setUnreadOnly] = useState(false);
+  const debouncedInboxQuery = useDebounced(inboxQuery);
 
   const load = async () => {
     setLoading(true);
@@ -80,6 +84,10 @@ export default function Messages() {
     load();
     sbFetchShopSettings().then(({ data }) => data && setCannedResponses(data.canned_responses || []));
   }, []);
+
+  // Front desk and bench run this side by side — pick the tab back up and
+  // it refreshes instead of showing whatever was there when you left.
+  useRefetchOnFocus(load);
 
   const handleSync = async () => {
     setSyncing(true);
@@ -186,7 +194,22 @@ export default function Messages() {
     setShipments((ss) => ss.map((s) => (s.id === id ? { ...s, ticket_id, status: ticket_id ? "assigned" : "in_transit" } : s)));
   };
 
-  const chatThreads = Object.values(
+  const unreadCount = messages.filter((m) => m.direction === "inbound" && !m.read).length;
+
+  const filteredMessages = useMemo(() => {
+    const q = debouncedInboxQuery.trim().toLowerCase();
+
+    return messages.filter((m) => {
+      if (unreadOnly && (m.read || m.direction !== "inbound")) return false;
+      if (!q) return true;
+
+      return `${m.customer_name} ${m.customer_email} ${m.subject} ${m.body}`.toLowerCase().includes(q);
+    });
+  }, [messages, unreadOnly, debouncedInboxQuery]);
+
+  // Regrouping every chat message ran on each keystroke of the reply box
+  // before this was memoized.
+  const chatThreads = useMemo(() => Object.values(
     customerMessages.reduce<Record<string, { email: string; name: string; messages: CustomerMessage[] }>>((acc, m) => {
       const key = m.customer_email || `unknown-${m.id}`;
 
@@ -200,7 +223,7 @@ export default function Messages() {
     const bLast = b.messages[b.messages.length - 1]?.created_at || "";
 
     return bLast.localeCompare(aLast);
-  });
+  }), [customerMessages]);
 
   const openThread = async (email: string) => {
     setActiveThread(email);
@@ -276,17 +299,46 @@ export default function Messages() {
         </Tabs.ListContainer>
 
         <Tabs.Panel className="pt-4" id="inbox">
-          {messages.length === 0 ? (
+          {messages.length > 0 && (
+            <div className="mb-3 flex flex-wrap items-center gap-3">
+              <div className="relative max-w-sm flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
+                <input
+                  className="w-full rounded-full border border-border bg-surface py-2.5 pl-10 pr-4 text-sm outline-none focus:border-accent"
+                  placeholder="Search sender, subject, or body…"
+                  value={inboxQuery}
+                  onChange={(e) => setInboxQuery(e.target.value)}
+                />
+              </div>
+              <button
+                className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-bold transition-colors ${
+                  unreadOnly ? "border-accent bg-accent-soft text-accent" : "border-border bg-surface text-muted hover:bg-surface-secondary"
+                }`}
+                type="button"
+                onClick={() => setUnreadOnly((v) => !v)}
+              >
+                Unread only{unreadCount > 0 ? ` (${unreadCount})` : ""}
+              </button>
+            </div>
+          )}
+
+          {filteredMessages.length === 0 ? (
             <div className="flex flex-col items-center gap-3 rounded-[28px] border border-border bg-surface-secondary p-14 text-center">
               <span className="flex size-16 items-center justify-center rounded-full bg-surface-tertiary text-muted">
                 <MailX className="size-8" />
               </span>
-              <h4 className="m-0 text-lg font-bold text-foreground">{loading ? "Loading messages…" : "No messages yet"}</h4>
-              <p className="m-0 max-w-md text-sm text-muted">Connect Gmail and sync, or compose a new message to a customer.</p>
+              <h4 className="m-0 text-lg font-bold text-foreground">
+                {loading ? "Loading messages…" : messages.length > 0 ? "No matching messages" : "No messages yet"}
+              </h4>
+              <p className="m-0 max-w-md text-sm text-muted">
+                {messages.length > 0
+                  ? "Try a different search, or turn off the unread filter."
+                  : "Connect Gmail and sync, or compose a new message to a customer."}
+              </p>
             </div>
           ) : (
             <div className="flex flex-col gap-2">
-              {messages.map((m) => (
+              {filteredMessages.map((m) => (
                 <button
                   key={m.id}
                   className={`flex items-start gap-3 rounded-2xl border p-4 text-left transition-colors ${

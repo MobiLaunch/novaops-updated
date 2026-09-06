@@ -23,7 +23,7 @@ import DataTable, { type DataTableColumn } from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
 import type { Customer, PosSale, PreferredContact, Ticket } from "@/types/domain";
 import { sbFetchCustomers, sbFetchPosSales, sbFetchTickets, sbUpsertCustomer } from "@/lib/supabase";
-import { asArray, formatCurrency, initials } from "@/lib/utils";
+import { asArray, formatCurrency, initials, useRefetchOnFocus } from "@/lib/utils";
 
 const emptyForm: Partial<Customer> = {
   name: "",
@@ -85,6 +85,10 @@ export default function Customers() {
   useEffect(() => {
     load();
   }, []);
+
+  // Front desk and bench run this side by side — pick the tab back up and
+  // it refreshes instead of showing whatever was there when you left.
+  useRefetchOnFocus(load);
 
   useEffect(() => {
     const openId = searchParams.get("open");

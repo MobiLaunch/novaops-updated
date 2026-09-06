@@ -51,7 +51,7 @@ import {
 } from "@/lib/supabase";
 import { printBarcodeLabel } from "@/lib/print";
 import { toastWriteFailed } from "@/lib/toast";
-import { asArray, parseDateOnly, startOfToday, ticketBalanceDue, useDebounced } from "@/lib/utils";
+import { asArray, parseDateOnly, startOfToday, ticketBalanceDue, useDebounced, useRefetchOnFocus } from "@/lib/utils";
 
 const STATUSES: TicketStatus[] = ["Open", "In Progress", "Waiting for Parts", "Completed", "Delivered"];
 const STATUS_STYLES: Record<string, string> = {
@@ -197,6 +197,10 @@ export default function Tickets() {
     sbFetchShopSettings().then(({ data }) => data && setShopSettings(data));
     sbFetchTechnicians().then(({ data }) => data && setTechnicians(data));
   }, []);
+
+  // Front desk and bench run this side by side — pick the tab back up and
+  // it refreshes instead of showing whatever was there when you left.
+  useRefetchOnFocus(load);
 
   useEffect(() => {
     const openId = searchParams.get("open");

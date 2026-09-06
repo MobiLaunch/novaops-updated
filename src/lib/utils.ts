@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { Ticket, TicketPayment } from "@/types/domain";
 
@@ -56,6 +56,36 @@ export function useDebounced<T>(value: T, delayMs = 200): T {
   }, [value, delayMs]);
 
   return debounced;
+}
+
+// A shop runs this on two screens at once — front desk and bench — and
+// neither saw the other's changes until someone reloaded. Coming back to a
+// tab now refreshes it. Throttled so alt-tabbing repeatedly doesn't turn
+// into a burst of queries, and skipped entirely while the tab is hidden.
+export function useRefetchOnFocus(refetch: () => void, minIntervalMs = 15000) {
+  const lastRun = useRef(Date.now());
+  const latest = useRef(refetch);
+
+  useEffect(() => {
+    latest.current = refetch;
+  });
+
+  useEffect(() => {
+    const maybeRefetch = () => {
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - lastRun.current < minIntervalMs) return;
+      lastRun.current = Date.now();
+      latest.current();
+    };
+
+    document.addEventListener("visibilitychange", maybeRefetch);
+    window.addEventListener("focus", maybeRefetch);
+
+    return () => {
+      document.removeEventListener("visibilitychange", maybeRefetch);
+      window.removeEventListener("focus", maybeRefetch);
+    };
+  }, [minIntervalMs]);
 }
 
 export function initials(name: string): string {

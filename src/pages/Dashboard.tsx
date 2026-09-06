@@ -27,7 +27,7 @@ import {
   sbFetchMessages,
   sbFetchTickets,
 } from "@/lib/supabase";
-import { formatCurrency, parseDateOnly, startOfToday, timeAgo } from "@/lib/utils";
+import { formatCurrency, parseDateOnly, startOfToday, timeAgo, useRefetchOnFocus } from "@/lib/utils";
 
 const STATUS_STYLES: Record<string, string> = {
   Open: "bg-accent-soft text-accent",
@@ -57,7 +57,7 @@ export default function Dashboard() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [unreadChats, setUnreadChats] = useState(0);
 
-  useEffect(() => {
+  const load = () => {
     sbFetchTickets().then(({ data }) => data && setTickets(data));
     sbFetchCustomers().then(({ data }) => data && setCustomers(data));
     sbFetchInventory().then(({ data }) => {
@@ -70,7 +70,15 @@ export default function Dashboard() {
     sbFetchHouseCalls().then(({ data }) => data && setHouseCalls(data));
     sbFetchMessages().then(({ data }) => data && setMessages(data));
     sbFetchCustomerMessages().then(({ data }) => data && setUnreadChats(data.filter((m) => m.direction === "inbound" && !m.read).length));
+  };
+
+  useEffect(() => {
+    load();
   }, []);
+
+  // Front desk and bench run this side by side — pick the tab back up and
+  // it refreshes instead of showing whatever was there when you left.
+  useRefetchOnFocus(load);
 
   const customerById = useMemo(() => new Map(customers.map((c) => [c.id, c])), [customers]);
   const openTickets = tickets.filter((t) => t.status !== "Completed" && t.status !== "Delivered");

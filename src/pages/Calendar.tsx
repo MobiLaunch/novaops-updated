@@ -23,6 +23,7 @@ import {
   sbUpdateHouseCall,
 } from "@/lib/supabase";
 import { toastWriteFailed } from "@/lib/toast";
+import { useRefetchOnFocus } from "@/lib/utils";
 
 const APPT_STATUSES = ["scheduled", "confirmed", "completed", "cancelled", "no-show"];
 const CALL_STATUSES = ["scheduled", "completed", "cancelled"];
@@ -55,6 +56,10 @@ export default function CalendarPage() {
   useEffect(() => {
     load();
   }, []);
+
+  // Front desk and bench run this side by side — pick the tab back up and
+  // it refreshes instead of showing whatever was there when you left.
+  useRefetchOnFocus(load);
 
   const handleCreateAppt = async () => {
     if (!creatingAppt?.title.trim() || !creatingAppt.date) return;
