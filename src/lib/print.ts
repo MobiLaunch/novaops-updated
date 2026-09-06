@@ -11,6 +11,19 @@ function isWebKitPrintQuirk(): boolean {
   return /Safari/i.test(ua) && !/Chrome|Chromium|CriOS|Edg/i.test(ua);
 }
 
+// Everything interpolated into the receipt and label markup below is
+// user-entered — shop name, customer name, catalogue item names — so it has
+// to be escaped. An item called `Screen <OEM> 6.1"` was otherwise parsed as
+// markup and printed with the `<OEM>` silently missing.
+function esc(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export function printHtmlContent(html: string) {
   const delayMs = isWebKitPrintQuirk() ? 500 : 220;
 
@@ -77,7 +90,7 @@ export function printReceipt(data: ReceiptData) {
       (item) => `
     <tr>
       <td style="padding: 4px 0;">
-        <div style="font-weight: 900;">${item.name}</div>
+        <div style="font-weight: 900;">${esc(item.name)}</div>
         <div style="font-size: 11px; font-weight: 700;">${item.qty} x ${formatMoney(item.price)}</div>
       </td>
       <td style="text-align: right; padding: 4px 0; font-weight: 900;">${formatMoney(item.qty * item.price)}</td>
@@ -111,13 +124,13 @@ export function printReceipt(data: ReceiptData) {
       </style>
     </head>
     <body>
-      <h1>${data.businessName || "Receipt"}</h1>
+      <h1>${esc(data.businessName || "Receipt")}</h1>
       <div class="header-info">
-        ${data.businessAddress ? `<div>${data.businessAddress}</div>` : ""}
-        ${data.businessPhone ? `<div>${data.businessPhone}</div>` : ""}
-        <div style="margin-top: 5px;">${data.date}</div>
-        ${data.ticketRef ? `<div style="margin-top: 5px; font-weight: bold;">Ref: ${data.ticketRef}</div>` : ""}
-        ${data.customerName ? `<div>Customer: ${data.customerName}</div>` : ""}
+        ${data.businessAddress ? `<div>${esc(data.businessAddress)}</div>` : ""}
+        ${data.businessPhone ? `<div>${esc(data.businessPhone)}</div>` : ""}
+        <div style="margin-top: 5px;">${esc(data.date)}</div>
+        ${data.ticketRef ? `<div style="margin-top: 5px; font-weight: bold;">Ref: ${esc(data.ticketRef)}</div>` : ""}
+        ${data.customerName ? `<div>Customer: ${esc(data.customerName)}</div>` : ""}
       </div>
       <div class="divider"></div>
       <table><tbody>${itemsHtml}</tbody></table>
@@ -176,9 +189,9 @@ export async function printBarcodeLabel(data: BarcodeLabelData) {
     </head>
     <body>
       <div class="label">
-        <div class="name">${data.name}</div>
+        <div class="name">${esc(data.name)}</div>
         ${codeMarkup}
-        ${priceStr ? `<div class="price">${priceStr}</div>` : ""}
+        ${priceStr ? `<div class="price">${esc(priceStr)}</div>` : ""}
       </div>
     </body>
     </html>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, Button, InputGroup, Label, Modal, Spinner, Tabs, TextField } from "@heroui/react";
 import { Banknote, CalendarClock, CircleAlert, CircleCheck, CreditCard, Tablet } from "lucide-react";
 
@@ -31,8 +31,25 @@ export default function PaymentModal({ open, title, amount, referenceId, note, o
   const [processing, setProcessing] = useState(false);
   const [terminalStatus, setTerminalStatus] = useState<string | null>(null);
 
+  // A closed modal must not keep polling the terminal: without this the loop
+  // runs to its 2-minute timeout and can record a payment against a checkout
+  // the operator has already walked away from.
+  const cancelled = useRef(false);
+
+  useEffect(() => {
+    cancelled.current = !open;
+    // Reopening starts clean rather than showing the last attempt's error.
+    if (open) {
+      setError(null);
+      setTerminalStatus(null);
+      setCashAmount("");
+      setProcessing(false);
+    }
+  }, [open]);
+
   const finish = async (paidAmount: number, methodLabel: string) => {
     const saved = await onPaid({ amount: paidAmount, method: methodLabel, at: new Date().toISOString() });
+
 
     if (!saved) {
       setError(
@@ -46,14 +63,26 @@ export default function PaymentModal({ open, title, amount, referenceId, note, o
     setTerminalStatus(null);
   };
 
-  const handleCash = () => {
+  // Every path has to mark itself in flight before awaiting: without it a
+  // second click lands while the first write is still going, and the caller
+  // has no idempotency key to fall back on — on the register that meant two
+  // sales rows for one transaction, and on a ticket the second write
+  // overwrote the first payment.
+  const handleCash = async () => {
     const paidAmount = Number(cashAmount) || amount;
 
-    if (paidAmount <= 0) return;
-    void finish(paidAmount, "cash");
+    if (paidAmount <= 0 || processing) return;
+    setProcessing(true);
+    setError(null);
+    try {
+      await finish(paidAmount, "cash");
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const handleCardToken = async (sourceId: string) => {
+    if (processing) return;
     setProcessing(true);
     setError(null);
     try {
@@ -69,6 +98,7 @@ export default function PaymentModal({ open, title, amount, referenceId, note, o
   };
 
   const handleTerminal = async () => {
+    if (processing) return;
     const { deviceId } = getSquareCredentials();
 
     if (!deviceId) {
@@ -85,6 +115,7 @@ export default function PaymentModal({ open, title, amount, referenceId, note, o
       setTerminalStatus("Waiting for customer to tap/insert card…");
       for (let i = 0; i < 40; i++) {
         await new Promise((r) => setTimeout(r, 3000));
+        if (cancelled.current) return;
         const status = await getTerminalCheckoutStatus(checkoutId);
 
         if (status.status === "COMPLETED") {
@@ -110,6 +141,7 @@ export default function PaymentModal({ open, title, amount, referenceId, note, o
   };
 
   const handleAfterpay = async () => {
+    if (processing) return;
     setProcessing(true);
     setError(null);
     try {
@@ -186,9 +218,9 @@ export default function PaymentModal({ open, title, amount, referenceId, note, o
                             <InputGroup.Input placeholder={amount.toFixed(2)} />
                           </InputGroup>
                         </TextField>
-                        <Button variant="primary" onPress={handleCash}>
-                          <CircleCheck className="size-4" />
-                          <span>Mark Paid (Cash)</span>
+                        <Button isDisabled={processing} variant="primary" onPress={handleCash}>
+                          {processing ? <Spinner size="sm" /> : <CircleCheck className="size-4" />}
+                          <span>{processing ? "Saving…" : "Mark Paid (Cash)"}</span>
                         </Button>
                       </div>
                     </Tabs.Panel>

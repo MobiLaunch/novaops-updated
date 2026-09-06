@@ -94,11 +94,15 @@ export default async function handler(req, res) {
     if (!body) return res.status(400).json({ error: "Message can't be empty." });
 
     const since = new Date(Date.now() - RATE_LIMIT_WINDOW_MS).toISOString();
+    // Only the customer's own messages count toward their limit — including
+    // the shop's replies here meant five quick replies from the front desk
+    // locked the customer out of answering.
     const { count } = await admin
       .from("messages")
       .select("id", { count: "exact", head: true })
       .eq("ticket_id", ticket.id)
       .eq("channel", "portal")
+      .eq("direction", "inbound")
       .gte("created_at", since);
 
     if ((count || 0) >= RATE_LIMIT_MAX) {

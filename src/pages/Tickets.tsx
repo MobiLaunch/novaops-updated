@@ -378,8 +378,10 @@ export default function Tickets() {
     const { data } = await sbUpdateTicket(payingTicket.id, { payments });
 
     if (data) {
+      // replaceTicket also refreshes `selected`, keeping the joined customer
+      // name and the signature fetched separately — assigning `data` straight
+      // to it would drop both.
       replaceTicket(data);
-      if (selected?.id === data.id) setSelected(data);
       setPayingTicket(null);
 
       return true;
@@ -404,10 +406,24 @@ export default function Tickets() {
     const qty = Number(partSelection.qty) || 1;
 
     if (!item) return;
+    // Stock is floored at zero when the part is deducted, so fitting more
+    // than you have used to leave the count reading 0 with no sign that the
+    // shelf is actually short.
+    if (qty > item.stock) {
+      const shortfall = qty - item.stock;
+
+      if (
+        !window.confirm(
+          `Only ${item.stock} × ${item.name} in stock, but you're fitting ${qty}.\n\n` +
+            `Continue anyway? Stock will read 0 and you'll be ${shortfall} short.`,
+        )
+      ) {
+        return;
+      }
+    }
     const { data } = await sbAssignPartToTicket(selected, item, qty);
 
     if (data) {
-      setSelected(data);
       replaceTicket(data);
       setInventory((rows) => rows.map((r) => (r.id === item.id ? { ...r, stock: Math.max(r.stock - qty, 0) } : r)));
       setPartSelection({ inventoryId: "", qty: "1" });
@@ -800,7 +816,7 @@ export default function Tickets() {
                       <div className="flex flex-col gap-1.5 sm:col-span-2">
                         <Label>Labels</Label>
                         <div className="flex flex-wrap items-center gap-1.5">
-                          {selected.labels.map((label) => (
+                          {asArray<string>(selected.labels).map((label) => (
                             <span key={label} className="flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-bold text-accent">
                               {label}
                               <button aria-label={`Remove ${label}`} type="button" onClick={() => handleRemoveLabel(selected, label)}>

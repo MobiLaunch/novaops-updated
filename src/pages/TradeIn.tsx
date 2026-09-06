@@ -127,10 +127,17 @@ export default function TradeInPage() {
     if (!mp) return 0;
     let d = 0;
 
+    // Age and battery health are free-text number fields, so they're clamped
+    // to their real ranges here. Unclamped, a negative age or a battery
+    // health above 100 turned into a *negative* deduction and quoted an offer
+    // above the device's own market price.
+    const ageYears = Math.max(form.age_years, 0);
+    const battery = Math.min(Math.max(form.battery_health, 0), 100);
+
     d += mp * (GRADE_DEDUCTIONS[form.condition_grade] || 0);
     d += mp * (SCREEN_DEDUCTIONS[form.screen_condition] || 0);
-    d += mp * Math.min(form.age_years * AGE_DEDUCTION_PER_YR, 0.4);
-    d += ((100 - form.battery_health) / 100) * mp * 0.15;
+    d += mp * Math.min(ageYears * AGE_DEDUCTION_PER_YR, 0.4);
+    d += ((100 - battery) / 100) * mp * 0.15;
     d += form.functional_issues.length * FUNCTIONAL_ISSUE_COST;
     d += form.cosmetic_issues.length * COSMETIC_ISSUE_COST;
     if (form.icloud_locked || form.frp_locked) d += mp * LOCK_PENALTY;
@@ -400,13 +407,13 @@ export default function TradeInPage() {
                       </ListBox>
                     </Select.Popover>
                   </Select>
-                  <TextField className="flex flex-col gap-1.5" type="number" value={String(form.age_years)} onChange={(v) => setForm((f) => ({ ...f, age_years: Number(v) || 0 }))}>
+                  <TextField className="flex flex-col gap-1.5" type="number" value={String(form.age_years)} onChange={(v) => setForm((f) => ({ ...f, age_years: Math.max(Number(v) || 0, 0) }))}>
                     <Label>Age (years)</Label>
                     <InputGroup>
                       <InputGroup.Input />
                     </InputGroup>
                   </TextField>
-                  <TextField className="flex flex-col gap-1.5" type="number" value={String(form.battery_health)} onChange={(v) => setForm((f) => ({ ...f, battery_health: Number(v) || 0 }))}>
+                  <TextField className="flex flex-col gap-1.5" type="number" value={String(form.battery_health)} onChange={(v) => setForm((f) => ({ ...f, battery_health: Math.min(Math.max(Number(v) || 0, 0), 100) }))}>
                     <Label>Battery Health (%)</Label>
                     <InputGroup>
                       <InputGroup.Input />

@@ -20,7 +20,17 @@ export function formatCurrency(amount: number | string | null | undefined): stri
 // Tickets, PaymentModal, and the POS register (which can add a ticket's
 // balance to a cart alongside retail items).
 export function ticketBalanceDue(t: Ticket): number {
-  return Number(t.price) - asArray<TicketPayment>(t.payments).reduce((sum, p) => sum + Number(p.amount), 0);
+  // Mirrors ticket_paid_total() in the database: a payment whose amount isn't
+  // a number contributes zero rather than turning the whole balance into NaN
+  // and taking every figure derived from it with it.
+  const paid = asArray<TicketPayment>(t.payments).reduce((sum, p) => {
+    const amount = Number(p?.amount);
+
+    return sum + (Number.isFinite(amount) ? amount : 0);
+  }, 0);
+  const price = Number(t.price);
+
+  return (Number.isFinite(price) ? price : 0) - paid;
 }
 
 // Date-only columns (`tickets.due_date`, `appointments.date`, birthdays…)

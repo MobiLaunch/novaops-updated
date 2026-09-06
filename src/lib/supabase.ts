@@ -1250,7 +1250,7 @@ export async function sbUpdateBooking(
 // link shows up on both sides and the booking doesn't get converted twice.
 export async function sbConvertBookingToTicket(
   booking: BookingRecord,
-): Promise<{ ticket: Ticket | null; error: string | null }> {
+): Promise<{ ticket: Ticket | null; status?: string; error: string | null }> {
   const client = getClient();
 
   if (!client) return { ticket: null, error: "Supabase not configured" };
@@ -1280,12 +1280,21 @@ export async function sbConvertBookingToTicket(
 
   if (error || !ticket) return { ticket: null, error: error || "Failed to create ticket" };
 
-  await sbUpdateBooking(booking.id, {
-    novaops_ticket_id: ticket.id,
-    status: booking.status === "pending" ? "confirmed" : booking.status,
-  });
+  const status = booking.status === "pending" ? "confirmed" : booking.status;
+  const linked = await sbUpdateBooking(booking.id, { novaops_ticket_id: ticket.id, status });
 
-  return { ticket, error: null };
+  // The bookings table belongs to the storefront and its RLS can reject this
+  // write even though the ticket was created. Saying so beats showing the
+  // booking as linked when the link never landed.
+  if (!linked) {
+    return {
+      ticket,
+      status,
+      error: `Ticket #${ticket.id} was created, but the booking couldn't be updated to point at it. Link it manually.`,
+    };
+  }
+
+  return { ticket, status, error: null };
 }
 
 // ─── Technicians (ticket assignment) ────────────────────────────────────────

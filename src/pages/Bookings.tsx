@@ -75,17 +75,21 @@ export default function Bookings() {
   const handleConvert = async () => {
     if (!selected) return;
     setConverting(true);
-    const { ticket, error } = await sbConvertBookingToTicket(selected);
+    const { ticket, status, error } = await sbConvertBookingToTicket(selected);
 
     setConverting(false);
     if (ticket) {
-      setBookings((bs) =>
-        bs.map((b) => (b.id === selected.id ? { ...b, novaops_ticket_id: ticket.id, status: "confirmed" } : b)),
-      );
-      setSelected((s) => s && { ...s, novaops_ticket_id: ticket.id, status: "confirmed" });
-    } else if (error) {
-      setLoadError(error);
+      // Reflect the status the conversion actually applied — a booking that
+      // wasn't pending keeps its own, so a completed one no longer flips back
+      // to "confirmed" on screen.
+      const next = status ?? selected.status;
+
+      setBookings((bs) => bs.map((b) => (b.id === selected.id ? { ...b, novaops_ticket_id: ticket.id, status: next } : b)));
+      setSelected((s) => s && { ...s, novaops_ticket_id: ticket.id, status: next });
     }
+    // A ticket can be created even when linking the booking back to it fails,
+    // so the warning is shown either way.
+    if (error) setLoadError(error);
   };
 
   const filtered = useMemo(() => {
