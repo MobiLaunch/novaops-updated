@@ -1,10 +1,13 @@
 import type {
   Appointment,
   BookingRecord,
+  ChatThread,
   Customer,
+  CustomerWithStats,
   CustomerMessage,
   HouseCall,
   InventoryItem,
+  InventorySummary,
   Message,
   PosSale,
   Shipment,
@@ -140,6 +143,244 @@ export async function sbFindOrCreateCustomer(
   }
 
   return sbUpsertCustomer({ name: info.name, phone, email, address: info.address || "" });
+}
+
+// ─── Paged list queries ─────────────────────────────────────────────────────
+// Customers, Inventory, and Messages used to download their whole table and
+// search, count, and total it in the browser. Each now asks for one page at a
+// time, with the search pushed into Postgres. See migration
+// 20260906_list_views.sql for the views and trigram indexes behind these.
+
+export const LIST_PAGE_SIZE = 50;
+
+export interface Page<T> {
+  rows: T[];
+  total: number;
+  error: string | null;
+}
+
+function emptyPage<T>(error: string | null): Page<T> {
+  return { rows: [], total: 0, error };
+}
+
+// PostgREST's or() takes a comma-separated list of filters, so a term
+// containing a comma, parenthesis, double quote, or backslash would be read
+// as filter syntax rather than as text; % and _ would become LIKE wildcards
+// the user didn't type. All of those are replaced with spaces. Apostrophes
+// are left alone — values reach Postgres as parameters, not as SQL text, so
+// they're only a problem for names like O'Brien if we strip them.
+function sanitiseSearch(term: string): string {
+  return term
+    .trim()
+    .replace(/[,()"%\\_]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function rangeFor(page: number, pageSize: number): [number, number] {
+  const from = page * pageSize;
+
+  return [from, from + pageSize - 1];
+}
+
+export async function sbFetchCustomersPage(opts: {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<Page<CustomerWithStats>> {
+  const client = getClient();
+
+  if (!client) return emptyPage("Supabase not configured");
+  const pageSize = opts.pageSize ?? LIST_PAGE_SIZE;
+  const [from, to] = rangeFor(opts.page ?? 0, pageSize);
+  const term = sanitiseSearch(opts.search || "");
+  const match = term ? `name.ilike.%${term}%,phone.ilike.%${term}%,email.ilike.%${term}%` : null;
+
+  // The count runs against the base table: counting through the view would
+  // make Postgres evaluate the per-customer aggregates for every row just to
+  // find out how many there are.
+  const rowsQuery = client.from("customers_with_stats").select("*").order("created_at", { ascending: false }).range(from, to);
+  const countQuery = client.from("customers").select("id", { count: "exact", head: true });
+
+  const [rows, count] = await Promise.all([
+    match ? rowsQuery.or(match) : rowsQuery,
+    match ? countQuery.or(match) : countQuery,
+  ]);
+
+  if (rows.error) return emptyPage(errMessage(rows.error));
+
+  return { rows: (rows.data as unknown as CustomerWithStats[]) || [], total: count.count || 0, error: null };
+}
+
+// The tickets shown on one customer's record, fetched when that record is
+// opened rather than by pulling every ticket in the shop up front.
+export async function sbFetchCustomerTickets(customerId: number): Promise<Ticket[]> {
+  const client = getClient();
+
+  if (!client) return [];
+  const { data } = await client
+    .from("tickets")
+    .select(TICKET_LIST_COLUMNS)
+    .eq("customer_id", customerId)
+    .order("updated_at", { ascending: false })
+    .limit(50);
+
+  return (data as unknown as Ticket[]) || [];
+}
+
+export async function sbFetchInventoryPage(opts: {
+  search?: string;
+  lowOnly?: boolean;
+  page?: number;
+  pageSize?: number;
+}): Promise<Page<InventoryItem>> {
+  const client = getClient();
+
+  if (!client) return emptyPage("Supabase not configured");
+  const pageSize = opts.pageSize ?? LIST_PAGE_SIZE;
+  const [from, to] = rangeFor(opts.page ?? 0, pageSize);
+  const term = sanitiseSearch(opts.search || "");
+
+  let query = client.from("inventory").select("*", { count: "exact" }).order("name", { ascending: true }).range(from, to);
+
+  if (opts.lowOnly) query = query.eq("is_low", true);
+  if (term) query = query.or(`name.ilike.%${term}%,sku.ilike.%${term}%,category.ilike.%${term}%`);
+
+  const { data, count, error } = await query;
+
+  if (error) return emptyPage(errMessage(error));
+
+  return { rows: (data as InventoryItem[]) || [], total: count || 0, error: null };
+}
+
+// The header figures, totalled in Postgres. inventory_summary has one row per
+// shop, and none at all when the catalogue is empty.
+export async function sbFetchInventorySummary(): Promise<{ summary: InventorySummary; categories: string[] }> {
+  const client = getClient();
+  const zero: InventorySummary = { item_count: 0, stock_value: 0, low_count: 0, cost_value: 0 };
+
+  if (!client) return { summary: zero, categories: [] };
+
+  const [summary, categories] = await Promise.all([
+    client.from("inventory_summary").select("*").maybeSingle(),
+    client.from("inventory_categories").select("category").order("category"),
+  ]);
+
+  const row = summary.data as InventorySummary | null;
+
+  return {
+    summary: row
+      ? {
+          item_count: Number(row.item_count),
+          stock_value: Number(row.stock_value),
+          low_count: Number(row.low_count),
+          cost_value: Number(row.cost_value),
+        }
+      : zero,
+    categories: ((categories.data as { category: string }[] | null) || []).map((c) => c.category),
+  };
+}
+
+export async function sbFetchMessagesPage(opts: {
+  search?: string;
+  unreadOnly?: boolean;
+  page?: number;
+  pageSize?: number;
+}): Promise<Page<Message>> {
+  const client = getClient();
+
+  if (!client) return emptyPage("Supabase not configured");
+  const pageSize = opts.pageSize ?? LIST_PAGE_SIZE;
+  const [from, to] = rangeFor(opts.page ?? 0, pageSize);
+  const term = sanitiseSearch(opts.search || "");
+
+  let query = client.from("messages").select("*", { count: "exact" }).order("created_at", { ascending: false }).range(from, to);
+
+  if (opts.unreadOnly) query = query.eq("direction", "inbound").eq("read", false);
+  if (term) query = query.or(`subject.ilike.%${term}%,customer_name.ilike.%${term}%,customer_email.ilike.%${term}%,body.ilike.%${term}%`);
+
+  const { data, count, error } = await query;
+
+  if (error) return emptyPage(errMessage(error));
+
+  return { rows: (data as Message[]) || [], total: count || 0, error: null };
+}
+
+// Tickets a parts shipment can be assigned to: the open ones, plus any
+// ticket a shipment already points at so an existing assignment still shows
+// its label after that repair is finished. The picker used to be fed every
+// ticket the shop had ever written.
+export async function sbFetchAssignableTickets(includeIds: number[] = []): Promise<Ticket[]> {
+  const client = getClient();
+
+  if (!client) return [];
+  const columns = "id, device, device_model, status";
+
+  const [open, referenced] = await Promise.all([
+    client
+      .from("tickets")
+      .select(columns)
+      .not("status", "in", "(Completed,Delivered)")
+      .order("updated_at", { ascending: false })
+      .limit(200),
+    includeIds.length ? client.from("tickets").select(columns).in("id", includeIds) : Promise.resolve({ data: [] }),
+  ]);
+
+  const rows = (open.data as unknown as Ticket[]) || [];
+  const seen = new Set(rows.map((t) => t.id));
+
+  for (const t of ((referenced.data as unknown as Ticket[]) || [])) {
+    if (!seen.has(t.id)) rows.push(t);
+  }
+
+  return rows;
+}
+
+// The inbox's unread badge, as a count query rather than a scan of every
+// message the browser happens to have downloaded.
+export async function sbFetchUnreadMailCount(): Promise<number> {
+  const client = getClient();
+
+  if (!client) return 0;
+  const { count } = await client
+    .from("messages")
+    .select("id", { count: "exact", head: true })
+    .eq("direction", "inbound")
+    .eq("read", false);
+
+  return count || 0;
+}
+
+// Conversation list for the chat tab: one row per customer, newest first.
+export async function sbFetchChatThreads(limit = 100): Promise<ChatThread[]> {
+  const client = getClient();
+
+  if (!client) return [];
+  const { data } = await client
+    .from("customer_chat_threads")
+    .select("*")
+    .order("last_message_at", { ascending: false })
+    .limit(limit);
+
+  return ((data as ChatThread[] | null) || []).map((t) => ({
+    ...t,
+    message_count: Number(t.message_count),
+    unread_count: Number(t.unread_count),
+  }));
+}
+
+// The messages of one conversation, oldest first, fetched when it's opened.
+export async function sbFetchChatMessages(customerEmail: string): Promise<CustomerMessage[]> {
+  const client = getClient();
+
+  if (!client) return [];
+  const { data } = await client
+    .from("customer_messages")
+    .select("*")
+    .eq("customer_email", customerEmail)
+    .order("created_at", { ascending: true });
+
+  return (data as CustomerMessage[] | null) || [];
 }
 
 // ─── Bulk import ────────────────────────────────────────────────────────────
@@ -940,8 +1181,8 @@ export async function sbFetchWebsiteOrders(): Promise<{ data: WebsiteOrder[] | n
 // is now asked for directly: counts come back as head requests with no rows
 // at all, and the two lists are date-filtered and limited server-side.
 //
-// Inventory is the one exception — PostgREST can't compare two columns in a
-// filter (stock <= low), so the two numbers still come back per row.
+// Inventory's low-stock figure reads the is_low column generated in Postgres
+// (see 20260906_list_views.sql) — PostgREST can't compare stock <= low itself.
 
 export interface DashboardTicket {
   id: number;
@@ -998,7 +1239,7 @@ export async function sbFetchDashboard(): Promise<DashboardSummary> {
 
   const today = toDateKey(new Date());
 
-  const [open, recent, customers, inventory, pending, mail, chats, appts, calls, upcomingBookings] = await Promise.all([
+  const [open, recent, customers, inventoryCount, lowStock, pending, mail, chats, appts, calls, upcomingBookings] = await Promise.all([
     // Only the price column: enough for both the open count and their value.
     client.from("tickets").select("price").not("status", "in", "(Completed,Delivered)"),
     client
@@ -1007,7 +1248,8 @@ export async function sbFetchDashboard(): Promise<DashboardSummary> {
       .order("updated_at", { ascending: false })
       .limit(6),
     client.from("customers").select("id", { count: "exact", head: true }),
-    client.from("inventory").select("stock, low"),
+    client.from("inventory").select("id", { count: "exact", head: true }),
+    client.from("inventory").select("id", { count: "exact", head: true }).eq("is_low", true),
     client.from("bookings").select("id", { count: "exact", head: true }).eq("status", "pending"),
     client.from("messages").select("id", { count: "exact", head: true }).eq("direction", "inbound").eq("read", false),
     client.from("customer_messages").select("id", { count: "exact", head: true }).eq("direction", "inbound").eq("read", false),
@@ -1023,7 +1265,6 @@ export async function sbFetchDashboard(): Promise<DashboardSummary> {
   ]);
 
   const openRows = (open.data as { price: number | string }[] | null) || [];
-  const inventoryRows = (inventory.data as { stock: number; low: number }[] | null) || [];
 
   // The embedded customer arrives as an object, or as a one-element array on
   // older PostgREST versions; either way there is at most one.
@@ -1079,8 +1320,8 @@ export async function sbFetchDashboard(): Promise<DashboardSummary> {
     openTickets: openRows.length,
     activeValue: openRows.reduce((sum, t) => sum + Number(t.price || 0), 0),
     customers: customers.count || 0,
-    inventoryCount: inventoryRows.length,
-    lowStock: inventoryRows.filter((i) => Number(i.stock) <= Number(i.low)).length,
+    inventoryCount: inventoryCount.count || 0,
+    lowStock: lowStock.count || 0,
     pendingBookings: pending.count || 0,
     unreadMail: mail.count || 0,
     unreadChats: chats.count || 0,
@@ -1102,18 +1343,17 @@ export async function sbFetchNotificationCounts(): Promise<NotificationCounts> {
 
   if (!client) return empty;
 
-  const [bookings, inventory, mail, chats] = await Promise.all([
+  const [bookings, lowStock, mail, chats] = await Promise.all([
     client.from("bookings").select("id", { count: "exact", head: true }).eq("status", "pending"),
-    client.from("inventory").select("stock, low"),
+    // is_low is generated in Postgres, so this counts without returning rows.
+    client.from("inventory").select("id", { count: "exact", head: true }).eq("is_low", true),
     client.from("messages").select("id", { count: "exact", head: true }).eq("direction", "inbound").eq("read", false),
     client.from("customer_messages").select("id", { count: "exact", head: true }).eq("direction", "inbound").eq("read", false),
   ]);
 
-  const lowStockRows = (inventory.data as { stock: number; low: number }[] | null) || [];
-
   return {
     pendingBookings: bookings.count || 0,
-    lowStock: lowStockRows.filter((i) => Number(i.stock) <= Number(i.low)).length,
+    lowStock: lowStock.count || 0,
     unreadMail: mail.count || 0,
     unreadChats: chats.count || 0,
   };

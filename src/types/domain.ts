@@ -23,6 +23,31 @@ export interface Customer {
   updated_at: string;
 }
 
+// A customer row from the customers_with_stats view — the customer's own
+// columns plus the two figures the directory shows, aggregated in Postgres
+// rather than by joining every ticket and sale in the browser.
+export interface CustomerWithStats extends Customer {
+  ticket_count: number;
+  lifetime_value: number;
+}
+
+export interface InventorySummary {
+  item_count: number;
+  stock_value: number;
+  low_count: number;
+  cost_value: number;
+}
+
+// One customer chat conversation, from the customer_chat_threads view.
+export interface ChatThread {
+  customer_email: string;
+  customer_name: string;
+  message_count: number;
+  unread_count: number;
+  last_message_at: string;
+  last_body: string;
+}
+
 export type TicketStatus =
   | "Open"
   | "In Progress"
@@ -150,6 +175,9 @@ export interface InventoryItem {
   model: string;
   stock: number;
   low: number;
+  // Generated in Postgres as (stock <= low) so the list can filter on it —
+  // PostgREST can't compare two columns itself. Never written by the app.
+  is_low?: boolean;
   cost: number;
   price: number;
   created_at: string;

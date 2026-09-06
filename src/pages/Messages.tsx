@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Button,
   Chip,
@@ -15,23 +15,28 @@ import {
 import { CalendarDays, MessageCircle, MessageSquareText, Mail, MailX, Package, PackageX, Reply, RefreshCw, Search, Send, Truck } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
-import type { CannedResponse, CustomerMessage, Message, Shipment, Ticket } from "@/types/domain";
+import type { CannedResponse, ChatThread, CustomerMessage, Message, Shipment, Ticket } from "@/types/domain";
 import {
   getCurrentProfileId,
+  LIST_PAGE_SIZE,
   sbAssignShipmentToTicket,
   sbCreateMessage,
-  sbFetchCustomerMessages,
-  sbFetchMessages,
+  sbFetchChatMessages,
+  sbFetchAssignableTickets,
+  sbFetchChatThreads,
+  sbFetchMessagesPage,
   sbFetchShipments,
   sbFetchShopSettings,
-  sbFetchTickets,
+  sbFetchUnreadMailCount,
   sbMarkCustomerMessageRead,
   sbMarkMessageRead,
   sbReplyToCustomerThread,
   sbUpdateShipmentStatus,
 } from "@/lib/supabase";
+import { useServerList } from "@/lib/useServerList";
+import Pager from "@/components/Pager";
 import { toastWriteFailed } from "@/lib/toast";
-import { useDebounced, useRefetchOnFocus } from "@/lib/utils";
+import { useRefetchOnFocus } from "@/lib/utils";
 
 const emptyCompose = { to: "", subject: "", body: "" };
 const SHIPMENT_STATUSES = ["in_transit", "delivered", "assigned", "archived"];
@@ -45,11 +50,13 @@ function statusLabel(s: string) {
 
 export default function Messages() {
   const [tab, setTab] = useState<"inbox" | "parts" | "chat">("inbox");
-  const [messages, setMessages] = useState<Message[]>([]);
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [customerMessages, setCustomerMessages] = useState<CustomerMessage[]>([]);
+  const [threads, setThreads] = useState<ChatThread[]>([]);
+  const [threadMessages, setThreadMessages] = useState<CustomerMessage[]>([]);
+  const [threadLoading, setThreadLoading] = useState(false);
   const [activeThread, setActiveThread] = useState<string | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [chatDraft, setChatDraft] = useState("");
   const [sendingChat, setSendingChat] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -60,24 +67,36 @@ export default function Messages() {
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [cannedResponses, setCannedResponses] = useState<CannedResponse[]>([]);
-  const [inboxQuery, setInboxQuery] = useState("");
   const [unreadOnly, setUnreadOnly] = useState(false);
-  const debouncedInboxQuery = useDebounced(inboxQuery);
 
+  // The inbox is served a page at a time, searched in Postgres. It used to
+  // download every message — bodies included — and filter them in the browser.
+  const fetchInbox = useCallback(
+    (page: number, search: string) => sbFetchMessagesPage({ page, search, unreadOnly }),
+    [unreadOnly],
+  );
+  const inbox = useServerList<Message>(fetchInbox, [unreadOnly]);
+  const messages = inbox.rows;
+
+  // Everything the inbox list itself doesn't cover: parts shipments, the
+  // tickets they can be assigned to, the conversation list, and the unread
+  // badge (a count query, not a scan of downloaded rows).
   const load = async () => {
     setLoading(true);
-    const [{ data: msgs }, { data: ships }, { data: tix }, { data: chats }] = await Promise.all([
-      sbFetchMessages(),
+    const [{ data: ships }, chatThreads, unread] = await Promise.all([
       sbFetchShipments(),
-      sbFetchTickets(),
-      sbFetchCustomerMessages(),
+      sbFetchChatThreads(),
+      sbFetchUnreadMailCount(),
     ]);
 
     setLoading(false);
-    if (msgs) setMessages(msgs);
     if (ships) setShipments(ships);
-    if (tix) setTickets(tix);
-    if (chats) setCustomerMessages(chats);
+    setThreads(chatThreads);
+    setUnreadCount(unread);
+
+    const assigned = (ships || []).map((s) => s.ticket_id).filter((id): id is number => id != null);
+
+    setTickets(await sbFetchAssignableTickets(assigned));
   };
 
   useEffect(() => {
@@ -106,6 +125,7 @@ export default function Messages() {
       if (data.ok) {
         setSyncResult(`Synced ${data.synced} message${data.synced !== 1 ? "s" : ""}.`);
         await load();
+        inbox.reload();
       } else {
         setSyncResult(data.error || "Sync failed.");
       }
@@ -146,7 +166,7 @@ export default function Messages() {
         delivered: !!data.delivered,
       });
 
-      if (saved) setMessages((ms) => [saved, ...ms]);
+      if (saved) inbox.reload();
       setComposing(null);
     } catch (e) {
       setSendError(e instanceof Error ? e.message : "Send failed.");
@@ -158,7 +178,8 @@ export default function Messages() {
   const handleOpen = async (m: Message) => {
     setViewing(m);
     if (!m.read) {
-      setMessages((ms) => ms.map((x) => (x.id === m.id ? { ...x, read: true } : x)));
+      inbox.setRows((ms) => ms.map((x) => (x.id === m.id ? { ...x, read: true } : x)));
+      setUnreadCount((n) => Math.max(0, n - 1));
       await sbMarkMessageRead(m.id);
     }
   };
@@ -194,63 +215,43 @@ export default function Messages() {
     setShipments((ss) => ss.map((s) => (s.id === id ? { ...s, ticket_id, status: ticket_id ? "assigned" : "in_transit" } : s)));
   };
 
-  const unreadCount = messages.filter((m) => m.direction === "inbound" && !m.read).length;
-
-  const filteredMessages = useMemo(() => {
-    const q = debouncedInboxQuery.trim().toLowerCase();
-
-    return messages.filter((m) => {
-      if (unreadOnly && (m.read || m.direction !== "inbound")) return false;
-      if (!q) return true;
-
-      return `${m.customer_name} ${m.customer_email} ${m.subject} ${m.body}`.toLowerCase().includes(q);
-    });
-  }, [messages, unreadOnly, debouncedInboxQuery]);
-
-  // Regrouping every chat message ran on each keystroke of the reply box
-  // before this was memoized.
-  const chatThreads = useMemo(() => Object.values(
-    customerMessages.reduce<Record<string, { email: string; name: string; messages: CustomerMessage[] }>>((acc, m) => {
-      const key = m.customer_email || `unknown-${m.id}`;
-
-      acc[key] = acc[key] || { email: m.customer_email, name: m.customer_name, messages: [] };
-      acc[key].messages.push(m);
-
-      return acc;
-    }, {}),
-  ).sort((a, b) => {
-    const aLast = a.messages[a.messages.length - 1]?.created_at || "";
-    const bLast = b.messages[b.messages.length - 1]?.created_at || "";
-
-    return bLast.localeCompare(aLast);
-  }), [customerMessages]);
-
+  // A conversation's messages are fetched when it's opened, rather than
+  // grouping every chat message in the shop up front.
   const openThread = async (email: string) => {
     setActiveThread(email);
-    const thread = chatThreads.find((t) => t.email === email);
-    const unread = thread?.messages.filter((m) => m.direction === "inbound" && !m.read) || [];
+    setThreadLoading(true);
+    const loaded = await sbFetchChatMessages(email);
+
+    setThreadLoading(false);
+    setThreadMessages(loaded);
+
+    const unread = loaded.filter((m) => m.direction === "inbound" && !m.read);
 
     if (unread.length) {
-      setCustomerMessages((ms) => ms.map((m) => (unread.some((u) => u.id === m.id) ? { ...m, read: true } : m)));
+      setThreadMessages(loaded.map((m) => (unread.some((u) => u.id === m.id) ? { ...m, read: true } : m)));
+      setThreads((ts) => ts.map((t) => (t.customer_email === email ? { ...t, unread_count: 0 } : t)));
       await Promise.all(unread.map((m) => sbMarkCustomerMessageRead(m.id)));
     }
   };
 
   const handleSendChat = async () => {
     if (!activeThread || !chatDraft.trim()) return;
-    const thread = chatThreads.find((t) => t.email === activeThread);
+    const thread = threads.find((t) => t.customer_email === activeThread);
 
     if (!thread) return;
     setSendingChat(true);
     const { data } = await sbReplyToCustomerThread({
-      customer_email: thread.email,
-      customer_name: thread.name,
+      customer_email: thread.customer_email,
+      customer_name: thread.customer_name,
       body: chatDraft.trim(),
     });
 
     setSendingChat(false);
     if (data) {
-      setCustomerMessages((ms) => [...ms, data]);
+      setThreadMessages((ms) => [...ms, data]);
+      setThreads((ts) =>
+        ts.map((t) => (t.customer_email === activeThread ? { ...t, message_count: t.message_count + 1, last_message_at: data.created_at } : t)),
+      );
       setChatDraft("");
     }
   };
@@ -299,15 +300,15 @@ export default function Messages() {
         </Tabs.ListContainer>
 
         <Tabs.Panel className="pt-4" id="inbox">
-          {messages.length > 0 && (
+          {(inbox.total > 0 || inbox.query || unreadOnly) && (
             <div className="mb-3 flex flex-wrap items-center gap-3">
               <div className="relative max-w-sm flex-1">
                 <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
                 <input
                   className="w-full rounded-full border border-border bg-surface py-2.5 pl-10 pr-4 text-sm outline-none focus:border-accent"
                   placeholder="Search sender, subject, or body…"
-                  value={inboxQuery}
-                  onChange={(e) => setInboxQuery(e.target.value)}
+                  value={inbox.query}
+                  onChange={(e) => inbox.setQuery(e.target.value)}
                 />
               </div>
               <button
@@ -322,23 +323,23 @@ export default function Messages() {
             </div>
           )}
 
-          {filteredMessages.length === 0 ? (
+          {messages.length === 0 ? (
             <div className="flex flex-col items-center gap-3 rounded-[28px] border border-border bg-surface-secondary p-14 text-center">
               <span className="flex size-16 items-center justify-center rounded-full bg-surface-tertiary text-muted">
                 <MailX className="size-8" />
               </span>
               <h4 className="m-0 text-lg font-bold text-foreground">
-                {loading ? "Loading messages…" : messages.length > 0 ? "No matching messages" : "No messages yet"}
+                {inbox.loading ? "Loading messages…" : inbox.query || unreadOnly ? "No matching messages" : "No messages yet"}
               </h4>
               <p className="m-0 max-w-md text-sm text-muted">
-                {messages.length > 0
+                {inbox.query || unreadOnly
                   ? "Try a different search, or turn off the unread filter."
                   : "Connect Gmail and sync, or compose a new message to a customer."}
               </p>
             </div>
           ) : (
             <div className="flex flex-col gap-2">
-              {filteredMessages.map((m) => (
+              {messages.map((m) => (
                 <button
                   key={m.id}
                   className={`flex items-start gap-3 rounded-2xl border p-4 text-left transition-colors ${
@@ -367,6 +368,17 @@ export default function Messages() {
               ))}
             </div>
           )}
+
+          <div className="mt-3">
+            <Pager
+              label="messages"
+              page={inbox.page}
+              pageSize={LIST_PAGE_SIZE}
+              rowsOnPage={messages.length}
+              total={inbox.total}
+              onPageChange={inbox.setPage}
+            />
+          </div>
         </Tabs.Panel>
 
         <Tabs.Panel className="pt-4" id="parts">
@@ -448,7 +460,7 @@ export default function Messages() {
         </Tabs.Panel>
 
         <Tabs.Panel className="pt-4" id="chat">
-          {chatThreads.length === 0 ? (
+          {threads.length === 0 ? (
             <div className="flex flex-col items-center gap-3 rounded-[28px] border border-border bg-surface-secondary p-14 text-center">
               <span className="flex size-16 items-center justify-center rounded-full bg-surface-tertiary text-muted">
                 <MessageCircle className="size-8" />
@@ -461,31 +473,28 @@ export default function Messages() {
             </div>
           ) : (
             <div className="flex flex-col gap-2">
-              {chatThreads.map((t) => {
-                const last = t.messages[t.messages.length - 1];
-                const unread = t.messages.filter((m) => m.direction === "inbound" && !m.read).length;
-
-                return (
-                  <button
-                    key={t.email}
-                    className={`flex items-start gap-3 rounded-2xl border p-4 text-left transition-colors ${
-                      unread > 0 ? "border-accent/40 bg-accent-soft" : "border-border bg-surface"
-                    }`}
-                    type="button"
-                    onClick={() => openThread(t.email)}
-                  >
-                    <MessageCircle className="mt-0.5 size-4 shrink-0 text-accent" />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <strong className="truncate text-sm text-foreground">{t.name || t.email}</strong>
-                        {last && <span className="shrink-0 text-xs text-muted">{new Date(last.created_at).toLocaleString()}</span>}
-                      </div>
-                      <p className="m-0 truncate text-sm text-muted">{last?.body}</p>
+              {threads.map((t) => (
+                <button
+                  key={t.customer_email}
+                  className={`flex items-start gap-3 rounded-2xl border p-4 text-left transition-colors ${
+                    t.unread_count > 0 ? "border-accent/40 bg-accent-soft" : "border-border bg-surface"
+                  }`}
+                  type="button"
+                  onClick={() => openThread(t.customer_email)}
+                >
+                  <MessageCircle className="mt-0.5 size-4 shrink-0 text-accent" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <strong className="truncate text-sm text-foreground">{t.customer_name || t.customer_email}</strong>
+                      <span className="shrink-0 text-xs text-muted">{new Date(t.last_message_at).toLocaleString()}</span>
                     </div>
-                    {unread > 0 && <span className="shrink-0 rounded-full bg-accent px-2 py-0.5 text-xs font-bold text-accent-foreground">{unread}</span>}
-                  </button>
-                );
-              })}
+                    <p className="m-0 truncate text-sm text-muted">{t.last_body}</p>
+                  </div>
+                  {t.unread_count > 0 && (
+                    <span className="shrink-0 rounded-full bg-accent px-2 py-0.5 text-xs font-bold text-accent-foreground">{t.unread_count}</span>
+                  )}
+                </button>
+              ))}
             </div>
           )}
         </Tabs.Panel>
@@ -529,16 +538,17 @@ export default function Messages() {
             <Modal.Dialog>
               {activeThread &&
                 (() => {
-                  const thread = chatThreads.find((t) => t.email === activeThread);
+                  const thread = threads.find((t) => t.customer_email === activeThread);
 
                   return (
                     <>
                       <Modal.Header>
-                        <Modal.Heading>{thread?.name || activeThread}</Modal.Heading>
+                        <Modal.Heading>{thread?.customer_name || activeThread}</Modal.Heading>
                         <Modal.CloseTrigger />
                       </Modal.Header>
                       <Modal.Body className="flex flex-col gap-3">
-                        {thread?.messages.map((m) => (
+                        {threadLoading && <p className="m-0 text-center text-sm text-muted">Loading conversation…</p>}
+                        {threadMessages.map((m) => (
                           <div
                             key={m.id}
                             className={`max-w-[80%] rounded-2xl p-3 text-sm ${

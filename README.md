@@ -340,13 +340,34 @@ npm run dev
 editor — it's the complete, idempotent setup for every table the current
 React app needs (`customers`, `tickets`, `inventory`, `house_calls`,
 `appointments`, `messages`, `trade_ins`, `shipments`, `customer_messages`,
-`social_connections`, `technicians`, `shop_settings`, `pos_sales`), plus
+`social_connections`, `technicians`, `shop_settings`, `pos_sales`), the
+views and indexes the list pages read through (see below), plus
 the two columns it needs added to tables the
 **mobicare-business website already owns** (`profiles.supplier_emails`,
 `bookings.novaops_ticket_id` — both plain `ALTER TABLE ADD COLUMN IF NOT
 EXISTS`, never a `CREATE TABLE`, since `profiles` and `bookings` are real
 tables in the same shared project with existing rows). Safe to re-run any
 time.
+
+### Re-run it after pulling this change
+
+Customers, Inventory, and Messages serve one page of rows at a time instead
+of downloading their whole table, and they read through database objects
+that `MASTER_SETUP.sql` creates in section 16:
+
+| Object | Used for |
+| --- | --- |
+| `inventory.is_low` | Generated column (`stock <= low`). The low-stock filter and every low-stock count — PostgREST can't compare two columns itself. |
+| `customers_with_stats` | Customer rows with their ticket count and lifetime value, aggregated in Postgres rather than by joining every ticket and sale in the browser. |
+| `inventory_summary`, `inventory_categories` | The Inventory header totals and the category suggestions. |
+| `customer_chat_threads` | One row per customer conversation for the Messages chat tab. |
+| `pg_trgm` GIN indexes | Make the `ILIKE '%term%'` searches on those pages usable. |
+
+Every view is `security_invoker`, so row-level security applies as the
+signed-in user exactly as it does on the underlying tables.
+
+**These pages will not load until the file has been re-run**, since the
+views won't exist yet. Re-running is safe and idempotent.
 
 You do **not** need to run any other file in `supabase/migrations/` after
 it — the handful of dated files after `MASTER_SETUP.sql` document the same

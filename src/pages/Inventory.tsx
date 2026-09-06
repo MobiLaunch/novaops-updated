@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button, FieldError, InputGroup, Label, Modal, TextField } from "@heroui/react";
 import { Package, PackageX, Plus, Printer, Search, TriangleAlert } from "lucide-react";
@@ -6,7 +6,9 @@ import { Package, PackageX, Plus, Printer, Search, TriangleAlert } from "lucide-
 import DataTable, { type DataTableColumn } from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
 import type { InventoryItem } from "@/types/domain";
-import { sbFetchInventory, sbUpsertInventoryItem } from "@/lib/supabase";
+import type { InventorySummary } from "@/types/domain";
+import { sbFetchInventoryPage, sbFetchInventorySummary, sbUpsertInventoryItem } from "@/lib/supabase";
+import { useServerList } from "@/lib/useServerList";
 import { printBarcodeLabel } from "@/lib/print";
 import { formatCurrency, useRefetchOnFocus } from "@/lib/utils";
 
@@ -20,42 +22,57 @@ const emptyForm: Partial<InventoryItem> = {
   price: 0,
 };
 
+const ZERO_SUMMARY: InventorySummary = { item_count: 0, stock_value: 0, low_count: 0, cost_value: 0 };
+
 export default function Inventory() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [items, setItems] = useState<InventoryItem[]>([]);
-  const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<Partial<InventoryItem> | null>(null);
   const [saving, setSaving] = useState(false);
-  const [query, setQuery] = useState("");
-  const [lowOnly, setLowOnly] = useState(false);
+  const [lowOnly, setLowOnly] = useState(searchParams.get("filter") === "low");
+  const [summary, setSummary] = useState<InventorySummary>(ZERO_SUMMARY);
+  const [categories, setCategories] = useState<string[]>([]);
 
-  const load = async () => {
-    setLoading(true);
-    const { data } = await sbFetchInventory();
+  // One page of the catalogue at a time, searched and filtered in Postgres —
+  // the page used to download every item and do both in the browser.
+  const fetchPage = useCallback(
+    (page: number, search: string) => sbFetchInventoryPage({ page, search, lowOnly }),
+    [lowOnly],
+  );
+  const list = useServerList(fetchPage, [lowOnly]);
+  const items = list.rows;
 
-    setLoading(false);
-    if (data) setItems(data);
+  // The header totals and the category suggestions are aggregated in
+  // Postgres rather than added up from a full catalogue read.
+  const loadSummary = () => {
+    sbFetchInventorySummary().then(({ summary: next, categories: cats }) => {
+      setSummary(next);
+      setCategories(cats);
+    });
   };
 
   useEffect(() => {
-    load();
+    loadSummary();
   }, []);
 
-  // Front desk and bench run this side by side — pick the tab back up and
-  // it refreshes instead of showing whatever was there when you left.
-  useRefetchOnFocus(load);
+  // The list refreshes itself when the tab regains focus; the header totals
+  // have to come along or they go stale against the rows underneath them.
+  useRefetchOnFocus(loadSummary);
 
+  // ?open=<id> — deep link from search or a notification. The item may not be
+  // on the page being shown, so it's fetched by id rather than looked up in
+  // the rows currently loaded.
   useEffect(() => {
     const openId = searchParams.get("open");
 
-    if (openId && items.length > 0) {
-      const match = items.find((i) => String(i.id) === openId);
+    if (!openId) return;
+    searchParams.delete("open");
+    setSearchParams(searchParams, { replace: true });
+    sbFetchInventoryPage({ search: "", page: 0, pageSize: 1000 }).then(({ rows }) => {
+      const match = rows.find((i) => String(i.id) === openId);
 
       if (match) setEditing(match);
-      searchParams.delete("open");
-      setSearchParams(searchParams, { replace: true });
-    }
-  }, [items, searchParams, setSearchParams]);
+    });
+  }, [searchParams, setSearchParams]);
 
   // ?filter=low — the "N items low on stock" notification links straight to
   // the items it's talking about instead of the full catalogue.
@@ -73,31 +90,11 @@ export default function Inventory() {
 
     setSaving(false);
     if (data) {
-      setItems((rows) => {
-        const exists = rows.some((r) => r.id === data.id);
-
-        return exists ? rows.map((r) => (r.id === data.id ? data : r)) : [data, ...rows];
-      });
       setEditing(null);
+      list.reload();
+      loadSummary();
     }
   };
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-
-    return items.filter((i) => {
-      if (lowOnly && i.stock > i.low) return false;
-      if (!q) return true;
-
-      return `${i.name} ${i.sku} ${i.category}`.toLowerCase().includes(q);
-    });
-  }, [items, query, lowOnly]);
-
-  const totalStockValue = items.reduce((sum, i) => sum + Number(i.price || 0) * Number(i.stock || 0), 0);
-  const lowStockCount = items.filter((i) => i.stock <= i.low).length;
-  // Existing categories, offered as suggestions so the same thing doesn't get
-  // typed three different ways — POS filters its product grid by this field.
-  const categories = useMemo(() => Array.from(new Set(items.map((i) => i.category).filter(Boolean))).sort(), [items]);
 
   const columns: DataTableColumn<InventoryItem>[] = [
     {
@@ -186,20 +183,20 @@ export default function Inventory() {
             <span>New Item</span>
           </Button>
         }
-        description={`${items.length} item${items.length !== 1 ? "s" : ""} tracked · ${formatCurrency(totalStockValue)} in stock value`}
+        description={`${summary.item_count} item${summary.item_count !== 1 ? "s" : ""} tracked · ${formatCurrency(summary.stock_value)} in stock value`}
         eyebrow="Inventory"
         title="Parts & Stock"
       />
 
-      {items.length > 0 && (
+      {(summary.item_count > 0 || list.query) && (
         <div className="mb-4 flex flex-col gap-3">
           <div className="relative max-w-sm">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
             <input
               className="w-full rounded-full border border-border bg-surface py-2.5 pl-10 pr-4 text-sm outline-none focus:border-accent"
               placeholder="Search by name, SKU, or category…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              value={list.query}
+              onChange={(e) => list.setQuery(e.target.value)}
             />
           </div>
           <div className="flex flex-wrap gap-2">
@@ -220,7 +217,7 @@ export default function Inventory() {
               onClick={() => setLowOnly(true)}
             >
               <TriangleAlert className="size-3.5" />
-              Low Stock ({lowStockCount})
+              Low Stock ({summary.low_count})
             </button>
           </div>
         </div>
@@ -229,13 +226,20 @@ export default function Inventory() {
       <DataTable
         ariaLabel="Inventory"
         columns={columns}
-        data={filtered}
+        data={items}
         emptyState={{
-          icon: loading ? Package : PackageX,
-          title: loading ? "Loading inventory…" : query ? "No matches" : "No inventory yet",
-          description: query ? `No items match "${query}".` : "Parts and stock items you add will show up here.",
+          icon: list.loading ? Package : PackageX,
+          title: list.loading ? "Loading inventory…" : list.query ? "No matches" : lowOnly ? "Nothing low on stock" : "No inventory yet",
+          description: list.query
+            ? `No items match "${list.query}".`
+            : lowOnly
+              ? "Every item is above its low-stock threshold."
+              : "Parts and stock items you add will show up here.",
         }}
+        page={list.page}
         rowKey={(i) => String(i.id)}
+        totalRows={list.total}
+        onPageChange={list.setPage}
       />
 
       <Modal>

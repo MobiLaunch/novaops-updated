@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Alert, Button, Chip, FieldError, InputGroup, Label, ListBox, Modal, Select, Switch, TextArea, TextField } from "@heroui/react";
 import {
@@ -21,9 +21,10 @@ import {
 
 import DataTable, { type DataTableColumn } from "@/components/DataTable";
 import PageHeader from "@/components/PageHeader";
-import type { Customer, PosSale, PreferredContact, Ticket } from "@/types/domain";
-import { sbFetchCustomers, sbFetchPosSales, sbFetchTickets, sbUpsertCustomer } from "@/lib/supabase";
-import { asArray, formatCurrency, initials, useRefetchOnFocus } from "@/lib/utils";
+import type { Customer, CustomerWithStats, PreferredContact, Ticket } from "@/types/domain";
+import { sbFetchCustomerTickets, sbFetchCustomersPage, sbUpsertCustomer } from "@/lib/supabase";
+import { useServerList } from "@/lib/useServerList";
+import { asArray, formatCurrency, initials } from "@/lib/utils";
 
 const emptyForm: Partial<Customer> = {
   name: "",
@@ -56,51 +57,41 @@ function Avatar({ name }: { name: string }) {
 export default function Customers() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [posSales, setPosSales] = useState<PosSale[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<Partial<Customer> | null>(null);
-  const [viewing, setViewing] = useState<Customer | null>(null);
+  const [viewing, setViewing] = useState<CustomerWithStats | null>(null);
+  const [viewingTickets, setViewingTickets] = useState<Ticket[] | null>(null);
   const [saving, setSaving] = useState(false);
   const [tagDraft, setTagDraft] = useState("");
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  const load = async () => {
-    setLoading(true);
-    const [{ data, error }, { data: tix }, { data: sales }] = await Promise.all([
-      sbFetchCustomers(),
-      sbFetchTickets(),
-      sbFetchPosSales(),
-    ]);
+  // One page of the directory at a time. Ticket counts and lifetime value
+  // come back on each row from the customers_with_stats view — the page used
+  // to fetch every customer, every ticket, and every sale to work them out.
+  const fetchPage = useCallback((page: number, search: string) => sbFetchCustomersPage({ page, search }), []);
+  const list = useServerList<CustomerWithStats>(fetchPage, []);
+  const customers = list.rows;
 
-    setLoading(false);
-    setLoadError(error);
-    if (data) setCustomers(data);
-    if (tix) setTickets(tix);
-    if (sales) setPosSales(sales);
+  // A customer's own tickets are loaded when their record is opened.
+  const openCustomer = (customer: CustomerWithStats) => {
+    setViewing(customer);
+    setViewingTickets(null);
+    sbFetchCustomerTickets(customer.id).then(setViewingTickets);
   };
-
-  useEffect(() => {
-    load();
-  }, []);
-
-  // Front desk and bench run this side by side — pick the tab back up and
-  // it refreshes instead of showing whatever was there when you left.
-  useRefetchOnFocus(load);
 
   useEffect(() => {
     const openId = searchParams.get("open");
 
-    if (openId && customers.length > 0) {
-      const match = customers.find((c) => String(c.id) === openId);
+    if (!openId) return;
+    searchParams.delete("open");
+    setSearchParams(searchParams, { replace: true });
+    // The linked customer may be on any page, so ask for them by name-free
+    // lookup rather than searching the rows currently loaded.
+    sbFetchCustomersPage({ page: 0, pageSize: 1000 }).then(({ rows }) => {
+      const match = rows.find((c) => String(c.id) === openId);
 
-      if (match) setViewing(match);
-      searchParams.delete("open");
-      setSearchParams(searchParams, { replace: true });
-    }
-  }, [customers, searchParams, setSearchParams]);
+      if (match) openCustomer(match);
+    });
+  }, [searchParams, setSearchParams]);
 
   const handleSave = async () => {
     if (!editing?.name?.trim()) return;
@@ -109,68 +100,23 @@ export default function Customers() {
 
     setSaving(false);
     if (data) {
-      setCustomers((cs) => {
-        const exists = cs.some((c) => c.id === data.id);
-
-        return exists ? cs.map((c) => (c.id === data.id ? data : c)) : [data, ...cs];
-      });
       setEditing(null);
-      if (viewing?.id === data.id) setViewing(data);
+      // The row's ticket count and lifetime value are computed server-side,
+      // so the edited fields are merged onto the stats already in hand
+      // rather than guessed at here.
+      if (viewing?.id === data.id) setViewing({ ...viewing, ...data });
+      list.reload();
     } else if (error) {
-      setLoadError(error);
+      setSaveError(error);
     }
   };
 
-  // Built once per data change instead of re-scanning every ticket and sale
-  // for each of the table's rows (which re-ran on every search keystroke).
-  // Lifetime value now counts retail too — a customer who only ever bought
-  // accessories used to read as $0.
-  const statsByCustomer = useMemo(() => {
-    const stats = new Map<number, { tickets: Ticket[]; value: number }>();
-    const bucket = (id: number) => {
-      let entry = stats.get(id);
-
-      if (!entry) {
-        entry = { tickets: [], value: 0 };
-        stats.set(id, entry);
-      }
-
-      return entry;
-    };
-
-    for (const t of tickets) {
-      if (t.customer_id == null) continue;
-      const entry = bucket(t.customer_id);
-
-      entry.tickets.push(t);
-      entry.value += asArray<{ amount: number }>(t.payments).reduce((s, p) => s + Number(p.amount || 0), 0);
-    }
-
-    for (const sale of posSales) {
-      if (sale.customer_id == null || sale.status !== "completed") continue;
-      bucket(sale.customer_id).value += Number(sale.total || 0);
-    }
-
-    return stats;
-  }, [tickets, posSales]);
-
-  const ticketsFor = (customerId: number) => statsByCustomer.get(customerId)?.tickets ?? [];
-  const lifetimeValue = (customerId: number) => statsByCustomer.get(customerId)?.value ?? 0;
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-
-    if (!q) return customers;
-
-    return customers.filter((c) => `${c.name} ${c.phone} ${c.email}`.toLowerCase().includes(q));
-  }, [customers, query]);
-
-  const columns: DataTableColumn<Customer>[] = [
+  const columns: DataTableColumn<CustomerWithStats>[] = [
     {
       key: "name",
       header: "Name",
       render: (c) => (
-        <button className="flex items-center gap-3 text-left" type="button" onClick={() => setViewing(c)}>
+        <button className="flex items-center gap-3 text-left" type="button" onClick={() => openCustomer(c)}>
           <Avatar name={c.name} />
           <span className="flex items-center gap-1.5">
             <strong className="text-sm text-foreground hover:text-accent">{c.name}</strong>
@@ -195,14 +141,14 @@ export default function Customers() {
       render: (c) => (
         <span className="flex items-center gap-1.5 text-sm">
           <Wrench className="size-3.5 text-muted" />
-          {ticketsFor(c.id).length}
+          {c.ticket_count}
         </span>
       ),
     },
     {
       key: "value",
       header: "Lifetime Value",
-      render: (c) => <span className="text-sm font-semibold text-success">{formatCurrency(lifetimeValue(c.id))}</span>,
+      render: (c) => <span className="text-sm font-semibold text-success">{formatCurrency(c.lifetime_value)}</span>,
     },
     {
       key: "tags",
@@ -242,31 +188,31 @@ export default function Customers() {
         title="Customer Directory"
       />
 
-      {loadError && (
+      {(list.error || saveError) && (
         <Alert className="mb-4" role="alert" status="danger">
           <Alert.Indicator>
             <CircleAlert className="size-4" />
           </Alert.Indicator>
           <Alert.Content>
             <Alert.Description>
-              Couldn&rsquo;t load customers: {loadError}
+              Couldn&rsquo;t load customers: {list.error || saveError}
             </Alert.Description>
           </Alert.Content>
-          <Button size="sm" variant="outline" onPress={load}>
+          <Button size="sm" variant="outline" onPress={list.reload}>
             <RefreshCw className="size-4" />
             <span>Retry</span>
           </Button>
         </Alert>
       )}
 
-      {customers.length > 0 && (
+      {(list.total > 0 || list.query) && (
         <div className="relative mb-4 max-w-sm">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
           <input
             className="w-full rounded-full border border-border bg-surface py-2.5 pl-10 pr-4 text-sm outline-none focus:border-accent"
             placeholder="Search by name, phone, or email…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            value={list.query}
+            onChange={(e) => list.setQuery(e.target.value)}
           />
         </div>
       )}
@@ -274,13 +220,18 @@ export default function Customers() {
       <DataTable
         ariaLabel="Customers"
         columns={columns}
-        data={filtered}
+        data={customers}
         emptyState={{
-          icon: loading ? Users : UserRoundX,
-          title: loading ? "Loading customers…" : query ? "No matches" : "No customers yet",
-          description: query ? `No customers match "${query}".` : "Customers you create or that come from tickets will show up here.",
+          icon: list.loading ? Users : UserRoundX,
+          title: list.loading ? "Loading customers…" : list.query ? "No matches" : "No customers yet",
+          description: list.query
+            ? `No customers match "${list.query}".`
+            : "Customers you create or that come from tickets will show up here.",
         }}
+        page={list.page}
         rowKey={(c) => String(c.id)}
+        totalRows={list.total}
+        onPageChange={list.setPage}
       />
 
       {/* Edit / new customer */}
@@ -519,11 +470,11 @@ export default function Customers() {
 
                     <div className="grid grid-cols-2 gap-3">
                       <div className="rounded-2xl border border-border p-4 text-center">
-                        <strong className="block text-2xl font-extrabold text-foreground">{ticketsFor(viewing.id).length}</strong>
+                        <strong className="block text-2xl font-extrabold text-foreground">{viewing.ticket_count}</strong>
                         <span className="text-xs text-muted">Total tickets</span>
                       </div>
                       <div className="rounded-2xl border border-border p-4 text-center">
-                        <strong className="block text-2xl font-extrabold text-success">{formatCurrency(lifetimeValue(viewing.id))}</strong>
+                        <strong className="block text-2xl font-extrabold text-success">{formatCurrency(viewing.lifetime_value)}</strong>
                         <span className="text-xs text-muted">Lifetime value</span>
                       </div>
                     </div>
@@ -543,11 +494,13 @@ export default function Customers() {
                           <span>New Ticket</span>
                         </Button>
                       </div>
-                      {ticketsFor(viewing.id).length === 0 ? (
+                      {viewingTickets === null ? (
+                        <p className="m-0 text-sm text-muted">Loading tickets…</p>
+                      ) : viewingTickets.length === 0 ? (
                         <p className="m-0 text-sm text-muted">No tickets yet.</p>
                       ) : (
                         <div className="flex flex-col gap-2">
-                          {ticketsFor(viewing.id).map((t) => (
+                          {viewingTickets.map((t) => (
                             <button
                               key={t.id}
                               className="flex w-full items-center justify-between rounded-xl border border-border bg-surface p-3 text-left text-sm transition-colors hover:border-accent/40 hover:bg-accent-soft/30"

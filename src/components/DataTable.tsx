@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
-import { Button, Table } from "@heroui/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Table } from "@heroui/react";
+
+import Pager from "./Pager";
 
 export interface DataTableColumn<T extends object> {
   key: string;
@@ -20,6 +21,14 @@ interface DataTableProps<T extends object> {
   ariaLabel?: string;
   /** Rows per page. Pass 0 to render every row at once. */
   pageSize?: number;
+  /**
+   * Server-paged mode: `data` is already just the current page, `totalRows`
+   * is how many exist in total, and paging is driven by the parent. Without
+   * these the table pages through `data` itself.
+   */
+  page?: number;
+  totalRows?: number;
+  onPageChange?: (page: number) => void;
 }
 
 export default function DataTable<T extends object>({
@@ -29,8 +38,12 @@ export default function DataTable<T extends object>({
   emptyState,
   ariaLabel = "Data table",
   pageSize = 50,
+  page: serverPage,
+  totalRows,
+  onPageChange,
 }: DataTableProps<T>) {
   const [requestedPage, setRequestedPage] = useState(0);
+  const serverPaged = serverPage !== undefined && totalRows !== undefined && onPageChange !== undefined;
 
   if (data.length === 0) {
     return (
@@ -44,14 +57,18 @@ export default function DataTable<T extends object>({
     );
   }
 
-  const paginated = pageSize > 0 && data.length > pageSize;
-  const totalPages = paginated ? Math.ceil(data.length / pageSize) : 1;
+  // Server-paged: the rows handed in are the page, and the parent owns which
+  // page that is. Client-paged: slice here and keep the page in local state.
+  const total = serverPaged ? totalRows : data.length;
+  const paginated = pageSize > 0 && total > pageSize;
+  const totalPages = paginated ? Math.ceil(total / pageSize) : 1;
   // Clamped rather than reset: filtering down to fewer pages shows the last
   // one instead of an empty table, and clearing the filter puts you back
   // where you were.
-  const page = Math.min(requestedPage, totalPages - 1);
+  const page = serverPaged ? serverPage : Math.min(requestedPage, totalPages - 1);
   const start = paginated ? page * pageSize : 0;
-  const rows = paginated ? data.slice(start, start + pageSize) : data;
+  const rows = serverPaged || !paginated ? data : data.slice(start, start + pageSize);
+  const goTo = (next: number) => (serverPaged ? onPageChange(next) : setRequestedPage(next));
 
   // Keyed on the page so a page change remounts the table rather than making
   // HeroUI diff one row collection into a completely different one, which it
@@ -88,26 +105,7 @@ export default function DataTable<T extends object>({
       </Table>
 
       {paginated && (
-        <div className="flex flex-wrap items-center justify-between gap-3 px-1">
-          <span className="text-xs text-muted">
-            Showing <strong className="font-bold text-foreground">{start + 1}</strong>–
-            <strong className="font-bold text-foreground">{start + rows.length}</strong> of{" "}
-            <strong className="font-bold text-foreground">{data.length}</strong>
-          </span>
-          <div className="flex items-center gap-2">
-            <Button isDisabled={page === 0} size="sm" variant="outline" onPress={() => setRequestedPage(page - 1)}>
-              <ChevronLeft className="size-4" />
-              <span>Previous</span>
-            </Button>
-            <span className="text-xs font-semibold text-muted">
-              {page + 1} / {totalPages}
-            </span>
-            <Button isDisabled={page >= totalPages - 1} size="sm" variant="outline" onPress={() => setRequestedPage(page + 1)}>
-              <span>Next</span>
-              <ChevronRight className="size-4" />
-            </Button>
-          </div>
-        </div>
+        <Pager page={page} pageSize={pageSize} rowsOnPage={rows.length} total={total} onPageChange={goTo} label="rows" />
       )}
     </div>
   );
