@@ -137,7 +137,7 @@ reskin). It's being delivered in phases:
   and inventory value by category.
 - New tables: `technicians`, `shop_settings` (business hours, tax rate,
   receipt footer, notification preference, canned replies) — see
-  `supabase/migrations/MASTER_SETUP.sql`, which now includes these plus
+  `supabase/schema.sql`, which includes these plus
   the `customers`/`tickets` column additions above; re-run it once (it's
   idempotent) to pick them up on an existing database.
 
@@ -161,7 +161,7 @@ reskin). It's being delivered in phases:
 - **Printable receipt** on the success screen, using Settings → Shop
   Settings' new business name/address/phone fields.
 - New table: `pos_sales` (id, customer, items jsonb, subtotal/tax/total,
-  payment method, status) — see `supabase/migrations/MASTER_SETUP.sql`;
+  payment method, status) — see `supabase/schema.sql`;
   re-run it once (it's idempotent) to pick it up on an existing database.
 - Keyboard shortcut: `G` then `P` jumps to `/pos`.
 
@@ -199,7 +199,7 @@ reskin). It's being delivered in phases:
     as such in the UI, since NovaOps doesn't have a source of truth for
     either.
 - New `shop_settings` columns: `tax_filing_frequency`, `income_tax_reserve_pct`
-  (Settings → Shop Settings) — see `supabase/migrations/MASTER_SETUP.sql`;
+  (Settings → Shop Settings) — see `supabase/schema.sql`;
   re-run it once (it's idempotent) to pick them up on an existing database.
 - Keyboard shortcut: `G` then `A` jumps to `/accounting`.
 
@@ -226,7 +226,7 @@ To manage bookings, or see website sales on Accounting, from NovaOps:
 2. Sign in to NovaOps with a Supabase account that's also a row in
    `public.staff_users` (role `admin`, `enabled = true`) — the same allowlist
    the website's admin portal checks.
-3. Run `supabase/migrations/MASTER_SETUP.sql` once in the Supabase SQL
+3. Run `supabase/schema.sql` once in the Supabase SQL
    editor — among everything else it sets up, it adds the
    `novaops_ticket_id` column bookings use to record which ticket they
    were converted into.
@@ -286,7 +286,7 @@ as a best guess, not confirmed carrier data.
 ## Customer chat: website side
 
 Messages → Customer Chat on the POS reads and replies to
-`customer_messages` (`supabase/migrations/20260905_customer_messages.sql`).
+`customer_messages` (see `supabase/schema.sql`).
 A composer exists on the website too — mobicare-business, branch
 `claude/customer-chat-widget` (Account → Messages: chat-bubble thread + reply
 box, inserts as the signed-in customer). It's **pushed but not merged to
@@ -294,7 +294,7 @@ main** yet — merge it (or open a PR) to ship it.
 
 No environment variable or manual setup is needed for messages to actually
 reach the shop: the website inserts a `customer_messages` row without a
-`profile_id`, and `supabase/migrations/20260906_customer_messages_auto_profile.sql`
+`profile_id`, and the `customer_messages_fill_profile_id` trigger in `supabase/schema.sql`
 adds a trigger (`customer_messages_fill_profile_id`) that fills it in from
 `public.staff_users` (the same admin allowlist the website's own admin
 portal trusts) before the row is written. Run that migration once in the
@@ -336,53 +336,86 @@ npm run dev
 
 ## Database schema
 
-**Run `supabase/migrations/MASTER_SETUP.sql` once** in the Supabase SQL
-editor — it's the complete, idempotent setup for every table the current
-React app needs (`customers`, `tickets`, `inventory`, `house_calls`,
-`appointments`, `messages`, `trade_ins`, `shipments`, `customer_messages`,
-`social_connections`, `technicians`, `shop_settings`, `pos_sales`), the
-views and indexes the list pages read through (see below), plus
-the two columns it needs added to tables the
-**mobicare-business website already owns** (`profiles.supplier_emails`,
-`bookings.novaops_ticket_id` — both plain `ALTER TABLE ADD COLUMN IF NOT
-EXISTS`, never a `CREATE TABLE`, since `profiles` and `bookings` are real
-tables in the same shared project with existing rows). Safe to re-run any
-time.
+**Run `supabase/schema.sql` once** in the Supabase SQL editor. It is the
+whole schema in one file — safe to run on a brand-new project and safe to
+re-run on an existing one, as often as you like.
 
-### Re-run it after pulling this change
+The fifteen migration files this replaces are gone. Several were from the
+old Nuxt version and actively unsafe to run (one installed a trigger on
+`auth.users` that breaks every new signup on the website), and the rest had
+drifted out of step with each other — which is how a project could end up
+missing `messages.gmail_message_id` and fail on setup.
 
-Customers, Inventory, Tickets, and Messages serve one page of rows at a time
-instead of downloading their whole table, and Accounting reads its period
-rather than everything. They rely on database objects that
-`MASTER_SETUP.sql` creates in section 16:
+### Who owns what
+
+NovaOps and the website share one Supabase project, so the file is explicit
+about which tables it may create:
+
+| Owned by | Tables |
+| --- | --- |
+| **NovaOps** (this repo, created by `schema.sql`) | `customers`, `tickets`, `inventory`, `appointments`, `house_calls`, `messages`, `customer_messages`, `trade_ins`, `pos_sales`, `shipments`, `technicians`, `shop_settings`, `social_connections` |
+| **mobicare-business** (that repo's `src/admin/schemaSql.ts`, applied from its admin Settings) | `staff_users`, `categories`, `products`, `orders`, `order_items`, `bookings`, `site_settings` |
+| **Neither** — predates both, only ever altered | `profiles` |
+
+`schema.sql` never creates a website-owned table. It adds exactly two
+columns to them (`bookings.novaops_ticket_id`, `profiles.supplier_emails`)
+and otherwise just reads. Creating them here would fight the website's own
+definition and its RLS policies.
+
+### Why it can't drift again
+
+Every table is created with only its identity columns, and every other
+column is stated once as `add column if not exists`. A fresh install and an
+existing one run the *same* statements, so a column can never end up
+defined only inside a `create table` that an existing project skips — which
+was the exact failure this replaces.
+
+**Adding a column later?** Add one `add column if not exists` line in the
+right section. Never put it in a create block.
+
+This is verified rather than assumed: applying the file to a fresh project
+and to one built from the old migrations produces byte-identical column
+definitions across all 191 columns.
+
+### Views the app reads through
+
+Each exists because PostgREST can't express the query itself:
 
 | Object | Used for |
 | --- | --- |
-| `inventory.is_low` | Generated column (`stock <= low`). The low-stock filter and every low-stock count — PostgREST can't compare two columns itself. |
-| `customers_with_stats` | Customer rows with their ticket count and lifetime value, aggregated in Postgres rather than by joining every ticket and sale in the browser. |
+| `inventory.is_low` | Generated column (`stock <= low`). The low-stock filter and every low-stock count — PostgREST can't compare two columns. |
+| `customers_with_stats` | Customer rows with ticket count and lifetime value, aggregated in Postgres instead of joining every ticket and sale in the browser. |
+| `tickets_with_customer` | The ticket list, searched across the customer's name as well as the ticket's own fields — a PostgREST `or()` only spans columns of the row it filters. |
+| `ticket_receivables` | Outstanding balances. Accounts receivable is a live snapshot, not scoped to Accounting's date range, and PostgREST can't compare a price against a sum of a jsonb array. |
 | `inventory_summary`, `inventory_categories` | The Inventory header totals and the category suggestions. |
 | `customer_chat_threads` | One row per customer conversation for the Messages chat tab. |
-| `tickets_with_customer` | The ticket list, searched across the customer's name as well as the ticket's own fields — a PostgREST `or()` only spans columns of the row it filters, so the name has to be a real column. |
-| `ticket_receivables` | Outstanding balances. Accounts receivable is a live snapshot, not scoped to Accounting's date range, and PostgREST can't compare a price against a sum of a jsonb array. Also picks the tickets the register can take a payment for. |
-| `ticket_paid_total()` | The defensive sum of a ticket's payments array, shared by the two views above. |
-| `pg_trgm` GIN indexes | Make the `ILIKE '%term%'` searches on those pages usable. |
+| `ticket_paid_total()` | The defensive sum of a ticket's payments array, shared by the views above. |
+| `pg_trgm` GIN indexes | Make the `ILIKE '%term%'` searches usable. |
 
 Every view is `security_invoker`, so row-level security applies as the
-signed-in user exactly as it does on the underlying tables.
+signed-in user exactly as on the underlying tables.
 
-**These pages will not load until the file has been re-run**, since the
-views won't exist yet. Re-running is safe and idempotent.
+### After running it
 
-You do **not** need to run any other file in `supabase/migrations/` after
-it — the handful of dated files after `MASTER_SETUP.sql` document the same
-changes broken out by feature (kept for history) and are already folded
-into it. The files dated before it (`00000000_core_schema.sql` and others)
-are from the previous Nuxt version of this app and are **not** compatible
-with the live database — each now has a "DO NOT RUN" warning at the top
-explaining why (the worst of them, `00000000_core_schema.sql`, would
-install a trigger that breaks every new signup on the website, because it
-assumes `profiles` has columns the real table doesn't).
+Add your NovaOps sign-in account to the website's `staff_users` allowlist:
 
-mobicare-business's own migrations (`categories`, `products`, `orders`,
-`bookings`, `staff_users`, etc.) are separate and live in that repo —
-`MASTER_SETUP.sql` never recreates anything already covered there.
+```sql
+insert into public.staff_users (user_id, role)
+values ('YOUR-AUTH-USER-UUID', 'admin')
+on conflict (user_id) do update set enabled = true;
+```
+
+That allowlist is what the website's RLS checks before letting anyone read
+`bookings` and `orders`, and what the customer-chat trigger reads to work
+out which shop a website message belongs to. Without it, Bookings and the
+website half of Accounting read as empty rather than erroring, and customer
+chat inserts fail.
+
+The end of `schema.sql` also carries an optional, commented-out block for
+retiring tables left behind by old versions of this app (`vendor_repairs`,
+`services`, `expenses`, `square_config`, `device_brands`,
+`device_categories`, `device_models`). Nothing in either app reads them.
+They are left alone by default because dropping a table destroys its rows —
+check what's in them first, then run that block by hand if you want it
+tidy.
+

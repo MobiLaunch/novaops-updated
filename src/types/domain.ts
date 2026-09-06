@@ -1,6 +1,6 @@
 // Domain types matching the actual Supabase column shapes (snake_case) so
 // query results can be used directly without a conversion layer — see
-// supabase/migrations/MASTER_SETUP.sql for the source of truth.
+// supabase/schema.sql for the source of truth.
 
 export type PreferredContact = "phone" | "email" | "sms";
 

@@ -634,7 +634,7 @@ export default function Settings() {
                 (role <code className="rounded bg-surface-tertiary px-1.5 py-0.5">admin</code>) — the same allowlist the
                 website&rsquo;s admin portal uses.
               </li>
-              <li>Run the migration in <code className="rounded bg-surface-tertiary px-1.5 py-0.5">supabase/migrations/20260904_bookings_ticket_link.sql</code> once.</li>
+              <li>Run <code className="rounded bg-surface-tertiary px-1.5 py-0.5">supabase/schema.sql</code> once in the Supabase SQL editor.</li>
             </ol>
           </div>
         </div>
