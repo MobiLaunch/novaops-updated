@@ -463,6 +463,15 @@ export async function sbUpdateAppointment(id: number, patch: Partial<Appointment
   return !error;
 }
 
+export async function sbDeleteAppointment(id: number): Promise<boolean> {
+  const client = getClient();
+
+  if (!client) return false;
+  const { error } = await client.from("appointments").delete().eq("id", id);
+
+  return !error;
+}
+
 export async function sbFetchHouseCalls(): Promise<{ data: HouseCall[] | null; error: string | null }> {
   const client = getClient();
 
@@ -489,6 +498,15 @@ export async function sbUpdateHouseCall(id: number, patch: Partial<HouseCall>): 
 
   if (!client) return false;
   const { error } = await client.from("house_calls").update(patch).eq("id", id);
+
+  return !error;
+}
+
+export async function sbDeleteHouseCall(id: number): Promise<boolean> {
+  const client = getClient();
+
+  if (!client) return false;
+  const { error } = await client.from("house_calls").delete().eq("id", id);
 
   return !error;
 }
@@ -660,13 +678,29 @@ export async function sbUpdateShopSettings(patch: Partial<ShopSettings>): Promis
 
 // ─── POS sales (retail checkout, /pos) ──────────────────────────────────────
 
-export async function sbFetchPosSales(): Promise<{ data: PosSale[] | null; error: string | null }> {
+export async function sbFetchPosSales(limit?: number): Promise<{ data: PosSale[] | null; error: string | null }> {
   const client = getClient();
 
   if (!client) return { data: null, error: "Supabase not configured" };
-  const { data, error } = await client.from("pos_sales").select("*").order("created_at", { ascending: false });
+  const query = client.from("pos_sales").select("*").order("created_at", { ascending: false });
+  const { data, error } = await (limit ? query.limit(limit) : query);
 
   return { data: data as PosSale[] | null, error: error ? errMessage(error) : null };
+}
+
+// Refunding or voiding a sale is a status change, not a delete — Accounting
+// reads these: `completed` counts as revenue, `refunded` drops out of revenue
+// and into the period's refund total, `voided` drops out entirely.
+export async function sbUpdatePosSale(
+  id: number,
+  patch: Partial<Pick<PosSale, "status" | "note">>,
+): Promise<{ data: PosSale | null; error: string | null }> {
+  const client = getClient();
+
+  if (!client) return { data: null, error: "Supabase not configured" };
+  const { data, error } = await client.from("pos_sales").update(patch).eq("id", id).select().single();
+
+  return { data: data as PosSale | null, error: error ? errMessage(error) : null };
 }
 
 export async function sbCreatePosSale(

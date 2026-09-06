@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Button, ListBox, Select } from "@heroui/react";
+import { Button, ListBox, Modal, Select } from "@heroui/react";
 import {
   ArrowLeft,
+  Ban,
   Banknote,
   CheckCheck,
   CircleAlert,
@@ -9,27 +10,32 @@ import {
   Package,
   Plus,
   Printer,
+  ReceiptText,
   Search,
   ShoppingCart,
   Ticket as TicketIcon,
   Trash2,
+  Undo2,
   X,
 } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import PaymentModal from "@/components/payments/PaymentModal";
-import type { Customer, InventoryItem, PosSaleItem, ShopSettings, Ticket, TicketPayment } from "@/types/domain";
+import type { Customer, InventoryItem, PosSale, PosSaleItem, ShopSettings, Ticket, TicketPayment } from "@/types/domain";
 import {
   sbCreatePosSale,
   sbFetchCustomers,
   sbFetchInventory,
+  sbFetchPosSales,
   sbFetchShopSettings,
   sbFetchTickets,
+  sbUpdatePosSale,
   sbUpdateTicket,
   sbUpsertInventoryItem,
 } from "@/lib/supabase";
 import { printReceipt } from "@/lib/print";
-import { formatCurrency, ticketBalanceDue } from "@/lib/utils";
+import { toastWriteFailed } from "@/lib/toast";
+import { asArray, formatCurrency, ticketBalanceDue } from "@/lib/utils";
 
 interface CartLine {
   key: string;
@@ -68,6 +74,9 @@ export default function POS() {
   const [saleResult, setSaleResult] = useState<SaleResult | null>(null);
   const [lastReceiptItems, setLastReceiptItems] = useState<PosSaleItem[]>([]);
   const [scanFeedback, setScanFeedback] = useState<{ ok: boolean; text: string } | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [recentSales, setRecentSales] = useState<PosSale[]>([]);
 
   const load = async () => {
     setLoading(true);
@@ -326,9 +335,98 @@ export default function POS() {
     });
   };
 
+  // ── Sales history ────────────────────────────────────────────────────
+  // Sales were write-only: pos_sales.status has supported refunded/voided
+  // since the table was added and Accounting reports on both, but nothing
+  // in the app could ever set them, and a past sale couldn't be looked up
+  // to reprint its receipt.
+
+  const openHistory = async () => {
+    setHistoryOpen(true);
+    setHistoryLoading(true);
+    const { data } = await sbFetchPosSales(50);
+
+    setHistoryLoading(false);
+    if (data) setRecentSales(data);
+  };
+
+  const reprintSale = (sale: PosSale) => {
+    const customer = sale.customer_id ? customers.find((c) => c.id === sale.customer_id) : undefined;
+
+    printReceipt({
+      businessName: shopSettings?.business_name || "Receipt",
+      businessAddress: shopSettings?.business_address || "",
+      businessPhone: shopSettings?.business_phone || "",
+      date: new Date(sale.created_at).toLocaleString(),
+      items: asArray<PosSaleItem>(sale.items).map((i) => ({ name: i.name, qty: i.quantity, price: i.price })),
+      subtotal: Number(sale.subtotal),
+      tax: Number(sale.tax),
+      total: Number(sale.total),
+      currency: "$",
+      ticketRef: `S-${sale.id}`,
+      customerName: customer?.name,
+    });
+  };
+
+  // Full reversal only — there's one status column, no partial-refund
+  // amount to record against. Stock goes back on the shelf; a ticket
+  // balance paid through this sale is deliberately left alone, since the
+  // ticket has its own payment history and may have moved on since.
+  const reverseSale = async (sale: PosSale, nextStatus: "refunded" | "voided") => {
+    const lines = asArray<PosSaleItem>(sale.items);
+    const ticketLines = lines.filter((i) => i.ticketId);
+    const verb = nextStatus === "refunded" ? "Refund" : "Void";
+    const stockNote = lines.some((i) => i.sku) ? "\n\nStock from this sale goes back into inventory." : "";
+    const ticketNote = ticketLines.length
+      ? `\n\nThis sale settled ${ticketLines.length} ticket balance${ticketLines.length === 1 ? "" : "s"}. That payment stays recorded on the ticket — reverse it there if you need to.`
+      : "";
+
+    if (!window.confirm(`${verb} sale #${sale.id} for ${formatCurrency(sale.total)}?${stockNote}${ticketNote}`)) {
+      return;
+    }
+
+    const { data, error } = await sbUpdatePosSale(sale.id, { status: nextStatus });
+
+    if (!data) {
+      toastWriteFailed(`sale #${sale.id}`, error);
+
+      return;
+    }
+
+    // Put the stock back, mirroring the deduction the sale made.
+    const restocked = new Map<number, number>();
+
+    for (const line of lines) {
+      if (!line.sku) continue;
+      const item = inventory.find((i) => i.sku && i.sku.toUpperCase() === line.sku!.toUpperCase());
+
+      if (!item) continue;
+      restocked.set(item.id, (restocked.get(item.id) || 0) + line.quantity);
+    }
+
+    await Promise.all(
+      Array.from(restocked.entries()).map(([id, qty]) => {
+        const item = inventory.find((i) => i.id === id);
+
+        return item ? sbUpsertInventoryItem({ id, stock: item.stock + qty }) : Promise.resolve();
+      }),
+    );
+
+    setInventory((rows) => rows.map((r) => (restocked.has(r.id) ? { ...r, stock: r.stock + (restocked.get(r.id) || 0) } : r)));
+    setRecentSales((rows) => rows.map((r) => (r.id === sale.id ? data : r)));
+  };
+
   return (
     <div>
       <PageHeader
+        action={
+          step === "shop" ? (
+            <Button variant="outline" onPress={openHistory}>
+              <ReceiptText className="size-4" />
+              <span>Sales History</span>
+            </Button>
+          ) : undefined
+        }
         description={
           step === "shop"
             ? `${inventory.length} item${inventory.length !== 1 ? "s" : ""} in catalog · scan a barcode or tap to add`
@@ -626,6 +724,80 @@ export default function POS() {
           </Button>
         )}
       </div>
+
+      {/* Sales history */}
+      <Modal>
+        <Modal.Backdrop isOpen={historyOpen} onOpenChange={setHistoryOpen}>
+          <Modal.Container scroll="inside" size="lg">
+            <Modal.Dialog>
+              <Modal.Header>
+                <Modal.Heading>Recent Sales</Modal.Heading>
+                <Modal.CloseTrigger />
+              </Modal.Header>
+              <Modal.Body className="flex flex-col gap-2">
+                {historyLoading ? (
+                  <p className="m-0 py-8 text-center text-sm text-muted">Loading sales…</p>
+                ) : recentSales.length === 0 ? (
+                  <p className="m-0 py-8 text-center text-sm text-muted">No sales recorded yet.</p>
+                ) : (
+                  recentSales.map((sale) => {
+                    const customer = sale.customer_id ? customers.find((c) => c.id === sale.customer_id) : undefined;
+                    const reversed = sale.status !== "completed";
+
+                    return (
+                      <div key={sale.id} className={`rounded-2xl border border-border p-3 ${reversed ? "opacity-70" : ""}`}>
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <strong className="flex items-center gap-2 text-sm text-foreground">
+                              Sale #{sale.id}
+                              {reversed && (
+                                <span className="rounded-full bg-danger/15 px-2 py-0.5 text-[10px] font-black uppercase text-danger">
+                                  {sale.status}
+                                </span>
+                              )}
+                            </strong>
+                            <span className="block text-xs text-muted">
+                              {new Date(sale.created_at).toLocaleString()} · {sale.payment_method}
+                              {customer ? ` · ${customer.name}` : ""}
+                            </span>
+                            <span className="mt-1 block truncate text-xs text-muted">
+                              {asArray<PosSaleItem>(sale.items)
+                                .map((i) => `${i.quantity}× ${i.name}`)
+                                .join(", ")}
+                            </span>
+                          </div>
+                          <strong className={`shrink-0 text-base font-black ${reversed ? "text-muted line-through" : "text-accent"}`}>
+                            {formatCurrency(sale.total)}
+                          </strong>
+                        </div>
+
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Button size="sm" variant="outline" onPress={() => reprintSale(sale)}>
+                            <Printer className="size-3.5" />
+                            <span>Receipt</span>
+                          </Button>
+                          {!reversed && (
+                            <>
+                              <Button size="sm" variant="outline" onPress={() => reverseSale(sale, "refunded")}>
+                                <Undo2 className="size-3.5" />
+                                <span>Refund</span>
+                              </Button>
+                              <Button size="sm" variant="ghost" onPress={() => reverseSale(sale, "voided")}>
+                                <Ban className="size-3.5 text-danger" />
+                                <span className="text-danger">Void</span>
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </Modal.Body>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal>
 
       <PaymentModal
         amount={total}
