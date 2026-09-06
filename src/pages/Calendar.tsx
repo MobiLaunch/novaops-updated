@@ -39,7 +39,7 @@ import {
   sbUpdateHouseCall,
 } from "@/lib/supabase";
 import { toastWriteFailed } from "@/lib/toast";
-import { parseDateOnly, startOfToday, useRefetchOnFocus } from "@/lib/utils";
+import { compareDateTime, parseDateOnly, startOfToday, to24h, toDateKey, useRefetchOnFocus } from "@/lib/utils";
 
 const APPT_STATUSES = ["scheduled", "confirmed", "completed", "cancelled", "no-show"];
 const CALL_STATUSES = ["scheduled", "completed", "cancelled"];
@@ -48,10 +48,6 @@ const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 function cap(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-function toDateKey(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 // Times are stored as free text and older rows hold things like "2:00 PM",
@@ -65,27 +61,6 @@ function formatTime(value: string): string {
   const suffix = hours >= 12 ? "PM" : "AM";
 
   return `${((hours + 11) % 12) + 1}:${match[2]} ${suffix}`;
-}
-
-// Normalises both the 24h values the time input produces and the older
-// free-text "2:00 PM" rows to HH:MM, so the two sort together and a legacy
-// row still loads into the time input instead of showing up blank.
-function to24h(value: string): string | null {
-  const match = /^(\d{1,2}):(\d{2})\s*([AaPp][Mm])?$/.exec(value.trim());
-
-  if (!match) return null;
-  let hours = Number(match[1]);
-
-  if (match[3]) hours = (hours % 12) + (match[3].toLowerCase() === "pm" ? 12 : 0);
-  if (hours > 23) return null;
-
-  return `${String(hours).padStart(2, "0")}:${match[2]}`;
-}
-
-// Blank and unparseable times sort last, so an all-day entry doesn't jump
-// above a 9am one.
-function timeSortKey(value: string): string {
-  return to24h(value) ?? "99:99";
 }
 
 type EventKind = "appointment" | "house-call" | "booking" | "due";
@@ -232,13 +207,7 @@ export default function CalendarPage() {
       });
     }
 
-    return all.sort((x, y) => {
-      if (x.date !== y.date) return x.date < y.date ? -1 : 1;
-      const kx = timeSortKey(x.time);
-      const ky = timeSortKey(y.time);
-
-      return kx === ky ? 0 : kx < ky ? -1 : 1;
-    });
+    return all.sort(compareDateTime);
   }, [appointments, houseCalls, bookings, tickets, customerById]);
 
   const eventsByDate = useMemo(() => {

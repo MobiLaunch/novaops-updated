@@ -44,6 +44,7 @@ import {
   sbFetchInventory,
   sbFetchShopSettings,
   sbFetchTechnicians,
+  sbFetchTicketMedia,
   sbFetchTickets,
   sbFindOrCreateCustomer,
   sbRemovePartFromTicket,
@@ -202,13 +203,23 @@ export default function Tickets() {
   // it refreshes instead of showing whatever was there when you left.
   useRefetchOnFocus(load);
 
+  // The list query skips the signature and photo columns, so they're pulled
+  // in for the one ticket being opened. The modal shows immediately and the
+  // signature fills in when it arrives.
+  const openTicket = (ticket: Ticket) => {
+    setSelected(ticket);
+    sbFetchTicketMedia(ticket.id).then(({ signature, photos }) =>
+      setSelected((current) => (current && current.id === ticket.id ? { ...current, signature, photos } : current)),
+    );
+  };
+
   useEffect(() => {
     const openId = searchParams.get("open");
 
     if (openId && tickets.length > 0) {
       const match = tickets.find((t) => String(t.id) === openId);
 
-      if (match) setSelected(match);
+      if (match) openTicket(match);
       searchParams.delete("open");
       setSearchParams(searchParams, { replace: true });
     }
@@ -506,7 +517,7 @@ export default function Tickets() {
               <CreditCard className="size-4" />
             </Button>
           )}
-          <Button isIconOnly aria-label="View ticket" variant="ghost" onPress={() => setSelected(t)}>
+          <Button isIconOnly aria-label="View ticket" variant="ghost" onPress={() => openTicket(t)}>
             <Eye className="size-4" />
           </Button>
         </div>

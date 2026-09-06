@@ -1,15 +1,16 @@
 import { useRef, useState } from "react";
 import { Button } from "@heroui/react";
-import { CheckCircle2, FileUp, Package, Upload, Users } from "lucide-react";
+import { CheckCircle2, CircleAlert, FileUp, Package, Upload, Users } from "lucide-react";
 
 import PageHeader from "@/components/PageHeader";
 import { parseCsvWithHeader, pick } from "@/lib/csv";
-import { sbFindOrCreateCustomer, sbUpsertInventoryItem } from "@/lib/supabase";
+import { sbBulkImportCustomers, sbBulkImportInventory } from "@/lib/supabase";
 
 interface ImportResult {
   total: number;
   imported: number;
   failed: number;
+  error: string | null;
 }
 
 function ImportCard({
@@ -87,74 +88,53 @@ function ImportCard({
         )}
       </div>
 
-      {result && (
-        <div className="mt-4 flex items-center gap-2 rounded-xl bg-success/10 p-3 text-sm text-success">
-          <CheckCircle2 className="size-4" />
-          Imported {result.imported} of {result.total}
-          {result.failed > 0 ? ` — ${result.failed} failed` : ""}.
-        </div>
-      )}
+      {result &&
+        (result.error ? (
+          <div className="mt-4 flex items-center gap-2 rounded-xl bg-danger/10 p-3 text-sm text-danger">
+            <CircleAlert className="size-4 shrink-0" />
+            Import failed — {result.error}. Nothing was changed.
+          </div>
+        ) : (
+          <div
+            className={`mt-4 flex items-center gap-2 rounded-xl p-3 text-sm ${
+              result.failed > 0 ? "bg-warning/10 text-warning" : "bg-success/10 text-success"
+            }`}
+          >
+            <CheckCircle2 className="size-4 shrink-0" />
+            Imported {result.imported} of {result.total}
+            {result.failed > 0 ? ` — ${result.failed} skipped (no name, or the write was rejected)` : ""}.
+          </div>
+        ))}
     </div>
   );
 }
 
 export default function Import() {
-  const importCustomers = async (rows: Record<string, string>[], onProgress: (done: number) => void): Promise<ImportResult> => {
-    let imported = 0;
-    let failed = 0;
+  const importCustomers = (rows: Record<string, string>[], onProgress: (done: number) => void) =>
+    sbBulkImportCustomers(
+      rows.map((row) => ({
+        name: pick(row, "name", "fullname", "customername"),
+        phone: pick(row, "phone", "phonenumber"),
+        email: pick(row, "email", "emailaddress"),
+        address: pick(row, "address"),
+      })),
+      onProgress,
+    ).then((r) => ({ total: rows.length, imported: r.imported, failed: r.failed, error: r.error }));
 
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      const name = pick(row, "name", "fullname", "customername");
-
-      if (name) {
-        const { data } = await sbFindOrCreateCustomer({
-          name,
-          phone: pick(row, "phone", "phonenumber"),
-          email: pick(row, "email", "emailaddress"),
-          address: pick(row, "address"),
-        });
-
-        if (data) imported++;
-        else failed++;
-      } else {
-        failed++;
-      }
-      onProgress(i + 1);
-    }
-
-    return { total: rows.length, imported, failed };
-  };
-
-  const importInventory = async (rows: Record<string, string>[], onProgress: (done: number) => void): Promise<ImportResult> => {
-    let imported = 0;
-    let failed = 0;
-
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      const name = pick(row, "name", "item", "itemname");
-
-      if (name) {
-        const { data } = await sbUpsertInventoryItem({
-          name,
-          sku: pick(row, "sku"),
-          category: pick(row, "category") || "Parts",
-          stock: Number(pick(row, "stock", "qty", "quantity")) || 0,
-          low: Number(pick(row, "low", "lowstock", "reorderlevel")) || 5,
-          cost: Number(pick(row, "cost")) || 0,
-          price: Number(pick(row, "price")) || 0,
-        });
-
-        if (data) imported++;
-        else failed++;
-      } else {
-        failed++;
-      }
-      onProgress(i + 1);
-    }
-
-    return { total: rows.length, imported, failed };
-  };
+  const importInventory = (rows: Record<string, string>[], onProgress: (done: number) => void) =>
+    sbBulkImportInventory(
+      rows.map((row) => ({
+        name: pick(row, "name", "item", "itemname"),
+        sku: pick(row, "sku"),
+        category: pick(row, "category") || "Parts",
+        model: "",
+        stock: Number(pick(row, "stock", "qty", "quantity")) || 0,
+        low: Number(pick(row, "low", "lowstock", "reorderlevel")) || 5,
+        cost: Number(pick(row, "cost")) || 0,
+        price: Number(pick(row, "price")) || 0,
+      })),
+      onProgress,
+    ).then((r) => ({ total: rows.length, imported: r.imported, failed: r.failed, error: r.error }));
 
   return (
     <div>

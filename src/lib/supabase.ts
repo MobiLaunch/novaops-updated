@@ -18,7 +18,7 @@ import type {
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./config";
-import { asArray } from "./utils";
+import { asArray, compareDateTime, toDateKey } from "./utils";
 
 // ─── Supabase client ────────────────────────────────────────────────────────
 // Priority: .env vars → localStorage (set via Settings page) → empty. Env
@@ -142,7 +142,188 @@ export async function sbFindOrCreateCustomer(
   return sbUpsertCustomer({ name: info.name, phone, email, address: info.address || "" });
 }
 
+// ─── Bulk import ────────────────────────────────────────────────────────────
+// The Import page used to call the single-row helpers in a loop: one HTTP
+// round trip per row for the write, another for the duplicate lookup, and a
+// third for the auth.getUser() inside each helper. A thousand-row CSV meant
+// thousands of sequential requests. These do the whole file in a handful:
+// the user id is resolved once, lookups and writes go out in chunks, and the
+// chunks of a batch are issued in parallel.
+
+const IMPORT_CHUNK = 200;
+
+function chunk<T>(items: T[], size: number): T[][] {
+  const out: T[][] = [];
+
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+
+  return out;
+}
+
+export interface BulkImportResult {
+  imported: number;
+  failed: number;
+  error: string | null;
+}
+
+export interface CustomerImportRow {
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+}
+
+// Same matching rule as sbFindOrCreateCustomer, applied to a whole file at
+// once: phone wins over email, a matched row only gets its *blank* fields
+// filled in, and rows that repeat a phone or email already seen earlier in
+// the same file collapse onto the first one instead of inserting twice.
+export async function sbBulkImportCustomers(
+  rows: CustomerImportRow[],
+  onProgress?: (done: number) => void,
+): Promise<BulkImportResult> {
+  const client = getClient();
+
+  if (!client) return { imported: 0, failed: rows.length, error: "Supabase not configured" };
+  const profileId = await currentUserId();
+
+  const named = rows.filter((r) => r.name.trim());
+  let failed = rows.length - named.length;
+
+  // Collapse repeats inside the file before touching the network.
+  const seen = new Set<string>();
+  const unique: CustomerImportRow[] = [];
+  // Counted as imported, not skipped: run row by row, the second copy would
+  // have found the first and returned it.
+  let collapsed = 0;
+
+  for (const row of named) {
+    const key = row.phone.trim() ? `p:${row.phone.trim()}` : row.email.trim() ? `e:${row.email.trim().toLowerCase()}` : "";
+
+    if (key && seen.has(key)) {
+      collapsed++;
+      continue;
+    }
+    if (key) seen.add(key);
+    unique.push(row);
+  }
+
+  const phones = [...new Set(unique.map((r) => r.phone.trim()).filter(Boolean))];
+  const emails = [...new Set(unique.map((r) => r.email.trim()).filter(Boolean))];
+
+  type ExistingRow = { id: number; phone: string; email: string; address: string };
+  const existing: ExistingRow[] = [];
+
+  const lookups = await Promise.all([
+    ...chunk(phones, IMPORT_CHUNK).map((c) => client.from("customers").select("id, phone, email, address").in("phone", c)),
+    ...chunk(emails, IMPORT_CHUNK).map((c) => client.from("customers").select("id, phone, email, address").in("email", c)),
+  ]);
+
+  for (const lookup of lookups) {
+    if (lookup.error) return { imported: 0, failed: rows.length, error: errMessage(lookup.error) };
+    existing.push(...((lookup.data as ExistingRow[] | null) || []));
+  }
+
+  const byPhone = new Map<string, ExistingRow>();
+  const byEmail = new Map<string, ExistingRow>();
+
+  for (const row of existing) {
+    if (row.phone && !byPhone.has(row.phone)) byPhone.set(row.phone, row);
+    if (row.email && !byEmail.has(row.email.toLowerCase())) byEmail.set(row.email.toLowerCase(), row);
+  }
+
+  const inserts: Record<string, unknown>[] = [];
+  const patches: Record<string, unknown>[] = [];
+  let matched = 0;
+
+  for (const row of unique) {
+    const phone = row.phone.trim();
+    const email = row.email.trim();
+    const hit = (phone && byPhone.get(phone)) || (email && byEmail.get(email.toLowerCase())) || null;
+
+    if (!hit) {
+      inserts.push({ name: row.name.trim(), phone, email, address: row.address.trim(), profile_id: profileId });
+      continue;
+    }
+
+    matched++;
+    // Only fill gaps — an existing record is the better source for a field
+    // it already has.
+    const patch: Record<string, unknown> = {};
+
+    if (!hit.email && email) patch.email = email;
+    if (!hit.address && row.address.trim()) patch.address = row.address.trim();
+    if (Object.keys(patch).length > 0) patches.push({ id: hit.id, profile_id: profileId, ...patch });
+  }
+
+  let imported = matched + collapsed;
+  let done = 0;
+
+  onProgress?.(0);
+
+  for (const batch of chunk(inserts, IMPORT_CHUNK)) {
+    const { error } = await client.from("customers").insert(batch);
+
+    if (error) failed += batch.length;
+    else imported += batch.length;
+    done += batch.length;
+    onProgress?.(done);
+  }
+
+  for (const batch of chunk(patches, IMPORT_CHUNK)) {
+    await client.from("customers").upsert(batch);
+  }
+
+  onProgress?.(rows.length);
+
+  return { imported, failed, error: null };
+}
+
+export type InventoryImportRow = Pick<InventoryItem, "name" | "sku" | "category" | "stock" | "low" | "cost" | "price">;
+
+// Straight inserts, matching what the page has always done — inventory has no
+// unique key on sku, so re-importing a file adds rows rather than updating
+// them.
+export async function sbBulkImportInventory(
+  rows: InventoryImportRow[],
+  onProgress?: (done: number) => void,
+): Promise<BulkImportResult> {
+  const client = getClient();
+
+  if (!client) return { imported: 0, failed: rows.length, error: "Supabase not configured" };
+  const profileId = await currentUserId();
+
+  const named = rows.filter((r) => r.name.trim());
+  let failed = rows.length - named.length;
+  let imported = 0;
+  let done = 0;
+
+  onProgress?.(0);
+
+  for (const batch of chunk(named, IMPORT_CHUNK)) {
+    const { error } = await client.from("inventory").insert(batch.map((r) => ({ ...r, profile_id: profileId })));
+
+    if (error) failed += batch.length;
+    else imported += batch.length;
+    done += batch.length;
+    onProgress?.(done);
+  }
+
+  onProgress?.(rows.length);
+
+  return { imported, failed, error: null };
+}
+
 // ─── Tickets ────────────────────────────────────────────────────────────────
+
+// Every column except `signature` and `photos`. A signature is stored as a
+// base64 data URL and photos as an array of them, so select("*") meant the
+// ticket list downloaded every image in the shop's history to render a
+// table that shows neither. They're fetched per ticket by sbFetchTicketMedia
+// when one is actually opened.
+const TICKET_LIST_COLUMNS =
+  "id, profile_id, customer_id, device, device_model, device_description, issue, status, priority, price, " +
+  "serial_number, warranty_days, warranty_start, notes, parts, payments, time_log, tracking, diagnostics, " +
+  "due_date, labels, assigned_to, public_token, created_at, updated_at";
 
 export async function sbFetchTickets(): Promise<{ data: Ticket[] | null; error: string | null }> {
   const client = getClient();
@@ -150,10 +331,21 @@ export async function sbFetchTickets(): Promise<{ data: Ticket[] | null; error: 
   if (!client) return { data: null, error: "Supabase not configured" };
   const { data, error } = await client
     .from("tickets")
-    .select("*")
+    .select(TICKET_LIST_COLUMNS)
     .order("created_at", { ascending: false });
 
-  return { data: data as Ticket[] | null, error: error ? errMessage(error) : null };
+  return { data: data as unknown as Ticket[] | null, error: error ? errMessage(error) : null };
+}
+
+// The two columns sbFetchTickets leaves out, for the ticket detail view.
+export async function sbFetchTicketMedia(id: number): Promise<{ signature: string | null; photos: string[] }> {
+  const client = getClient();
+
+  if (!client) return { signature: null, photos: [] };
+  const { data } = await client.from("tickets").select("signature, photos").eq("id", id).maybeSingle();
+  const row = data as { signature: string | null; photos: unknown } | null;
+
+  return { signature: row?.signature ?? null, photos: asArray<string>(row?.photos) };
 }
 
 export async function sbCreateTicket(
@@ -740,6 +932,162 @@ export async function sbFetchWebsiteOrders(): Promise<{ data: WebsiteOrder[] | n
 // columns (`stock <= low`) in a filter, so it reads just those two integers
 // per item and counts client-side, which is still a fraction of a full
 // inventory row with its text and timestamps.
+
+// ─── Dashboard summary ──────────────────────────────────────────────────────
+// The dashboard used to pull eight whole tables with select("*") and derive
+// everything client-side, which meant shipping every ticket's signature data
+// URL and every message body just to render a handful of counts. Each figure
+// is now asked for directly: counts come back as head requests with no rows
+// at all, and the two lists are date-filtered and limited server-side.
+//
+// Inventory is the one exception — PostgREST can't compare two columns in a
+// filter (stock <= low), so the two numbers still come back per row.
+
+export interface DashboardTicket {
+  id: number;
+  device: string;
+  device_model: string;
+  issue: string;
+  status: string;
+  updated_at: string;
+  customer_name: string;
+}
+
+export interface DashboardEntry {
+  key: string;
+  kind: "appointment" | "house_call" | "booking";
+  title: string;
+  date: string;
+  time: string;
+}
+
+export interface DashboardSummary {
+  openTickets: number;
+  activeValue: number;
+  customers: number;
+  inventoryCount: number;
+  lowStock: number;
+  pendingBookings: number;
+  unreadMail: number;
+  unreadChats: number;
+  recentTickets: DashboardTicket[];
+  schedule: DashboardEntry[];
+}
+
+const EMPTY_DASHBOARD: DashboardSummary = {
+  openTickets: 0,
+  activeValue: 0,
+  customers: 0,
+  inventoryCount: 0,
+  lowStock: 0,
+  pendingBookings: 0,
+  unreadMail: 0,
+  unreadChats: 0,
+  recentTickets: [],
+  schedule: [],
+};
+
+// A few more upcoming rows than the six the panel shows, so the client-side
+// merge of the three sources still has candidates to choose from.
+const SCHEDULE_FETCH_LIMIT = 12;
+
+export async function sbFetchDashboard(): Promise<DashboardSummary> {
+  const client = getClient();
+
+  if (!client) return EMPTY_DASHBOARD;
+
+  const today = toDateKey(new Date());
+
+  const [open, recent, customers, inventory, pending, mail, chats, appts, calls, upcomingBookings] = await Promise.all([
+    // Only the price column: enough for both the open count and their value.
+    client.from("tickets").select("price").not("status", "in", "(Completed,Delivered)"),
+    client
+      .from("tickets")
+      .select("id, device, device_model, issue, status, updated_at, customers(name)")
+      .order("updated_at", { ascending: false })
+      .limit(6),
+    client.from("customers").select("id", { count: "exact", head: true }),
+    client.from("inventory").select("stock, low"),
+    client.from("bookings").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    client.from("messages").select("id", { count: "exact", head: true }).eq("direction", "inbound").eq("read", false),
+    client.from("customer_messages").select("id", { count: "exact", head: true }).eq("direction", "inbound").eq("read", false),
+    client.from("appointments").select("id, title, date, time").gte("date", today).order("date").limit(SCHEDULE_FETCH_LIMIT),
+    client.from("house_calls").select("id, description, date, time").gte("date", today).order("date").limit(SCHEDULE_FETCH_LIMIT),
+    client
+      .from("bookings")
+      .select("id, customer_name, service, device_type, appt_date, appt_time")
+      .eq("status", "pending")
+      .gte("appt_date", today)
+      .order("appt_date")
+      .limit(SCHEDULE_FETCH_LIMIT),
+  ]);
+
+  const openRows = (open.data as { price: number | string }[] | null) || [];
+  const inventoryRows = (inventory.data as { stock: number; low: number }[] | null) || [];
+
+  // The embedded customer arrives as an object, or as a one-element array on
+  // older PostgREST versions; either way there is at most one.
+  type RecentRow = Omit<DashboardTicket, "customer_name"> & {
+    customers: { name: string } | { name: string }[] | null;
+  };
+
+  const recentTickets = ((recent.data as RecentRow[] | null) || []).map((row) => {
+    const joined = Array.isArray(row.customers) ? row.customers[0] : row.customers;
+
+    return {
+      id: row.id,
+      device: row.device,
+      device_model: row.device_model,
+      issue: row.issue,
+      status: row.status,
+      updated_at: row.updated_at,
+      customer_name: joined?.name || "",
+    };
+  });
+
+  const apptRows = (appts.data as { id: number; title: string; date: string; time: string }[] | null) || [];
+  const callRows = (calls.data as { id: number; description: string; date: string; time: string }[] | null) || [];
+  const bookingRows = (upcomingBookings.data as BookingRecord[] | null) || [];
+
+  const schedule: DashboardEntry[] = [
+    ...apptRows.map((a) => ({
+      key: `apt-${a.id}`,
+      kind: "appointment" as const,
+      title: a.title || "Appointment",
+      date: a.date || "",
+      time: a.time || "",
+    })),
+    ...callRows.map((h) => ({
+      key: `hc-${h.id}`,
+      kind: "house_call" as const,
+      title: h.description || "House call",
+      date: h.date || "",
+      time: h.time || "",
+    })),
+    ...bookingRows.map((b) => ({
+      key: `bk-${b.id}`,
+      kind: "booking" as const,
+      title: `${b.customer_name} — ${b.service || b.device_type}`,
+      date: b.appt_date || "",
+      time: b.appt_time || "",
+    })),
+  ]
+    .sort(compareDateTime)
+    .slice(0, 6);
+
+  return {
+    openTickets: openRows.length,
+    activeValue: openRows.reduce((sum, t) => sum + Number(t.price || 0), 0),
+    customers: customers.count || 0,
+    inventoryCount: inventoryRows.length,
+    lowStock: inventoryRows.filter((i) => Number(i.stock) <= Number(i.low)).length,
+    pendingBookings: pending.count || 0,
+    unreadMail: mail.count || 0,
+    unreadChats: chats.count || 0,
+    recentTickets,
+    schedule,
+  };
+}
 
 export interface NotificationCounts {
   pendingBookings: number;

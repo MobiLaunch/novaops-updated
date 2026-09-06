@@ -35,6 +35,39 @@ export function parseDateOnly(value: string | null | undefined): Date | null {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
+// Schedule times are stored as free text, so a row can hold either the 24h
+// value a time input produces or an older "2:00 PM". Normalising both to
+// HH:MM lets them sort against each other and load into a time input.
+export function to24h(value: string | null | undefined): string | null {
+  const match = /^(\d{1,2}):(\d{2})\s*([AaPp][Mm])?$/.exec((value || "").trim());
+
+  if (!match) return null;
+  let hours = Number(match[1]);
+
+  if (match[3]) hours = (hours % 12) + (match[3].toLowerCase() === "pm" ? 12 : 0);
+  if (hours > 23) return null;
+
+  return `${String(hours).padStart(2, "0")}:${match[2]}`;
+}
+
+// Blank and unparseable times sort last, so an all-day entry doesn't jump
+// above a 9am one. Compare the keys with < / >, not localeCompare, which
+// orders punctuation ahead of digits.
+export function timeSortKey(value: string | null | undefined): string {
+  return to24h(value) ?? "99:99";
+}
+
+// Chronological order for a list of date-and-time entries, both stored as
+// text. Dates are ISO so they compare directly; times go through the key
+// above.
+export function compareDateTime(a: { date: string; time: string }, b: { date: string; time: string }): number {
+  if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+  const ka = timeSortKey(a.time);
+  const kb = timeSortKey(b.time);
+
+  return ka === kb ? 0 : ka < kb ? -1 : 1;
+}
+
 export function startOfToday(): Date {
   const d = new Date();
 
@@ -46,6 +79,12 @@ export function startOfToday(): Date {
 // Lets a text input stay instant while the expensive consumer (re-filtering
 // a table, which rebuilds its whole row collection) runs once the typing
 // pauses instead of on every keystroke.
+// Local-calendar YYYY-MM-DD for a Date — toISOString() would shift the day
+// for anyone east or west of UTC at the edges of the day.
+export function toDateKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export function useDebounced<T>(value: T, delayMs = 200): T {
   const [debounced, setDebounced] = useState(value);
 
