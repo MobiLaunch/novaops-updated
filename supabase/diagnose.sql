@@ -64,8 +64,11 @@ begin
       owner := 'unknown / leftover';
     end if;
 
-    select n_live_tup into n from pg_stat_user_tables
-      where schemaname='public' and relname=r.relname;
+    -- Counted, not estimated. pg_stat_user_tables.n_live_tup is a statistic
+    -- that can be stale or reset to zero (a restore, a stats reset, a table
+    -- autovacuum has not reached), which made a table holding 1859 rows read
+    -- as empty here.
+    execute format('select count(*) from public.%I', r.relname) into n;
 
     -- The same checks schema.sql's preflight runs, so the two agree on what
     -- counts as a conflict.
@@ -82,11 +85,36 @@ begin
     end if;
 
     insert into _novaops_diag values ('1', '1. tables', r.relname, format(
-      'owner=%s | pk=(%s %s) | rls=%s | policies=%s | ~%s rows%s',
+      'owner=%s | pk=(%s %s) | rls=%s | policies=%s | %s rows%s',
       owner, coalesce(pkcols,'none'), coalesce(pktypes,''),
       case when r.relrowsecurity then 'on' else 'OFF' end,
       (select count(*) from pg_policies p where p.schemaname='public' and p.tablename=r.relname),
-      coalesce(n, 0), warn));
+      n, warn));
+  end loop;
+
+  ---------------------------------------------------------------------------
+  -- 1b. What is actually in the tables neither app reads, so a decision about
+  --     them can be made from their shape rather than their name.
+  ---------------------------------------------------------------------------
+  for r in
+    select c.relname
+    from pg_class c
+    join pg_namespace nsp on nsp.oid = c.relnamespace
+    where nsp.nspname = 'public' and c.relkind = 'r'
+      and c.relname not in ('customers','tickets','inventory','appointments','house_calls',
+            'messages','customer_messages','trade_ins','pos_sales','shipments','technicians',
+            'shop_settings','social_connections','staff_users','categories','products',
+            'orders','order_items','bookings','site_settings','profiles')
+    order by c.relname
+  loop
+    execute format('select count(*) from public.%I', r.relname) into n;
+    if n > 0 then
+      insert into _novaops_diag values ('1b', '1b. unread tables with data', r.relname,
+        format('%s rows | %s', n,
+          (select string_agg(column_name, ', ' order by ordinal_position)
+             from information_schema.columns
+            where table_schema='public' and table_name=r.relname)));
+    end if;
   end loop;
 
   ---------------------------------------------------------------------------

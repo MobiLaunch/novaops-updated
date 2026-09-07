@@ -5,12 +5,15 @@
 --  separate so that running the schema can never cost you data, and this one
 --  is read before it is run.
 --
---  Everything here refuses to touch a table that has rows in it. If a section
---  raises, nothing in the whole file has been applied — read what it says.
+--  Nothing here touches a table that has rows in it. Tables with data are
+--  reported and left exactly as they are; only provably empty ones go.
 --
---  Run this only when schema.sql's preflight tells you to, then run
---  schema.sql. Run supabase/diagnose.sql first if you want to see the counts
---  for yourself.
+--  Note that the Supabase SQL editor runs a whole file as one transaction, so
+--  a section that raises undoes the sections before it. That is why section B
+--  reports rather than raises: a tidy-up must never cost you the fix in A.
+--
+--  Run this when schema.sql's preflight tells you to, then run schema.sql.
+--  Run supabase/diagnose.sql first if you want the counts for yourself.
 -- ============================================================================
 
 
@@ -57,14 +60,17 @@ $$;
 
 
 -- ────────────────────────────────────────────────────────────────────────────
--- B. Retire tables no code reads
+-- B. Retire tables no code reads — but only the ones that are empty
 --
---    Left behind by earlier versions of this app and by the old Nuxt build.
---    Nothing in NovaOps or the website reads or writes any of them — checked
---    against every `.from(...)` call in both repos.
+--    These were left behind by earlier versions of this app and by the old
+--    Nuxt build. Nothing in NovaOps or the website reads or writes any of
+--    them; that was checked against every `.from(...)` call in both repos.
 --
---    Each one is dropped only if it is empty. Any that still holds rows stops
---    the whole file, names itself, and is left alone.
+--    An empty one is dropped. One with rows in it is NOT touched and NOT
+--    treated as an error — it is reported at the end with its row count and
+--    the exact statement to drop it, so the decision stays yours. An earlier
+--    version of this file raised instead, which rolled back section A along
+--    with it; a tidy-up must never cost you the fix above.
 -- ────────────────────────────────────────────────────────────────────────────
 
 do $$
@@ -79,32 +85,32 @@ declare
     'social_interactions','social_posts','social_sync_log','square_config',
     'vendor_repairs','website_settings'];
 begin
-  -- First pass: look, don't touch. If anything has rows, nothing is dropped.
   foreach t in array dead loop
     if to_regclass('public.' || t) is null then continue; end if;
+
+    -- Counted, not estimated: pg_stat_user_tables.n_live_tup can be stale or
+    -- reset to zero, which is how a table holding 1859 rows read as empty in
+    -- the diagnostic.
     execute format('select count(*) from public.%I', t) into n;
-    if n > 0 then
+
+    if n = 0 then
+      execute format('drop table public.%I cascade', t);
+      dropped := dropped || t;
+    else
       kept := kept || format('%s (%s rows)', t, n);
     end if;
-  end loop;
-
-  if array_length(kept, 1) > 0 then
-    raise exception E'These tables still hold data, so nothing was dropped:\n\n  * %\n\nNothing in either app reads them, but that is a judgement about code, not about what the rows are worth. Check them, empty the ones you do not want, and re-run.',
-      array_to_string(kept, E'\n  * ');
-  end if;
-
-  -- Second pass: all empty, so drop them.
-  foreach t in array dead loop
-    if to_regclass('public.' || t) is null then continue; end if;
-    execute format('drop table public.%I cascade', t);
-    dropped := dropped || t;
   end loop;
 
   if array_length(dropped, 1) > 0 then
     raise notice 'B: dropped % empty unused table(s): %',
       array_length(dropped, 1), array_to_string(dropped, ', ');
   else
-    raise notice 'B: nothing to drop.';
+    raise notice 'B: no empty unused tables to drop.';
+  end if;
+
+  if array_length(kept, 1) > 0 then
+    raise notice E'B: LEFT ALONE, because they hold data:\n      %\n    Nothing in either app reads them, but that is a judgement about code, not about what the rows are worth. Look at them first — supabase/diagnose.sql lists their columns alongside the counts. Some are worth keeping: `services` is a price list and `devices` is a device catalogue. To drop one once you are sure:\n      drop table public.<name> cascade;',
+      array_to_string(kept, E'\n      ');
   end if;
 end;
 $$;

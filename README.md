@@ -405,9 +405,17 @@ lists when it's missing.
 `supabase/repair.sql` is the only file here that drops anything, which is
 why it is a separate file: running the schema can never cost you data.
 It rebuilds a NovaOps table an old migration gave the wrong key type, and
-retires the tables no code in either repo reads. Every section refuses to
-touch a table that has rows in it — if one does, nothing in the file is
-applied and it tells you which.
+retires the tables no code in either repo reads — but only the ones that are
+provably empty. Any that holds rows is reported with its count and left
+exactly as it is.
+
+That distinction matters because the Supabase SQL editor runs a file as one
+transaction: a section that raises undoes the sections before it. A tidy-up
+must never cost you the fix that came first.
+
+Row counts in `diagnose.sql` are counted, not read from
+`pg_stat_user_tables` — that statistic can be stale or reset to zero, which
+is how a table holding 1859 rows once read as empty.
 
 ### Policies are additive, so the schema owns them
 
