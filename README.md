@@ -355,12 +355,52 @@ about which tables it may create:
 | --- | --- |
 | **NovaOps** (this repo, created by `schema.sql`) | `customers`, `tickets`, `inventory`, `appointments`, `house_calls`, `messages`, `customer_messages`, `trade_ins`, `pos_sales`, `shipments`, `technicians`, `shop_settings`, `social_connections` |
 | **mobicare-business** (that repo's `src/admin/schemaSql.ts`, applied from its admin Settings) | `staff_users`, `categories`, `products`, `orders`, `order_items`, `bookings`, `site_settings` |
-| **Neither** — predates both, only ever altered | `profiles` |
+| **Both** — shared, and created by `schema.sql` because neither app was creating it | `profiles` |
 
-`schema.sql` never creates a website-owned table. It adds exactly two
-columns to them (`bookings.novaops_ticket_id`, `profiles.supplier_emails`)
-and otherwise just reads. Creating them here would fight the website's own
-definition and its RLS policies.
+`schema.sql` never creates a website-owned table. It adds exactly one column
+to them (`bookings.novaops_ticket_id`) and otherwise just reads. Creating
+them here would fight the website's own definition and its RLS policies.
+
+`profiles` is the exception in the other direction. Both apps read and write
+it — the website for the customer's own name and phone, NovaOps for the
+shop's trusted supplier addresses — and both only ever touch the row whose
+id is their own auth user. Nothing was inserting that row, so NovaOps's
+supplier-email save had no row to update and silently reported success.
+`schema.sql` now creates the table, and installs the signup trigger that
+gives every auth user a row (backfilling the ones already signed up).
+
+Either apply order works. The website's schema drops and recreates every
+policy on its own seven tables, which never touches NovaOps's; NovaOps's
+`bookings` column and index are skipped with a notice if that table doesn't
+exist yet, so re-run it afterwards.
+
+### Permissions, both halves in one picture
+
+| Tables | Who can see what |
+| --- | --- |
+| NovaOps's thirteen | RLS on, one policy: `profile_id = auth.uid()`. One shop account, one shop's rows. |
+| `customer_messages` | The exception — additionally, a signed-in website customer may read their own thread and post to it, inbound only. Replying as the shop stays with the shop. |
+| `profiles` | RLS on, self only: `id = auth.uid()`, reads and writes. |
+| Website's seven | RLS owned by the website: public read for the catalogue, `public.is_admin()` for everything else. `is_admin()` checks the `staff_users` allowlist. |
+
+That last row is the cross-app dependency: NovaOps's Bookings page and the
+website half of Accounting read through the website's RLS, so they return
+nothing at all until the shop's auth user is on that allowlist. Section 7 of
+`schema.sql` ships `novaops_grant_staff()` to put it there.
+
+### If it refuses to run
+
+`schema.sql` opens with a preflight that reads the catalogs and stops before
+changing anything if a table it manages already exists under the same name
+with a different shape — no `profile_id uuid`, a primary key its foreign
+keys can't point at, or a `shop_settings` key that would make every settings
+save insert a new row. It names every conflict at once instead of failing
+partway through on a type error.
+
+`supabase/diagnose.sql` explains what it found. It changes nothing, reports
+on both apps' tables and policies in one result, and flags the same
+conflicts the preflight does plus the wiring that silently returns empty
+lists when it's missing.
 
 ### Why it can't drift again
 
@@ -400,9 +440,7 @@ signed-in user exactly as on the underlying tables.
 Add your NovaOps sign-in account to the website's `staff_users` allowlist:
 
 ```sql
-insert into public.staff_users (user_id, role)
-values ('YOUR-AUTH-USER-UUID', 'admin')
-on conflict (user_id) do update set enabled = true;
+select public.novaops_grant_staff('you@yourshop.com');
 ```
 
 That allowlist is what the website's RLS checks before letting anyone read

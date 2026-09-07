@@ -19,7 +19,35 @@
 --    rest. Creating them here would fight the website's definition and its
 --    RLS policies.
 --
---  NEITHER app creates `profiles`. It predates both and is only ever altered.
+--  SHARED, and created here because neither app was creating it:
+--      profiles
+--    Both apps read and write it — the website for the customer's own name
+--    and phone, NovaOps for the shop's trusted supplier addresses — and both
+--    only ever touch the row whose id is their own auth user. Nothing was
+--    inserting that row, so NovaOps's supplier-email save had nothing to
+--    update and silently did nothing. Section 7 installs the signup trigger
+--    that creates it.
+--
+--  APPLY ORDER — website schema first, then this file. The website's schema
+--  drops every policy on its own seven tables before recreating them, so
+--  running it second is fine for NovaOps (it never touches these tables) but
+--  section 6 below needs `bookings` to already exist.
+--
+--  PERMISSIONS, both halves in one picture:
+--
+--    NovaOps tables      RLS on, one policy: profile_id = auth.uid().
+--                        One shop account sees one shop's rows.
+--    customer_messages   the exception — additionally, a signed-in website
+--                        customer may read their own thread and post to it,
+--                        inbound only.
+--    profiles            RLS on, self only: id = auth.uid(), both directions.
+--    Website tables      RLS owned by the website: public read for the
+--                        catalogue, `public.is_admin()` for everything else.
+--                        is_admin() checks the `staff_users` allowlist, so
+--                        NovaOps's Bookings page and the website half of
+--                        Accounting only work once the shop's auth user is in
+--                        staff_users. Section 7 ships a helper that puts it
+--                        there by email.
 --
 --  HOW THIS FILE AVOIDS THE FAILURE IT REPLACES
 --
@@ -33,6 +61,106 @@
 --  Adding a column later? Add one `add column if not exists` line in the
 --  right section. Never put it in a create block.
 -- ============================================================================
+
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- 0. Preflight — refuse to run against a database this file would damage
+--
+--    Everything below is safe to re-run, but "safe" assumes the tables it
+--    manages are actually NovaOps's. If a table with one of these names
+--    already exists and belongs to something else, the `add column`
+--    statements would bolt NovaOps columns onto a stranger's table and the
+--    foreign keys would fail partway through with a type error that says
+--    nothing about the real problem.
+--
+--    So: check every assumption first, collect every violation, and stop
+--    before touching anything. This block only reads catalogs. If it raises,
+--    your database is exactly as it was.
+-- ────────────────────────────────────────────────────────────────────────────
+
+do $$
+declare
+  t        text;
+  pkcols   text;
+  pktypes  text;
+  problems text[] := '{}';
+  owned    text[] := array[
+              'customers','tickets','inventory','appointments','house_calls',
+              'messages','customer_messages','trade_ins','pos_sales','shipments',
+              'technicians','shop_settings','social_connections'];
+  -- Tables that other rows point at with a bigint foreign key. Their id has
+  -- to be a bigint for those constraints to be creatable at all.
+  fk_targets text[] := array['customers','tickets','messages','appointments','technicians'];
+begin
+  -- (a) Every NovaOps table carries `profile_id uuid`. That column is what
+  --     each row-level-security policy in section 8 keys on, so a table of
+  --     the same name without one is somebody else's.
+  foreach t in array owned loop
+    if to_regclass('public.' || t) is null then continue; end if;
+    if not exists (
+      select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = t
+        and column_name = 'profile_id' and data_type = 'uuid'
+    ) then
+      problems := problems || format(
+        'public.%s exists but has no "profile_id uuid" column, so it is not NovaOps''s table.', t);
+    end if;
+  end loop;
+
+  -- (b) Foreign-key targets need a single bigint id.
+  foreach t in array fk_targets loop
+    if to_regclass('public.' || t) is null then continue; end if;
+    select string_agg(a.attname, ', ' order by k.ord),
+           string_agg(format_type(a.atttypid, a.atttypmod), ', ' order by k.ord)
+      into pkcols, pktypes
+      from pg_index i
+      cross join lateral unnest(i.indkey) with ordinality as k(attnum, ord)
+      join pg_attribute a on a.attrelid = i.indrelid and a.attnum = k.attnum
+     where i.indrelid = ('public.' || t)::regclass and i.indisprimary;
+
+    if pkcols is null then
+      problems := problems || format('public.%s exists but has no primary key.', t);
+    elsif pkcols <> 'id' or pktypes not in ('bigint', 'integer') then
+      problems := problems || format(
+        'public.%s has primary key (%s %s); NovaOps points bigint foreign keys at its id.',
+        t, pkcols, pktypes);
+    end if;
+  end loop;
+
+  -- (c) Shop settings are upserted on the profile id with no explicit
+  --     conflict target, which resolves to the primary key. If that is not
+  --     profile_id, every save inserts another row instead of updating one.
+  if to_regclass('public.shop_settings') is not null then
+    select string_agg(a.attname, ', ' order by k.ord) into pkcols
+      from pg_index i
+      cross join lateral unnest(i.indkey) with ordinality as k(attnum, ord)
+      join pg_attribute a on a.attrelid = i.indrelid and a.attnum = k.attnum
+     where i.indrelid = 'public.shop_settings'::regclass and i.indisprimary;
+    if pkcols is distinct from 'profile_id' then
+      problems := problems || format(
+        'public.shop_settings has primary key (%s); NovaOps upserts settings on profile_id.',
+        coalesce(pkcols, 'none'));
+    end if;
+  end if;
+
+  -- (d) profiles is shared. Its id must be the auth user id.
+  if to_regclass('public.profiles') is not null then
+    if not exists (
+      select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = 'profiles'
+        and column_name = 'id' and data_type = 'uuid'
+    ) then
+      problems := problems ||
+        'public.profiles exists but has no "id uuid" column; both apps look their row up by auth user id.';
+    end if;
+  end if;
+
+  if array_length(problems, 1) > 0 then
+    raise exception E'NovaOps schema not applied — this database has % conflict(s):\n\n  * %\n\nNothing was changed. Run supabase/diagnose.sql for the full picture. Each of these is a table that already exists under a name NovaOps needs but with a different shape, so it belongs to something else. Rename or drop it (after checking its contents), then re-run this file.',
+      array_length(problems, 1), array_to_string(problems, E'\n  * ');
+  end if;
+end;
+$$;
 
 
 -- ────────────────────────────────────────────────────────────────────────────
@@ -69,6 +197,26 @@ $$;
 -- 2. NovaOps tables
 --    Identity only in the create; everything else added below it.
 -- ────────────────────────────────────────────────────────────────────────────
+
+-- ─── profiles (shared with the website; one row per auth user) ─────────────
+-- Not a NovaOps table and not a website table: both read and write the row
+-- belonging to the signed-in user and nothing else. It is created here only
+-- because it was being created nowhere, which left NovaOps's supplier-email
+-- setting updating zero rows and reporting success.
+create table if not exists public.profiles (
+  id         uuid        primary key references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.profiles
+  -- Read and written by the website's account page.
+  add column if not exists full_name       text not null default '',
+  add column if not exists phone           text not null default '',
+  -- Read by NovaOps and by api/fetch-emails.js: the addresses whose mail the
+  -- parts-shipment parser is allowed to trust.
+  add column if not exists supplier_emails text[] not null
+    default array['konok@mobilesentrix.com', 'support@injuredgadgets.com'];
 
 -- ─── customers ──────────────────────────────────────────────────────────────
 create table if not exists public.customers (
@@ -375,7 +523,7 @@ select public.novaops_touch_trigger(t) from (values
   ('public.customers'::regclass), ('public.tickets'), ('public.inventory'),
   ('public.appointments'), ('public.house_calls'), ('public.messages'),
   ('public.trade_ins'), ('public.shipments'), ('public.shop_settings'),
-  ('public.social_connections')
+  ('public.social_connections'), ('public.profiles')
 ) as v(t);
 
 
@@ -546,13 +694,31 @@ group by profile_id, customer_email;
 alter table if exists public.bookings
   add column if not exists novaops_ticket_id bigint references public.tickets(id) on delete set null;
 
-create index if not exists bookings_novaops_ticket_id_idx
-  on public.bookings (novaops_ticket_id);
+-- `create index` has no `if exists` for the table it indexes, so this has to
+-- be guarded — otherwise applying NovaOps before the website's schema fails
+-- here, after everything above it has already been created.
+do $$
+begin
+  if to_regclass('public.bookings') is not null then
+    create index if not exists bookings_novaops_ticket_id_idx
+      on public.bookings (novaops_ticket_id);
+  end if;
+end;
+$$;
 
--- Supplier addresses the parts-shipment parser treats as trusted senders.
-alter table if exists public.profiles
-  add column if not exists supplier_emails text[] not null
-    default array['konok@mobilesentrix.com', 'support@injuredgadgets.com'];
+-- If the website's schema has not been applied yet, the ALTER above was
+-- skipped silently and NovaOps's Bookings page will read as empty. Say so
+-- rather than letting it look like there are no bookings.
+do $$
+begin
+  if to_regclass('public.bookings') is null then
+    raise notice 'public.bookings does not exist yet. Apply the mobicare-business schema (its Admin -> Settings page), then re-run this file so Bookings can link to tickets.';
+  end if;
+  if to_regclass('public.staff_users') is null then
+    raise notice 'public.staff_users does not exist yet. Until it does, the customer chat cannot resolve which shop a website message belongs to, and NovaOps cannot read bookings or orders.';
+  end if;
+end;
+$$;
 
 
 -- ────────────────────────────────────────────────────────────────────────────
@@ -587,6 +753,80 @@ create trigger customer_messages_fill_profile_id
   for each row execute function public.customer_messages_fill_profile_id();
 
 
+-- Give every new auth user a profiles row. Both apps update that row and
+-- neither creates it, so without this an update matches nothing and returns
+-- success — which is how NovaOps's supplier-email setting appeared to save
+-- and never did.
+--
+-- Deliberately cannot fail a signup: if anything here raises, the warning is
+-- logged and the user is still created. A missing profile is recoverable; a
+-- broken sign-up page is not. (An earlier setup script installed a trigger of
+-- its own that did not take that care — see the end of this file.)
+create or replace function public.novaops_handle_new_user()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  begin
+    insert into public.profiles (id, full_name, phone)
+    values (
+      new.id,
+      coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', ''),
+      coalesce(new.raw_user_meta_data->>'phone', '')
+    )
+    on conflict (id) do nothing;
+  exception when others then
+    raise warning 'novaops_handle_new_user: could not create profile for %: %', new.id, sqlerrm;
+  end;
+  return new;
+end;
+$$;
+
+drop trigger if exists novaops_on_auth_user_created on auth.users;
+create trigger novaops_on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.novaops_handle_new_user();
+
+-- Backfill the users who signed up before that trigger existed.
+insert into public.profiles (id)
+select u.id from auth.users u
+left join public.profiles p on p.id = u.id
+where p.id is null;
+
+
+-- The website gates `bookings`, `orders`, `order_items` and every write to
+-- its catalogue on public.is_admin(), which checks its `staff_users`
+-- allowlist. NovaOps reads those tables as an admin, and the chat trigger
+-- above resolves the shop from the same allowlist, so the shop's auth user
+-- has to be in it. Nothing can add itself — the table is revoked from
+-- `authenticated` on purpose — so run this once from the SQL editor:
+--
+--     select public.novaops_grant_staff('you@yourshop.com');
+--
+create or replace function public.novaops_grant_staff(user_email text, staff_role text default 'admin')
+returns uuid language plpgsql security definer set search_path = public, auth as $$
+declare uid uuid;
+begin
+  if to_regclass('public.staff_users') is null then
+    raise exception 'public.staff_users does not exist. Apply the mobicare-business schema first.';
+  end if;
+
+  select id into uid from auth.users where lower(email) = lower(trim(user_email));
+  if uid is null then
+    raise exception 'No Supabase Auth user with the email %. Sign up first, then run this.', user_email;
+  end if;
+
+  insert into public.staff_users (user_id, role)
+  values (uid, staff_role)
+  on conflict (user_id) do update set enabled = true, role = excluded.role;
+
+  return uid;
+end;
+$$;
+
+-- Callable from the SQL editor only. Leaving it executable by signed-in
+-- browser sessions would make the allowlist self-service.
+revoke all on function public.novaops_grant_staff(text, text) from public, anon, authenticated;
+
+
 -- ────────────────────────────────────────────────────────────────────────────
 -- 8. Row-level security
 --    Every NovaOps table is scoped to the signed-in shop account, with one
@@ -609,6 +849,24 @@ begin
   end loop;
 end;
 $$;
+
+-- profiles is shared with the website, and neither app has any business
+-- reading another user's row: both look theirs up by auth user id. Note that
+-- policies combine additively, so this grants self-access and cannot narrow
+-- whatever the website may add later.
+alter table public.profiles enable row level security;
+
+drop policy if exists profiles_self_select on public.profiles;
+create policy profiles_self_select on public.profiles
+  for select using (id = auth.uid());
+
+drop policy if exists profiles_self_update on public.profiles;
+create policy profiles_self_update on public.profiles
+  for update using (id = auth.uid()) with check (id = auth.uid());
+
+drop policy if exists profiles_self_insert on public.profiles;
+create policy profiles_self_insert on public.profiles
+  for insert with check (id = auth.uid());
 
 -- The chat is the one shared table: a signed-in website customer may read
 -- their own thread and post to it, but only ever as an inbound message —
@@ -643,20 +901,20 @@ $$;
 --  1. Sign in to NovaOps with any Supabase Auth user on this project. Every
 --     row you create is scoped to that account.
 --
---  2. For the website integration to work, that same user must be in the
---     website's `staff_users` table — that is what its RLS checks before
---     letting anyone read `bookings` and `orders`, and what the chat trigger
---     above reads. From the SQL editor:
---        insert into public.staff_users (user_id, role)
---        values ('YOUR-AUTH-USER-UUID', 'admin')
---        on conflict (user_id) do update set enabled = true;
+--  2. Put that same user on the website's staff allowlist. Its RLS checks
+--     `staff_users` before letting anyone read `bookings` or `orders`, and
+--     the chat trigger resolves the shop from the same table. One line in
+--     the SQL editor:
+--        select public.novaops_grant_staff('you@yourshop.com');
 --     Without it, Bookings and the website half of Accounting read as empty
 --     rather than erroring, and customer chat inserts fail.
 --
---  3. If the website's tables do not exist yet, apply its schema from the
---     mobicare-business repo (Admin → Settings → copy the schema SQL). The
---     `bookings` column added in section 6 needs that table to exist; while
---     it does not, that ALTER is skipped silently and Bookings stays empty.
+--  3. If the website's tables do not exist yet, apply its schema FIRST, from
+--     the mobicare-business repo (Admin → Settings → copy the schema SQL),
+--     then run this file. Section 6 needs `bookings` to exist; while it does
+--     not, that ALTER is skipped and Bookings stays empty. Running the
+--     website's schema afterwards is also fine — it only drops and recreates
+--     policies on its own seven tables and never touches NovaOps's.
 --
 --  4. Shop details, tax rate, business hours, receipt footer and canned
 --     replies all live in `shop_settings` and are edited in Settings.
@@ -690,12 +948,18 @@ $$;
 --  Also worth checking: earlier setup scripts installed a trigger on
 --  auth.users named `on_auth_user_created` that writes to `profiles`. If it
 --  references columns your `profiles` table does not have, every new signup
---  fails — on the website as well as here. To see it:
+--  fails — on the website as well as here, because a raising AFTER INSERT
+--  trigger aborts the whole signup. To see what is on that table:
 --
 --    select tgname from pg_trigger t
 --    join pg_class c on c.oid = t.tgrelid
 --    join pg_namespace n on n.oid = c.relnamespace
 --    where n.nspname = 'auth' and not t.tgisinternal;
 --
---  This schema installs no triggers on auth.users.
+--  This file installs exactly one, `novaops_on_auth_user_created`, and it
+--  swallows its own errors so it can never do that. If the old one is still
+--  listed, it is redundant now and is the likelier cause of any signup
+--  failure:
+--
+--    drop trigger if exists on_auth_user_created on auth.users;
 -- ============================================================================
