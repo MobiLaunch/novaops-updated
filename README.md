@@ -402,6 +402,26 @@ on both apps' tables and policies in one result, and flags the same
 conflicts the preflight does plus the wiring that silently returns empty
 lists when it's missing.
 
+`supabase/repair.sql` is the only file here that drops anything, which is
+why it is a separate file: running the schema can never cost you data.
+It rebuilds a NovaOps table an old migration gave the wrong key type, and
+retires the tables no code in either repo reads. Every section refuses to
+touch a table that has rows in it — if one does, nothing in the file is
+applied and it tells you which.
+
+### Policies are additive, so the schema owns them
+
+A permissive policy left by an old migration cannot be narrowed by adding a
+correct one beside it: while `using (true)` is attached, the table stays
+readable by whoever that policy covers. So `schema.sql` drops *every* policy
+on the tables it owns and puts back exactly one. Projects that accumulated
+five near-identical policies per table from five migrations end up with one,
+and a stray `Anon lookup ticket by number` stops exposing the ticket list.
+(Nothing needs it: `api/track-ticket.js` reads with the service role.)
+
+`profiles` gets the same treatment. The website's schema creates no policy
+there, so NovaOps owning them removes nothing the website needs.
+
 ### Why it can't drift again
 
 Every table is created with only its identity columns, and every other

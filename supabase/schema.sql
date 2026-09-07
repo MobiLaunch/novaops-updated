@@ -83,6 +83,7 @@ declare
   t        text;
   pkcols   text;
   pktypes  text;
+  n        bigint;
   problems text[] := '{}';
   owned    text[] := array[
               'customers','tickets','inventory','appointments','house_calls',
@@ -121,9 +122,16 @@ begin
     if pkcols is null then
       problems := problems || format('public.%s exists but has no primary key.', t);
     elsif pkcols <> 'id' or pktypes not in ('bigint', 'integer') then
+      -- An old migration built this with the wrong key type. If it is empty,
+      -- supabase/repair.sql rebuilds it; if it has rows, that is a data
+      -- migration and nobody should guess at it.
+      execute format('select count(*) from public.%I', t) into n;
       problems := problems || format(
-        'public.%s has primary key (%s %s); NovaOps points bigint foreign keys at its id.',
-        t, pkcols, pktypes);
+        'public.%s has primary key (%s %s); NovaOps points bigint foreign keys at its id. It holds %s row(s) — %s',
+        t, pkcols, pktypes, n,
+        case when n = 0
+             then 'run supabase/repair.sql to rebuild it, then re-run this file.'
+             else 'its rows must be migrated by hand first.' end);
     end if;
   end loop;
 
@@ -156,7 +164,7 @@ begin
   end if;
 
   if array_length(problems, 1) > 0 then
-    raise exception E'NovaOps schema not applied — this database has % conflict(s):\n\n  * %\n\nNothing was changed. Run supabase/diagnose.sql for the full picture. Each of these is a table that already exists under a name NovaOps needs but with a different shape, so it belongs to something else. Rename or drop it (after checking its contents), then re-run this file.',
+    raise exception E'NovaOps schema not applied — this database has % conflict(s):\n\n  * %\n\nNothing was changed. Each line is a table that already exists under a name NovaOps needs, but with a shape NovaOps cannot use. Run supabase/diagnose.sql to see the whole picture, and supabase/repair.sql where a line above says to.',
       array_length(problems, 1), array_to_string(problems, E'\n  * ');
   end if;
 end;
@@ -833,8 +841,19 @@ revoke all on function public.novaops_grant_staff(text, text) from public, anon,
 --    deliberate exception for the customer chat.
 -- ────────────────────────────────────────────────────────────────────────────
 
+-- Policies combine ADDITIVELY. A permissive policy left behind by an earlier
+-- migration cannot be narrowed by adding a correct one beside it — while
+-- `using (true)` is still attached, the table is still readable by anyone the
+-- policy applies to. So every policy on a NovaOps table is dropped and the
+-- one correct policy is put back. NovaOps owns these tables; it owns their
+-- policies too.
+--
+-- The website's schema does the same for its own seven tables and creates no
+-- policy on any of these, so nothing it needs is being removed here.
 do $$
-declare t text;
+declare
+  t   text;
+  pol record;
 begin
   foreach t in array array[
     'customers','tickets','inventory','appointments','house_calls','messages',
@@ -842,7 +861,11 @@ begin
     'shop_settings','social_connections'
   ] loop
     execute format('alter table public.%I enable row level security', t);
-    execute format('drop policy if exists %I on public.%I', t || '_owner', t);
+    for pol in
+      select policyname from pg_policies where schemaname = 'public' and tablename = t
+    loop
+      execute format('drop policy %I on public.%I', pol.policyname, t);
+    end loop;
     execute format(
       'create policy %I on public.%I using (profile_id = auth.uid()) with check (profile_id = auth.uid())',
       t || '_owner', t);
@@ -851,10 +874,22 @@ end;
 $$;
 
 -- profiles is shared with the website, and neither app has any business
--- reading another user's row: both look theirs up by auth user id. Note that
--- policies combine additively, so this grants self-access and cannot narrow
--- whatever the website may add later.
+-- reading another user's row: both look theirs up by auth user id. The
+-- website's schema creates no policy here either, so the same drop-and-
+-- replace applies — otherwise a project accumulates five equivalent
+-- self-access policies from five old migrations.
 alter table public.profiles enable row level security;
+
+do $$
+declare pol record;
+begin
+  for pol in
+    select policyname from pg_policies where schemaname = 'public' and tablename = 'profiles'
+  loop
+    execute format('drop policy %I on public.profiles', pol.policyname);
+  end loop;
+end;
+$$;
 
 drop policy if exists profiles_self_select on public.profiles;
 create policy profiles_self_select on public.profiles
