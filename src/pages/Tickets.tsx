@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 
 import DataTable, { type DataTableColumn } from "@/components/DataTable";
+import DevicePicker from "@/components/DevicePicker";
 import PageHeader from "@/components/PageHeader";
 import PaymentModal from "@/components/payments/PaymentModal";
 import SignaturePad from "@/components/SignaturePad";
@@ -634,28 +635,13 @@ export default function Tickets() {
                     <InputGroup.Input />
                   </InputGroup>
                 </TextField>
-                <TextField
-                  isRequired
-                  className="flex flex-col gap-1.5"
-                  value={creating?.device || ""}
-                  onChange={(v) => setCreating((f) => f && { ...f, device: v })}
-                >
-                  <Label>Device</Label>
-                  <InputGroup>
-                    <InputGroup.Input />
-                  </InputGroup>
-                  <FieldError />
-                </TextField>
-                <TextField
-                  className="flex flex-col gap-1.5"
-                  value={creating?.deviceModel || ""}
-                  onChange={(v) => setCreating((f) => f && { ...f, deviceModel: v })}
-                >
-                  <Label>Model</Label>
-                  <InputGroup>
-                    <InputGroup.Input />
-                  </InputGroup>
-                </TextField>
+                <DevicePicker
+                  device={creating?.device || ""}
+                  model={creating?.deviceModel || ""}
+                  onChange={({ device, model }) =>
+                    setCreating((f) => f && { ...f, device, deviceModel: model })
+                  }
+                />
                 <TextField
                   isRequired
                   className="flex flex-col gap-1.5 sm:col-span-2"

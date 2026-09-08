@@ -417,6 +417,42 @@ Row counts in `diagnose.sql` are counted, not read from
 `pg_stat_user_tables` — that statistic can be stale or reset to zero, which
 is how a table holding 1859 rows once read as empty.
 
+### The shared device catalogue
+
+The website's booking wizard walks manufacturer → device type → model →
+generation off `deviceManufacturers`, which lives in
+`site_settings.content` and is edited from that app's Admin → Site Content.
+NovaOps reads the same list, so a ticket taken at the counter spells a
+device the same way one converted from a website booking does — they write
+the same `tickets.device` / `tickets.device_model` columns, and until now
+only the website had a vocabulary for them.
+
+`site_settings` is already `public read … using (true)`, so this needs no
+permissions of its own — which is also why the catalogue lives there rather
+than in a table of its own: the wizard serves anonymous visitors.
+
+`supabase/import-devices.sql` folds the legacy `devices` table (1859 rows,
+22 brands, left behind by the old Nuxt build and read by nothing) into that
+list. Its `category` column already carries the split the wizard wants —
+`"Laptop - XPS"` → type `Laptop`, family `XPS` — and the import splits
+`name` on the longest space boundary that still prefixes the family, so
+`model || ' ' || generation` always rejoins into the original name. It
+**merges**: anything already in the list, including edits made in the Site
+Content editor, survives. Re-running it changes nothing.
+
+Two device types are renamed on the way in, both because the table uses a
+different word for a bucket the wizard already has: `Smartphone` → `Phone`
+and `Headphones` → `Audio`. Without them Apple would end up with both a
+"Phone" and a "Smartphone". Anything you don't repair goes in the
+`skip_types` array at the top of the file.
+
+NovaOps's ticket form uses `DevicePicker`, which searches the flattened
+catalogue rather than stepping through four rows of chips — the wizard's
+chip layout suits a customer picking one phone, but with the full catalogue
+imported a single step can run to eighty-odd options, and at the counter
+four clicks per ticket is three too many. Anything typed is still accepted
+as-is; the catalogue is a shortcut, never a gate on taking a repair in.
+
 ### Policies are additive, so the schema owns them
 
 A permissive policy left by an old migration cannot be narrowed by adding a
