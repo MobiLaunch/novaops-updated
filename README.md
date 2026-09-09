@@ -431,9 +431,17 @@ only the website had a vocabulary for them.
 permissions of its own — which is also why the catalogue lives there rather
 than in a table of its own: the wizard serves anonymous visitors.
 
-`supabase/import-devices.sql` folds the legacy `devices` table (1859 rows,
-22 brands, left behind by the old Nuxt build and read by nothing) into that
-list. Its `category` column already carries the split the wizard wants —
+`supabase/load-device-catalogue.sql` writes the current catalogue: 40 brands
+across 7 device types (Phone, Tablet, Laptop, Desktop, Watch, Audio, Smart
+Home), 227 selectable devices, including Apple's full line back to 2019. The
+same data ships as the default in the website repo, so a fresh install
+already has it; this file is for a project whose `site_settings` row already
+exists, because the stored row wins over the defaults. It replaces
+`deviceManufacturers` and leaves the rest of site content alone.
+
+`supabase/import-devices.sql` is the earlier path, kept for the legacy data:
+it folds the old `devices` table (1859 rows, 22 brands, left behind by the
+Nuxt build and read by nothing) into that list. Its `category` column already carries the split the wizard wants —
 `"Laptop - XPS"` → type `Laptop`, family `XPS` — and the import splits
 `name` on the longest space boundary that still prefixes the family, so
 `model || ' ' || generation` always rejoins into the original name. It
