@@ -454,7 +454,33 @@ and `Headphones` → `Audio`. Without them Apple would end up with both a
 "Phone" and a "Smartphone". Anything you don't repair goes in the
 `skip_types` array at the top of the file.
 
-NovaOps's ticket form uses `DevicePicker`, which searches the flattened
+### Scanning the device in instead of picking it
+
+When the device is in hand its IMEI is ground truth, so the ticket form leads
+with a **Scan IMEI** field and treats the picker as the fallback. A hardware
+barcode scanner is a keyboard — it types the digits and sends Enter — so the
+field needs no special wiring beyond having focus. The number is on the SIM
+tray, the box, in Settings, or from `*#06#` on the customer's own phone,
+which shows it as a barcode.
+
+Resolution reuses the trade-in resolver (`api/trade-in/lookup.js`), which
+already did IMEI → brand/model for trade-ins. An `identify_only` flag makes
+it return straight after resolution: pricing costs two upstream calls that
+the ticket form has no use for. It rides on that route rather than a new one
+to keep the serverless function count where it is.
+
+Whatever resolves is reconciled against the shared catalogue, so a scanned
+ticket spells the device exactly like a picked one — a lookup that bypassed
+the catalogue would put a second spelling of the same phone back into the
+table. A model the catalogue doesn't have is saved as reported and labelled
+as such rather than snapped to the nearest match.
+
+The scanned code always lands in `tickets.serial_number`, even when the
+lookup fails, and a failed scan clears a device that an *earlier scan* put
+there — leaving one device's name attached to another's IMEI is worse than an
+empty field. A device picked by hand is left alone.
+
+NovaOps's ticket form also keeps `DevicePicker`, which searches the flattened
 catalogue rather than stepping through four rows of chips — the wizard's
 chip layout suits a customer picking one phone, but with the full catalogue
 imported a single step can run to eighty-odd options, and at the counter

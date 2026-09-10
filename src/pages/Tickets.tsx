@@ -32,6 +32,7 @@ import {
 
 import DataTable, { type DataTableColumn } from "@/components/DataTable";
 import DevicePicker from "@/components/DevicePicker";
+import DeviceScanField from "@/components/DeviceScanField";
 import PageHeader from "@/components/PageHeader";
 import PaymentModal from "@/components/payments/PaymentModal";
 import SignaturePad from "@/components/SignaturePad";
@@ -71,11 +72,12 @@ interface NewTicketForm {
   customerPhone: string;
   device: string;
   deviceModel: string;
+  serial: string;
   issue: string;
   price: string;
 }
 
-const emptyNewForm: NewTicketForm = { customerName: "", customerPhone: "", device: "", deviceModel: "", issue: "", price: "0" };
+const emptyNewForm: NewTicketForm = { customerName: "", customerPhone: "", device: "", deviceModel: "", serial: "", issue: "", price: "0" };
 
 // A ticket's core details used to be frozen at creation, so a quote that
 // changed once the device was opened up couldn't be corrected. These save on
@@ -268,6 +270,7 @@ export default function Tickets() {
       customer_id: customer?.id ?? null,
       device: creating.device,
       device_model: creating.deviceModel,
+      serial_number: creating.serial,
       issue: creating.issue,
       price: Number(creating.price) || 0,
       status: "Open",
@@ -635,6 +638,13 @@ export default function Tickets() {
                     <InputGroup.Input />
                   </InputGroup>
                 </TextField>
+                <DeviceScanField
+                  onCleared={() => setCreating((f) => f && { ...f, device: "", deviceModel: "" })}
+                  onCode={(serial) => setCreating((f) => f && { ...f, serial })}
+                  onIdentified={({ device, model }) =>
+                    setCreating((f) => f && { ...f, device, deviceModel: model })
+                  }
+                />
                 <DevicePicker
                   device={creating?.device || ""}
                   model={creating?.deviceModel || ""}

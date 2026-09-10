@@ -277,6 +277,21 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: false, error: "Please enter a brand and model, IMEI, or model number.", lookup_method: "manual" });
     }
 
+    // Ticket intake only needs to know what the device is. Pricing costs two
+    // upstream calls (PriceCharting, then Gemini) and nothing on the ticket
+    // form reads the result, so stop here when the caller says so. This rides
+    // on the trade-in route rather than a new one to keep the serverless
+    // function count where it is.
+    if (body.identify_only) {
+      return res.status(200).json({
+        ok: true,
+        resolved_brand: resolvedBrand || undefined,
+        resolved_model: resolvedModel || undefined,
+        resolved_storage: resolvedStorage || undefined,
+        lookup_method: lookupMethod,
+      });
+    }
+
     const priceQuery = [resolvedBrand, resolvedModel, resolvedStorage].filter(Boolean).join(" ");
     const cached = cacheGet(priceQuery);
 
