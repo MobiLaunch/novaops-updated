@@ -475,6 +475,27 @@ the catalogue would put a second spelling of the same phone back into the
 table. A model the catalogue doesn't have is saved as reported and labelled
 as such rather than snapped to the nearest match.
 
+A failed lookup says which kind of failure it was, because three different
+things used to read as "we don't know that device": the service answered and
+genuinely has no record, the service was throttled or down, or the number
+failed its check digit and was probably misread. Only the first is worth
+giving up on.
+
+**The resolver has not been checked against real hardware.** The development
+sandbox's egress policy blocks imei.info, so every test ran against a stub —
+the plumbing is proven, the data source is not. `scripts/check-imei-lookup.mjs`
+does that check from a machine that can reach it:
+
+```bash
+node scripts/check-imei-lookup.mjs 3512… 3546… 3578…          # imei.info direct
+node scripts/check-imei-lookup.mjs --via https://your-site 3512…   # the deployed path
+```
+
+Dial `*#06#` on half a dozen devices off the bench. It reports coverage,
+latency and the reason behind each miss, masks the numbers in its output, and
+flags it if coverage is under 80% or the median is slow enough that scans will
+time out at the counter.
+
 The scanned code always lands in `tickets.serial_number`, even when the
 lookup fails, and a failed scan clears a device that an *earlier scan* put
 there — leaving one device's name attached to another's IMEI is worse than an

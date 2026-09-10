@@ -88,6 +88,7 @@ export async function identifyDevice(raw: string): Promise<IdentifiedDevice | { 
     resolved_model?: string;
     resolved_storage?: string;
     lookup_method?: string;
+    lookup_status?: "hit" | "miss" | "unavailable" | "invalid";
   };
 
   try {
@@ -108,11 +109,22 @@ export async function identifyDevice(raw: string): Promise<IdentifiedDevice | { 
       : "unknown";
 
   if (!payload.ok || method === "unknown") {
-    return {
-      error: isImei(code)
-        ? "That IMEI is valid but the lookup service doesn't know it. Pick the device below — the number is still saved."
-        : "Not a recognised IMEI or model number. Pick the device below — the code is still saved.",
-    };
+    // Three different things used to read as "we don't know that device".
+    // Only one of them is the operator's problem to work around.
+    switch (payload.lookup_status) {
+      case "unavailable":
+        return { error: "The IMEI service didn't answer — it may be busy. Try again, or pick the device below; the number is saved either way." };
+      case "invalid":
+        return { error: "That's 15 digits but the check digit doesn't add up — it may have been mistyped or misread. Rescan, or pick the device below." };
+      case "miss":
+        return { error: "Valid IMEI, but the service doesn't have this device. Pick it below — the number is still saved." };
+      default:
+        return {
+          error: isImei(code)
+            ? "Couldn't identify that IMEI. Pick the device below — the number is still saved."
+            : "Not a recognised IMEI or model number. Pick the device below — the code is still saved.",
+        };
+    }
   }
 
   const brand = payload.resolved_brand || "";

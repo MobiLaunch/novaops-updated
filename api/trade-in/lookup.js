@@ -214,6 +214,14 @@ Rules:
   }
 }
 
+// Returns a discriminated result rather than a bare null, because the
+// caller has to tell three different things apart:
+//   hit         — the service named the device
+//   miss        — the service answered and does not know this IMEI
+//   unavailable — throttled, down, timed out, or answering with something
+//                 that is not JSON
+// Collapsing all of them to null told the person at the counter "the lookup
+// service doesn't know it" when the truth was "try again in a minute".
 async function lookupImei(imei) {
   try {
     const res = await fetch(`https://www.imei.info/api/?imei=${imei}&format=json`, {
@@ -221,16 +229,31 @@ async function lookupImei(imei) {
       signal: AbortSignal.timeout(5000),
     });
 
-    if (!res.ok) return null;
-    const data = await res.json();
+    // 429 and 5xx are the service's problem; 404 is a real miss.
+    if (res.status === 404) return { status: "miss" };
+    if (!res.ok) return { status: "unavailable", reason: `http_${res.status}` };
 
-    if (data?.DeviceName && data?.BrandName) {
-      return { brand: String(data.BrandName), model: String(data.DeviceName), storage: data.Storage || undefined };
+    let data;
+
+    try {
+      data = await res.json();
+    } catch {
+      // A rate-limit or block page comes back as HTML with a 200.
+      return { status: "unavailable", reason: "non_json" };
     }
 
-    return null;
-  } catch {
-    return null;
+    if (data?.DeviceName && data?.BrandName) {
+      return {
+        status: "hit",
+        brand: String(data.BrandName),
+        model: String(data.DeviceName),
+        storage: data.Storage || undefined,
+      };
+    }
+
+    return { status: "miss" };
+  } catch (err) {
+    return { status: "unavailable", reason: err?.name === "TimeoutError" ? "timeout" : "network" };
   }
 }
 
@@ -246,14 +269,21 @@ export default async function handler(req, res) {
     let resolvedModel = (body.model || "").trim();
     let resolvedStorage = (body.storage || "").trim();
     let lookupMethod = "name";
+    // "miss" (service does not know it) vs "unavailable" (service could not
+    // answer) vs "invalid" (failed the check digit) — the caller words its
+    // message differently for each.
+    let lookupStatus = null;
 
     if (body.imei) {
       const digits = body.imei.replace(/\D/g, "");
 
-      if (isValidImei(digits)) {
+      if (!isValidImei(digits)) {
+        lookupStatus = "invalid";
+      } else {
         const r = await lookupImei(digits);
 
-        if (r) {
+        lookupStatus = r.status;
+        if (r.status === "hit") {
           resolvedBrand = r.brand;
           resolvedModel = r.model;
           resolvedStorage = r.storage || resolvedStorage;
@@ -274,7 +304,12 @@ export default async function handler(req, res) {
     }
 
     if (!resolvedBrand && !resolvedModel) {
-      return res.status(200).json({ ok: false, error: "Please enter a brand and model, IMEI, or model number.", lookup_method: "manual" });
+      return res.status(200).json({
+        ok: false,
+        error: "Please enter a brand and model, IMEI, or model number.",
+        lookup_method: "manual",
+        lookup_status: lookupStatus || undefined,
+      });
     }
 
     // Ticket intake only needs to know what the device is. Pricing costs two
@@ -289,6 +324,7 @@ export default async function handler(req, res) {
         resolved_model: resolvedModel || undefined,
         resolved_storage: resolvedStorage || undefined,
         lookup_method: lookupMethod,
+        lookup_status: lookupStatus || undefined,
       });
     }
 
