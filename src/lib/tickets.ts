@@ -32,6 +32,7 @@ export interface NewTicketInput {
   serialNumber?: string;
   priority?: string;
   signature?: string;
+  warrantyDays?: number;
   photos?: File[];
 }
 

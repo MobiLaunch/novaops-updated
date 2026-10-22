@@ -8,10 +8,12 @@ import { Textarea } from "@/components/arc/textarea/textarea";
 import { CustomerSelect } from "@/components/app/CustomerSelect";
 import { TradeInWizard } from "@/components/app/TradeInWizard";
 import { formatCurrency } from "@/lib/format";
+import { getDocuments } from "@/lib/documents";
 import { useAppStore } from "@/lib/store";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const AUTH = "I authorize the above repair shop to perform diagnostics and repairs on my device as described. I understand that additional costs may be incurred if further issues are found, and that I will be contacted for approval before any additional work is performed.";
+const AUTH_DEFAULT = "I authorize the above repair shop to perform diagnostics and repairs on my device as described. I understand that additional costs may be incurred if further issues are found, and that I will be contacted for approval before any additional work is performed.";
+const authText = () => getDocuments().liabilityWaiver.trim() || AUTH_DEFAULT;
 const TEMPLATES = [
   { label: "Invoice", desc: "Itemized billing invoice for parts and labor", icon: FileText, color: "#059669" },
   { label: "Repair Receipt", desc: "Print a receipt for completed repairs", icon: ClipboardCheck, color: "#2563eb" },
@@ -54,7 +56,7 @@ export function FormsTab() {
   const [tradeIn, setTradeIn] = useState(false);
   const [doc, setDoc] = useState(1000);
   const [history, setHistory] = useState<{ id: number; type: string; customer: string; date: string; total: number; html: string }[]>([]);
-  const [f, setF] = useState({ customerId: null as number | null, ticketId: "", date: today, dueDate: "", notes: "", authStatement: AUTH, lineItems: [] as { description: string; qty: number; price: number }[] });
+  const [f, setF] = useState({ customerId: null as number | null, ticketId: "", date: today, dueDate: "", notes: getDocuments().paymentTerms, authStatement: authText(), lineItems: [] as { description: string; qty: number; price: number }[] });
 
   const ticket: any = tickets.find((t) => String(t.id) === f.ticketId) ?? null;
   const items = useMemo(() => (tpl?.label === "Service Agreement" ? [] : f.lineItems.length ? f.lineItems : ticket ? [{ description: `Repair — ${ticket.device}`, qty: 1, price: ticket.price || 0 }] : []), [tpl, f.lineItems, ticket]);
@@ -64,7 +66,7 @@ export function FormsTab() {
     if (t.tradeIn) return setTradeIn(true);
     setTpl(t);
     setDoc(Math.floor(1000 + Math.random() * 9000));
-    setF({ customerId: null, ticketId: "", date: today, dueDate: "", notes: "", authStatement: AUTH, lineItems: [] });
+    setF({ customerId: null, ticketId: "", date: today, dueDate: "", notes: getDocuments().paymentTerms, authStatement: authText(), lineItems: [] });
   };
   const pickTicket = (id: string) => {
     const t: any = tickets.find((x) => String(x.id) === id);

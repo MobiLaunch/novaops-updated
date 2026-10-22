@@ -13,6 +13,7 @@ import { Textarea } from "@/components/arc/textarea/textarea";
 import { CustomerSelect } from "@/components/app/CustomerSelect";
 import { toast } from "@/hooks/useToast";
 import { formatCurrency } from "@/lib/format";
+import { getDocuments } from "@/lib/documents";
 import { useAppStore } from "@/lib/store";
 import { getSupabase } from "@/lib/supabase";
 
@@ -139,6 +140,11 @@ export function TradeInWizard({ open, onOpenChange, onSaved }: Props) {
     const user = useAppStore.getState().user;
 
     if (!sb || !user) return toast.danger("Not signed in");
+
+    const docs = getDocuments();
+    const cust = useAppStore.getState().customers.find((c) => c.id === f.customerId);
+
+    if (docs.tradeInRequireId && !cust?.driversLicense) return toast.warning("ID required", "Choose a customer with a driver's license on file.");
     setSaving(true);
     try {
       const { error } = await sb.from("trade_ins").insert({
@@ -164,6 +170,7 @@ export function TradeInWizard({ open, onOpenChange, onSaved }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="nv-wide" title="Trade-in evaluation" description="Assess a device and calculate an offer">
         <div className="nv-form">
+          {!getDocuments().tradeInEnabled && <Alert tone="warning" title="Trade-ins are turned off in Settings → Documents" />}
           <Stepper steps={[{ id: "id", label: "Device" }, { id: "cond", label: "Condition" }, { id: "iss", label: "Issues" }, { id: "offer", label: "Offer" }]} current={step} onStepSelect={setStep} details="current" />
 
           {step === 0 && (
@@ -225,6 +232,7 @@ export function TradeInWizard({ open, onOpenChange, onSaved }: Props) {
                 <div className="nv-panel"><div className="nv-muted">Estimated profit</div><div style={{ fontSize: 22, fontWeight: 500 }}>{m(calc.profit)} <span className="nv-muted" style={{ fontSize: 13 }}>{calc.margin.toFixed(0)}%</span></div></div>
               </div>
               <Input label="Offer to customer" type="number" min={0} step="0.5" value={f.offer || calc.offer} onChange={(e) => set("offer", Number(e.target.value))} />
+              {getDocuments().tradeInPolicy && <Alert tone="info" title="Trade-in policy">{getDocuments().tradeInPolicy}</Alert>}
               <Textarea label="Notes" rows={2} value={f.notes} onChange={(e) => set("notes", e.target.value)} />
             </>
           )}

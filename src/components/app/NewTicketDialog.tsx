@@ -17,6 +17,7 @@ import { toast } from "@/hooks/useToast";
 import { getSupabase } from "@/lib/supabase";
 import { useAppStore } from "@/lib/store";
 import { createTicketWithPhotos } from "@/lib/tickets";
+import { getDocuments } from "@/lib/documents";
 import { COMMON_CATEGORIES, DeviceCatalogManager, KNOWN_BRANDS, useCatalog } from "@/components/app/DeviceCatalogManager";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -81,6 +82,7 @@ export function NewTicketDialog({ open, onOpenChange, presetCustomerId }: Props)
 
   const create = async () => {
     if (!f.customerId) return toast.warning("Choose a customer first");
+    if (getDocuments().requireWaiverSignature && !f.signature) return toast.warning("Signature required", "Ask the customer to sign before creating the ticket.");
     setSaving(true);
 
     const id = toast.loading("Creating ticket…");
@@ -89,7 +91,7 @@ export function NewTicketDialog({ open, onOpenChange, presetCustomerId }: Props)
       const issue = f.issue === "Other" ? f.customIssue.trim() : f.issue + (f.customIssue.trim() ? ` – ${f.customIssue.trim()}` : "");
       const ticket = await createTicketWithPhotos({
         device: f.brand, deviceModel: f.model.trim(), issue, customerId: f.customerId,
-        deviceDescription: f.description, serialNumber: f.serial, priority: f.priority, signature: f.signature, photos,
+        deviceDescription: f.description, serialNumber: f.serial, priority: f.priority, signature: f.signature, photos, warrantyDays: getDocuments().warrantyDays,
       });
       const c = customers.find((x) => x.id === f.customerId);
 

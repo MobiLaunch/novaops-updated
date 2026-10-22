@@ -14,7 +14,12 @@ import SegmentedControl from "@/components/arc/segmented-control/segmented-contr
 import { Switch } from "@/components/arc/switch/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/arc/tabs/tabs";
 import { Textarea } from "@/components/arc/textarea/textarea";
+import { DeviceCatalogManager } from "@/components/app/DeviceCatalogManager";
+import { DocumentsSettings } from "@/components/app/DocumentsSettings";
+import { DriverSetupDialog } from "@/components/app/DriverSetupDialog";
 import { PageHead } from "@/components/app/PageHead";
+import { AVATAR_KEY } from "@/lib/documents";
+import { fileToDataUrl } from "@/lib/tickets";
 import { useSupabaseConnect } from "@/hooks/useSupabaseConnect";
 import { toast } from "@/hooks/useToast";
 import { formatPhoneNumber } from "@/lib/phone";
@@ -57,6 +62,10 @@ export default function SettingsPage() {
   const [diag, setDiag] = useState<{ step: string; ok: boolean; message: string }[]>([]);
   const [diagRunning, setDiagRunning] = useState(false);
   const [pw, setPw] = useState({ next: "", confirm: "" });
+  const [catalog, setCatalog] = useState(false);
+  const [drivers, setDrivers] = useState(false);
+  const [avatar, setAvatar] = useState(() => { try { return localStorage.getItem(AVATAR_KEY) || ""; } catch { return ""; } });
+  const [account, setAccount] = useState(() => ({ name: "", role: "owner", ...read("accountData", {}) }));
 
   const tab = params.get("tab") || "business";
   const set = <K extends keyof AppSettings>(k: K, v: AppSettings[K]) => setForm((f) => ({ ...f, [k]: v }));
@@ -202,6 +211,7 @@ export default function SettingsPage() {
             <TabsTrigger value="business">Business</TabsTrigger>
             <TabsTrigger value="integrations">Integrations</TabsTrigger>
             <TabsTrigger value="printing">Printing</TabsTrigger>
+            <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="account">Account</TabsTrigger>
             <TabsTrigger value="system">System</TabsTrigger>
@@ -271,6 +281,8 @@ export default function SettingsPage() {
           </div>
         </TabsContent>
 
+        <TabsContent value="documents"><DocumentsSettings /></TabsContent>
+
         <TabsContent value="notifications">
           <div className="nv-panel nv-stack" style={{ marginTop: 16, maxWidth: 680 }}>
             {NOTIFS.map(([key, name, desc]) => (
@@ -284,7 +296,26 @@ export default function SettingsPage() {
 
         <TabsContent value="account">
           <div className="nv-stack" style={{ marginTop: 16, maxWidth: 680, gap: 16 }}>
-            <div className="nv-panel nv-actions"><Avatar name={email || form.businessName || "NovaOps"} size="lg" /><div><strong style={{ fontWeight: 500 }}>{email || "Signed in"}</strong><div className="nv-muted">{form.businessName || "NovaOps"}</div></div></div>
+            <div className="nv-panel nv-form">
+              <div className="nv-actions"><Avatar name={account.name || email || "NovaOps"} src={avatar || undefined} size="xl" /><div><strong style={{ fontWeight: 500 }}>{email || "Signed in"}</strong><div className="nv-muted">{form.businessName || "NovaOps"}</div></div></div>
+              <div className="nv-form-row">
+                <Input label="Your name" value={account.name} onChange={(e) => setAccount({ ...account, name: e.target.value })} />
+                <SegmentedControl label="Role" value={account.role} onValueChange={(v: string) => setAccount({ ...account, role: v })} options={[{ value: "owner", label: "Owner" }, { value: "manager", label: "Manager" }, { value: "technician", label: "Technician" }]} />
+              </div>
+              <div className="nv-actions">
+                <Button variant="secondary" size="sm" onClick={() => document.getElementById("avatar-file")?.click()}>Choose photo</Button>
+                {avatar && <Button variant="ghost" size="sm" onClick={() => { setAvatar(""); localStorage.removeItem(AVATAR_KEY); }}>Remove photo</Button>}
+                <input id="avatar-file" type="file" accept="image/*" hidden onChange={async (e) => {
+                  const f = e.target.files?.[0];
+
+                  e.target.value = "";
+                  if (!f) return;
+                  if (f.size > 4 * 1024 * 1024) return void toast.warning("File too large", "Use an image under 4 MB.");
+                  try { const url = await fileToDataUrl(f, 256, 0.88); localStorage.setItem(AVATAR_KEY, url); setAvatar(url); toast.success("Profile photo saved", "Shown on this device only."); } catch (err) { toast.danger("Could not use image", (err as Error).message); }
+                }} />
+                <Button size="sm" onClick={() => { localStorage.setItem("accountData", JSON.stringify(account)); toast.success("Account updated"); }}>Save profile</Button>
+              </div>
+            </div>
             <div className="nv-panel nv-form">
               <h2>Change password</h2>
               <div className="nv-form-row">
@@ -300,9 +331,9 @@ export default function SettingsPage() {
         <TabsContent value="system">
           <div className="nv-stack" style={{ marginTop: 16, maxWidth: 680, gap: 16 }}>
             <div className="nv-panel nv-stack">
-              <h2>Data</h2>
+              <h2>Data and devices</h2>
               <p className="nv-muted" style={{ margin: 0 }}>Download a JSON backup of your settings, tickets, customers and inventory.</p>
-              <div><Button variant="secondary" onClick={exportBackup}>Export backup</Button></div>
+              <div className="nv-actions"><Button variant="secondary" onClick={exportBackup}>Export backup</Button><Button variant="secondary" onClick={() => setCatalog(true)}>Device catalog</Button><Button variant="secondary" onClick={() => setDrivers(true)}>Device drivers</Button></div>
             </div>
             <div className="nv-panel nv-stack">
               <div className="nv-actions" style={{ justifyContent: "space-between" }}><h2 style={{ margin: 0 }}>System diagnostics</h2><Button size="sm" variant="secondary" onClick={diagnostics} loading={diagRunning}>Run checks</Button></div>
@@ -316,6 +347,9 @@ export default function SettingsPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      <DeviceCatalogManager open={catalog} onOpenChange={setCatalog} />
+      <DriverSetupDialog open={drivers} onOpenChange={setDrivers} />
 
       <Dialog open={sbOpen} onOpenChange={setSbOpen}>
         <DialogContent title="Connect Supabase" description="Paste the project URL and anon key from your Supabase project settings">

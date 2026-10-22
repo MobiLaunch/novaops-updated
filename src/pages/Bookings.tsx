@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { MapPin, Plus, Trash2 } from "lucide-react";
+import { Copy, MapPin, Plus, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/arc/badge/badge";
 import { Button } from "@/components/arc/button/button";
@@ -52,6 +52,7 @@ export default function Bookings() {
   const [vEdit, setVEdit] = useState<any | null>(null);
   const [vForm, setVForm] = useState(blankVendor());
   const [vSaving, setVSaving] = useState(false);
+  const [delTicket, setDelTicket] = useState<number | null>(null);
 
   const mapFor = useOsmMaps((houseCalls as any[]).map((c) => c.address));
   const name = (id: number) => customers.find((c) => c.id === id)?.name || "Unknown";
@@ -73,6 +74,12 @@ export default function Bookings() {
     { key: "status", label: "Status", width: 170, render: (v) => <Badge tone={statusTone(v as string)}>{String(v)}</Badge> },
     { key: "price", label: "Price", numeric: true, width: 100, render: (v) => formatCurrency(v as number, cur) },
     { key: "date", label: "Created", width: 120, render: (v) => formatDate(v as string) },
+    { key: "actions", label: "", width: 100, render: (_v, r: any) => (
+      <span className="nv-actions" style={{ gap: 0, flexWrap: "nowrap" }}>
+        <Button size="sm" variant="ghost" aria-label={`Copy ticket ${r.id} info`} onClick={() => navigator.clipboard.writeText(`Ticket #${r.id} | ${r.customer} | ${r.device} | ${r.status} | ${formatCurrency(r.price, cur)}`).then(() => toast.success("Copied", "Ticket info copied"))}><Copy size={14} /></Button>
+        <Button size="sm" variant="ghost" aria-label={`Delete ticket ${r.id}`} onClick={() => setDelTicket(r.id)}><Trash2 size={14} /></Button>
+      </span>
+    ) },
   ];
 
   const hcList = (houseCalls as any[]).filter((c) => {
@@ -232,6 +239,14 @@ export default function Bookings() {
         <TabsContent value="calendar"><CalendarTab /></TabsContent>
       </Tabs>
 
+      <Dialog open={delTicket !== null} onOpenChange={(o) => !o && setDelTicket(null)}>
+        <DialogContent title={`Delete ticket #${delTicket}?`} description="This permanently removes the ticket and its history.">
+          <div className="nv-actions" style={{ justifyContent: "flex-end" }}>
+            <Button variant="ghost" onClick={() => setDelTicket(null)}>Cancel</Button>
+            <Button variant="danger" onClick={async () => { try { await useAppStore.getState().deleteTicket(delTicket!); toast.success("Ticket deleted", `#${delTicket}`); } catch (e) { toast.danger("Could not delete", (e as Error).message); } setDelTicket(null); }}>Delete ticket</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <TicketDetailDialog ticketId={detail} onClose={() => setDetail(null)} />
       <HouseCallDialog open={hcOpen} onOpenChange={setHcOpen} editingCall={hcEdit} />
 

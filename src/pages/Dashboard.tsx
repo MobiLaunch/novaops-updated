@@ -7,6 +7,7 @@ import { Badge } from "@/components/arc/badge/badge";
 import { Button } from "@/components/arc/button/button";
 import { MetricCard } from "@/components/arc/metric-card/metric-card";
 import { SortableDataTable, type DataColumn } from "@/components/arc/sortable-data-table/sortable-data-table";
+import { UpcomingPanel } from "@/components/app/UpcomingPanel";
 import { PageHead } from "@/components/app/PageHead";
 import { StatCard } from "@/components/app/StatCard";
 import { getGreeting, useWeather } from "@/hooks/useWeather";
@@ -111,6 +112,8 @@ export default function Dashboard() {
             <Button key={a.label} variant="secondary" size="lg" onClick={a.go}><a.icon size={16} />{a.label}</Button>
           ))}
         </div>
+
+        <UpcomingPanel />
 
         <div className="nv-panel">
           <div className="nv-actions" style={{ justifyContent: "space-between", marginBottom: 12 }}>

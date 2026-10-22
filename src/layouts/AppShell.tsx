@@ -135,7 +135,7 @@ export function AppShell() {
           />
           <NotificationsButton />
           <ThemeSwitch theme={theme} onThemeChange={setTheme} iconOnly label="Theme" />
-          <Avatar name={email || name} size="sm" />
+          <Avatar name={email || name} size="sm" src={(() => { try { return localStorage.getItem("novaops_account_avatar") || undefined; } catch { return undefined; } })()} />
         </header>
         <main className="nv-content" key={pathname}><Outlet /></main>
       </div>
