@@ -31,11 +31,11 @@ const ISSUES = [
 ];
 const STEPS = [{ id: "brand", label: "Brand" }, { id: "type", label: "Type" }, { id: "model", label: "Model" }, { id: "issue", label: "Issue" }, { id: "details", label: "Details" }];
 
-interface Props { open: boolean; onOpenChange: (o: boolean) => void }
+interface Props { open: boolean; onOpenChange: (o: boolean) => void; presetCustomerId?: number | null }
 
 const EMPTY = { brand: "", category: "", model: "", issue: "", customIssue: "", customerId: null as number | null, description: "", serial: "", priority: "normal", signature: "" };
 
-export function NewTicketDialog({ open, onOpenChange }: Props) {
+export function NewTicketDialog({ open, onOpenChange, presetCustomerId }: Props) {
   const customers = useAppStore((s) => s.customers);
   const { sendTicketEmail, sendInternalAlert } = useEmailNotifications();
   const [step, setStep] = useState(0);
@@ -51,13 +51,13 @@ export function NewTicketDialog({ open, onOpenChange }: Props) {
   useEffect(() => {
     if (!open) return;
     setStep(0);
-    setF(EMPTY);
+    setF({ ...EMPTY, customerId: presetCustomerId ?? null });
     setPhotos([]);
     setOtherBrand(false);
     const sb = getSupabase();
 
     void sb?.from("devices").select("brand").order("brand").then(({ data }) => setDbBrands([...new Set((data || []).map((r: any) => String(r.brand)))]));
-  }, [open]);
+  }, [open, presetCustomerId]);
 
   // Models for the chosen brand and type, from the shared devices table.
   useEffect(() => {

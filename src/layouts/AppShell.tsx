@@ -14,6 +14,7 @@ import { HouseCallDialog } from "@/components/app/HouseCallDialog";
 import { CustomerEditDialog } from "@/components/app/CustomerEditDialog";
 import { useScreenLock } from "@/hooks/useScreenLock";
 import { useAppStore } from "@/lib/store";
+import { useUi } from "@/lib/ui";
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -33,15 +34,14 @@ function readTheme(): Theme {
   try { return localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light"; } catch { return "light"; }
 }
 
-export type QuickAction = "ticket" | "housecall" | "customer";
-
 export function AppShell() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const businessName = useAppStore((s) => s.settings.businessName);
   const email = useAppStore((s) => s.user?.email as string | undefined);
   const [theme, setTheme] = useState<Theme>(readTheme);
-  const [dialog, setDialog] = useState<QuickAction | null>(null);
+  const dialog = useUi((u) => u.quickAction);
+  const setDialog = useUi((u) => u.openQuickAction);
   const [palette, setPalette] = useState(false);
 
   useScreenLock(true);
@@ -79,7 +79,7 @@ export function AppShell() {
     window.addEventListener("keydown", onKey);
 
     return () => window.removeEventListener("keydown", onKey);
-  }, [navigate]);
+  }, [navigate, setDialog]);
 
   const commands = useMemo(() => [
     ...NAV.map((n) => ({ id: `go:${n.to}`, label: n.label, group: "Go to", icon: <n.icon size={16} /> })),
@@ -92,7 +92,7 @@ export function AppShell() {
   const onCommand = (id: string) => {
     setPalette(false);
     if (id.startsWith("go:")) navigate(id.slice(3));
-    else setDialog(id.slice(4) as QuickAction);
+    else setDialog(id.slice(4) as "ticket" | "housecall" | "customer");
   };
 
   const name = businessName || "NovaOps";
