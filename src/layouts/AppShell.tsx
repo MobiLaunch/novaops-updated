@@ -15,6 +15,8 @@ import { CustomerEditDialog } from "@/components/app/CustomerEditDialog";
 import { useScreenLock } from "@/hooks/useScreenLock";
 import { useAppStore } from "@/lib/store";
 import { useUi } from "@/lib/ui";
+import { ShortcutsDialog } from "@/components/app/ShortcutsDialog";
+import { isElectron } from "@/lib/supabase";
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -43,6 +45,7 @@ export function AppShell() {
   const dialog = useUi((u) => u.quickAction);
   const setDialog = useUi((u) => u.openQuickAction);
   const [palette, setPalette] = useState(false);
+  const [shortcuts, setShortcuts] = useState(false);
 
   useScreenLock(true);
 
@@ -57,6 +60,7 @@ export function AppShell() {
       const el = e.target as HTMLElement;
 
       if (el?.closest("input, textarea, select, [contenteditable=true]")) return;
+      if (e.key === "?" && !e.metaKey && !e.ctrlKey) return void setShortcuts(true);
       if (!(e.metaKey || e.ctrlKey)) return;
 
       const map: Record<string, () => void> = {
@@ -98,7 +102,8 @@ export function AppShell() {
   const name = businessName || "NovaOps";
 
   return (
-    <div className="nv-shell">
+    <div className={`nv-shell${isElectron() ? " electron-app" : ""}`}>
+      {isElectron() && <div className="nv-electron-titlebar" />}
       <aside className="nv-side">
         <div className="nv-brand"><span className="nv-brand-mark">N</span>{name}</div>
         <nav className="nv-nav" aria-label="Main">
@@ -146,6 +151,7 @@ export function AppShell() {
           </DialogContent>
         </Dialog>
       )}
+      <ShortcutsDialog open={shortcuts} onOpenChange={setShortcuts} />
       <NewTicketDialog open={dialog === "ticket"} onOpenChange={(o) => !o && setDialog(null)} />
       <HouseCallDialog open={dialog === "housecall"} onOpenChange={(o) => !o && setDialog(null)} />
       <CustomerEditDialog open={dialog === "customer"} onOpenChange={(o) => !o && setDialog(null)} />

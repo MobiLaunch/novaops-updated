@@ -115,3 +115,6 @@ a { color: inherit; text-decoration: none; }
 .guide-html p { margin: 0 0 8px; }
 .guide-html a { text-decoration: underline; }
 @media (max-width: 760px) { .nv-grid[style*="5fr"] { grid-template-columns: 1fr !important; } }
+
+.nv-electron-titlebar { position: fixed; inset: 0 0 auto 0; height: 40px; -webkit-app-region: drag; z-index: 9999; }
+.electron-app .nv-top { padding-top: 44px; }
