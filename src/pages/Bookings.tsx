@@ -19,6 +19,7 @@ import { CustomerSelect } from "@/components/app/CustomerSelect";
 import { HouseCallDialog } from "@/components/app/HouseCallDialog";
 import { PageHead } from "@/components/app/PageHead";
 import { TicketDetailDialog } from "@/components/app/TicketDetailDialog";
+import { useOsmMaps } from "@/hooks/useOsmMaps";
 import { useEmailNotifications } from "@/hooks/useEmailNotifications";
 import { toast } from "@/hooks/useToast";
 import { formatCurrency, formatDate, housecallTone, priorityTone, statusTone, vendorTone } from "@/lib/format";
@@ -52,6 +53,7 @@ export default function Bookings() {
   const [vForm, setVForm] = useState(blankVendor());
   const [vSaving, setVSaving] = useState(false);
 
+  const mapFor = useOsmMaps((houseCalls as any[]).map((c) => c.address));
   const name = (id: number) => customers.find((c) => c.id === id)?.name || "Unknown";
   const statuses = useMemo(() => [...new Set([...(settings.statuses || "Open,In Progress,Completed").split(",").map((s) => s.trim()), ...tickets.map((t) => t.status)])].filter(Boolean), [settings.statuses, tickets]);
 
@@ -184,6 +186,7 @@ export default function Bookings() {
                     <span className="nv-actions" style={{ justifyContent: "space-between" }}><strong style={{ fontWeight: 500 }}>{name(c.customerId)}</strong><Badge tone={housecallTone(c.status)}>{c.status}</Badge></span>
                     <span className="nv-muted" style={{ fontSize: 13, display: "flex", gap: 6 }}><MapPin size={14} />{c.address || "No address"}</span>
                     <span style={{ fontSize: 13 }}>{formatDate(c.date)}{c.time ? ` at ${c.time}` : ""}</span>
+                    {mapFor(c.address) && <iframe src={mapFor(c.address)} title={`Map of ${c.address}`} loading="lazy" style={{ width: "100%", height: 80, border: 0, borderRadius: 8, pointerEvents: "none" }} />}
                     <span className="nv-muted" style={{ fontSize: 13 }}>{c.issue || c.description}</span>
                   </button>
                   <div className="nv-actions" style={{ justifyContent: "space-between" }}>

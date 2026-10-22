@@ -17,9 +17,9 @@ import { toast } from "@/hooks/useToast";
 import { getSupabase } from "@/lib/supabase";
 import { useAppStore } from "@/lib/store";
 import { createTicketWithPhotos } from "@/lib/tickets";
+import { COMMON_CATEGORIES, DeviceCatalogManager, KNOWN_BRANDS, useCatalog } from "@/components/app/DeviceCatalogManager";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const BRANDS = ["Apple", "Samsung", "Google", "Sony", "LG", "Microsoft", "Dell", "HP", "Lenovo", "ASUS", "Acer", "Huawei", "OnePlus", "Motorola", "Nokia", "Xiaomi", "Oppo", "Vivo", "Realme", "Nothing"];
 const CATEGORIES = [
   { label: "Smartphone", icon: Smartphone }, { label: "Tablet", icon: Tablet }, { label: "Laptop", icon: Laptop }, { label: "Desktop", icon: Monitor },
   { label: "Smartwatch", icon: Watch }, { label: "Gaming", icon: Gamepad2 }, { label: "Headphones", icon: Headphones }, { label: "Camera", icon: Camera },
@@ -45,6 +45,8 @@ export function NewTicketDialog({ open, onOpenChange, presetCustomerId }: Props)
   const [dbModels, setDbModels] = useState<string[]>([]);
   const [photos, setPhotos] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
+  const [mgr, setMgr] = useState(false);
+  const { catalog, reload: reloadCatalog } = useCatalog(open);
 
   const set = <K extends keyof typeof EMPTY>(k: K, v: (typeof EMPTY)[K]) => setF((s) => ({ ...s, [k]: v }));
 
@@ -67,7 +69,14 @@ export function NewTicketDialog({ open, onOpenChange, presetCustomerId }: Props)
     void sb.from("devices").select("name").eq("brand", f.brand).eq("category", f.category).order("name").then(({ data }) => setDbModels((data || []).map((r: any) => r.name)));
   }, [f.brand, f.category]);
 
-  const brands = useMemo(() => [...new Set([...BRANDS, ...dbBrands])].sort(), [dbBrands]);
+  const brands = useMemo(() => [...new Set([...KNOWN_BRANDS, ...catalog.brands.map((b) => b.name), ...dbBrands])].sort(), [dbBrands, catalog.brands]);
+  const categories = useMemo(() => {
+    const extra = [...catalog.categories.map((c) => c.name), ...catalog.models.filter((m) => m.brand === f.brand).map((m) => m.category)];
+
+    return [...COMMON_CATEGORIES.map((c) => CATEGORIES.find((x) => x.label === c)!), ...[...new Set(extra)].filter((n) => !COMMON_CATEGORIES.includes(n)).map((label) => ({ label, icon: Smartphone }))];
+  }, [catalog, f.brand]);
+  const catalogModels = useMemo(() => catalog.models.filter((m) => m.brand === f.brand && m.category === f.category).map((m) => m.name), [catalog.models, f.brand, f.category]);
+  const allModels = useMemo(() => [...new Set([...catalogModels, ...dbModels])], [catalogModels, dbModels]);
   const canNext = [!!f.brand, !!f.category, !!f.model.trim(), !!(f.issue && (f.issue !== "Other" || f.customIssue.trim()))][step] ?? false;
 
   const create = async () => {
@@ -120,15 +129,15 @@ export function NewTicketDialog({ open, onOpenChange, presetCustomerId }: Props)
 
           {step === 1 && (
             <RadioCards layout="grid" minColumnWidth={130} value={f.category} onValueChange={(v) => { set("category", v); setStep(2); }}
-              options={CATEGORIES.map((c) => ({ value: c.label, label: c.label, icon: <c.icon size={16} /> }))} />
+              options={categories.map((c) => ({ value: c.label, label: c.label, icon: <c.icon size={16} /> }))} />
           )}
 
           {step === 2 && (
             <>
-              {dbModels.length > 0 && (
-                <RadioCards layout="list" value={f.model} onValueChange={(v) => set("model", v)} options={dbModels.slice(0, 40).map((m) => ({ value: m, label: m }))} />
+              {allModels.length > 0 && (
+                <RadioCards layout="list" value={f.model} onValueChange={(v) => set("model", v)} options={allModels.slice(0, 40).map((m) => ({ value: m, label: m }))} />
               )}
-              <Input label={dbModels.length ? "Or type a model" : "Model"} value={f.model} onChange={(e) => set("model", e.target.value)} placeholder="iPhone 15 Pro" />
+              <Input label={allModels.length ? "Or type a model" : "Model"} value={f.model} onChange={(e) => set("model", e.target.value)} placeholder="iPhone 15 Pro" />
             </>
           )}
 
@@ -155,12 +164,14 @@ export function NewTicketDialog({ open, onOpenChange, presetCustomerId }: Props)
           <div className="nv-actions" style={{ justifyContent: "space-between" }}>
             {step > 0 ? <Button variant="ghost" onClick={() => setStep(step - 1)}><ArrowLeft size={14} />Back</Button> : <span />}
             <div className="nv-actions">
+              <Button variant="ghost" onClick={() => setMgr(true)}>Devices</Button>
               <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
               {step < 4 ? <Button onClick={() => setStep(step + 1)} disabled={!canNext}>Next</Button> : <Button onClick={create} loading={saving} disabled={!f.customerId}>Create ticket</Button>}
             </div>
           </div>
         </div>
       </DialogContent>
+      <DeviceCatalogManager open={mgr} onOpenChange={setMgr} onChanged={reloadCatalog} />
     </Dialog>
   );
 }
