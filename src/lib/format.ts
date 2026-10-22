@@ -1,5 +1,6 @@
 export const formatCurrency = (amount: number, currency: string = '$') => {
-  return `${currency}${(amount || 0).toFixed(2)}`
+  const n = amount || 0
+  return `${n < 0 ? '-' : ''}${currency}${Math.abs(n).toFixed(2)}`
 }
 
 export const formatDate = (d?: string | Date) => {

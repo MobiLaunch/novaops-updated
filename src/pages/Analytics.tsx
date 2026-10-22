@@ -149,7 +149,7 @@ export default function Analytics() {
             <MetricCard label="Active tickets" value={d.active} context={`${d.count} created this period`} />
             <StatCard label="Average ticket" value={m(d.avg)} context="Per priced job" />
           </div>
-          <div className="nv-panel"><BarChart data={d.months} label="Revenue by month" period="Last 12 months" unit={cur} averageLabel="Monthly average" valueLabel="Revenue" categoryLabel="Month" formatValue={(v) => m(v)} /></div>
+          <div className="nv-panel"><BarChart data={d.months} label="Revenue by month" period="Last 12 months" averageLabel="Monthly average" valueLabel="Revenue" categoryLabel="Month" formatValue={(v) => m(v)} /></div>
         </TabsContent>
 
         <TabsContent value="expenses">
