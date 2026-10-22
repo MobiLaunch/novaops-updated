@@ -62,8 +62,8 @@ const routes = [
   { element: <AuthGate publicRoute />, children: [
     { path: "/login", element: <Login /> },
     { path: "/register", element: <Register /> },
-    { path: "/intro", element: <Intro /> },
   ] },
+  { path: "/intro", element: <Suspense fallback={<Fallback />}><Intro /></Suspense> },
   { path: "/auth/callback", element: <Suspense fallback={<Fallback />}><AuthCallback /></Suspense> },
   { path: "/lock", element: <Suspense fallback={<Fallback />}><Lock /></Suspense> },
   { element: <AuthGate publicRoute={false} />, children: [

@@ -4,6 +4,7 @@ import { Download, FileDown, Upload } from "lucide-react";
 import { Button } from "@/components/arc/button/button";
 import { FileDropzone } from "@/components/arc/file-dropzone/file-dropzone";
 import { toast } from "@/hooks/useToast";
+import { importRows, readRows, type ImportKey } from "@/lib/importData";
 import { useAppStore } from "@/lib/store";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -25,33 +26,6 @@ const download = (content: string, filename: string, type: string) => {
   URL.revokeObjectURL(url);
 };
 
-/** Minimal CSV parser: quoted fields, escaped quotes and commas inside quotes. */
-function parseCsv(text: string): Record<string, string>[] {
-  const rows: string[][] = [];
-  let row: string[] = [], cell = "", quoted = false;
-
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-
-    if (quoted) {
-      if (ch === '"' && text[i + 1] === '"') { cell += '"'; i++; } else if (ch === '"') quoted = false; else cell += ch;
-    } else if (ch === '"') quoted = true;
-    else if (ch === ",") { row.push(cell.trim()); cell = ""; }
-    else if (ch === "\n" || ch === "\r") {
-      if (ch === "\r" && text[i + 1] === "\n") i++;
-      row.push(cell.trim());
-      if (row.some(Boolean)) rows.push(row);
-      row = []; cell = "";
-    } else cell += ch;
-  }
-  if (cell || row.length) { row.push(cell.trim()); if (row.some(Boolean)) rows.push(row); }
-  if (rows.length < 2) return [];
-
-  const headers = rows[0].map((h) => h.toLowerCase());
-
-  return rows.slice(1).map((r) => Object.fromEntries(headers.map((h, i) => [h, r[i]])));
-}
-
 export function ImportTab() {
   const [results, setResults] = useState<Record<string, string>>({});
   const [log, setLog] = useState<{ id: number; message: string; time: string }[]>([]);
@@ -61,24 +35,10 @@ export function ImportTab() {
   const process = async (file: File, key: string) => {
     setBusy(key);
     try {
-      const text = await file.text();
-      let rows: any[];
-
-      if (file.name.endsWith(".json")) {
-        const data = JSON.parse(text);
-
-        rows = Array.isArray(data) ? data : data[key] || [];
-      } else rows = parseCsv(text);
+      const rows = await readRows(file, key as ImportKey);
 
       if (!rows.length) return setResults((r) => ({ ...r, [key]: "No rows found in the file." }));
-
-      const st = useAppStore.getState();
-
-      for (const row of rows) {
-        if (key === "inventory") await st.createInventoryItem({ name: row.name || "", sku: row.sku || "", price: parseFloat(row.price) || 0, cost: parseFloat(row.cost) || 0, stock: parseInt(row.stock) || 0, low: parseInt(row.low) || 5, category: row.category || "Parts", model: row.model || "", itemType: row.item_type || row.itemType || "product", description: row.description || "" });
-        else if (key === "customers") await st.createCustomer({ name: row.name || "", phone: row.phone || "", email: row.email || "", notes: row.notes || "" });
-        else await st.createTicket({ device: row.device || "", issue: row.issue || "", status: row.status || "Open", price: parseFloat(row.price) || 0, customerId: row.customerid || row.customerId || null });
-      }
+      await importRows(key as ImportKey, rows);
       const msg = `Imported ${rows.length} ${key}`;
 
       setResults((r) => ({ ...r, [key]: msg }));

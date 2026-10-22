@@ -43,3 +43,14 @@ export function getSupabase(): SupabaseClient | null {
 }
 
 export const isElectron = () => typeof window !== "undefined" && !!(window as unknown as { electronAPI?: { isElectron?: boolean } }).electronAPI?.isElectron;
+
+/** Replaces the client with one for different credentials, without a page reload (used by the setup wizard). */
+export function resetSupabase(url: string, key: string): SupabaseClient {
+  try {
+    localStorage.setItem(SB_URL_KEY, url.trim());
+    localStorage.setItem(SB_KEY_KEY, key.trim());
+  } catch { /* storage unavailable */ }
+  client = createClient(url.trim(), key.trim(), { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: !isElectron(), storageKey: "novaops-auth" } });
+
+  return client;
+}
