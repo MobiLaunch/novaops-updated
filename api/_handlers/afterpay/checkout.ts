@@ -1,4 +1,4 @@
-import { wrap, createError, readBody } from "../_lib/nitro.js";
+import { wrap, createError, readBody } from "../../_lib/nitro.js";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export default wrap(async (event: any) => {

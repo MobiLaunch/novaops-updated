@@ -1,5 +1,5 @@
-import { wrap, getHeader, runtimeConfig } from "../_lib/nitro.js";
-import { getServerSquareCredentials, serverSquareFetch } from "../_lib/square.js";
+import { wrap, getHeader, runtimeConfig } from "../../_lib/nitro.js";
+import { getServerSquareCredentials, serverSquareFetch } from "../../_lib/square.js";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
