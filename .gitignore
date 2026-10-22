@@ -2,8 +2,8 @@
 node_modules/
 
 # Build
-.output/
-.nuxt/
+.output-legacy/
+.vercel/
 dist/
 nuxi_error.log
 
