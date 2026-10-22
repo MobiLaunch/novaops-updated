@@ -10,8 +10,8 @@ import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(__dirname, '..')
 
-const EXT = new Set(['.vue', '.ts', '.js', '.mjs'])
-const SKIP = new Set(['node_modules', '.nuxt', 'dist', '.output', 'coverage'])
+const EXT = new Set(['.tsx', '.ts', '.js', '.mjs'])
+const SKIP = new Set(['node_modules', 'dist', 'coverage', 'arc'])
 
 const PATTERNS = [
   { name: 'TODO/FIXME', re: /\b(TODO|FIXME)\b/ },
