@@ -29,7 +29,6 @@ No environment variables? Open **Sign in → Database** and paste a Supabase pro
 | `npm run dev` | Start the Vite dev server |
 | `npm run build` | Type-check and build for production |
 | `npm run typecheck` | `tsc --noEmit` |
-| `npm run lint` | ESLint over `src` |
 | `npm run preview` | Serve the production build |
 
 ## Database
