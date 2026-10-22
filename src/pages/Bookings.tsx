@@ -67,7 +67,7 @@ export default function Bookings() {
     { key: "id", label: "#", width: 90, render: (v) => <Button size="sm" variant="ghost" aria-label={`Open ticket ${v}`} onClick={() => setDetail(v as number)}>#{String(v)}</Button> },
     { key: "customer", label: "Customer" },
     { key: "device", label: "Device" },
-    { key: "priority", label: "Priority", width: 100, render: (v) => <Badge tone={priorityTone(v as string)}>{String(v)}</Badge> },
+    { key: "priority", label: "Priority", width: 100, render: (v) => <Badge tone={priorityTone(v as string)}>{String(v)[0].toUpperCase() + String(v).slice(1)}</Badge> },
     { key: "status", label: "Status", width: 170, render: (v) => <Badge tone={statusTone(v as string)}>{String(v)}</Badge> },
     { key: "price", label: "Price", numeric: true, width: 100, render: (v) => formatCurrency(v as number, cur) },
     { key: "date", label: "Created", width: 120, render: (v) => formatDate(v as string) },

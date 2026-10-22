@@ -6,7 +6,7 @@ import { Dialog, DialogContent } from "@/components/arc/dialog/dialog";
 import { FileDropzone } from "@/components/arc/file-dropzone/file-dropzone";
 import { Input } from "@/components/arc/input/input";
 import { RadioCards } from "@/components/arc/radio-cards/radio-cards";
-import { SegmentedControl } from "@/components/arc/segmented-control/segmented-control";
+import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
 import { Stepper } from "@/components/arc/stepper/stepper";
 import { Textarea } from "@/components/arc/textarea/textarea";
 import { CustomerSelect } from "@/components/app/CustomerSelect";
@@ -108,7 +108,7 @@ export function NewTicketDialog({ open, onOpenChange, presetCustomerId }: Props)
 
           {step === 0 && (
             <>
-              <RadioCards layout="grid" minColumnWidth={110} value={otherBrand ? "__other" : f.brand} onValueChange={(v) => { if (v === "__other") { setOtherBrand(true); set("brand", ""); } else { setOtherBrand(false); set("brand", v); setStep(1); } }}
+              <RadioCards layout="grid" minColumnWidth={150} value={otherBrand ? "__other" : f.brand} onValueChange={(v) => { if (v === "__other") { setOtherBrand(true); set("brand", ""); } else { setOtherBrand(false); set("brand", v); setStep(1); } }}
                 options={[...brands.map((b) => ({ value: b, label: b })), { value: "__other", label: "Other" }]} />
               {otherBrand && (
                 <div className="nv-actions">

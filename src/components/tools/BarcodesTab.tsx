@@ -5,7 +5,7 @@ import { Alert } from "@/components/arc/alert/alert";
 import { Button } from "@/components/arc/button/button";
 import { Checkbox } from "@/components/arc/checkbox/checkbox";
 import { Input } from "@/components/arc/input/input";
-import { SegmentedControl } from "@/components/arc/segmented-control/segmented-control";
+import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
 import { Select } from "@/components/arc/select/select";
 import { toast } from "@/hooks/useToast";
 import { formatCurrency } from "@/lib/format";

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { BarChart3, BookOpen, CalendarDays, Command, LayoutDashboard, Package, Plus, Receipt, Settings, Users, Wrench } from "lucide-react";
+import { BarChart3, BookOpen, CalendarDays, Command, Ellipsis, LayoutDashboard, LogOut, Package, Plus, Receipt, Settings, Users, Wrench } from "lucide-react";
 
+import { Drawer, DrawerContent } from "@/components/arc/drawer/drawer";
 import { Avatar } from "@/components/arc/avatar/avatar";
 import { Button } from "@/components/arc/button/button";
 import { Dialog, DialogContent } from "@/components/arc/dialog/dialog";
@@ -46,6 +47,7 @@ export function AppShell() {
   const setDialog = useUi((u) => u.openQuickAction);
   const [palette, setPalette] = useState(false);
   const [shortcuts, setShortcuts] = useState(false);
+  const [more, setMore] = useState(false);
 
   useScreenLock(true);
 
@@ -119,7 +121,7 @@ export function AppShell() {
       <div className="nv-main">
         <header className="nv-top">
           <span className="nv-mobile-only nv-brand"><span className="nv-brand-mark">N</span></span>
-          <Button variant="secondary" size="sm" onClick={() => setPalette(true)}><Command size={14} />Search<span className="nv-muted">⌘K</span></Button>
+          <Button variant="secondary" size="sm" onClick={() => setPalette(true)}><Command size={14} /><span className="nv-hide-mobile">Search</span><span className="nv-muted nv-hide-mobile">⌘K</span></Button>
           <div className="nv-top-spacer" />
           <DropdownMenu
             label="Create"
@@ -139,10 +141,27 @@ export function AppShell() {
       </div>
 
       <nav className="nv-tabbar" aria-label="Primary">
-        {[NAV[0], NAV[1], NAV[2], NAV[4], NAV[3]].map((n) => (
+        {[NAV[0], NAV[1], NAV[2], NAV[4]].map((n) => (
           <NavLink key={n.to} to={n.to}><n.icon size={20} />{n.label}</NavLink>
         ))}
+        <button type="button" className="nv-tab-more" onClick={() => setMore(true)}><Ellipsis size={20} />More</button>
       </nav>
+
+      <Drawer open={more} onOpenChange={setMore}>
+        <DrawerContent side="bottom" title="More" description={businessName || "NovaOps"}>
+          <div className="nv-stack">
+            {[NAV[3], NAV[5], NAV[6], NAV[7]].map((n) => (
+              <NavLink key={n.to} to={n.to} className="nv-link" onClick={() => setMore(false)}><n.icon size={17} />{n.label}</NavLink>
+            ))}
+            <NavLink to="/settings" className="nv-link" onClick={() => setMore(false)}><Settings size={17} />Settings</NavLink>
+            <div className="nv-actions" style={{ justifyContent: "space-between", padding: "4px 10px" }}>
+              <span className="nv-muted">Appearance</span>
+              <ThemeSwitch theme={theme} onThemeChange={setTheme} label="Theme" />
+            </div>
+            <Button variant="ghost" onClick={async () => { setMore(false); await useAppStore.getState().logout(); navigate("/login", { replace: true }); }}><LogOut size={14} />Sign out</Button>
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       {palette && (
         <Dialog open onOpenChange={setPalette}>

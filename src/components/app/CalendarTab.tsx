@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/arc/badge/badge";
 import { Button } from "@/components/arc/button/button";
 import { EmptyState } from "@/components/arc/empty-state/empty-state";
-import { SegmentedControl } from "@/components/arc/segmented-control/segmented-control";
+import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
 import { useAppStore } from "@/lib/store";
 import type { BadgeTone } from "@/lib/format";
 

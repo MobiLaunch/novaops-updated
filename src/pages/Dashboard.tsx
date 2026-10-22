@@ -8,6 +8,7 @@ import { Button } from "@/components/arc/button/button";
 import { MetricCard } from "@/components/arc/metric-card/metric-card";
 import { SortableDataTable, type DataColumn } from "@/components/arc/sortable-data-table/sortable-data-table";
 import { PageHead } from "@/components/app/PageHead";
+import { StatCard } from "@/components/app/StatCard";
 import { getGreeting, useWeather } from "@/hooks/useWeather";
 import { formatCurrency, statusTone } from "@/lib/format";
 import { useAppStore } from "@/lib/store";
@@ -61,7 +62,7 @@ export default function Dashboard() {
   const age = (t: any) => (t.createdAt ? Math.floor((Date.now() - new Date(t.createdAt).getTime()) / DAY) : 0);
 
   const columns: DataColumn<Record<string, unknown>>[] = [
-    { key: "id", label: "#", width: 70, render: (v) => `#${v}` },
+    { key: "id", label: "#", width: 96, render: (v) => `#${v}` },
     { key: "customer", label: "Customer" },
     { key: "device", label: "Device" },
     { key: "status", label: "Status", width: 190, render: (_v, r: any) => (
@@ -99,10 +100,10 @@ export default function Dashboard() {
         {d.waiting.slice(0, 2).map((t) => <Alert key={`p${t.id}`} tone="danger" title={`#${t.id} · ${t.device}`}>Waiting for parts</Alert>)}
 
         <div className="nv-grid cols-4">
-          <MetricCard label="Revenue" value={d.revenue} suffix="" context={`${d.jobs} completed jobs`} />
+          <StatCard label="Revenue" value={formatCurrency(d.revenue, cur)} context={`${d.jobs} completed ${d.jobs === 1 ? "job" : "jobs"}`} />
           <MetricCard label="Active tickets" value={d.active} context={`${d.doneToday} finished today`} />
           <MetricCard label="Customers" value={customers.length} context="In your list" />
-          <MetricCard label="Low stock" value={d.lowStock} context={`${d.upcoming} upcoming appointments`} />
+          <MetricCard label="Low stock" value={d.lowStock} context={`${d.upcoming} upcoming ${d.upcoming === 1 ? "appointment" : "appointments"}`} />
         </div>
 
         <div className="nv-grid cols-3">

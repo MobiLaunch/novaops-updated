@@ -46,8 +46,11 @@ a { color: inherit; text-decoration: none; }
     position: fixed; inset: auto 0 0 0; z-index: 30; display: grid; grid-template-columns: repeat(5, 1fr);
     padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); background: var(--surface); border-top: 1px solid var(--border);
   }
-  .nv-tabbar a { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; font-size: 11px; color: var(--text-muted); }
+  .nv-tabbar a, .nv-tab-more { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; font-size: 11px; color: var(--text-muted); }
   .nv-tabbar a[aria-current="page"] { color: var(--foreground); }
+  .nv-tab-more { background: none; border: 0; font: inherit; font-size: 11px; cursor: pointer; }
+  .nv-hide-mobile { display: none; }
+  .nv-top > :nth-child(n+4) { flex-shrink: 0; }
 }
 @media (min-width: 861px) { .nv-tabbar { display: none; } }
 
@@ -118,3 +121,9 @@ a { color: inherit; text-decoration: none; }
 
 .nv-electron-titlebar { position: fixed; inset: 0 0 auto 0; height: 40px; -webkit-app-region: drag; z-index: 9999; }
 .electron-app .nv-top { padding-top: 44px; }
+
+/* Static stat tile, sized to sit beside Arc's MetricCard */
+.nv-stat { display: flex; flex-direction: column; justify-content: space-between; gap: 18px; min-height: 172px; padding: 22px 24px; border: 1px solid var(--border); border-radius: var(--radius-surface, 28px); background: var(--surface); }
+.nv-stat-label { font-size: 14px; color: var(--text-secondary); }
+.nv-stat-value { font-size: 40px; font-weight: 400; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.nv-stat-context { font-size: 14px; color: var(--text-muted); }

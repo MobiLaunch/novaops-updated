@@ -10,11 +10,12 @@ import { DonutChart } from "@/components/arc/donut-chart/donut-chart";
 import { EmptyState } from "@/components/arc/empty-state/empty-state";
 import { Input } from "@/components/arc/input/input";
 import { MetricCard } from "@/components/arc/metric-card/metric-card";
-import { SegmentedControl } from "@/components/arc/segmented-control/segmented-control";
+import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
 import { Select } from "@/components/arc/select/select";
 import { Skeleton } from "@/components/arc/skeleton/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/arc/tabs/tabs";
 import { PageHead } from "@/components/app/PageHead";
+import { StatCard } from "@/components/app/StatCard";
 import { useSquareData } from "@/hooks/useSquareData";
 import { toast } from "@/hooks/useToast";
 import { formatCurrency, formatDate } from "@/lib/format";
@@ -143,10 +144,10 @@ export default function Analytics() {
 
         <TabsContent value="overview">
           <div className="nv-grid cols-4" style={{ margin: "16px 0" }}>
-            <MetricCard label="Revenue" value={d.revenue} context={PERIOD[range]} />
-            <MetricCard label="Net profit" value={d.net} context={`After ${m(d.spend)} in costs`} />
+            <StatCard label="Revenue" value={m(d.revenue)} context={PERIOD[range]} />
+            <StatCard label="Net profit" value={m(d.net)} context={`After ${m(d.spend)} in costs`} />
             <MetricCard label="Active tickets" value={d.active} context={`${d.count} created this period`} />
-            <MetricCard label="Average ticket" value={Math.round(d.avg)} context="Per priced job" />
+            <StatCard label="Average ticket" value={m(d.avg)} context="Per priced job" />
           </div>
           <div className="nv-panel"><BarChart data={d.months} label="Revenue by month" period="Last 12 months" unit={cur} averageLabel="Monthly average" valueLabel="Revenue" categoryLabel="Month" formatValue={(v) => m(v)} /></div>
         </TabsContent>
@@ -197,10 +198,10 @@ export default function Analytics() {
                 <>
                   {Object.values(square.error).filter(Boolean).map((e) => <Alert key={e} tone="danger" title={e} />)}
                   <div className="nv-grid cols-4">
-                    <MetricCard label="Square revenue" value={square.totalRevenue} context={`${square.payments.length} payments`} />
-                    <MetricCard label="Fees" value={square.totalFees} context="Deducted by Square" />
-                    <MetricCard label="Net revenue" value={square.netRevenue} context="After fees" />
-                    <MetricCard label="Payouts" value={square.totalPayouts} context={`${square.payouts.length} deposits`} />
+                    <StatCard label="Square revenue" value={m(square.totalRevenue)} context={`${square.payments.length} payments`} />
+                    <StatCard label="Fees" value={m(square.totalFees)} context="Deducted by Square" />
+                    <StatCard label="Net revenue" value={m(square.netRevenue)} context="After fees" />
+                    <StatCard label="Payouts" value={m(square.totalPayouts)} context={`${square.payouts.length} deposits`} />
                   </div>
                   <div className="nv-grid cols-2">
                     <div className="nv-panel">

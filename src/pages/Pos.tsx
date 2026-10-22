@@ -7,7 +7,7 @@ import { Button } from "@/components/arc/button/button";
 import { Dialog, DialogContent } from "@/components/arc/dialog/dialog";
 import { EmptyState } from "@/components/arc/empty-state/empty-state";
 import { SearchField } from "@/components/arc/search-field/search-field";
-import { SegmentedControl } from "@/components/arc/segmented-control/segmented-control";
+import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
 import { CustomerSelect } from "@/components/app/CustomerSelect";
 import { PageHead } from "@/components/app/PageHead";
 import { useSquarePayments } from "@/hooks/useSquarePayments";

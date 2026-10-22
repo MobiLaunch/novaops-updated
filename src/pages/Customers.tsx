@@ -11,6 +11,7 @@ import { SearchField } from "@/components/arc/search-field/search-field";
 import { CustomerEditDialog } from "@/components/app/CustomerEditDialog";
 import { NewTicketDialog } from "@/components/app/NewTicketDialog";
 import { PageHead } from "@/components/app/PageHead";
+import { StatCard } from "@/components/app/StatCard";
 import { toast } from "@/hooks/useToast";
 import { openCustomerContact } from "@/lib/contact";
 import { formatCurrency, formatDate, statusTone } from "@/lib/format";
@@ -58,8 +59,8 @@ export default function Customers() {
 
       <div className="nv-grid cols-4" style={{ marginBottom: 16 }}>
         <MetricCard label="Customers" value={customers.length} context="In your list" />
-        <MetricCard label="Total revenue" value={total} context="Across all tickets" />
-        <MetricCard label="Average per customer" value={customers.length ? Math.round(total / customers.length) : 0} context="Lifetime value" />
+        <StatCard label="Total revenue" value={formatCurrency(total, cur)} context="Across all tickets" />
+        <StatCard label="Average per customer" value={formatCurrency(customers.length ? total / customers.length : 0, cur)} context="Lifetime value" />
         <MetricCard label="Tickets" value={tickets.length} context="All time" />
       </div>
 
@@ -76,7 +77,7 @@ export default function Customers() {
                 <div key={c.id} className="nv-row" style={{ cursor: "pointer" }} onClick={() => setSelected(c)}>
                   <Avatar name={c.name} size="md" />
                   <div className="nv-row-main"><strong>{c.name}</strong><span>{[c.phone, c.email].filter(Boolean).join(" · ") || "No contact info"}</span></div>
-                  <span className="nv-muted">{st?.count ?? 0} tickets</span>
+                  <span className="nv-muted">{st?.count ?? 0} {st?.count === 1 ? "ticket" : "tickets"}</span>
                   <strong style={{ fontWeight: 500, minWidth: 80, textAlign: "right" }}>{formatCurrency(st?.revenue ?? 0, cur)}</strong>
                 </div>
               );

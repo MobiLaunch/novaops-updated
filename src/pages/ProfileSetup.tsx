@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Alert } from "@/components/arc/alert/alert";
 import { Button } from "@/components/arc/button/button";
 import { Input } from "@/components/arc/input/input";
-import { SegmentedControl } from "@/components/arc/segmented-control/segmented-control";
+import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
 import { Textarea } from "@/components/arc/textarea/textarea";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { DEFAULT_STATUSES } from "@/lib/profile";
