@@ -8,7 +8,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useAppStore } from "@/lib/store";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-function fromNow(d: Date) {
+export function fromNow(d: Date) {
   const mins = Math.round((d.getTime() - Date.now()) / 60000);
 
   if (mins < 60) return `In ${Math.max(mins, 1)} min`;
@@ -19,13 +19,11 @@ function fromNow(d: Date) {
   return days === 1 ? "Tomorrow" : `In ${days} days`;
 }
 
-/** Upcoming appointments and house calls, plus the latest notifications. */
-export function UpcomingPanel() {
-  const navigate = useNavigate();
+/** Next upcoming appointments and house calls, soonest first. */
+export function useUpcoming(limit = 5) {
   const { houseCalls, appointments, customers } = useAppStore();
-  const { notifications, markAllAsRead } = useNotifications();
 
-  const items = useMemo(() => {
+  return useMemo(() => {
     const now = new Date();
     const out: { id: string; kind: "housecall" | "appointment"; title: string; subtitle: string; date: Date }[] = [];
 
@@ -40,8 +38,17 @@ export function UpcomingPanel() {
       if (a.date && d >= now && !["cancelled", "completed"].includes(String(a.status).toLowerCase())) out.push({ id: `a${a.id}`, kind: "appointment", title: a.title || a.description || "Appointment", subtitle: customers.find((c) => c.id === a.customerId)?.name || "", date: d });
     });
 
-    return out.sort((x, y) => x.date.getTime() - y.date.getTime()).slice(0, 5);
-  }, [houseCalls, appointments, customers]);
+    return out.sort((x, y) => x.date.getTime() - y.date.getTime()).slice(0, limit);
+  }, [houseCalls, appointments, customers, limit]);
+
+}
+
+/** Upcoming appointments and house calls, plus the latest notifications. */
+export function UpcomingPanel() {
+  const navigate = useNavigate();
+
+  const items = useUpcoming();
+  const { notifications, markAllAsRead } = useNotifications();
 
   return (
     <div className="nv-grid cols-2">

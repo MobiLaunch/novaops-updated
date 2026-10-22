@@ -97,7 +97,7 @@ export function NewTicketDialog({ open, onOpenChange, presetCustomerId }: Props)
 
       if (id) toast.dismiss(id);
       toast.success("Ticket created", `Ticket #${ticket.id}`);
-      addNotification("New ticket", `Ticket #${ticket.id} for ${c?.name || "customer"}`, "success");
+      addNotification("New ticket", `Ticket #${ticket.id} for ${c?.name || "customer"}`, "success", "newTicket");
       void sendTicketEmail({ ...ticket, customerId: f.customerId });
       void sendInternalAlert({ eventType: "New Ticket", eventSummary: `Ticket #${ticket.id} created`, customerName: c?.name, customerPhone: c?.phone, deviceName: f.brand, issueDescription: issue, ticketNumber: String(ticket.id) });
       onOpenChange(false);

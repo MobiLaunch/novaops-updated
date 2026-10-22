@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Copy, MapPin, Plus, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/arc/badge/badge";
@@ -39,6 +40,14 @@ export default function Bookings() {
   const { sendVendorRepairEmail, sendInternalAlert } = useEmailNotifications();
   const [tab, setTab] = useState("tickets");
   const [detail, setDetail] = useState<number | null>(null);
+  const [params, setParams] = useSearchParams();
+
+  useEffect(() => {
+    const t = Number(params.get("ticket"));
+
+    if (t) { setTab("tickets"); setDetail(t); params.delete("ticket"); setParams(params, { replace: true }); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params]);
 
   const [tq, setTq] = useState("");
   const [tStatus, setTStatus] = useState<string[]>([]);

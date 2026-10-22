@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Mail, Pencil, Plus, Ticket as TicketIcon } from "lucide-react";
 
 import { Avatar } from "@/components/arc/avatar/avatar";
@@ -25,6 +26,15 @@ export default function Customers() {
   const [selected, setSelected] = useState<Customer | null>(null);
   const [editing, setEditing] = useState<Customer | null | undefined>(undefined);
   const [ticketFor, setTicketFor] = useState<number | null>(null);
+  const [params, setParams] = useSearchParams();
+
+  useEffect(() => {
+    const id = Number(params.get("highlight"));
+    const c = customers.find((x) => x.id === id);
+
+    if (c) { setSelected(c); params.delete("highlight"); setParams(params, { replace: true }); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params, customers]);
 
   const stats = useMemo(() => {
     const by = new Map<number, { revenue: number; count: number }>();

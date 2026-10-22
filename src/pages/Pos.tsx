@@ -230,7 +230,7 @@ export default function Pos() {
 
     setReceipt(data);
     try { if (JSON.parse(localStorage.getItem("novaops_printer_settings") || "{}").autoPrintReceipt) void printReceipt(data); } catch { /* ignore */ }
-    addNotification("New sale", `${formatCurrency(t.total, data.currency)} via ${finalMethod}`, "success");
+    addNotification("New sale", `${formatCurrency(t.total, data.currency)} via ${finalMethod}`, "success", "newSale");
     setResult({ id: sale.id, amount: t.total, method: finalMethod, customer });
     clear();
     setStatus("");

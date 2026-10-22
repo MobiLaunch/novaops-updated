@@ -30,7 +30,10 @@ export function ImportTab() {
   const [results, setResults] = useState<Record<string, string>>({});
   const [log, setLog] = useState<{ id: number; message: string; time: string }[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
-  const counts = useAppStore((s) => ({ customers: s.customers.length, inventory: s.inventory.length, tickets: s.tickets.length }));
+  const customerCount = useAppStore((s) => s.customers.length);
+  const inventoryCount = useAppStore((s) => s.inventory.length);
+  const ticketCount = useAppStore((s) => s.tickets.length);
+  const counts = { customers: customerCount, inventory: inventoryCount, tickets: ticketCount };
 
   const process = async (file: File, key: string) => {
     setBusy(key);

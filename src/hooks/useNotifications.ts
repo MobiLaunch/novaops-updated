@@ -1,5 +1,7 @@
 import { create } from "zustand";
 
+import { useAppStore, type NotificationPrefs } from "@/lib/store";
+
 export interface AppNotification {
   id: string;
   title: string;
@@ -38,5 +40,8 @@ export const useNotifications = () => {
 };
 
 // For non-hook callers.
-export const addNotification = (title: string, message: string, type?: AppNotification["type"]) =>
+/** Adds an in-app notification. When a category is given, the shop's notification preferences decide whether it shows. */
+export const addNotification = (title: string, message: string, type?: AppNotification["type"], category?: keyof NotificationPrefs) => {
+  if (category && !useAppStore.getState().notificationPrefs[category]) return;
   useNotificationStore.getState().addNotification(title, message, type);
+};

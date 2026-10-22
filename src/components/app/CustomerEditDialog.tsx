@@ -5,6 +5,7 @@ import { Dialog, DialogContent } from "@/components/arc/dialog/dialog";
 import { HoldToConfirm } from "@/components/arc/hold-to-confirm/hold-to-confirm";
 import { Input } from "@/components/arc/input/input";
 import { Textarea } from "@/components/arc/textarea/textarea";
+import { addNotification } from "@/hooks/useNotifications";
 import { toast } from "@/hooks/useToast";
 import { useAppStore } from "@/lib/store";
 import type { Customer } from "@/types";
@@ -40,6 +41,7 @@ export function CustomerEditDialog({ open, onOpenChange, customer, onSaved, onDe
       const saved = customer ? await updateCustomer(customer.id, form) : await createCustomer(form);
 
       toast.success(customer ? "Customer updated" : "Customer added");
+      if (!customer) addNotification("New customer", form.name, "info", "newCustomer");
       onSaved?.(saved);
       onOpenChange(false);
     } catch (e) {

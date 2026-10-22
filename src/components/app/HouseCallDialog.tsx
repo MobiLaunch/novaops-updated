@@ -6,6 +6,7 @@ import { Input } from "@/components/arc/input/input";
 import { Select } from "@/components/arc/select/select";
 import { Textarea } from "@/components/arc/textarea/textarea";
 import { useEmailNotifications } from "@/hooks/useEmailNotifications";
+import { addNotification } from "@/hooks/useNotifications";
 import { toast } from "@/hooks/useToast";
 import { printHousecall } from "@/lib/print";
 import { useAppStore, type HouseCall } from "@/lib/store";
@@ -89,6 +90,7 @@ export function HouseCallDialog({ open, onOpenChange, editingCall, onSaved }: Pr
       else await createHouseCall(payload);
 
       toast.success(isNew ? "House call scheduled" : "House call updated");
+      if (isNew) addNotification("House call scheduled", `${customerName(form.customerId)} · ${form.date}`, "info", "appointment");
       if (isNew) {
         void sendHousecallEmail(payload);
         void sendInternalAlert({ eventType: "House Call", eventSummary: "New house call scheduled", customerName: customerName(form.customerId), issueDescription: form.issue });

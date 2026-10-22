@@ -9,6 +9,8 @@ import { Dialog, DialogContent } from "@/components/arc/dialog/dialog";
 import { CommandPalette } from "@/components/arc/command-palette/command-palette";
 import { DropdownMenu } from "@/components/arc/dropdown-menu/dropdown-menu";
 import { ThemeSwitch } from "@/components/arc/theme-switch/theme-switch";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/arc/popover/popover";
+import { fromNow, useUpcoming } from "@/components/app/UpcomingPanel";
 import { NotificationsButton } from "@/components/app/NotificationsButton";
 import { NewTicketDialog } from "@/components/app/NewTicketDialog";
 import { HouseCallDialog } from "@/components/app/HouseCallDialog";
@@ -48,6 +50,7 @@ export function AppShell() {
   const [palette, setPalette] = useState(false);
   const [shortcuts, setShortcuts] = useState(false);
   const [more, setMore] = useState(false);
+  const upcoming = useUpcoming(6);
 
   useScreenLock(true);
 
@@ -87,17 +90,27 @@ export function AppShell() {
     return () => window.removeEventListener("keydown", onKey);
   }, [navigate, setDialog]);
 
+  const tickets = useAppStore((st) => st.tickets);
+  const customerList = useAppStore((st) => st.customers);
+  const inventory = useAppStore((st) => st.inventory);
+
   const commands = useMemo(() => [
     ...NAV.map((n) => ({ id: `go:${n.to}`, label: n.label, group: "Go to", icon: <n.icon size={16} /> })),
     { id: "go:/settings", label: "Settings", group: "Go to", icon: <Settings size={16} />, shortcut: "⌘," },
     { id: "new:ticket", label: "New ticket", group: "Create", shortcut: "⌘T" },
     { id: "new:housecall", label: "New house call", group: "Create", shortcut: "⌘H" },
     { id: "new:customer", label: "New customer", group: "Create", shortcut: "⌘U" },
-  ], []);
+    ...tickets.slice(0, 200).map((t) => ({ id: `ticket:${t.id}`, label: `#${t.id} ${t.device} ${t.deviceModel || ""}`.trim(), description: `${customerList.find((c) => c.id === t.customerId)?.name || "Unknown"} · ${t.status}`, group: "Tickets", keywords: [String(t.id), t.issue, t.deviceModel || ""] })),
+    ...customerList.slice(0, 200).map((c) => ({ id: `customer:${c.id}`, label: c.name, description: [c.phone, c.email].filter(Boolean).join(" · "), group: "Customers", keywords: [c.phone, c.email].filter(Boolean) })),
+    ...inventory.slice(0, 200).map((i: any) => ({ id: `item:${i.id}`, label: i.name, description: `SKU ${i.sku || "none"} · ${i.category}`, group: "Inventory", keywords: [i.sku || "", i.category || ""] })),
+  ], [tickets, customerList, inventory]);
 
   const onCommand = (id: string) => {
     setPalette(false);
     if (id.startsWith("go:")) navigate(id.slice(3));
+    else if (id.startsWith("ticket:")) navigate(`/bookings?ticket=${id.slice(7)}`);
+    else if (id.startsWith("customer:")) navigate(`/customers?highlight=${id.slice(9)}`);
+    else if (id.startsWith("item:")) navigate("/inventory");
     else setDialog(id.slice(4) as "ticket" | "housecall" | "customer");
   };
 
@@ -133,6 +146,22 @@ export function AppShell() {
               { label: "Open register", onSelect: () => navigate("/pos"), separatorBefore: true },
             ]}
           />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm" aria-label={`Upcoming, ${upcoming.length}`}><CalendarDays size={16} />{upcoming.length > 0 && <span>{upcoming.length}</span>}</Button>
+            </PopoverTrigger>
+            <PopoverContent align="end">
+              <div className="nv-stack" style={{ minWidth: 260 }}>
+                <strong style={{ fontWeight: 500 }}>Upcoming</strong>
+                {upcoming.length === 0 ? <span className="nv-muted">No upcoming tasks</span> : upcoming.map((u) => (
+                  <button key={u.id} type="button" className="nv-row" style={{ all: "unset", cursor: "pointer", display: "flex", gap: 10, alignItems: "center" }} onClick={() => navigate("/bookings")}>
+                    <div className="nv-row-main"><strong>{u.title}</strong><span>{u.subtitle}</span></div>
+                    <span className="nv-muted" style={{ fontSize: 12 }}>{fromNow(u.date)}</span>
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
           <NotificationsButton />
           <ThemeSwitch theme={theme} onThemeChange={setTheme} iconOnly label="Theme" />
           <Avatar name={email || name} size="sm" src={(() => { try { return localStorage.getItem("novaops_account_avatar") || undefined; } catch { return undefined; } })()} />

@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/arc/button/button";
 import { Combobox } from "@/components/arc/combobox/combobox";
 import { Input } from "@/components/arc/input/input";
+import { addNotification } from "@/hooks/useNotifications";
 import { toast } from "@/hooks/useToast";
 import { formatPhoneNumber } from "@/lib/phone";
 import { useAppStore } from "@/lib/store";
@@ -35,6 +36,7 @@ export function CustomerSelect({ value, onChange, label = "Customer" }: Props) {
       setAdding(false);
       setDraft({ name: "", email: "", phone: "" });
       toast.success("Customer added", c.name);
+      addNotification("New customer", c.name, "info", "newCustomer");
     } catch (e) {
       toast.danger("Could not add customer", (e as Error).message);
     } finally {
