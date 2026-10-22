@@ -33,3 +33,17 @@ export const ticketStatusColor = (status: string) => {
   }
   return map[status] || 'secondary'
 }
+
+export type BadgeTone = 'neutral' | 'success' | 'info' | 'warning' | 'danger'
+
+/** Maps a ticket status to an Arc Badge tone. */
+export const statusTone = (status: string): BadgeTone => {
+  const map: Record<string, BadgeTone> = {
+    Open: 'info',
+    'In Progress': 'warning',
+    'Waiting for Parts': 'danger',
+    Completed: 'success',
+    Delivered: 'neutral',
+  }
+  return map[status] || 'neutral'
+}
