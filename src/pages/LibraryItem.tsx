@@ -42,7 +42,7 @@ export default function LibraryItem() {
     <div className="nv-stack" style={{ gap: 16 }}>
       <div className="nv-actions">
         <Button variant="ghost" size="sm" aria-label="Back" onClick={() => navigate(-1)}><ArrowLeft size={16} /></Button>
-        <Breadcrumb items={[{ label: "Library", href: "/library" }, ...(guide?.category ? [{ label: guide.category }] : []), { label: guide?.title || "Loading…" }]} />
+        <Breadcrumb items={[{ label: "Library", onClick: () => navigate("/library") }, ...(guide?.category ? [{ label: guide.category }] : []), { label: guide?.title || "Loading…" }]} />
       </div>
 
       {loading ? <Skeleton lines={6} label="Loading guide" /> : error ? (
