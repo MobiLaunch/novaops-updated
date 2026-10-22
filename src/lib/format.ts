@@ -47,3 +47,11 @@ export const statusTone = (status: string): BadgeTone => {
   }
   return map[status] || 'neutral'
 }
+
+export const housecallTone = (s?: string): BadgeTone =>
+  ({ Scheduled: 'info', 'In Progress': 'warning', Completed: 'success', Cancelled: 'danger' } as Record<string, BadgeTone>)[s || ''] || 'neutral'
+
+export const vendorTone = (s?: string): BadgeTone =>
+  ({ 'Preparing to Ship': 'neutral', 'Shipped to Vendor': 'info', 'In Repair': 'warning', 'Shipped Back': 'info', Received: 'success', 'Returned to Customer': 'success', Cancelled: 'danger' } as Record<string, BadgeTone>)[s || ''] || 'neutral'
+
+export const priorityTone = (p?: string): BadgeTone => (p === 'high' ? 'danger' : p === 'low' ? 'neutral' : 'info')

@@ -100,7 +100,7 @@ export function HouseCallDialog({ open, onOpenChange, editingCall, onSaved }: Pr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent title={editingCall ? "Edit house call" : "New house call"} description="Schedule an on-site visit">
+      <DialogContent className="nv-wide" title={editingCall ? "Edit house call" : "New house call"} description="Schedule an on-site visit">
         <div className="nv-form">
           <Select label="Customer" placeholder="Choose a customer" value={form.customerId} onValueChange={set("customerId")} options={customers.map((c) => ({ value: String(c.id), label: c.name }))} />
           <Input label="Service address" value={form.address} onChange={(e) => set("address")(e.target.value)} />

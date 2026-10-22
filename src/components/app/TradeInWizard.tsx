@@ -162,7 +162,7 @@ export function TradeInWizard({ open, onOpenChange, onSaved }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent title="Trade-in evaluation" description="Assess a device and calculate an offer">
+      <DialogContent className="nv-wide" title="Trade-in evaluation" description="Assess a device and calculate an offer">
         <div className="nv-form">
           <Stepper steps={[{ id: "id", label: "Device" }, { id: "cond", label: "Condition" }, { id: "iss", label: "Issues" }, { id: "offer", label: "Offer" }]} current={step} onStepSelect={setStep} details="current" />
 

@@ -102,7 +102,7 @@ export function NewTicketDialog({ open, onOpenChange, presetCustomerId }: Props)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent title="New ticket" description="Check in a device for repair">
+      <DialogContent className="nv-wide" title="New ticket" description="Check in a device for repair">
         <div className="nv-form">
           <Stepper steps={STEPS} current={step} onStepSelect={setStep} details="current" />
 
