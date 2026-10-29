@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Package, Plus, Printer, Wrench } from "lucide-react";
 
 import { Badge } from "@/components/arc/badge/badge";
@@ -18,6 +18,7 @@ import { TradeInWizard } from "@/components/app/TradeInWizard";
 import { toast } from "@/hooks/useToast";
 import { formatCurrency } from "@/lib/format";
 import { printBarcodeBatch, printBarcodeLabel } from "@/lib/print";
+import { getSupabase } from "@/lib/supabase";
 import { useAppStore } from "@/lib/store";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -38,6 +39,17 @@ export default function Inventory() {
   const [saving, setSaving] = useState(false);
   const [trade, setTrade] = useState(false);
   const [bulk, setBulk] = useState<any[] | null>(null);
+  // Items the website shop sells from this same stock count: inventory id -> live on the site.
+  const [onSite, setOnSite] = useState<Map<number, boolean>>(new Map());
+
+  useEffect(() => {
+    const sb = getSupabase();
+
+    if (!sb) return;
+    void sb.from("products").select("inventory_id,active").not("inventory_id", "is", null).then(({ data }) => {
+      if (data) setOnSite(new Map(data.map((p: any) => [p.inventory_id as number, !!p.active])));
+    });
+  }, [inventory]);
 
   const all = useMemo(() => [
     ...inventory.map((i: any) => ({ ...i, itemType: i.itemType || i.item_type || "product" })),
@@ -152,7 +164,7 @@ export default function Inventory() {
                   <button key={`${i.itemType}-${i.id}`} type="button" className="nv-panel" style={{ textAlign: "left", cursor: "pointer", font: "inherit", color: "inherit" }} onClick={() => edit(i)}>
                     <div className="nv-actions" style={{ justifyContent: "space-between" }}>
                       {svc ? <Wrench size={18} /> : <Package size={18} />}
-                      <Badge tone={svc ? "info" : low ? "danger" : "success"}>{svc ? "Service" : low ? "Low stock" : "In stock"}</Badge>
+                      <span style={{ display: "inline-flex", gap: 6 }}>{!svc && onSite.has(i.id) && <Badge tone={onSite.get(i.id) ? "info" : "neutral"}>{onSite.get(i.id) ? "On website" : "Hidden on website"}</Badge>}<Badge tone={svc ? "info" : low ? "danger" : "success"}>{svc ? "Service" : low ? "Low stock" : "In stock"}</Badge></span>
                     </div>
                     <div style={{ marginTop: 12, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{i.name}</div>
                     <div className="nv-muted" style={{ fontSize: 13 }}>{svc ? i.description || i.category : `SKU ${i.sku || "none"} · ${i.category}`}</div>
