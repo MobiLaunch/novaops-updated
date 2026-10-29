@@ -74,11 +74,11 @@ export default function Bookings() {
       return (!q || t.device?.toLowerCase().includes(q) || t.issue?.toLowerCase().includes(q) || String(t.id).includes(q) || name(t.customerId).toLowerCase().includes(q)) && (!tStatus.length || tStatus.includes(t.status));
     })
     .sort((a, b) => (b.id || 0) - (a.id || 0))
-    .map((t) => ({ id: t.id, customer: name(t.customerId), device: `${t.device} ${t.deviceModel || ""}`.trim(), priority: t.priority, status: t.status, price: t.price || 0, date: t.createdAt ? t.createdAt.slice(0, 10) : "" }));
+    .map((t) => ({ id: t.id, customer: name(t.customerId), device: `${t.device} ${t.deviceModel || ""}`.trim(), web: Array.isArray(t.notes) && t.notes.some((n: any) => String(n?.text || "").startsWith("Booked on the website")), priority: t.priority, status: t.status, price: t.price || 0, date: t.createdAt ? t.createdAt.slice(0, 10) : "" }));
   const columns: DataColumn<Record<string, unknown>>[] = [
     { key: "id", label: "#", width: 90, render: (v) => <Button size="sm" variant="ghost" aria-label={`Open ticket ${v}`} onClick={() => setDetail(v as number)}>#{String(v)}</Button> },
     { key: "customer", label: "Customer" },
-    { key: "device", label: "Device" },
+    { key: "device", label: "Device", render: (v, row) => <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>{String(v)}{row.web ? <Badge tone="info">Website</Badge> : null}</span> },
     { key: "priority", label: "Priority", width: 100, render: (v) => <Badge tone={priorityTone(v as string)}>{String(v)[0].toUpperCase() + String(v).slice(1)}</Badge> },
     { key: "status", label: "Status", width: 170, render: (v) => <Badge tone={statusTone(v as string)}>{String(v)}</Badge> },
     { key: "price", label: "Price", numeric: true, width: 100, render: (v) => formatCurrency(v as number, cur) },
