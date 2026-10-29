@@ -10,6 +10,7 @@ import { MetricCard } from "@/components/arc/metric-card/metric-card";
 import { SearchField } from "@/components/arc/search-field/search-field";
 import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
 import { Select } from "@/components/arc/select/select";
+import { Switch } from "@/components/arc/switch/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/arc/tabs/tabs";
 import { Textarea } from "@/components/arc/textarea/textarea";
 import { HoldToConfirm } from "@/components/arc/hold-to-confirm/hold-to-confirm";
@@ -40,7 +41,11 @@ export default function Inventory() {
   const [trade, setTrade] = useState(false);
   const [bulk, setBulk] = useState<any[] | null>(null);
   // Items the website shop sells from this same stock count: inventory id -> live on the site.
+  const [tick, setTick] = useState(0);
   const [onSite, setOnSite] = useState<Map<number, boolean>>(new Map());
+  const [webCats, setWebCats] = useState<{ id: string; name: string }[]>([]);
+  const [web, setWeb] = useState({ on: false, category: "" });
+  const userId = useAppStore((s) => s.user?.id);
 
   useEffect(() => {
     const sb = getSupabase();
@@ -49,7 +54,14 @@ export default function Inventory() {
     void sb.from("products").select("inventory_id,active").not("inventory_id", "is", null).then(({ data }) => {
       if (data) setOnSite(new Map(data.map((p: any) => [p.inventory_id as number, !!p.active])));
     });
-  }, [inventory]);
+  }, [inventory, tick]);
+
+  useEffect(() => {
+    const sb = getSupabase();
+
+    if (!sb) return;
+    void sb.from("categories").select("id,name").is("parent_id", null).order("sort_order").then(({ data }) => data && setWebCats(data as { id: string; name: string }[]));
+  }, []);
 
   const all = useMemo(() => [
     ...inventory.map((i: any) => ({ ...i, itemType: i.itemType || i.item_type || "product" })),
@@ -68,10 +80,34 @@ export default function Inventory() {
   const edit = (item?: any) => {
     setEditing(item ?? null);
     setForm(item ? { ...blank(), ...item, itemType: item.itemType || "product" } : blank());
+    setWeb({ on: !!item && onSite.get(item.id) === true, category: webCats[0]?.id || "" });
     setOpen(true);
   };
   const set = <K extends keyof ReturnType<typeof blank>>(k: K, v: ReturnType<typeof blank>[K]) => setForm((f) => ({ ...f, [k]: v }));
   const num = (k: "price" | "cost" | "stock" | "low" | "estimated_minutes") => (e: React.ChangeEvent<HTMLInputElement>) => set(k, Number(e.target.value));
+
+  /** Keeps the website product for a POS item in step: create it, update price/name, or hide it. */
+  const syncWebsite = async (inv: any) => {
+    const sb = getSupabase();
+
+    if (!sb || !userId) return;
+    const { data: existing } = await sb.from("products").select("id,category_id").eq("inventory_id", inv.id).maybeSingle();
+
+    if (existing) {
+      const patch: Record<string, unknown> = web.on ? { name: form.name, price: form.price, active: true } : { active: false };
+
+      if (web.on && web.category && web.category !== existing.category_id) Object.assign(patch, { category: web.category, category_id: web.category });
+      const { error } = await sb.from("products").update(patch).eq("id", existing.id);
+
+      if (error) throw error;
+    } else if (web.on) {
+      if (!web.category) throw new Error("Pick a website category first.");
+      const { error } = await sb.from("products").insert({ profile_id: userId, name: form.name, sku: form.sku || `POS-${inv.id}`, category: web.category, category_id: web.category, price: form.price, stock: form.stock, description: form.description || form.name, images: [], tags: [], featured: false, active: true, inventory_id: inv.id });
+
+      if (error) throw error;
+    }
+    setTick((t) => t + 1);
+  };
 
   const save = async () => {
     if (!form.name.trim()) return toast.warning("Name required", "Enter an item name");
@@ -86,8 +122,11 @@ export default function Inventory() {
         else await st.createService(payload);
       } else if (editing && editing.itemType !== "service") {
         await st.updateInventoryItem(editing.id, { name: form.name, sku: form.sku, category: form.category, description: form.description, price: form.price, cost: form.cost, stock: form.stock, low: form.low });
+        if (onSite.has(editing.id) || web.on) await syncWebsite(editing);
       } else {
-        await st.createInventoryItem(form);
+        const created = await st.createInventoryItem(form);
+
+        if (web.on && created?.id) await syncWebsite(created);
       }
       toast.success(editing ? "Item updated" : "Item added", form.name);
       setOpen(false);
@@ -229,6 +268,15 @@ export default function Inventory() {
               </div>
             )}
             <Textarea label="Description" rows={2} value={form.description} onChange={(e) => set("description", e.target.value)} />
+            {form.itemType === "product" && webCats.length > 0 && (
+              <div className="nv-panel" style={{ display: "grid", gap: 12 }}>
+                <div className="nv-actions" style={{ justifyContent: "space-between" }}>
+                  <div><strong style={{ display: "block", fontWeight: 500 }}>Sell on the website</strong><span className="nv-muted" style={{ fontSize: 13 }}>Shares this stock count with the online shop.</span></div>
+                  <Switch aria-label="Sell on the website" checked={web.on} onCheckedChange={(v) => setWeb((w) => ({ ...w, on: v }))} />
+                </div>
+                {web.on && <Select label="Website category" value={web.category} onValueChange={(v) => setWeb((w) => ({ ...w, category: v }))} options={webCats.map((c) => ({ value: c.id, label: c.name }))} />}
+              </div>
+            )}
             <div className="nv-actions" style={{ justifyContent: "space-between" }}>
               {editing ? <HoldToConfirm label="Hold to delete" confirmedLabel="Deleted" tone="danger" onConfirm={remove} /> : <span />}
               <div className="nv-actions">
