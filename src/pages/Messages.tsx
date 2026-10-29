@@ -5,8 +5,10 @@ import { Avatar } from "@/components/arc/avatar/avatar";
 import { Badge } from "@/components/arc/badge/badge";
 import { Button } from "@/components/arc/button/button";
 import { EmptyState } from "@/components/arc/empty-state/empty-state";
+import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
 import { Textarea } from "@/components/arc/textarea/textarea";
 import { PageHead } from "@/components/app/PageHead";
+import { openMailto } from "@/lib/contact";
 import { toast } from "@/hooks/useToast";
 import { getSupabase } from "@/lib/supabase";
 import { useAppStore } from "@/lib/store";
@@ -17,6 +19,7 @@ interface Msg {
   customer_name: string;
   customer_email: string;
   channel: string;
+  subject: string;
   direction: "inbound" | "outbound";
   body: string;
   read: boolean;
@@ -32,18 +35,20 @@ export default function Messages() {
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
+  const [scope, setScope] = useState<"chat" | "all">("chat");
   const [sending, setSending] = useState(false);
 
   const load = useCallback(async () => {
     const sb = getSupabase();
 
     if (!sb) return setLoading(false);
-    const { data, error } = await sb.from("messages").select("*").eq("channel", "chat").order("created_at", { ascending: true }).limit(1000);
+    const q = sb.from("messages").select("*").order("created_at", { ascending: true }).limit(1000);
+    const { data, error } = await (scope === "chat" ? q.eq("channel", "chat") : q);
 
     if (error) toast.danger("Couldn't load messages", error.message);
     else setRows((data as Msg[]) || []);
     setLoading(false);
-  }, []);
+  }, [scope]);
 
   useEffect(() => {
     void load();
@@ -56,14 +61,16 @@ export default function Messages() {
     const map = new Map<string, Msg[]>();
 
     rows.forEach((m) => {
-      const key = m.customer_email.toLowerCase();
+      const key = (m.customer_email || m.customer_name || m.subject).toLowerCase();
 
       map.set(key, [...(map.get(key) || []), m]);
     });
 
     return [...map.entries()]
       .map(([email, msgs]) => ({
-        email,
+        key: email,
+        email: msgs.map((m) => m.customer_email).filter(Boolean).pop() || "",
+        phone: msgs.map((m) => m.subject.split(" · ")[1]).filter(Boolean).pop() || "",
         name: [...msgs].reverse().find((m) => m.customer_name)?.customer_name || email,
         msgs,
         last: msgs[msgs.length - 1],
@@ -72,7 +79,7 @@ export default function Messages() {
       .sort((a, b) => b.last.created_at.localeCompare(a.last.created_at));
   }, [rows]);
 
-  const thread = threads.find((t) => t.email === active) ?? threads[0];
+  const thread = threads.find((t) => t.key === active) ?? threads[0];
 
   useEffect(() => {
     const sb = getSupabase();
@@ -81,7 +88,7 @@ export default function Messages() {
     const ids = thread.msgs.filter((m) => m.direction === "inbound" && !m.read).map((m) => m.id);
 
     void sb.from("messages").update({ read: true }).in("id", ids).then(() => setRows((r) => r.map((m) => (ids.includes(m.id) ? { ...m, read: true } : m))));
-  }, [thread?.email, thread?.unread]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [thread?.key, thread?.unread]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const send = async () => {
     const sb = getSupabase();
@@ -106,6 +113,7 @@ export default function Messages() {
   return (
     <div>
       <PageHead title="Messages" subtitle={unreadTotal ? `${unreadTotal} unread from website customers` : "Website chat with customers"}>
+        <SegmentedControl label="Show" options={[{ value: "chat", label: "Website chat" }, { value: "all", label: "All messages" }]} value={scope} onValueChange={(v) => setScope(v as "chat" | "all")} />
         <Button variant="secondary" onClick={() => void load()}><RefreshCw size={14} aria-hidden="true" />Refresh</Button>
       </PageHead>
 
@@ -115,7 +123,7 @@ export default function Messages() {
         <div className="nv-msgs">
           <aside className="nv-msgs-list" aria-label="Conversations">
             {threads.map((t) => (
-              <button key={t.email} aria-current={thread?.email === t.email ? "true" : undefined} className="nv-msgs-item" type="button" onClick={() => setActive(t.email)}>
+              <button key={t.key} aria-current={thread?.key === t.key ? "true" : undefined} className="nv-msgs-item" type="button" onClick={() => setActive(t.key)}>
                 <Avatar name={t.name} />
                 <span className="nv-row-main">
                   <strong>{t.name}</strong>
@@ -128,7 +136,11 @@ export default function Messages() {
 
           {thread && (
             <section className="nv-msgs-thread" aria-label={`Conversation with ${thread.name}`}>
-              <header className="nv-msgs-head"><strong>{thread.name}</strong><span>{thread.email}</span></header>
+              <header className="nv-msgs-head">
+                <strong>{thread.name}</strong>
+                <span>{[thread.email, thread.phone].filter(Boolean).join(" · ") || "No contact details"}</span>
+                {thread.email && thread.last.customer_id === null && <span>Guest. They can't see replies in chat, so use Email reply.</span>}
+              </header>
               <div className="nv-msgs-body">
                 {thread.msgs.map((m) => (
                   <div key={m.id} className="nv-bubble" data-dir={m.direction}>
@@ -139,7 +151,10 @@ export default function Messages() {
               </div>
               <form className="nv-msgs-reply" onSubmit={(e) => { e.preventDefault(); void send(); }}>
                 <Textarea label="Reply" rows={2} value={draft} onChange={(e) => setDraft(e.target.value)} />
-                <Button disabled={!draft.trim()} loading={sending} type="submit"><Send size={14} aria-hidden="true" />Send</Button>
+                <span style={{ display: "inline-flex", gap: 8, justifySelf: "end" }}>
+                  {thread.email && <Button type="button" variant="secondary" onClick={() => openMailto(thread.email, "Re: your message to Mobicare", draft)}>Email reply</Button>}
+                  <Button disabled={!draft.trim()} loading={sending} type="submit"><Send size={14} aria-hidden="true" />Send</Button>
+                </span>
               </form>
             </section>
           )}
