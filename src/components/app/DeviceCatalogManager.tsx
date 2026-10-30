@@ -56,7 +56,7 @@ export function DeviceCatalogManager({ open, onOpenChange, onChanged }: { open: 
     onChanged?.();
   };
   const sb = () => getSupabase()!;
-  const pid = () => useAppStore.getState().user?.id as string;
+  const pid = () => (useAppStore.getState().ownerId || useAppStore.getState().user?.id) as string;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -164,6 +164,9 @@ interface AppState {
   settingsRowId: number | null;
   notificationPrefs: NotificationPrefs;
   user: any;
+  /** "staff" sign-ins work the owner's data but can't see revenue, orders, expenses or settings. */
+  role: "owner" | "staff";
+  ownerId: string | null;
   isLoaded: boolean;
   isLoading: boolean;
   trackedDevices: string[];
@@ -247,7 +250,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
     if (!u) throw new Error("Not authenticated");
 
-    return u.id as string;
+    return (get().ownerId || u.id) as string;
   };
 
   // Generic list updaters
@@ -261,7 +264,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
   const handleRealtime = (payload: any) => {
     const { eventType, new: newRecord, old: oldRecord, table } = payload;
-    const me = get().user?.id;
+    const me = get().ownerId || get().user?.id;
 
     // DELETE events sometimes carry only the primary key, so let those through.
     if (newRecord?.profile_id !== me && oldRecord?.profile_id !== me && eventType !== "DELETE") return;
@@ -300,6 +303,8 @@ export const useAppStore = create<AppState>((set, get) => {
     settingsRowId: null,
     notificationPrefs: readNotificationPrefs(),
     user: null,
+    role: "owner" as const,
+    ownerId: null,
     isLoading: false,
     trackedDevices: [],
 
@@ -340,7 +345,7 @@ export const useAppStore = create<AppState>((set, get) => {
           if (!get().isLoaded) void get().initializeData();
         }
         if (event === "SIGNED_OUT") {
-          set({ user: null, ...EMPTY_DATA });
+          set({ user: null, role: "owner", ownerId: null, ...EMPTY_DATA });
           onSignedOut();
         }
       });
@@ -358,9 +363,16 @@ export const useAppStore = create<AppState>((set, get) => {
       }
       if (!get().user && !(await get().checkAuth())) return;
 
-      const id = get().user!.id;
-
       if (get().isLoaded) return;
+
+      // A staff sign-in reads and writes the owner's data, scoped by the database's staff policies.
+      const me = get().user!.id as string;
+      const staffRow = await sb.from("staff_members").select("owner_id").eq("user_id", me).eq("active", true).maybeSingle();
+      const staffOwner = (staffRow.data as any)?.owner_id as string | undefined;
+
+      set({ role: staffOwner ? "staff" : "owner", ownerId: staffOwner || null });
+      const id = staffOwner || me;
+      const isStaff = !!staffOwner;
 
       set({ isLoading: true });
 
@@ -372,11 +384,11 @@ export const useAppStore = create<AppState>((set, get) => {
           sb.from("house_calls").select("*").eq("profile_id", id).order("date", { ascending: true }),
           sb.from("vendor_repairs").select("*").eq("profile_id", id).order("created_at", { ascending: false }),
           sb.from("appointments").select("*").eq("profile_id", id).order("date", { ascending: true }),
-          sb.from("profiles").select("*").eq("id", id).single(),
+          isStaff ? Promise.resolve({ data: null }) : sb.from("profiles").select("*").eq("id", id).single(),
           sb.from("services").select("*").eq("profile_id", id).order("name", { ascending: true }),
           sb.from("settings").select("*").eq("profile_id", id).maybeSingle(),
-          sb.from("expenses").select("*").eq("profile_id", id).order("date", { ascending: false }),
-          sb.from("square_config").select("*").eq("profile_id", id).maybeSingle(),
+          isStaff ? Promise.resolve({ data: [] }) : sb.from("expenses").select("*").eq("profile_id", id).order("date", { ascending: false }),
+          isStaff ? Promise.resolve({ data: null }) : sb.from("square_config").select("*").eq("profile_id", id).maybeSingle(),
         ]);
 
         let settings = { ...get().settings };
@@ -444,7 +456,7 @@ export const useAppStore = create<AppState>((set, get) => {
       const sb = getSupabase();
 
       if (sb) await sb.auth.signOut();
-      set({ user: null, ...EMPTY_DATA });
+      set({ user: null, role: "owner", ownerId: null, ...EMPTY_DATA });
     },
 
     // ── Tickets ──────────────────────────────────────────────────────────────
@@ -822,7 +834,7 @@ export const useAppStore = create<AppState>((set, get) => {
           throw new Error(res.error.message || "Failed to save business settings");
         }
       } else {
-        const res = await sb.from("settings").insert({ ...payload, profile_id: get().user.id }).select().single();
+        const res = await sb.from("settings").insert({ ...payload, profile_id: uid() }).select().single();
 
         if (res.error) {
           console.error("[saveSettings] Settings table error:", JSON.stringify(res.error));

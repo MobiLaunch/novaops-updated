@@ -33,7 +33,7 @@ const when = (iso: string) => new Date(iso).toLocaleString(undefined, { month: "
 
 /** Customer chat from the website, plus anything else logged in the shared `messages` table. */
 export default function Messages() {
-  const userId = useAppStore((s) => s.user?.id);
+  const userId = useAppStore((s) => s.ownerId || s.user?.id);
   const [rows, setRows] = useState<Msg[]>([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<string | null>(null);
