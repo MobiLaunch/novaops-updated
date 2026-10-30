@@ -19,7 +19,7 @@ import { toast } from "@/hooks/useToast";
 import { openMailto } from "@/lib/contact";
 import { formatCurrency, formatDate, statusTone } from "@/lib/format";
 import { printBarcodeLabel } from "@/lib/print";
-import { emails, notifyCustomer } from "@/lib/notify";
+import { emails, notifyCustomer, readyEmailEnabled } from "@/lib/notify";
 import { loadShopConfig } from "@/lib/shopConfig";
 import { useAppStore } from "@/lib/store";
 import { getSupabase } from "@/lib/supabase";
@@ -112,7 +112,14 @@ export function TicketDetailDialog({ ticketId, onClose }: Props) {
     await save({ status });
     toast.success("Status updated", `Ticket #${ticket.id} is now ${status}`);
     addNotification("Ticket updated", `#${ticket.id} → ${status}`, "info");
-    if (status === "Completed") confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    if (status === "Completed") {
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      if (customer?.email && readyEmailEnabled()) {
+        const mail = emails.ticketReady(customer.name, ticket.device, ticket.id);
+
+        void notifyCustomer(customer.email, mail.subject, mail.body);
+      }
+    }
   };
 
   const saveInfo = async () => {

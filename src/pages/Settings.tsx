@@ -23,6 +23,7 @@ import { AVATAR_KEY } from "@/lib/documents";
 import { fileToDataUrl } from "@/lib/tickets";
 import { useSupabaseConnect } from "@/hooks/useSupabaseConnect";
 import { toast } from "@/hooks/useToast";
+import { readyEmailEnabled, setReadyEmailEnabled } from "@/lib/notify";
 import { formatPhoneNumber } from "@/lib/phone";
 import { printBarcodeLabel, printReceipt } from "@/lib/print";
 import { type AppSettings, useAppStore } from "@/lib/store";
@@ -293,6 +294,10 @@ export default function SettingsPage() {
                 <Switch aria-label={name} checked={notif[key]} onCheckedChange={(v: boolean) => useAppStore.getState().setNotificationPrefs({ [key]: v })} />
               </div>
             ))}
+            <div className="nv-row">
+              <div className="nv-row-main"><strong>Email customers when their repair is ready</strong><span>Sent automatically when a ticket is marked Completed and the customer has an email.</span></div>
+              <Switch aria-label="Email customers when repair is ready" defaultChecked={readyEmailEnabled()} onCheckedChange={(v: boolean) => setReadyEmailEnabled(v)} />
+            </div>
           </div>
         </TabsContent>
 
