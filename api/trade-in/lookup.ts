@@ -1,4 +1,4 @@
-import { wrap, readBody, runtimeConfig } from "../_lib/nitro.js";
+import { wrap, readBody, requireUser, runtimeConfig } from "../_lib/nitro.js";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
@@ -292,6 +292,7 @@ async function lookupImei(imei: string): Promise<{ brand: string; model: string;
 // ── Main handler ──────────────────────────────────────────────────
 
 export default wrap(async (event: any) => {
+  await requireUser(event); // the lookup spends paid API quota
   const t0 = Date.now()
   try {
     const body = await readBody(event) as {

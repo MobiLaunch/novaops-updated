@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
+import { authedFetch } from "@/lib/api";
 import { Alert } from "@/components/arc/alert/alert";
 import { Button } from "@/components/arc/button/button";
 import { ChipGroup } from "@/components/arc/chip-group/chip-group";
@@ -117,7 +118,7 @@ export function TradeInWizard({ open, onOpenChange, onSaved }: Props) {
     setLookup(null);
     setResolved("");
     try {
-      const res = await fetch("/api/trade-in/lookup", {
+      const res = await authedFetch("/api/trade-in/lookup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ brand: f.brand || undefined, model: f.model || undefined, storage: f.storage || undefined, imei: f.imei || undefined, model_number: f.modelNumber || undefined }),

@@ -1,5 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
+import { hasValidSession } from "../_lib/nitro.js";
+
 import h0 from "../_handlers/square/connection-test.js";
 import h1 from "../_handlers/square/customers.js";
 import h2 from "../_handlers/square/device-status.js";
@@ -27,7 +29,10 @@ const handlers: Record<string, (req: VercelRequest, res: VercelResponse) => unkn
   "terminal-status": h10,
 };
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // These routes can use the shop's server-side payment credentials, so only a signed-in user may call them.
+  if (!(await hasValidSession(req.headers.authorization))) return res.status(401).json({ statusCode: 401, statusMessage: "Sign in to use this.", message: "Sign in to use this." });
+
   const action = String(req.query.action ?? "");
   const fn = handlers[action];
 

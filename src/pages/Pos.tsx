@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { authedFetch } from "@/lib/api";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Banknote, CreditCard, Gift, Hash, Minus, Plus, Printer, ShoppingBag, Trash2, Wallet } from "lucide-react";
 
@@ -297,7 +298,7 @@ export default function Pos() {
 
     if (squareConfigured) { headers["x-square-access-token"] = settings.squareAccessToken; headers["x-square-location-id"] = settings.squareLocationId; }
 
-    const res = await fetch("/api/square/payment", { method: "POST", headers, body: JSON.stringify({ sourceId, amountCents: Math.round(due * 100), referenceId: `novaops-${via.toLowerCase()}-${Date.now()}`, note: cart.map((i) => `${i.quantity}× ${i.name}`).join(", ") }) });
+    const res = await authedFetch("/api/square/payment", { method: "POST", headers, body: JSON.stringify({ sourceId, amountCents: Math.round(due * 100), referenceId: `novaops-${via.toLowerCase()}-${Date.now()}`, note: cart.map((i) => `${i.quantity}× ${i.name}`).join(", ") }) });
 
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || `${via} charge failed`);
     await finishSale(via);
