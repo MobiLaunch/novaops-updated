@@ -20,6 +20,8 @@ const DAY = 86400000;
 const isDone = (s: string) => s === "Completed" || s === "Delivered";
 const sameDay = (iso?: string) => !!iso && new Date(iso).toDateString() === new Date().toDateString();
 
+import { WebSummary } from "@/components/app/WebSummary";
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const open = useUi((u) => u.openQuickAction);
@@ -112,6 +114,8 @@ export default function Dashboard() {
             <Button key={a.label} variant="secondary" size="lg" onClick={a.go}><a.icon size={16} />{a.label}</Button>
           ))}
         </div>
+
+        <WebSummary />
 
         <UpcomingPanel />
 

@@ -102,10 +102,25 @@ export default function Messages() {
       .select()
       .single();
 
-    setSending(false);
-    if (error) return toast.danger("Couldn't send", error.message);
+    if (error) { setSending(false); return toast.danger("Couldn't send", error.message); }
     setRows((r) => [...r, data as Msg]);
     setDraft("");
+
+    // Also email the reply, so customers who aren't looking at the chat still hear back.
+    if (thread.email) {
+      try {
+        const res = await fetch("/api/send-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ to: thread.email, subject: "Reply from the shop", body: text, profileId: userId }) });
+        const out = await res.json().catch(() => ({}));
+
+        if (res.ok && out?.delivered) toast.success("Reply sent", `Also emailed to ${thread.email}`);
+        else toast.warning("Reply saved", out?.message || "Email isn't set up yet, so this only shows in their chat. Use Email reply to send it from your mail app.");
+      } catch {
+        toast.warning("Reply saved", "Couldn't reach the email service. Use Email reply to send it from your mail app.");
+      }
+    } else {
+      toast.success("Reply saved", "This visitor left a phone number only, so call or text them.");
+    }
+    setSending(false);
   };
 
   const unreadTotal = threads.reduce((n, t) => n + t.unread, 0);

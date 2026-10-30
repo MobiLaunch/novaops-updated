@@ -1,3 +1,5 @@
+import { useSearchParams } from "react-router-dom";
+
 import { PageHead } from "@/components/app/PageHead";
 import { ShopSettings } from "@/components/app/ShopSettings";
 import { SiteEditor } from "@/components/app/SiteEditor";
@@ -7,10 +9,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/arc/tabs/
 
 /** The online shop, managed from inside the POS. */
 export default function Website() {
+  const [params, setParams] = useSearchParams();
+  const tab = ["orders", "bookings", "content", "settings"].includes(params.get("tab") || "") ? (params.get("tab") as string) : "orders";
+
   return (
     <>
       <PageHead title="Website" subtitle="Orders, bookings and content for the online shop" />
-      <Tabs defaultValue="orders">
+      <Tabs value={tab} onValueChange={(v) => setParams({ tab: v }, { replace: true })}>
         <TabsList>
           <TabsTrigger value="orders">Orders</TabsTrigger>
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
