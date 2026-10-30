@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { BarChart3, BookOpen, CalendarDays, Command, Ellipsis, LayoutDashboard, LogOut, MessageSquare, Package, Plus, Receipt, Settings, Users, Wrench } from "lucide-react";
+import { BarChart3, BookOpen, CalendarDays, Command, Ellipsis, LayoutDashboard, Globe, LogOut, MessageSquare, Package, Plus, Receipt, Settings, Users, Wrench } from "lucide-react";
 
 import { Drawer, DrawerContent } from "@/components/arc/drawer/drawer";
 import { Avatar } from "@/components/arc/avatar/avatar";
@@ -26,6 +26,7 @@ const NAV = [
   { to: "/bookings", label: "Bookings", icon: CalendarDays },
   { to: "/customers", label: "Customers", icon: Users },
   { to: "/messages", label: "Messages", icon: MessageSquare },
+  { to: "/website", label: "Website", icon: Globe },
   { to: "/inventory", label: "Inventory", icon: Package },
   { to: "/pos", label: "POS", icon: Receipt },
   { to: "/library", label: "Library", icon: BookOpen },

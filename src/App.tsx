@@ -20,6 +20,7 @@ const Dashboard = page(() => import("@/pages/Dashboard"));
 const Bookings = page(() => import("@/pages/Bookings"));
 const Customers = page(() => import("@/pages/Customers"));
 const Messages = page(() => import("@/pages/Messages"));
+const Website = page(() => import("@/pages/Website"));
 const Inventory = page(() => import("@/pages/Inventory"));
 const Pos = page(() => import("@/pages/Pos"));
 const Library = page(() => import("@/pages/Library"));
@@ -73,6 +74,7 @@ const routes = [
     { path: "/bookings", element: <Bookings /> },
     { path: "/customers", element: <Customers /> },
     { path: "/messages", element: <Messages /> },
+    { path: "/website", element: <Website /> },
     { path: "/inventory", element: <Inventory /> },
     { path: "/pos", element: <Pos /> },
     { path: "/library", element: <Library /> },
