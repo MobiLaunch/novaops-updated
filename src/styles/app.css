@@ -188,3 +188,5 @@ a { color: inherit; text-decoration: none; }
 .nv-link-text { flex: 1; }
 .nv-link-badge { min-width: 20px; padding: 1px 6px; border-radius: 999px; background: var(--accent); color: var(--accent-foreground, #fff); font-size: 11px; font-weight: 500; line-height: 16px; text-align: center; font-variant-numeric: tabular-nums; }
 @media (max-height: 860px) { .nv-nav { gap: 8px; } .nv-nav-label { display: none; } }
+
+.nv-swatch { width: 44px; height: 44px; margin-bottom: 22px; padding: 2px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); cursor: pointer; }

@@ -130,5 +130,124 @@
       "We fix what the big-box stores won't touch, and we're honest about what can and can't be done. A $35 bench fee covers full diagnostics on every device, so you'll always know the cost before committing to a repair. No surprises, no hidden fees.",
       "We're also expanding into accessories and certified pre-owned devices — making it easier for everyone in southern Illinois to get the gear they need at fair prices."
     ]
-  }
+  },
+  "repairServices": [
+    {
+      "id": "screen-repair",
+      "name": "Screen Repair",
+      "icon": "smartphone",
+      "duration": "1–2 hours",
+      "priceRange": "$49 – $249",
+      "description": "Cracked or shattered display? We replace screens on iPhones, Androids, and tablets with OEM-quality parts."
+    },
+    {
+      "id": "battery-replacement",
+      "name": "Battery Replacement",
+      "icon": "battery_full",
+      "duration": "30–60 min",
+      "priceRange": "$39 – $89",
+      "description": "Restore your phone to full battery life. We carry batteries for hundreds of models."
+    },
+    {
+      "id": "water-damage",
+      "name": "Water Damage Recovery",
+      "icon": "water_drop",
+      "duration": "24–48 hours",
+      "priceRange": "$35 Bench Fee",
+      "description": "Dropped your phone in water? Bring it in immediately. Our ultrasonic cleaning process saves most devices."
+    },
+    {
+      "id": "charging-port",
+      "name": "Charging Port Repair",
+      "icon": "ev_station",
+      "duration": "45–90 min",
+      "priceRange": "$45 – $99",
+      "description": "Won't charge or connect to a computer? We repair loose or corroded charging ports."
+    },
+    {
+      "id": "camera-repair",
+      "name": "Camera Repair",
+      "icon": "photo_camera",
+      "duration": "1–2 hours",
+      "priceRange": "$59 – $149",
+      "description": "Blurry, cracked, or non-functional camera module replacement."
+    },
+    {
+      "id": "data-recovery",
+      "name": "Data Recovery",
+      "icon": "sd_card",
+      "duration": "2–5 days",
+      "priceRange": "Quote after diagnostic",
+      "description": "Lost photos, contacts, or files? We recover data from damaged or non-booting devices."
+    },
+    {
+      "id": "tablet-repair",
+      "name": "iPad & Tablet Repair",
+      "icon": "tablet_mac",
+      "duration": "Same Day",
+      "priceRange": "$59 – $199",
+      "description": "Glass digitizer, LCD display, charging port, and battery replacement for all iPad models."
+    },
+    {
+      "id": "back-glass",
+      "name": "Laser Back Glass Repair",
+      "icon": "smartphone",
+      "duration": "2–3 hours",
+      "priceRange": "$69 – $149",
+      "description": "Shattered back glass removed via specialized high-precision laser separation."
+    }
+  ],
+  "houseCallPricing": {
+    "residentialFirstHour": 110,
+    "residentialAdditionalHourRate": 55,
+    "commercialFirstHour": 175,
+    "commercialAdditionalHourRate": 87.5
+  },
+  "appearance": {
+    "logoType": "image",
+    "logoUrl": "",
+    "logoAlt": "Mobicare logo",
+    "accentColor": "",
+    "accentColorDeep": "",
+    "bgBase": "",
+    "bgSurface": "",
+    "bgElevated": "",
+    "fontFamily": "system",
+    "fontUrl": "",
+    "colorScheme": "light"
+  },
+  "__fonts": [
+    {
+      "id": "system",
+      "label": "SF Pro (System Default)"
+    },
+    {
+      "id": "inter",
+      "label": "Inter"
+    },
+    {
+      "id": "outfit",
+      "label": "Outfit"
+    },
+    {
+      "id": "poppins",
+      "label": "Poppins"
+    },
+    {
+      "id": "montserrat",
+      "label": "Montserrat"
+    },
+    {
+      "id": "dm-sans",
+      "label": "DM Sans"
+    },
+    {
+      "id": "geist",
+      "label": "Geist"
+    },
+    {
+      "id": "custom",
+      "label": "Custom URL"
+    }
+  ]
 }

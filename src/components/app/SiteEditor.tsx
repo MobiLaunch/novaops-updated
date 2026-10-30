@@ -28,19 +28,46 @@ const SECTIONS: { key: keyof typeof defaults; label: string; hint: string }[] = 
   { key: "footer", label: "Footer", hint: "Footer text, toggles and extra links." },
   { key: "social", label: "Social links", hint: "Leave blank to hide an icon." },
   { key: "seo", label: "SEO and analytics", hint: "Page titles, search description and tracking ids." },
+  { key: "repairServices", label: "Repair services", hint: "The service cards on the homepage and in the booking form. Live per-model prices come from your POS price list." },
+  { key: "houseCallPricing", label: "House call rates", hint: "Fallback rates, used only when your POS price list has no house call prices." },
+  { key: "appearance", label: "Appearance", hint: "Colors, font, logo and light or dark mode. Leave a color empty to use the default." },
 ];
 
 // Lists the shop can grow or shrink; every other list keeps its fixed length so the layout never breaks.
-const GROWABLE = new Set(["hours", "extraLinks", "story"]);
-const HIDDEN = new Set(["icon"]);
-const LABELS: Record<string, string> = { badgeText: "Badge text", headlineLine1: "Headline line 1", headlineAccent: "Headline accent word", primaryCta: "Primary button", secondaryCta: "Secondary button", subLabel: "Sub label", desc: "Description", siteTitle: "Site title", googleAnalyticsId: "Google Analytics ID", facebookPixelId: "Facebook Pixel ID", ogImage: "Social preview image URL", copyrightName: "Copyright name", showHours: "Show business hours", showSocial: "Show social icons", twitter: "X / Twitter", href: "Link URL" };
+const GROWABLE = new Set(["hours", "extraLinks", "story", "repairServices", "variants"]);
+const HIDDEN_ID = new Set(["id"]);
+
+// Fields that are a choice, not free text.
+const ENUMS: Record<string, { value: string; label: string }[]> = {
+  colorScheme: [{ value: "light", label: "Light" }, { value: "dark", label: "Dark" }],
+  logoType: [{ value: "icon", label: "Default icon and text" }, { value: "image", label: "Custom image" }],
+  fontFamily: (defaults as any).__fonts.map((f: any) => ({ value: f.id, label: f.label })),
+  icon: ["smartphone", "battery_full", "water_drop", "ev_station", "photo_camera", "storage"].map((v) => ({ value: v, label: v.replace(/_/g, " ") })),
+};
+const LABELS: Record<string, string> = { badgeText: "Badge text", headlineLine1: "Headline line 1", headlineAccent: "Headline accent word", primaryCta: "Primary button", secondaryCta: "Secondary button", subLabel: "Sub label", desc: "Description", siteTitle: "Site title", googleAnalyticsId: "Google Analytics ID", facebookPixelId: "Facebook Pixel ID", ogImage: "Social preview image URL", copyrightName: "Copyright name", showHours: "Show business hours", showSocial: "Show social icons", twitter: "X / Twitter", logoUrl: "Logo URL", logoAlt: "Logo description", logoType: "Logo", bgBase: "Page background", bgSurface: "Card background", bgElevated: "Raised background", accentColor: "Accent color", accentColorDeep: "Accent color, deep shade", fontUrl: "Custom font URL", fontFamily: "Font", colorScheme: "Color scheme", priceRange: "Price range", residentialFirstHour: "Residential, first hour ($)", residentialAdditionalHourRate: "Residential, each extra hour ($)", commercialFirstHour: "Commercial, first hour ($)", commercialAdditionalHourRate: "Commercial, each extra hour ($)", href: "Link URL" };
 const label = (k: string) => LABELS[k] || k.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase());
 const isLong = (k: string, v: string) => v.length > 70 || /description|lead|body|story|headline$|subtext/i.test(k);
 const clone = (v: Json) => JSON.parse(JSON.stringify(v));
 const blankOf = (v: Json): Json => (Array.isArray(v) ? [] : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, blankOf(x)])) : typeof v === "boolean" ? false : typeof v === "number" ? 0 : "");
 
+function ColorField({ name, value, onChange }: { name: string; value: string; onChange: (v: string) => void }) {
+  const valid = /^#[0-9a-f]{6}$/i.test(value);
+
+  return (
+    <div className="nv-actions" style={{ alignItems: "end", gap: 10 }}>
+      <input aria-label={`${label(name)} swatch`} className="nv-swatch" type="color" value={valid ? value : "#12c887"} onChange={(e) => onChange(e.target.value)} />
+      <div style={{ flex: 1 }}><Input description={valid ? undefined : "Using the default"} label={label(name)} maxLength={7} placeholder="#12c887" value={value} onChange={(e) => onChange(e.target.value)} /></div>
+      {value && <Button size="sm" variant="ghost" onClick={() => onChange("")}>Use default</Button>}
+    </div>
+  );
+}
+
 function Field({ name, value, onChange }: { name: string; value: Json; onChange: (v: Json) => void }) {
-  if (HIDDEN.has(name)) return null;
+  if (HIDDEN_ID.has(name)) return null;
+  // Trust-bar icons use a different set of names and are not editable; only service icons are.
+  if (name === "icon" && typeof value === "string" && !ENUMS.icon.some((o) => o.value === value)) return null;
+  if (typeof value === "string" && ENUMS[name]) return <Select label={label(name)} options={ENUMS[name]} value={value} onValueChange={onChange} />;
+  if (typeof value === "string" && /color|^bg[A-Z]/i.test(name)) return <ColorField name={name} value={value} onChange={onChange} />;
   if (typeof value === "boolean") {
     return (
       <div className="nv-actions" style={{ justifyContent: "space-between" }}>
@@ -72,7 +99,7 @@ function Field({ name, value, onChange }: { name: string; value: Json; onChange:
             </div>
           </div>
         ))}
-        {growable && <div><Button size="sm" variant="secondary" onClick={() => onChange([...value, blankOf(sample)])}><Plus size={14} aria-hidden="true" />Add</Button></div>}
+        {growable && <div><Button size="sm" variant="secondary" onClick={() => onChange([...value, name === "repairServices" ? { ...blankOf(sample), id: `svc-${Date.now().toString(36)}`, icon: "smartphone" } : blankOf(sample)])}><Plus size={14} aria-hidden="true" />Add</Button></div>}
       </div>
     );
   }
