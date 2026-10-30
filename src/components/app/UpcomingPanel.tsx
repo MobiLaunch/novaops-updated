@@ -6,6 +6,7 @@ import { Button } from "@/components/arc/button/button";
 import { EmptyState } from "@/components/arc/empty-state/empty-state";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAppStore } from "@/lib/store";
+import { useUi } from "@/lib/ui";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export function fromNow(d: Date) {
@@ -54,7 +55,7 @@ export function UpcomingPanel() {
     <div className="nv-grid cols-2">
       <div className="nv-panel">
         <div className="nv-actions" style={{ justifyContent: "space-between", marginBottom: 8 }}><h2 style={{ margin: 0 }}>Upcoming</h2><Button variant="ghost" size="sm" onClick={() => navigate("/bookings")}>View all</Button></div>
-        {items.length === 0 ? <EmptyState icon={<CalendarClock size={18} />} title="Nothing coming up" description="Appointments and house calls show here." /> : items.map((i) => (
+        {items.length === 0 ? <EmptyState icon={<CalendarClock size={18} />} title="Nothing coming up" description="Appointments and house calls show here." action={<Button size="sm" variant="secondary" onClick={() => useUi.getState().openQuickAction("housecall")}>Schedule a house call</Button>} /> : items.map((i) => (
           <div key={i.id} className="nv-row" style={{ cursor: "pointer" }} onClick={() => navigate("/bookings")}>
             {i.kind === "housecall" ? <Home size={16} /> : <CalendarClock size={16} />}
             <div className="nv-row-main"><strong>{i.title}</strong><span>{i.subtitle}</span></div>
@@ -64,7 +65,7 @@ export function UpcomingPanel() {
       </div>
       <div className="nv-panel">
         <div className="nv-actions" style={{ justifyContent: "space-between", marginBottom: 8 }}><h2 style={{ margin: 0 }}>Activity</h2>{notifications.length > 0 && <Button variant="ghost" size="sm" onClick={markAllAsRead}>Mark all read</Button>}</div>
-        {notifications.length === 0 ? <EmptyState title="No activity yet" description="New tickets, sales and emails appear here." /> : notifications.slice(0, 5).map((n) => (
+        {notifications.length === 0 ? <EmptyState title="No activity yet" description="New tickets, sales and emails appear here." action={<Button size="sm" variant="secondary" onClick={() => useUi.getState().openQuickAction("ticket")}>Create a ticket</Button>} /> : notifications.slice(0, 5).map((n) => (
           <div key={n.id} className="nv-row"><div className="nv-row-main"><strong style={{ opacity: n.read ? 0.6 : 1 }}>{n.title}</strong><span>{n.message}</span></div><span className="nv-muted" style={{ fontSize: 12 }}>{new Date(n.timestamp).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span></div>
         ))}
       </div>

@@ -266,3 +266,9 @@ button.nv-panel:active { transform: scale(.995); }
 .nv-widgets { gap: 8px; }
 .nv-link { padding-block: 6px; }
 @media (max-height: 1040px) { .nv-widgets .nv-widget:nth-child(2) > footer { display: none; } }
+
+.nv-scan-video { width: 100%; max-height: 240px; border-radius: 14px; background: #000; object-fit: cover; }
+
+.nv-offline { display: flex; align-items: center; gap: 8px; padding: 8px var(--space-6, 24px); background: color-mix(in oklab, var(--warning) 14%, var(--surface)); border-bottom: 1px solid color-mix(in oklab, var(--warning) 35%, var(--border)); font-size: 13px; }
+.nv-offline[data-online="true"] { background: color-mix(in oklab, var(--hue-workspace) 10%, var(--surface)); border-bottom-color: color-mix(in oklab, var(--hue-workspace) 30%, var(--border)); }
+.nv-offline svg { flex: none; }

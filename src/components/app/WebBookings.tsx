@@ -9,6 +9,7 @@ import { ListSkeleton } from "@/components/app/ListSkeleton";
 import { toast } from "@/hooks/useToast";
 import { emails, notifyCustomer } from "@/lib/notify";
 import { getSupabase } from "@/lib/supabase";
+import { openStorefront } from "@/lib/shopConfig";
 
 interface Booking {
   id: string; status: string; created_at: string;
@@ -72,7 +73,7 @@ export function WebBookings() {
       </div>
 
       {loading ? <ListSkeleton label="Loading bookings" rows={3} /> : shown.length === 0 ? (
-        <EmptyState icon={<CalendarDays size={22} aria-hidden="true" />} title="No website bookings" description="Repair requests from the booking form show up here, and on the calendar." />
+        <EmptyState icon={<CalendarDays size={22} aria-hidden="true" />} title="No website bookings" description="Repair requests from the booking form show up here, and on the calendar." action={<Button variant="secondary" onClick={() => void openStorefront("/repairs")}>Open the booking page</Button>} />
       ) : (
         <div style={{ display: "grid", gap: 12 }}>
           {shown.map((b) => (

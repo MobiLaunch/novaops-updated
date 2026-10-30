@@ -15,6 +15,7 @@ import { emails, notifyCustomer } from "@/lib/notify";
 import { loadShopConfig } from "@/lib/shopConfig";
 import { useAppStore } from "@/lib/store";
 import { getSupabase } from "@/lib/supabase";
+import { openStorefront } from "@/lib/shopConfig";
 
 interface OrderItem { id: number; name: string; price: number; qty: number }
 interface Order {
@@ -116,7 +117,7 @@ export function WebOrders() {
       </div>
 
       {loading ? <ListSkeleton label="Loading orders" /> : shown.length === 0 ? (
-        <EmptyState icon={<ShoppingBag size={22} aria-hidden="true" />} title="No web orders" description={filter === "all" ? "Orders placed on the website show up here as soon as they're paid." : "No orders have this status."} />
+        <EmptyState icon={<ShoppingBag size={22} aria-hidden="true" />} title="No web orders" action={filter === "all" ? <Button variant="secondary" onClick={() => void openStorefront("/shop")}>View the shop</Button> : undefined} description={filter === "all" ? "Orders placed on the website show up here as soon as they're paid." : "No orders have this status."} />
       ) : (
         <div className="nv-panel" style={{ padding: "4px 16px" }}>
           {shown.map((o) => (

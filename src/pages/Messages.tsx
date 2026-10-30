@@ -14,6 +14,7 @@ import { toast } from "@/hooks/useToast";
 import { authedFetch } from "@/lib/api";
 import { getSupabase } from "@/lib/supabase";
 import { useAppStore } from "@/lib/store";
+import { openStorefront } from "@/lib/shopConfig";
 
 interface Msg {
   id: number;
@@ -135,7 +136,7 @@ export default function Messages() {
       </PageHead>
 
       {loading ? <ListSkeleton label="Loading messages" rows={5} /> : threads.length === 0 ? (
-        <EmptyState icon={<MessageSquare size={22} aria-hidden="true" />} title="No messages yet" description="When a customer writes to you from the website chat, the conversation shows up here." />
+        <EmptyState icon={<MessageSquare size={22} aria-hidden="true" />} title="No messages yet" action={<Button variant="secondary" onClick={() => void openStorefront("/")}>Open the website</Button>} description="When a customer writes to you from the website chat, the conversation shows up here." />
       ) : (
         <div className="nv-msgs">
           <aside className="nv-msgs-list" aria-label="Conversations">

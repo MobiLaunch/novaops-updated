@@ -1,5 +1,6 @@
 import { create } from "zustand";
 
+import { isNetworkError, queueSale } from "@/lib/offlineQueue";
 import { getSupabase } from "@/lib/supabase";
 import { printBarcodeLabel } from "@/lib/print";
 import type { Appointment, Customer, Expense, InventoryItem, Ticket } from "@/types";
@@ -755,7 +756,7 @@ export const useAppStore = create<AppState>((set, get) => {
     // jobs). Collecting payment on an existing ticket still updates that ticket's
     // payments array, which the POS page does after calling this.
     createPosSale: async (sale) => {
-      const { data, error } = await needSb().from("pos_sales").insert({
+      const row = {
         profile_id: uid(),
         customer_id: sale.customerId || null,
         items: sale.items,
@@ -765,11 +766,22 @@ export const useAppStore = create<AppState>((set, get) => {
         payment_method: sale.paymentMethod,
         note: sale.note || "",
         status: "completed",
-      }).select().single();
+      };
+      let res: { data: any; error: any };
 
-      if (error) throw error;
+      try {
+        res = await needSb().from("pos_sales").insert(row).select().single();
+      } catch (e) {
+        res = { data: null, error: e };
+      }
 
-      return data;
+      if (res.error) {
+        // Connection dropped: keep the sale on this device and sync it later.
+        if (isNetworkError(res.error)) return { id: queueSale(row), offline: true, ...row };
+        throw res.error;
+      }
+
+      return res.data;
     },
 
     // ── Settings ─────────────────────────────────────────────────────────────

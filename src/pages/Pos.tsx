@@ -16,6 +16,7 @@ import { toast } from "@/hooks/useToast";
 import { formatCurrency } from "@/lib/format";
 import { printReceipt, type ReceiptData } from "@/lib/print";
 import { useAppStore } from "@/lib/store";
+import { attachStock } from "@/lib/offlineQueue";
 import { getSupabase } from "@/lib/supabase";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -121,6 +122,17 @@ export default function Pos() {
     if (p) { add(p); toast.success("Item added", p.name); } else toast.danger("Not found", `Barcode not recognized: ${code}`);
   }, [add]);
 
+  // Arriving from the scan dialog with ?add=SKU puts that item straight in the cart.
+  useEffect(() => {
+    const code = params.get("add");
+
+    if (!code) return;
+    void processCode(code);
+    params.delete("add");
+    setParams(params, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (["INPUT", "TEXTAREA", "SELECT"].includes((e.target as HTMLElement).tagName)) return;
@@ -208,8 +220,11 @@ export default function Pos() {
     const note = lines.map((i) => `${i.quantity}× ${i.name}`).join(", ");
     const sale = await st.createPosSale({ customerId, items: lines.map((i) => ({ name: i.name, price: i.price, quantity: i.quantity, sku: i.sku || undefined })), subtotal: t.subtotal, tax: t.tax, total: t.total, paymentMethod: finalMethod, note });
 
-    // Deduct stock for physical products
-    await Promise.all(lines.filter((i) => typeof i.id === "number" && !i.isService && !i.isTicket).map((i) => {
+    // Deduct stock for physical products. Offline, the deductions wait with the sale and apply on reconnect.
+    const physical = lines.filter((i) => typeof i.id === "number" && !i.isService && !i.isTicket);
+
+    if ((sale as any).offline) attachStock(String(sale.id), physical.map((i) => ({ id: i.id as number, qty: i.quantity })));
+    else await Promise.all(physical.map((i) => {
       const inv = st.inventory.find((x) => x.id === i.id);
 
       return inv ? st.updateInventoryItem(i.id as number, { stock: Math.max(0, inv.stock - i.quantity) }).catch((e: unknown) => console.warn("[POS] stock deduction failed", e)) : null;
