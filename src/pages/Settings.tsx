@@ -23,6 +23,7 @@ import { AVATAR_KEY } from "@/lib/documents";
 import { fileToDataUrl } from "@/lib/tickets";
 import { useSupabaseConnect } from "@/hooks/useSupabaseConnect";
 import { toast } from "@/hooks/useToast";
+import { exportCustomers, exportInventory, exportSales } from "@/lib/csv";
 import { readyEmailEnabled, setReadyEmailEnabled } from "@/lib/notify";
 import { formatPhoneNumber } from "@/lib/phone";
 import { printBarcodeLabel, printReceipt } from "@/lib/print";
@@ -341,8 +342,8 @@ export default function SettingsPage() {
           <div className="nv-stack" style={{ marginTop: 16, maxWidth: 680, gap: 16 }}>
             <div className="nv-panel nv-stack">
               <h2>Data and devices</h2>
-              <p className="nv-muted" style={{ margin: 0 }}>Download a JSON backup of your settings, tickets, customers and inventory.</p>
-              <div className="nv-actions"><Button variant="secondary" onClick={exportBackup}>Export backup</Button><Button variant="secondary" onClick={() => setCatalog(true)}>Device catalog</Button><Button variant="secondary" onClick={() => setDrivers(true)}>Device drivers</Button></div>
+              <p className="nv-muted" style={{ margin: 0 }}>Download a JSON backup of everything, or spreadsheet files (CSV) of customers, inventory and register sales for your accountant.</p>
+              <div className="nv-actions"><Button variant="secondary" onClick={exportBackup}>Export backup</Button><Button variant="secondary" onClick={exportCustomers}>Customers CSV</Button><Button variant="secondary" onClick={exportInventory}>Inventory CSV</Button><Button variant="secondary" onClick={() => exportSales().catch((e: Error) => toast.danger("Export failed", e.message))}>Sales CSV</Button><Button variant="secondary" onClick={() => setCatalog(true)}>Device catalog</Button><Button variant="secondary" onClick={() => setDrivers(true)}>Device drivers</Button></div>
             </div>
             <div className="nv-panel nv-stack">
               <div className="nv-actions" style={{ justifyContent: "space-between" }}><h2 style={{ margin: 0 }}>System diagnostics</h2><Button size="sm" variant="secondary" onClick={diagnostics} loading={diagRunning}>Run checks</Button></div>
