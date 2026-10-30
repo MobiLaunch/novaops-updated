@@ -9,6 +9,7 @@ import { Drawer, DrawerContent } from "@/components/arc/drawer/drawer";
 import { EmptyState } from "@/components/arc/empty-state/empty-state";
 import { MetricCard } from "@/components/arc/metric-card/metric-card";
 import { SearchField } from "@/components/arc/search-field/search-field";
+import { CustomerWebActivity } from "@/components/app/CustomerWebActivity";
 import { CustomerEditDialog } from "@/components/app/CustomerEditDialog";
 import { NewTicketDialog } from "@/components/app/NewTicketDialog";
 import { PageHead } from "@/components/app/PageHead";
@@ -122,6 +123,7 @@ export default function Customers() {
                   </div>
                 ))}
               </div>
+              <CustomerWebActivity cur={cur} email={sel.email || ""} />
             </div>
           )}
         </DrawerContent>
