@@ -44,7 +44,7 @@ export default function Inventory() {
   const [tick, setTick] = useState(0);
   const [onSite, setOnSite] = useState<Map<number, boolean>>(new Map());
   const [webCats, setWebCats] = useState<{ id: string; name: string }[]>([]);
-  const [web, setWeb] = useState({ on: false, category: "" });
+  const [web, setWeb] = useState({ on: false, category: "", description: "", image: "", featured: false, compare: "" });
   const userId = useAppStore((s) => s.user?.id);
 
   useEffect(() => {
@@ -80,8 +80,16 @@ export default function Inventory() {
   const edit = (item?: any) => {
     setEditing(item ?? null);
     setForm(item ? { ...blank(), ...item, itemType: item.itemType || "product" } : blank());
-    setWeb({ on: !!item && onSite.get(item.id) === true, category: webCats[0]?.id || "" });
+    setWeb({ on: !!item && onSite.get(item.id) === true, category: webCats[0]?.id || "", description: "", image: "", featured: false, compare: "" });
     setOpen(true);
+    // Pull the existing website listing so its photo, copy and compare-at price can be edited here.
+    const sb = getSupabase();
+
+    if (sb && item && onSite.has(item.id)) {
+      void sb.from("products").select("category_id,description,images,featured,compare_price").eq("inventory_id", item.id).maybeSingle().then(({ data }) => {
+        if (data) setWeb((w) => ({ ...w, category: data.category_id || w.category, description: data.description === item.name ? "" : data.description || "", image: data.images?.[0] || "", featured: !!data.featured, compare: data.compare_price ? String(data.compare_price) : "" }));
+      });
+    }
   };
   const set = <K extends keyof ReturnType<typeof blank>>(k: K, v: ReturnType<typeof blank>[K]) => setForm((f) => ({ ...f, [k]: v }));
   const num = (k: "price" | "cost" | "stock" | "low" | "estimated_minutes") => (e: React.ChangeEvent<HTMLInputElement>) => set(k, Number(e.target.value));
@@ -94,7 +102,12 @@ export default function Inventory() {
     const { data: existing } = await sb.from("products").select("id,category_id").eq("inventory_id", inv.id).maybeSingle();
 
     if (existing) {
-      const patch: Record<string, unknown> = web.on ? { name: form.name, price: form.price, active: true } : { active: false };
+      const compare = web.compare ? Number(web.compare) : null;
+
+      if (compare !== null && (!Number.isFinite(compare) || compare <= form.price)) throw new Error("Compare-at price must be higher than the price.");
+      const patch: Record<string, unknown> = web.on
+        ? { name: form.name, price: form.price, active: true, description: web.description.trim() || form.name, images: web.image.trim() ? [web.image.trim()] : [], featured: web.featured, compare_price: compare }
+        : { active: false };
 
       if (web.on && web.category && web.category !== existing.category_id) Object.assign(patch, { category: web.category, category_id: web.category });
       const { error } = await sb.from("products").update(patch).eq("id", existing.id);
@@ -102,7 +115,7 @@ export default function Inventory() {
       if (error) throw error;
     } else if (web.on) {
       if (!web.category) throw new Error("Pick a website category first.");
-      const { error } = await sb.from("products").insert({ profile_id: userId, name: form.name, sku: form.sku || `POS-${inv.id}`, category: web.category, category_id: web.category, price: form.price, stock: form.stock, description: form.description || form.name, images: [], tags: [], featured: false, active: true, inventory_id: inv.id });
+      const { error } = await sb.from("products").insert({ profile_id: userId, name: form.name, sku: form.sku || `POS-${inv.id}`, category: web.category, category_id: web.category, price: form.price, stock: form.stock, description: web.description.trim() || form.description || form.name, images: web.image.trim() ? [web.image.trim()] : [], tags: [], featured: web.featured, compare_price: web.compare ? Number(web.compare) : null, active: true, inventory_id: inv.id });
 
       if (error) throw error;
     }
@@ -274,7 +287,17 @@ export default function Inventory() {
                   <div><strong style={{ display: "block", fontWeight: 500 }}>Sell on the website</strong><span className="nv-muted" style={{ fontSize: 13 }}>Shares this stock count with the online shop.</span></div>
                   <Switch aria-label="Sell on the website" checked={web.on} onCheckedChange={(v) => setWeb((w) => ({ ...w, on: v }))} />
                 </div>
-                {web.on && <Select label="Website category" value={web.category} onValueChange={(v) => setWeb((w) => ({ ...w, category: v }))} options={webCats.map((c) => ({ value: c.id, label: c.name }))} />}
+                {web.on && (
+                  <>
+                    <Select label="Website category" value={web.category} onValueChange={(v) => setWeb((w) => ({ ...w, category: v }))} options={webCats.map((c) => ({ value: c.id, label: c.name }))} />
+                    <Input label="Photo URL" placeholder="https://" value={web.image} onChange={(e) => setWeb((w) => ({ ...w, image: e.target.value }))} />
+                    <Textarea label="Website description" rows={2} value={web.description} onChange={(e) => setWeb((w) => ({ ...w, description: e.target.value }))} />
+                    <div className="nv-form-row">
+                      <Input label="Compare-at price" description="Shown crossed out. Leave blank for none." type="number" min={0} step="0.01" value={web.compare} onChange={(e) => setWeb((w) => ({ ...w, compare: e.target.value }))} />
+                      <div className="nv-actions" style={{ justifyContent: "space-between", alignSelf: "end" }}><span>Featured on homepage</span><Switch aria-label="Featured on homepage" checked={web.featured} onCheckedChange={(v) => setWeb((w) => ({ ...w, featured: v }))} /></div>
+                    </div>
+                  </>
+                )}
               </div>
             )}
             <div className="nv-actions" style={{ justifyContent: "space-between" }}>

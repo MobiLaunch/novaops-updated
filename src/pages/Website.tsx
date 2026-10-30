@@ -1,6 +1,7 @@
 import { PageHead } from "@/components/app/PageHead";
 import { ShopSettings } from "@/components/app/ShopSettings";
 import { SiteEditor } from "@/components/app/SiteEditor";
+import { WebBookings } from "@/components/app/WebBookings";
 import { WebOrders } from "@/components/app/WebOrders";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/arc/tabs/tabs";
 
@@ -8,14 +9,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/arc/tabs/
 export default function Website() {
   return (
     <>
-      <PageHead title="Website" subtitle="Orders and settings for the online shop" />
+      <PageHead title="Website" subtitle="Orders, bookings and content for the online shop" />
       <Tabs defaultValue="orders">
         <TabsList>
           <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="bookings">Bookings</TabsTrigger>
           <TabsTrigger value="content">Site editor</TabsTrigger>
           <TabsTrigger value="settings">Shop settings</TabsTrigger>
         </TabsList>
         <TabsContent value="orders"><WebOrders /></TabsContent>
+        <TabsContent value="bookings"><WebBookings /></TabsContent>
         <TabsContent value="content"><SiteEditor /></TabsContent>
         <TabsContent value="settings"><ShopSettings /></TabsContent>
       </Tabs>
