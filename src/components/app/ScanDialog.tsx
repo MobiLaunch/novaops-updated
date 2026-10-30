@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, PackagePlus, Pencil, ScanLine, ShoppingCart, Ticket } from "lucide-react";
+import { Camera, PackagePlus, Pencil, Printer, ScanLine, ShoppingCart, Ticket } from "lucide-react";
 
 import { Alert } from "@/components/arc/alert/alert";
 import { Badge } from "@/components/arc/badge/badge";
@@ -8,6 +8,7 @@ import { Button } from "@/components/arc/button/button";
 import { Dialog, DialogContent } from "@/components/arc/dialog/dialog";
 import { Input } from "@/components/arc/input/input";
 import { toast } from "@/hooks/useToast";
+import { printBarcodeLabel } from "@/lib/print";
 import { formatCurrency } from "@/lib/format";
 import { useAppStore } from "@/lib/store";
 import { getSupabase } from "@/lib/supabase";
@@ -126,6 +127,7 @@ export function ScanDialog({ open, onOpenChange, initialCode = "" }: { open: boo
               <div className="nv-actions" style={{ gap: 8, flexWrap: "wrap" }}>
                 {item.sku && <Button onClick={() => go(`/pos?add=${encodeURIComponent(item.sku)}`)}><ShoppingCart size={14} aria-hidden="true" />Add to sale</Button>}
                 {[1, 5, 10].map((n) => <Button key={n} variant="secondary" onClick={() => void receive(n)}><PackagePlus size={14} aria-hidden="true" />+{n}</Button>)}
+                <Button variant="ghost" onClick={() => void printBarcodeLabel({ sku: item.sku || String(item.id), name: item.name, price: Number(item.price) || 0, currency: cur, format: "CODE128" })}><Printer size={14} aria-hidden="true" />Label</Button>
                 <Button variant="ghost" onClick={() => go(`/inventory?q=${encodeURIComponent(item.sku || item.name)}`)}><Pencil size={14} aria-hidden="true" />Edit</Button>
               </div>
             </div>
