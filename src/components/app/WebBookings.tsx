@@ -5,6 +5,7 @@ import { Check, CalendarDays, RefreshCw, Ticket, X } from "lucide-react";
 import { Badge } from "@/components/arc/badge/badge";
 import { Button } from "@/components/arc/button/button";
 import { EmptyState } from "@/components/arc/empty-state/empty-state";
+import { ListSkeleton } from "@/components/app/ListSkeleton";
 import { toast } from "@/hooks/useToast";
 import { getSupabase } from "@/lib/supabase";
 
@@ -65,7 +66,7 @@ export function WebBookings() {
         <Button variant="secondary" onClick={() => void load()}><RefreshCw size={14} aria-hidden="true" />Refresh</Button>
       </div>
 
-      {!loading && shown.length === 0 ? (
+      {loading ? <ListSkeleton label="Loading bookings" rows={3} /> : shown.length === 0 ? (
         <EmptyState icon={<CalendarDays size={22} aria-hidden="true" />} title="No website bookings" description="Repair requests from the booking form show up here, and on the calendar." />
       ) : (
         <div style={{ display: "grid", gap: 12 }}>

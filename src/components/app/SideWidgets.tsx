@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CircleCheck, MessageSquare, Package, Pencil, ShoppingBag } from "lucide-react";
 
+import { AnimatedCounter } from "@/components/arc/animated-counter/animated-counter";
+import { useVisibleInterval } from "@/hooks/useVisibleInterval";
 import { formatCurrency } from "@/lib/format";
 import { useAppStore } from "@/lib/store";
 import { getSupabase } from "@/lib/supabase";
@@ -47,22 +49,16 @@ export function SideWidgets({ counts }: { counts: ShopCounts }) {
     try { const g = Number(localStorage.getItem(GOAL_KEY)); return g > 0 ? g : null; } catch { return null; }
   });
 
-  useEffect(() => {
+  useVisibleInterval(() => {
     const sb = getSupabase();
 
     if (!sb) return;
-    const load = async () => {
-      const since = new Date(monthStart().getTime() - 35 * DAY).toISOString();
-      const s = await sb.from("pos_sales").select("total,created_at").gte("created_at", since).neq("status", "voided");
+    const since = new Date(monthStart().getTime() - 35 * DAY).toISOString();
 
+    void sb.from("pos_sales").select("total,created_at").gte("created_at", since).neq("status", "voided").then((s) => {
       if (s.data) setSales(s.data.map((r: any) => ({ total: Number(r.total) || 0, created_at: r.created_at })));
-    };
-
-    void load();
-    const t = setInterval(() => void load(), 90000);
-
-    return () => clearInterval(t);
-  }, []);
+    });
+  }, 90000);
 
   const stats = useMemo(() => {
     const now = new Date();
@@ -114,12 +110,12 @@ export function SideWidgets({ counts }: { counts: ShopCounts }) {
 
   return (
     <div className="nv-widgets" aria-label="Shop at a glance">
-      <section className="nv-widget" aria-label="Revenue this month">
+      <section className="nv-widget" data-tone="money" aria-label="Revenue this month">
         <header>
           <span>Revenue this month</span>
           <button aria-label="Set monthly goal" className="nv-widget-edit" type="button" onClick={editGoal}><Pencil size={12} aria-hidden="true" /></button>
         </header>
-        <strong className="nv-widget-value">{formatCurrency(stats.cur$, cur)}</strong>
+        <strong className="nv-widget-value"><AnimatedCounter decimals={0} prefix={cur} value={Math.round(stats.cur$)} /></strong>
         <Spark points={stats.daily} />
         <div className="nv-bar" role="progressbar" aria-label="Progress to monthly goal" aria-valuemax={100} aria-valuemin={0} aria-valuenow={pct}><span style={{ width: `${pct}%` }} /></div>
         <footer>
@@ -128,16 +124,16 @@ export function SideWidgets({ counts }: { counts: ShopCounts }) {
         </footer>
       </section>
 
-      <section className="nv-widget" aria-label="Tickets closed this month">
+      <section className="nv-widget" data-tone="work" aria-label="Tickets closed this month">
         <header><span>Tickets closed this month</span><CircleCheck size={13} aria-hidden="true" /></header>
-        <strong className="nv-widget-value">{stats.closed}</strong>
+        <strong className="nv-widget-value"><AnimatedCounter value={stats.closed} /></strong>
         <div className="nv-bar" role="progressbar" aria-label="Closed against open tickets" aria-valuemax={100} aria-valuemin={0} aria-valuenow={closedPct}><span style={{ width: `${closedPct}%` }} /></div>
         <footer><span>{stats.open} still open</span></footer>
       </section>
 
       <div className="nv-chips">
         {chips.map(({ key, label, value, icon: Icon, to }) => (
-          <button key={key} className="nv-chip" data-alert={value > 0 ? "true" : "false"} type="button" onClick={() => navigate(to)}>
+          <button key={key} className="nv-chip" data-kind={key} data-alert={value > 0 ? "true" : "false"} type="button" onClick={() => navigate(to)}>
             <Icon size={13} aria-hidden="true" /><strong>{value}</strong><span>{label}</span>
           </button>
         ))}

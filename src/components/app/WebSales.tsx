@@ -5,6 +5,7 @@ import { Button } from "@/components/arc/button/button";
 import { EmptyState } from "@/components/arc/empty-state/empty-state";
 import { MetricCard } from "@/components/arc/metric-card/metric-card";
 import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
+import { ListSkeleton } from "@/components/app/ListSkeleton";
 import { toast } from "@/hooks/useToast";
 import { formatCurrency } from "@/lib/format";
 import { useAppStore } from "@/lib/store";
@@ -70,7 +71,7 @@ export function WebSales() {
         <Button variant="secondary" onClick={() => void load()}><RefreshCw size={14} aria-hidden="true" />Refresh</Button>
       </div>
 
-      {!loading && report.count === 0 ? (
+      {loading ? <ListSkeleton label="Loading sales" rows={3} /> : report.count === 0 ? (
         <EmptyState icon={<BarChart3 size={22} aria-hidden="true" />} title="No web sales in this period" description="Paid orders from the website show up here, with your best sellers." />
       ) : (
         <>

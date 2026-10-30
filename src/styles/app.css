@@ -190,3 +190,79 @@ a { color: inherit; text-decoration: none; }
 @media (max-height: 860px) { .nv-nav { gap: 8px; } .nv-nav-label { display: none; } }
 
 .nv-swatch { width: 44px; height: 44px; margin-bottom: 22px; padding: 2px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); cursor: pointer; }
+
+/* ── Motion, color and loading polish ─────────────────────────────────── */
+:root {
+  --hue-workspace: oklch(56% .17 258);
+  --hue-shop: oklch(54% .15 160);
+  --hue-insights: oklch(56% .18 300);
+}
+:root[data-theme="dark"] {
+  --hue-workspace: oklch(74% .15 258);
+  --hue-shop: oklch(76% .16 160);
+  --hue-insights: oklch(76% .15 300);
+}
+
+/* Each sidebar group has its own hue: a dot by the label, tinted tiles, a filled tile when active. */
+.nv-nav-group[data-group="workspace"] { --hue: var(--hue-workspace); }
+.nv-nav-group[data-group="shop"] { --hue: var(--hue-shop); }
+.nv-nav-group[data-group="insights"] { --hue: var(--hue-insights); }
+.nv-nav-label { display: flex; align-items: center; gap: 6px; }
+.nv-nav-label::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--hue); }
+.nv-link-icon { color: color-mix(in oklab, var(--hue) 70%, var(--text-secondary)); background: color-mix(in oklab, var(--hue) 9%, var(--surface)); }
+.nv-link:hover .nv-link-icon { transform: translateY(-1px) scale(1.06); color: var(--hue); }
+.nv-link-icon { transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), background-color .15s, color .15s; }
+.nv-link[aria-current="page"] .nv-link-icon { background: var(--hue); color: #fff; box-shadow: 0 4px 10px -3px color-mix(in oklab, var(--hue) 60%, transparent); }
+.nv-link-badge { background: var(--hue); color: #fff; animation: nv-pop .35s cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes nv-pop { 0% { transform: scale(.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+/* Widgets: money is green, work is blue; chips color by what they count. */
+.nv-widget[data-tone="money"] { --tone: var(--hue-shop); }
+.nv-widget[data-tone="work"] { --tone: var(--hue-workspace); }
+.nv-widget[data-tone] .nv-bar > span { background: var(--tone); }
+.nv-widget[data-tone] .nv-spark-line { stroke: var(--tone); }
+.nv-widget[data-tone] .nv-spark-fill { fill: color-mix(in oklab, var(--tone) 16%, transparent); }
+.nv-widget { transition: border-color .2s, box-shadow .2s; }
+.nv-widget:hover { border-color: color-mix(in oklab, var(--tone, var(--accent)) 40%, var(--border)); box-shadow: 0 6px 18px -10px color-mix(in oklab, var(--tone, var(--accent)) 55%, transparent); }
+.nv-chip[data-kind="low"] { --c: var(--warning); }
+.nv-chip[data-kind="ship"] { --c: var(--hue-shop); }
+.nv-chip[data-kind="msg"] { --c: var(--hue-workspace); }
+.nv-chip[data-alert="true"] { border-color: color-mix(in oklab, var(--c) 50%, var(--border)); background: color-mix(in oklab, var(--c) 8%, var(--surface)); }
+.nv-chip[data-alert="true"] strong, .nv-chip[data-alert="true"] svg { color: var(--c); }
+.nv-chip { transition: transform .15s, border-color .15s, background-color .15s; }
+.nv-chip:hover { transform: translateY(-1px); }
+.nv-chip:active { transform: scale(.97); }
+
+/* Pages ease in instead of snapping. */
+.nv-content { animation: nv-page-in .26s cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes nv-page-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Clickable rows respond to the pointer. */
+button.nv-row, .nv-row[role="button"] { transition: background-color .15s, padding .15s; border-radius: 10px; }
+button.nv-row:hover { background: var(--surface-muted); }
+.nv-panel { transition: border-color .2s, box-shadow .2s; }
+button.nv-panel:hover { border-color: var(--border-strong, var(--border)); box-shadow: 0 8px 20px -14px rgb(0 0 0 / .35); transform: translateY(-1px); }
+button.nv-panel { transition: transform .15s, box-shadow .2s, border-color .2s; }
+button.nv-panel:active { transform: scale(.995); }
+
+/* Loading skeletons */
+.nv-skel-list { display: grid; gap: 4px; }
+.nv-skel-row { display: grid; gap: 8px; padding: 14px 0; border-bottom: 1px solid var(--border-subtle); }
+.nv-skel-row:last-child { border-bottom: 0; }
+.nv-skel { display: block; border-radius: 8px; background: linear-gradient(90deg, var(--surface-muted) 25%, color-mix(in oklab, var(--surface-muted) 55%, var(--surface)) 50%, var(--surface-muted) 75%); background-size: 200% 100%; animation: nv-shimmer 1.3s linear infinite; }
+.nv-skel-lg { height: 14px; }
+.nv-skel-sm { height: 10px; }
+@keyframes nv-shimmer { to { background-position: -200% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .nv-content, .nv-link-badge, .nv-skel { animation: none; }
+  .nv-link:hover .nv-link-icon, .nv-chip:hover, button.nv-panel:hover { transform: none; }
+}
+
+/* Keep the sidebar reachable on shorter screens. */
+.nv-side { overflow-y: auto; scrollbar-width: thin; }
+.nv-widget { padding: 10px 12px; gap: 4px; }
+.nv-widget-value { font-size: 20px; }
+.nv-widgets { gap: 8px; }
+.nv-link { padding-block: 6px; }
+@media (max-height: 1040px) { .nv-widgets .nv-widget:nth-child(2) > footer { display: none; } }

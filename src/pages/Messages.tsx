@@ -9,6 +9,7 @@ import SegmentedControl from "@/components/arc/segmented-control/segmented-contr
 import { Textarea } from "@/components/arc/textarea/textarea";
 import { PageHead } from "@/components/app/PageHead";
 import { openMailto } from "@/lib/contact";
+import { ListSkeleton } from "@/components/app/ListSkeleton";
 import { toast } from "@/hooks/useToast";
 import { getSupabase } from "@/lib/supabase";
 import { useAppStore } from "@/lib/store";
@@ -132,7 +133,7 @@ export default function Messages() {
         <Button variant="secondary" onClick={() => void load()}><RefreshCw size={14} aria-hidden="true" />Refresh</Button>
       </PageHead>
 
-      {!loading && threads.length === 0 ? (
+      {loading ? <ListSkeleton label="Loading messages" rows={5} /> : threads.length === 0 ? (
         <EmptyState icon={<MessageSquare size={22} aria-hidden="true" />} title="No messages yet" description="When a customer writes to you from the website chat, the conversation shows up here." />
       ) : (
         <div className="nv-msgs">
