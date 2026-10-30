@@ -75,6 +75,23 @@ export const wrap = (handler: Handler) => async (req: VercelRequest, res: Vercel
  * Requires a signed-in NovaOps user. Verifies the bearer token with Supabase Auth and returns the user.
  * Fails closed: if the server has no Supabase URL and public key, nothing is allowed through.
  */
+/** True when `authorization` carries a valid Supabase access token. For plain (req, res) dispatchers. */
+export async function hasValidSession(authorization: string | string[] | undefined): Promise<boolean> {
+  const header = Array.isArray(authorization) ? authorization[0] : authorization || "";
+  const token = header.startsWith("Bearer ") ? header.slice(7) : "";
+  const url = (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "").replace(/\/$/, "");
+  const anon = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || "";
+
+  if (!token || !url || !anon) return false;
+  try {
+    const res = await fetch(`${url}/auth/v1/user`, { headers: { apikey: anon, Authorization: `Bearer ${token}` } });
+
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function requireUser(event: Event): Promise<{ id: string; email?: string }> {
   const header = getHeader(event, "authorization") || "";
   const token = header.startsWith("Bearer ") ? header.slice(7) : "";

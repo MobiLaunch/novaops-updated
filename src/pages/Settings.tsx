@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { authedFetch } from "@/lib/api";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { CircleCheck, CircleX, LogOut } from "lucide-react";
 
@@ -92,7 +93,7 @@ export default function SettingsPage() {
     setSqState("checking");
     setSqMsg("");
     try {
-      const res = await fetch("/api/square/connection-test", { headers: squareHeaders(s) });
+      const res = await authedFetch("/api/square/connection-test", { headers: squareHeaders(s) });
       const json = await res.json().catch(() => ({}));
 
       if (!res.ok) throw new Error(json.statusMessage || json.message || "Connection failed");
@@ -175,13 +176,13 @@ export default function SettingsPage() {
       push("Database access", true, `Queried tickets (${data.length} record${data.length === 1 ? "" : "s"}).`);
     } catch (e) { push("Database access", false, `Query failed. Check RLS or connectivity: ${(e as Error).message}`); }
     try {
-      const r = await fetch("/api/square/connection-test", { headers: squareHeaders(form) });
+      const r = await authedFetch("/api/square/connection-test", { headers: squareHeaders(form) });
       const j = await r.json().catch(() => ({}));
 
       push("Square API", r.ok, r.ok ? `Square responded: ${JSON.stringify(j)}` : j.statusMessage || j.message || `HTTP ${r.status}`);
     } catch (e) { push("Square API", false, (e as Error).message); }
     try {
-      const r = await fetch("/api/square/payment-readiness", { headers: squareHeaders(form) });
+      const r = await authedFetch("/api/square/payment-readiness", { headers: squareHeaders(form) });
       const j = await r.json().catch(() => ({}));
 
       if (r.ok && j.ok) push("Square payment readiness", true, `${j.sandbox ? "Sandbox" : "Production"}: ${j.checks.map((c: any) => `${c.name} ${c.ok ? "ok" : "failed"}`).join(", ")}`);

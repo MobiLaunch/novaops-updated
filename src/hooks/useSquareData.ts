@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 
+import { authedFetch } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -19,7 +20,7 @@ export function useSquareData() {
     setLoading((l) => ({ ...l, [kind]: true }));
     setError((e) => ({ ...e, [kind]: "" }));
     try {
-      const res = await fetch(`/api/square/${kind}${query}`, { headers: { "x-square-access-token": accessToken, "x-square-location-id": locationId } });
+      const res = await authedFetch(`/api/square/${kind}${query}`, { headers: { "x-square-access-token": accessToken, "x-square-location-id": locationId } });
       const json = await res.json().catch(() => ({}));
 
       if (!res.ok) throw new Error(json?.message || json?.statusMessage || `Request failed (${res.status})`);
