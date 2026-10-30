@@ -20,6 +20,7 @@ import { useAppStore } from "@/lib/store";
 import { useUi } from "@/lib/ui";
 import { ShortcutsDialog } from "@/components/app/ShortcutsDialog";
 import { SideWidgets } from "@/components/app/SideWidgets";
+import { prefetchRoute } from "@/lib/prefetch";
 import { useShopCounts, type ShopCounts } from "@/lib/useShopCounts";
 import { isElectron } from "@/lib/supabase";
 
@@ -139,16 +140,16 @@ export function AppShell() {
         <div className="nv-brand"><span className="nv-brand-mark">N</span>{name}</div>
         <nav className="nv-nav" aria-label="Main">
           {GROUPS.map((g) => (
-            <div key={g.label} className="nv-nav-group" role="group" aria-label={g.label}>
+            <div key={g.label} className="nv-nav-group" data-group={g.label.toLowerCase()} role="group" aria-label={g.label}>
               <span className="nv-nav-label">{g.label}</span>
               {g.items.map((n) => {
                 const count = n.badge ? counts[n.badge] : 0;
 
                 return (
-                  <NavLink key={n.to} to={n.to} className="nv-link">
+                  <NavLink key={n.to} to={n.to} className="nv-link" onFocus={() => prefetchRoute(n.to)} onMouseEnter={() => prefetchRoute(n.to)}>
                     <span className="nv-link-icon"><n.icon size={15} /></span>
                     <span className="nv-link-text">{n.label}</span>
-                    {count > 0 && <span className="nv-link-badge" aria-label={`${count} need attention`}>{count > 99 ? "99+" : count}</span>}
+                    {count > 0 && <span key={count} className="nv-link-badge" aria-label={`${count} need attention`}>{count > 99 ? "99+" : count}</span>}
                   </NavLink>
                 );
               })}

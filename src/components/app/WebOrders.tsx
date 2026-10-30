@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/arc/empty-state/empty-state";
 import { HoldToConfirm } from "@/components/arc/hold-to-confirm/hold-to-confirm";
 import { MetricCard } from "@/components/arc/metric-card/metric-card";
 import { Select } from "@/components/arc/select/select";
+import { ListSkeleton } from "@/components/app/ListSkeleton";
 import { toast } from "@/hooks/useToast";
 import { formatCurrency } from "@/lib/format";
 import { loadShopConfig } from "@/lib/shopConfig";
@@ -110,7 +111,7 @@ export function WebOrders() {
         <Button variant="secondary" onClick={() => void load()}><RefreshCw size={14} aria-hidden="true" />Refresh</Button>
       </div>
 
-      {!loading && shown.length === 0 ? (
+      {loading ? <ListSkeleton label="Loading orders" /> : shown.length === 0 ? (
         <EmptyState icon={<ShoppingBag size={22} aria-hidden="true" />} title="No web orders" description={filter === "all" ? "Orders placed on the website show up here as soon as they're paid." : "No orders have this status."} />
       ) : (
         <div className="nv-panel" style={{ padding: "4px 16px" }}>
