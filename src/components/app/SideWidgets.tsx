@@ -5,6 +5,7 @@ import { CircleCheck, MessageSquare, Package, Pencil, ShoppingBag } from "lucide
 import { formatCurrency } from "@/lib/format";
 import { useAppStore } from "@/lib/store";
 import { getSupabase } from "@/lib/supabase";
+import type { ShopCounts } from "@/lib/useShopCounts";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const GOAL_KEY = "novaops_revenue_goal";
@@ -36,14 +37,12 @@ function Spark({ points }: { points: number[] }) {
 }
 
 /** Live shop numbers at the foot of the sidebar: revenue, tickets closed, and what needs attention. */
-export function SideWidgets() {
+export function SideWidgets({ counts }: { counts: ShopCounts }) {
   const navigate = useNavigate();
   const tickets = useAppStore((s) => s.tickets);
   const inventory = useAppStore((s) => s.inventory);
   const cur = useAppStore((s) => s.settings.currency) || "$";
   const [sales, setSales] = useState<{ total: number; created_at: string }[]>([]);
-  const [toShip, setToShip] = useState(0);
-  const [unread, setUnread] = useState(0);
   const [goal, setGoal] = useState<number | null>(() => {
     try { const g = Number(localStorage.getItem(GOAL_KEY)); return g > 0 ? g : null; } catch { return null; }
   });
@@ -54,15 +53,9 @@ export function SideWidgets() {
     if (!sb) return;
     const load = async () => {
       const since = new Date(monthStart().getTime() - 35 * DAY).toISOString();
-      const [s, o, m] = await Promise.all([
-        sb.from("pos_sales").select("total,created_at").gte("created_at", since).neq("status", "voided"),
-        sb.from("orders").select("id", { count: "exact", head: true }).in("status", ["paid", "processing"]),
-        sb.from("messages").select("id", { count: "exact", head: true }).eq("channel", "chat").eq("direction", "inbound").eq("read", false),
-      ]);
+      const s = await sb.from("pos_sales").select("total,created_at").gte("created_at", since).neq("status", "voided");
 
       if (s.data) setSales(s.data.map((r: any) => ({ total: Number(r.total) || 0, created_at: r.created_at })));
-      setToShip(o.count || 0);
-      setUnread(m.count || 0);
     };
 
     void load();
@@ -114,9 +107,9 @@ export function SideWidgets() {
   };
 
   const chips = [
-    { key: "low", label: "Low", value: stats.low, icon: Package, to: "/inventory" },
-    { key: "ship", label: "To ship", value: toShip, icon: ShoppingBag, to: "/website" },
-    { key: "msg", label: "Unread", value: unread, icon: MessageSquare, to: "/messages" },
+    { key: "low", label: "Low", value: counts.low, icon: Package, to: "/inventory" },
+    { key: "ship", label: "To ship", value: counts.toShip, icon: ShoppingBag, to: "/website" },
+    { key: "msg", label: "Unread", value: counts.unread, icon: MessageSquare, to: "/messages" },
   ];
 
   return (

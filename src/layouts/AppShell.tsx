@@ -20,20 +20,32 @@ import { useAppStore } from "@/lib/store";
 import { useUi } from "@/lib/ui";
 import { ShortcutsDialog } from "@/components/app/ShortcutsDialog";
 import { SideWidgets } from "@/components/app/SideWidgets";
+import { useShopCounts, type ShopCounts } from "@/lib/useShopCounts";
 import { isElectron } from "@/lib/supabase";
 
-const NAV = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/bookings", label: "Bookings", icon: CalendarDays },
-  { to: "/customers", label: "Customers", icon: Users },
-  { to: "/messages", label: "Messages", icon: MessageSquare },
-  { to: "/website", label: "Website", icon: Globe },
-  { to: "/inventory", label: "Inventory", icon: Package },
-  { to: "/pos", label: "POS", icon: Receipt },
-  { to: "/library", label: "Library", icon: BookOpen },
-  { to: "/analytics", label: "Analytics", icon: BarChart3 },
-  { to: "/tools", label: "Tools", icon: Wrench },
+type NavItem = { to: string; label: string; icon: typeof Package; badge?: keyof ShopCounts };
+
+// Grouped by what the owner is doing, not by when each page was built.
+const GROUPS: { label: string; items: NavItem[] }[] = [
+  { label: "Workspace", items: [
+    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/bookings", label: "Bookings", icon: CalendarDays },
+    { to: "/customers", label: "Customers", icon: Users },
+    { to: "/messages", label: "Messages", icon: MessageSquare, badge: "unread" },
+  ] },
+  { label: "Shop", items: [
+    { to: "/pos", label: "POS", icon: Receipt },
+    { to: "/inventory", label: "Inventory", icon: Package, badge: "low" },
+    { to: "/website", label: "Website", icon: Globe, badge: "toShip" },
+  ] },
+  { label: "Insights", items: [
+    { to: "/analytics", label: "Analytics", icon: BarChart3 },
+    { to: "/library", label: "Library", icon: BookOpen },
+    { to: "/tools", label: "Tools", icon: Wrench },
+  ] },
 ];
+const NAV: NavItem[] = GROUPS.flatMap((g) => g.items);
+const byTo = (to: string) => NAV.find((n) => n.to === to)!;
 
 type Theme = "light" | "dark";
 const THEME_KEY = "novaops_theme";
@@ -54,6 +66,7 @@ export function AppShell() {
   const [shortcuts, setShortcuts] = useState(false);
   const [more, setMore] = useState(false);
   const upcoming = useUpcoming(6);
+  const counts = useShopCounts();
 
   useScreenLock(true);
 
@@ -125,11 +138,24 @@ export function AppShell() {
       <aside className="nv-side">
         <div className="nv-brand"><span className="nv-brand-mark">N</span>{name}</div>
         <nav className="nv-nav" aria-label="Main">
-          {NAV.map((n) => (
-            <NavLink key={n.to} to={n.to} className="nv-link"><n.icon size={17} />{n.label}</NavLink>
+          {GROUPS.map((g) => (
+            <div key={g.label} className="nv-nav-group" role="group" aria-label={g.label}>
+              <span className="nv-nav-label">{g.label}</span>
+              {g.items.map((n) => {
+                const count = n.badge ? counts[n.badge] : 0;
+
+                return (
+                  <NavLink key={n.to} to={n.to} className="nv-link">
+                    <span className="nv-link-icon"><n.icon size={15} /></span>
+                    <span className="nv-link-text">{n.label}</span>
+                    {count > 0 && <span className="nv-link-badge" aria-label={`${count} need attention`}>{count > 99 ? "99+" : count}</span>}
+                  </NavLink>
+                );
+              })}
+            </div>
           ))}
         </nav>
-        <SideWidgets />
+        <SideWidgets counts={counts} />
         <div className="nv-side-foot">
           <NavLink to="/settings" className="nv-link"><Settings size={17} />Settings</NavLink>
         </div>
@@ -174,7 +200,7 @@ export function AppShell() {
       </div>
 
       <nav className="nv-tabbar" aria-label="Primary">
-        {[NAV[0], NAV[1], NAV[2], NAV[4]].map((n) => (
+        {[byTo("/dashboard"), byTo("/bookings"), byTo("/pos"), byTo("/messages")].map((n) => (
           <NavLink key={n.to} to={n.to}><n.icon size={20} />{n.label}</NavLink>
         ))}
         <button type="button" className="nv-tab-more" onClick={() => setMore(true)}><Ellipsis size={20} />More</button>
@@ -183,7 +209,7 @@ export function AppShell() {
       <Drawer open={more} onOpenChange={setMore}>
         <DrawerContent side="bottom" title="More" description={businessName || "NovaOps"}>
           <div className="nv-stack">
-            {[NAV[3], NAV[5], NAV[6], NAV[7]].map((n) => (
+            {[byTo("/customers"), byTo("/inventory"), byTo("/website"), byTo("/analytics"), byTo("/library"), byTo("/tools")].map((n) => (
               <NavLink key={n.to} to={n.to} className="nv-link" onClick={() => setMore(false)}><n.icon size={17} />{n.label}</NavLink>
             ))}
             <NavLink to="/settings" className="nv-link" onClick={() => setMore(false)}><Settings size={17} />Settings</NavLink>
