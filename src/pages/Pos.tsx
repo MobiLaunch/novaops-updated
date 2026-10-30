@@ -19,6 +19,7 @@ import { useAppStore } from "@/lib/store";
 import { attachStock } from "@/lib/offlineQueue";
 import { issueGiftCard, lookupGiftCard, redeemGiftCard, type GiftCard } from "@/lib/giftCards";
 import { Input } from "@/components/arc/input/input";
+import { RecentSales } from "@/components/app/RecentSales";
 import { GiftCardList } from "@/components/app/GiftCardList";
 import { getSupabase } from "@/lib/supabase";
 
@@ -53,6 +54,7 @@ export default function Pos() {
   const [giftBusy, setGiftBusy] = useState(false);
   const [sellGift, setSellGift] = useState<string | null>(null);
   const [giftList, setGiftList] = useState(false);
+  const [recent, setRecent] = useState(false);
   const [receipt, setReceipt] = useState<ReceiptData | null>(null);
   const [ticketMode, setTicketMode] = useState<number | null>(null);
   const [cardReady, setCardReady] = useState(false);
@@ -355,6 +357,7 @@ export default function Pos() {
         <Button variant="secondary" onClick={() => setKeypad("0")}>Custom amount</Button>
         <Button variant="secondary" onClick={() => setSellGift("25")}><Gift size={14} />Gift card</Button>
         <Button variant="ghost" onClick={() => setGiftList(true)}>Balances</Button>
+        <Button variant="ghost" onClick={() => setRecent(true)}>Recent sales</Button>
       </PageHead>
 
       <div className="nv-pos">
@@ -439,6 +442,7 @@ export default function Pos() {
         </DialogContent>
       </Dialog>
 
+      <RecentSales open={recent} onOpenChange={setRecent} />
       <GiftCardList open={giftList} onOpenChange={setGiftList} currency={cur} />
 
       <Dialog open={sellGift !== null} onOpenChange={(o) => !o && setSellGift(null)}>
