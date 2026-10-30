@@ -19,6 +19,7 @@ import { useAppStore } from "@/lib/store";
 import { attachStock } from "@/lib/offlineQueue";
 import { issueGiftCard, lookupGiftCard, redeemGiftCard, type GiftCard } from "@/lib/giftCards";
 import { Input } from "@/components/arc/input/input";
+import { GiftCardList } from "@/components/app/GiftCardList";
 import { getSupabase } from "@/lib/supabase";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -51,6 +52,7 @@ export default function Pos() {
   const [giftCode, setGiftCode] = useState("");
   const [giftBusy, setGiftBusy] = useState(false);
   const [sellGift, setSellGift] = useState<string | null>(null);
+  const [giftList, setGiftList] = useState(false);
   const [receipt, setReceipt] = useState<ReceiptData | null>(null);
   const [ticketMode, setTicketMode] = useState<number | null>(null);
   const [cardReady, setCardReady] = useState(false);
@@ -352,6 +354,7 @@ export default function Pos() {
         <div className="nv-mobile-only"><SegmentedControl label="Panel" value={mobile} onValueChange={(v: string) => setMobile(v as "products" | "cart")} options={[{ value: "products", label: "Products" }, { value: "cart", label: `Cart (${cart.length})` }]} /></div>
         <Button variant="secondary" onClick={() => setKeypad("0")}>Custom amount</Button>
         <Button variant="secondary" onClick={() => setSellGift("25")}><Gift size={14} />Gift card</Button>
+        <Button variant="ghost" onClick={() => setGiftList(true)}>Balances</Button>
       </PageHead>
 
       <div className="nv-pos">
@@ -435,6 +438,8 @@ export default function Pos() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <GiftCardList open={giftList} onOpenChange={setGiftList} currency={cur} />
 
       <Dialog open={sellGift !== null} onOpenChange={(o) => !o && setSellGift(null)}>
         <DialogContent title="Sell a gift card" description="Pick an amount. The code is created when the sale completes.">
