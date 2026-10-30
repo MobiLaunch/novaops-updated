@@ -19,6 +19,7 @@ import { useAppStore } from "@/lib/store";
 import { attachStock } from "@/lib/offlineQueue";
 import { issueGiftCard, lookupGiftCard, redeemGiftCard, type GiftCard } from "@/lib/giftCards";
 import { Input } from "@/components/arc/input/input";
+import { CloseOut } from "@/components/app/CloseOut";
 import { RecentSales } from "@/components/app/RecentSales";
 import { GiftCardList } from "@/components/app/GiftCardList";
 import { getSupabase } from "@/lib/supabase";
@@ -55,6 +56,7 @@ export default function Pos() {
   const [sellGift, setSellGift] = useState<string | null>(null);
   const [giftList, setGiftList] = useState(false);
   const [recent, setRecent] = useState(false);
+  const [closeOut, setCloseOut] = useState(false);
   const [receipt, setReceipt] = useState<ReceiptData | null>(null);
   const [ticketMode, setTicketMode] = useState<number | null>(null);
   const [cardReady, setCardReady] = useState(false);
@@ -165,6 +167,13 @@ export default function Pos() {
   }, [processCode]);
 
   // ── Entry from a ticket (?ticket=ID or ?ticketId=ID&amount=N) or an Afterpay return ──
+  const collectTicket = (t: any) => {
+    const paid = ((t.payments as any[]) ?? []).reduce((s, p) => s + (p.amount || 0), 0);
+
+    setTicketMode(t.id);
+    setCart([{ id: `tkt-${t.id}`, name: `Ticket #${t.id} · ${t.device}`, price: Math.max((t.price || 0) - paid, 0), quantity: 1, isTicket: true, ticketId: t.id, isService: true }]);
+    setMobile("cart");
+  };
   const bootstrapped = useRef(false);
 
   useEffect(() => {
@@ -358,6 +367,7 @@ export default function Pos() {
         <Button variant="secondary" onClick={() => setSellGift("25")}><Gift size={14} />Gift card</Button>
         <Button variant="ghost" onClick={() => setGiftList(true)}>Balances</Button>
         <Button variant="ghost" onClick={() => setRecent(true)}>Recent sales</Button>
+        <Button variant="ghost" onClick={() => setCloseOut(true)}>Close out</Button>
       </PageHead>
 
       <div className="nv-pos">
@@ -387,6 +397,17 @@ export default function Pos() {
             {cart.length > 0 && <Button variant="ghost" size="sm" onClick={clear}>Clear</Button>}
           </div>
           <CustomerSelect value={customerId} onChange={setCustomerId} label="Customer (optional)" />
+          {customerId && (() => {
+            const open = tickets.filter((t: any) => t.customerId === customerId && !["Completed", "Delivered", "Closed"].includes(t.status));
+            const past = tickets.filter((t: any) => t.customerId === customerId).length;
+
+            return (
+              <div className="nv-muted" style={{ fontSize: 13 }}>
+                {past} past ticket{past === 1 ? "" : "s"}{open.length ? ` · ${open.length} open` : ""}
+                {open.slice(0, 3).map((t: any) => <Button key={t.id} size="sm" variant="ghost" onClick={() => collectTicket(t)}>Collect #{t.id} · {t.device}</Button>)}
+              </div>
+            );
+          })()}
           {cart.length === 0 ? <EmptyState icon={<ShoppingBag size={20} />} title="Cart is empty" description="Tap an item or scan a barcode." /> : (
             <div>
               {cart.map((l, i) => (
@@ -442,6 +463,7 @@ export default function Pos() {
         </DialogContent>
       </Dialog>
 
+      <CloseOut open={closeOut} onOpenChange={setCloseOut} />
       <RecentSales open={recent} onOpenChange={setRecent} />
       <GiftCardList open={giftList} onOpenChange={setGiftList} currency={cur} />
 
