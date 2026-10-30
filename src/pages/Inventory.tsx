@@ -11,6 +11,8 @@ import { SearchField } from "@/components/arc/search-field/search-field";
 import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
 import { Select } from "@/components/arc/select/select";
 import { Switch } from "@/components/arc/switch/switch";
+import { BulkPricing } from "@/components/app/BulkPricing";
+import { ReorderList } from "@/components/app/ReorderList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/arc/tabs/tabs";
 import { Textarea } from "@/components/arc/textarea/textarea";
 import { HoldToConfirm } from "@/components/arc/hold-to-confirm/hold-to-confirm";
@@ -39,6 +41,7 @@ export default function Inventory() {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [trade, setTrade] = useState(false);
+  const [pricing, setPricing] = useState(false);
   const [bulk, setBulk] = useState<any[] | null>(null);
   // Items the website shop sells from this same stock count: inventory id -> live on the site.
   const [tick, setTick] = useState(0);
@@ -187,6 +190,7 @@ export default function Inventory() {
         <TabsList>
           <TabsTrigger value="stock">Stock and services</TabsTrigger>
           <TabsTrigger value="services">Service pricing</TabsTrigger>
+          <TabsTrigger value="reorder">Reorder{lowCount ? ` (${lowCount})` : ""}</TabsTrigger>
           <TabsTrigger value="tradein">Trade-in</TabsTrigger>
         </TabsList>
 
@@ -237,9 +241,11 @@ export default function Inventory() {
           )}
         </TabsContent>
 
+        <TabsContent value="reorder"><ReorderList cur={cur} items={all} onOpen={(i) => edit(i)} /></TabsContent>
+
         <TabsContent value="services">
           <div className="nv-panel" style={{ marginTop: 16 }}>
-            <h2>Service pricing</h2>
+            <div className="nv-actions" style={{ justifyContent: "space-between" }}><h2 style={{ margin: 0 }}>Service pricing</h2><Button variant="secondary" onClick={() => setPricing(true)}>Adjust prices</Button></div>
             <p className="nv-muted" style={{ marginTop: -8 }}>Repair services, prices and time estimates.</p>
             {svcList.length === 0 ? <EmptyState title="No services yet" description="Add an item and choose the Service type." /> : svcList.map((s) => (
               <div key={s.id} className="nv-row" style={{ cursor: "pointer" }} onClick={() => edit(s)}>
@@ -260,6 +266,8 @@ export default function Inventory() {
           </div>
         </TabsContent>
       </Tabs>
+
+      <BulkPricing cur={cur} open={pricing} services={svcList} onOpenChange={setPricing} />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent title={editing ? "Edit item" : "Add item"} description={form.itemType === "service" ? "A labor or repair service" : "A product you keep in stock"}>
