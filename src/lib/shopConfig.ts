@@ -35,3 +35,10 @@ export async function saveShopConfig(config: ShopConfig): Promise<void> {
 
   if (error) throw error;
 }
+
+/** Opens a page of the online shop in a new tab. */
+export async function openStorefront(path = "/") {
+  const { storefrontUrl } = await loadShopConfig();
+
+  window.open(`${storefrontUrl}${path}`, "_blank", "noopener,noreferrer");
+}

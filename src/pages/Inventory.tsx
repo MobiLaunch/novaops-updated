@@ -32,7 +32,7 @@ const blank = () => ({ name: "", sku: "", category: "Parts", description: "", pr
 export default function Inventory() {
   const { inventory, services, settings } = useAppStore();
   const cur = settings.currency || "$";
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(() => new URLSearchParams(window.location.search).get("q") || "");
   const [cat, setCat] = useState("all");
   const [type, setType] = useState("all");
   const [tab, setTab] = useState("stock");
@@ -247,7 +247,7 @@ export default function Inventory() {
           <div className="nv-panel" style={{ marginTop: 16 }}>
             <div className="nv-actions" style={{ justifyContent: "space-between" }}><h2 style={{ margin: 0 }}>Service pricing</h2><Button variant="secondary" onClick={() => setPricing(true)}>Adjust prices</Button></div>
             <p className="nv-muted" style={{ marginTop: -8 }}>Repair services, prices and time estimates.</p>
-            {svcList.length === 0 ? <EmptyState title="No services yet" description="Add an item and choose the Service type." /> : svcList.map((s) => (
+            {svcList.length === 0 ? <EmptyState title="No services yet" description="Services are the repairs and labor you charge for. The website quotes from this list." action={<Button onClick={() => { edit(); setForm((f: any) => ({ ...f, itemType: "service", category: "Services" })); }}>Add a service</Button>} /> : svcList.map((s) => (
               <div key={s.id} className="nv-row" style={{ cursor: "pointer" }} onClick={() => edit(s)}>
                 <Wrench size={16} />
                 <div className="nv-row-main"><strong>{s.name}</strong><span>{s.category || "Services"}</span></div>

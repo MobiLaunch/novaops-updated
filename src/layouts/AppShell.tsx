@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { BarChart3, BookOpen, CalendarDays, Command, Ellipsis, LayoutDashboard, Globe, LogOut, MessageSquare, Package, Plus, Receipt, Settings, Users, Wrench } from "lucide-react";
+import { BarChart3, BookOpen, CalendarDays, Command, ScanLine, Ellipsis, LayoutDashboard, Globe, LogOut, MessageSquare, Package, Plus, Receipt, Settings, Users, Wrench } from "lucide-react";
 
 import { Drawer, DrawerContent } from "@/components/arc/drawer/drawer";
 import { Avatar } from "@/components/arc/avatar/avatar";
@@ -19,6 +19,8 @@ import { useScreenLock } from "@/hooks/useScreenLock";
 import { useAppStore } from "@/lib/store";
 import { useUi } from "@/lib/ui";
 import { ShortcutsDialog } from "@/components/app/ShortcutsDialog";
+import { OfflineBanner } from "@/components/app/OfflineBanner";
+import { ScanDialog } from "@/components/app/ScanDialog";
 import { SideWidgets } from "@/components/app/SideWidgets";
 import { prefetchRoute } from "@/lib/prefetch";
 import { useShopCounts, type ShopCounts } from "@/lib/useShopCounts";
@@ -68,6 +70,32 @@ export function AppShell() {
   const [more, setMore] = useState(false);
   const upcoming = useUpcoming(6);
   const counts = useShopCounts();
+  const [scanOpen, setScanOpen] = useState(false);
+  const [scanCode, setScanCode] = useState("");
+
+  // A handheld scanner types the code very fast and ends with Enter. On any page except the register
+  // (which handles it itself), open the scan dialog with the result.
+  useEffect(() => {
+    let buf = "";
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement;
+
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName) || el.isContentEditable || window.location.pathname.startsWith("/pos")) return;
+      if (e.key === "Enter") {
+        if (buf.length > 3) { setScanCode(buf); setScanOpen(true); }
+        buf = "";
+      } else if (e.key.length === 1 && !e.metaKey && !e.ctrlKey) {
+        buf += e.key;
+        clearTimeout(timer);
+        timer = setTimeout(() => { buf = ""; }, 50);
+      }
+    };
+
+    window.addEventListener("keydown", onKey);
+
+    return () => { window.removeEventListener("keydown", onKey); clearTimeout(timer); };
+  }, []);
 
   useScreenLock(true);
 
@@ -114,6 +142,7 @@ export function AppShell() {
   const commands = useMemo(() => [
     ...NAV.map((n) => ({ id: `go:${n.to}`, label: n.label, group: "Go to", icon: <n.icon size={16} /> })),
     { id: "go:/settings", label: "Settings", group: "Go to", icon: <Settings size={16} />, shortcut: "⌘," },
+    { id: "act:scan", label: "Scan an item", group: "Create", icon: <ScanLine size={16} /> },
     { id: "new:ticket", label: "New ticket", group: "Create", shortcut: "⌘T" },
     { id: "new:housecall", label: "New house call", group: "Create", shortcut: "⌘H" },
     { id: "new:customer", label: "New customer", group: "Create", shortcut: "⌘U" },
@@ -124,7 +153,8 @@ export function AppShell() {
 
   const onCommand = (id: string) => {
     setPalette(false);
-    if (id.startsWith("go:")) navigate(id.slice(3));
+    if (id === "act:scan") { setScanCode(""); setScanOpen(true); }
+    else if (id.startsWith("go:")) navigate(id.slice(3));
     else if (id.startsWith("ticket:")) navigate(`/bookings?ticket=${id.slice(7)}`);
     else if (id.startsWith("customer:")) navigate(`/customers?highlight=${id.slice(9)}`);
     else if (id.startsWith("item:")) navigate("/inventory");
@@ -163,9 +193,11 @@ export function AppShell() {
       </aside>
 
       <div className="nv-main">
+        <OfflineBanner />
         <header className="nv-top">
           <span className="nv-mobile-only nv-brand"><span className="nv-brand-mark">N</span></span>
           <Button variant="secondary" size="sm" onClick={() => setPalette(true)}><Command size={14} /><span className="nv-hide-mobile">Search</span><span className="nv-muted nv-hide-mobile">⌘K</span></Button>
+          <Button variant="secondary" size="sm" aria-label="Scan an item" onClick={() => { setScanCode(""); setScanOpen(true); }}><ScanLine size={14} /><span className="nv-hide-mobile">Scan</span></Button>
           <div className="nv-top-spacer" />
           <DropdownMenu
             label="Create"
@@ -222,6 +254,8 @@ export function AppShell() {
           </div>
         </DrawerContent>
       </Drawer>
+
+      <ScanDialog initialCode={scanCode} open={scanOpen} onOpenChange={setScanOpen} />
 
       {palette && (
         <Dialog open onOpenChange={setPalette}>
