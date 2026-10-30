@@ -1,0 +1,134 @@
+{
+  "brand": {
+    "name": "Mobicare",
+    "subLabel": "Device Recovery",
+    "tagline": "Fix. Protect. Upgrade."
+  },
+  "hero": {
+    "badgeText": "Fairfield, Illinois · Est. 2019",
+    "headlineLine1": "Fix. Protect.",
+    "headlineAccent": "Upgrade.",
+    "description": "Southern Illinois' premier device repair shop. Cracked screen? Dead battery? Water damage? We fix it fast — and stock everything you need to keep your devices safe after.",
+    "primaryCta": "Shop Accessories",
+    "secondaryCta": "Call 618-204-1497"
+  },
+  "heroPoints": [
+    "90-day parts warranty",
+    "Same-day on most repairs",
+    "iPhone, Android and iPad"
+  ],
+  "trustItems": [
+    {
+      "icon": "bolt",
+      "label": "Same-Day Repairs",
+      "desc": "Most screen & battery jobs done same day"
+    },
+    {
+      "icon": "shield",
+      "label": "90-Day Warranty",
+      "desc": "Every part we replace is covered"
+    },
+    {
+      "icon": "schedule",
+      "label": "$35 Bench Fee",
+      "desc": "Flat diagnostic fee on any device"
+    },
+    {
+      "icon": "star",
+      "label": "4.9★ Rating",
+      "desc": "Hundreds of happy customers in Fairfield"
+    }
+  ],
+  "howItWorks": [
+    {
+      "title": "Tell us what's wrong",
+      "body": "Book online in about a minute, or walk in. The $35 bench fee covers a full diagnostic."
+    },
+    {
+      "title": "Fixed fast",
+      "body": "Most screens and batteries are done the same day, often in one to two hours."
+    },
+    {
+      "title": "Backed for 90 days",
+      "body": "Every part we install carries a 90-day warranty. We quote before we start."
+    }
+  ],
+  "repairBanner": {
+    "eyebrow": "Device Repair",
+    "headline": "Broken device?\nWe fix it fast.",
+    "description": "Cracked screens, dead batteries, water damage, charging ports, cameras — if it's broken, there's a good chance we can fix it same-day. $35 bench fee to diagnose any device.",
+    "primaryCta": "See Repair Services",
+    "secondaryCta": "Call First"
+  },
+  "ctaStrip": {
+    "headline": "Ready to get your device fixed?",
+    "subtext": "Walk-ins welcome. Most repairs done same day.",
+    "primaryCta": "Book Appointment",
+    "secondaryCta": "Browse Shop"
+  },
+  "business": {
+    "name": "Mobicare Device Recovery",
+    "phone": "618-204-1497",
+    "email": "Mobicarehello@gmail.com",
+    "address": "Fairfield, Illinois",
+    "city": "Fairfield, IL 62837",
+    "hours": [
+      {
+        "days": "Monday – Friday",
+        "hours": "9:00 AM – 6:00 PM"
+      },
+      {
+        "days": "Saturday",
+        "hours": "10:00 AM – 4:00 PM"
+      },
+      {
+        "days": "Sunday",
+        "hours": "Closed"
+      }
+    ]
+  },
+  "footer": {
+    "tagline": "Fast repairs. Fair prices. Local experts.",
+    "showHours": true,
+    "showSocial": true,
+    "copyrightName": "Mobicare Device Recovery",
+    "extraLinks": [
+      {
+        "label": "Privacy Policy",
+        "href": "/privacy"
+      },
+      {
+        "label": "Terms of Service",
+        "href": "/terms"
+      }
+    ]
+  },
+  "social": {
+    "facebook": "",
+    "instagram": "",
+    "twitter": "",
+    "tiktok": "",
+    "youtube": "",
+    "yelp": "",
+    "google": ""
+  },
+  "seo": {
+    "siteTitle": "Mobicare Device Recovery",
+    "titleSuffix": "| Mobicare",
+    "metaDescription": "Southern Illinois' premier device repair shop. Fast screen repairs, battery replacements, water damage recovery, and mobile accessories in Fairfield, IL.",
+    "keywords": "phone repair, screen repair, battery replacement, Fairfield Illinois, device recovery",
+    "ogImage": "",
+    "googleAnalyticsId": "",
+    "facebookPixelId": ""
+  },
+  "about": {
+    "eyebrow": "About Us",
+    "headline": "Mobicare Device Recovery",
+    "lead": "We're a locally-owned electronics repair shop in Fairfield, Illinois — serving Wayne County and surrounding areas with honest, fast, quality repairs.",
+    "story": [
+      "Mobicare started with a simple belief: your devices should be repaired by someone who actually cares about doing the job right. As a locally-owned shop, we're not chasing volume — we're building a reputation, one repair at a time.",
+      "We fix what the big-box stores won't touch, and we're honest about what can and can't be done. A $35 bench fee covers full diagnostics on every device, so you'll always know the cost before committing to a repair. No surprises, no hidden fees.",
+      "We're also expanding into accessories and certified pre-owned devices — making it easier for everyone in southern Illinois to get the gear they need at fair prices."
+    ]
+  }
+}
