@@ -11,6 +11,7 @@ import { Select } from "@/components/arc/select/select";
 import { ListSkeleton } from "@/components/app/ListSkeleton";
 import { toast } from "@/hooks/useToast";
 import { formatCurrency } from "@/lib/format";
+import { emails, notifyCustomer } from "@/lib/notify";
 import { loadShopConfig } from "@/lib/shopConfig";
 import { useAppStore } from "@/lib/store";
 import { getSupabase } from "@/lib/supabase";
@@ -69,6 +70,9 @@ export function WebOrders() {
     setOrders((all) => all.map((x) => (x.id === o.id ? { ...x, status } : x)));
     setOpen((cur) => (cur && cur.id === o.id ? { ...cur, status } : cur));
     toast.success("Order updated", `#${short(o.id)} is now ${status}`);
+    const mail = status === "shipped" ? emails.orderShipped : status === "delivered" ? emails.orderDelivered : status === "cancelled" ? emails.orderCancelled : null;
+
+    if (mail && o.customer_email) void notifyCustomer(o.customer_email, mail(o.customer_name, o.id).subject, mail(o.customer_name, o.id).body);
   };
 
   const refund = async (o: Order) => {

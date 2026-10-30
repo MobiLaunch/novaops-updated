@@ -7,6 +7,7 @@ import { Button } from "@/components/arc/button/button";
 import { EmptyState } from "@/components/arc/empty-state/empty-state";
 import { ListSkeleton } from "@/components/app/ListSkeleton";
 import { toast } from "@/hooks/useToast";
+import { emails, notifyCustomer } from "@/lib/notify";
 import { getSupabase } from "@/lib/supabase";
 
 interface Booking {
@@ -51,6 +52,10 @@ export function WebBookings() {
     await sb.from("house_calls").update({ status: status === "cancelled" ? "cancelled" : "scheduled" }).like("notes", `%${b.id}%`);
     setRows((all) => all.map((x) => (x.id === b.id ? { ...x, status } : x)));
     toast.success(status === "confirmed" ? "Booking confirmed" : status === "cancelled" ? "Booking declined" : "Booking updated", b.customer_name);
+    const when = `${new Date(`${b.appt_date}T12:00:00`).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })} at ${b.appt_time}`;
+    const mail = status === "confirmed" ? emails.bookingConfirmed : status === "cancelled" ? emails.bookingDeclined : null;
+
+    if (mail && b.customer_email) void notifyCustomer(b.customer_email, mail(b.customer_name, b.service, when).subject, mail(b.customer_name, b.service, when).body);
   };
 
   const shown = show === "open" ? rows.filter((r) => ["pending", "confirmed"].includes(r.status)) : rows;
