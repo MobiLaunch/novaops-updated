@@ -25,7 +25,7 @@ export function ShopSettings() {
     if (key && !key.startsWith("pk_")) return toast.warning("Check the Stripe key", 'Publishable keys start with "pk_".');
     setSaving(true);
     try {
-      await saveShopConfig({ ...cfg, stripePublishableKey: key, storefrontUrl: cfg.storefrontUrl.trim().replace(/\/$/, "") });
+      await saveShopConfig({ ...cfg, stripePublishableKey: key, reviewUrl: cfg.reviewUrl.trim(), storefrontUrl: cfg.storefrontUrl.trim().replace(/\/$/, "") });
       toast.success("Shop settings saved", "The website picks these up on its next page load.");
     } catch (e) {
       toast.danger("Couldn't save", (e as Error).message);
@@ -40,6 +40,9 @@ export function ShopSettings() {
 
       <h3 className="nv-h3">Storefront</h3>
       <Input description="Used for refunds and links back to the shop." disabled={loading} label="Website address" value={cfg.storefrontUrl} onChange={(e) => setCfg((c) => ({ ...c, storefrontUrl: e.target.value }))} />
+
+      <h3 className="nv-h3">Reviews</h3>
+      <Input description="Paste your Google review link. Tickets that are done get an Ask for a review button that emails it to the customer." disabled={loading} label="Review link" placeholder="https://g.page/r/..." value={cfg.reviewUrl} onChange={(e) => setCfg((c) => ({ ...c, reviewUrl: e.target.value }))} />
 
       <h3 className="nv-h3">Stripe</h3>
       <Input description="Starts with pk_live_ or pk_test_. Safe to store here; it is designed to be public." disabled={loading} label="Publishable key" value={cfg.stripePublishableKey} onChange={(e) => setCfg((c) => ({ ...c, stripePublishableKey: e.target.value }))} />

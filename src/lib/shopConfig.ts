@@ -4,6 +4,8 @@ import { getSupabase } from "@/lib/supabase";
 export interface ShopConfig {
   storefrontUrl: string;
   stripePublishableKey: string;
+  /** Where happy customers are sent to leave a review, for example a Google review link. */
+  reviewUrl: string;
   emailjs: { serviceId: string; bookingTemplate: string; orderTemplate: string; publicKey: string };
 }
 
@@ -13,6 +15,7 @@ export const DEFAULT_STOREFRONT = "https://www.shopmobicare.com";
 export const emptyShopConfig = (): ShopConfig => ({
   storefrontUrl: DEFAULT_STOREFRONT,
   stripePublishableKey: "",
+  reviewUrl: "",
   emailjs: { serviceId: "", bookingTemplate: "", orderTemplate: "", publicKey: "" },
 });
 

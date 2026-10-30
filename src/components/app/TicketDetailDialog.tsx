@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import confetti from "canvas-confetti";
-import { ExternalLink, Mail, Printer, Trash2, Wallet } from "lucide-react";
+import { ExternalLink, Mail, Printer, Star, Trash2, Wallet } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { Badge } from "@/components/arc/badge/badge";
@@ -19,6 +19,8 @@ import { toast } from "@/hooks/useToast";
 import { openMailto } from "@/lib/contact";
 import { formatCurrency, formatDate, statusTone } from "@/lib/format";
 import { printBarcodeLabel } from "@/lib/print";
+import { emails, notifyCustomer } from "@/lib/notify";
+import { loadShopConfig } from "@/lib/shopConfig";
 import { useAppStore } from "@/lib/store";
 import { getSupabase } from "@/lib/supabase";
 
@@ -147,6 +149,16 @@ export function TicketDetailDialog({ ticketId, onClose }: Props) {
             <div className="nv-actions">
               <Button size="sm" variant="secondary" onClick={() => { onClose(); navigate(`/pos?ticket=${ticket.id}`); }}><Wallet size={14} />Collect payment</Button>
               <Button size="sm" variant="secondary" disabled={!customer?.email} onClick={() => { onClose(); openMailto(customer!.email, `Ticket #${ticket.id} — ${ticket.device || "Repair"}`, `Hello,\n\nRegarding service for ticket #${ticket.id}:\n\n`); }}><Mail size={14} />Email</Button>
+              {["Completed", "Delivered", "Closed"].includes(ticket.status) && customer?.email && (
+                <Button size="sm" variant="secondary" onClick={async () => {
+                  const { reviewUrl } = await loadShopConfig();
+
+                  if (!reviewUrl) return toast.warning("Add your review link first", "Website, then Shop settings, then Review link.");
+                  const mail = emails.reviewRequest(customer.name, ticket.device, reviewUrl);
+
+                  await notifyCustomer(customer.email, mail.subject, mail.body);
+                }}><Star size={14} />Ask for a review</Button>
+              )}
               <Button size="sm" variant="secondary" onClick={() => void printBarcodeLabel({ sku: `TKT-${ticket.id}`, name: `Ticket #${ticket.id} - ${ticket.device}`, price: labor + partsTotal, customerName: customer?.name || "Unknown", format: "CODE128" })}><Printer size={14} />Label</Button>
             </div>
 
