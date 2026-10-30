@@ -19,6 +19,7 @@ import { useScreenLock } from "@/hooks/useScreenLock";
 import { useAppStore } from "@/lib/store";
 import { useUi } from "@/lib/ui";
 import { ShortcutsDialog } from "@/components/app/ShortcutsDialog";
+import { SideWidgets } from "@/components/app/SideWidgets";
 import { isElectron } from "@/lib/supabase";
 
 const NAV = [
@@ -128,6 +129,7 @@ export function AppShell() {
             <NavLink key={n.to} to={n.to} className="nv-link"><n.icon size={17} />{n.label}</NavLink>
           ))}
         </nav>
+        <SideWidgets />
         <div className="nv-side-foot">
           <NavLink to="/settings" className="nv-link"><Settings size={17} />Settings</NavLink>
         </div>
