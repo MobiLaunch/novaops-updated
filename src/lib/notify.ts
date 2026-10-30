@@ -34,7 +34,16 @@ export async function notifyCustomer(to: string, subject: string, body: string):
   else toast.warning("Couldn't email the customer", "The status was saved, but the email didn't send.");
 }
 
+const READY_KEY = "novaops_email_ready";
+
+/** Whether finishing a ticket automatically emails the customer that their device is ready (on by default). */
+export const readyEmailEnabled = (): boolean => { try { return localStorage.getItem(READY_KEY) !== "off"; } catch { return true; } };
+export const setReadyEmailEnabled = (on: boolean) => { try { localStorage.setItem(READY_KEY, on ? "on" : "off"); } catch { /* ignore */ } };
+
 export const emails = {
+  ticketReady: (name: string, device: string, ref: number) => ({ subject: `Your ${device || "device"} is ready for pickup`, body: `Hi ${name || "there"},
+
+Good news: your ${device || "device"} (ticket #${ref}) is finished and ready for pickup. Bring this email or the ticket number when you come in.${sign()}` }),
   orderShipped: (name: string, id: string) => ({ subject: `Your order #${short(id)} has shipped`, body: `Hi ${name || "there"},\n\nGood news: your order #${short(id)} has shipped and is on its way.${sign()}` }),
   orderDelivered: (name: string, id: string) => ({ subject: `Your order #${short(id)} was delivered`, body: `Hi ${name || "there"},\n\nYour order #${short(id)} shows as delivered. If anything isn't right, just reply to this email.${sign()}` }),
   orderCancelled: (name: string, id: string) => ({ subject: `Your order #${short(id)} was cancelled`, body: `Hi ${name || "there"},\n\nYour order #${short(id)} has been cancelled. If you paid, we'll make sure you're refunded. Reply to this email with any questions.${sign()}` }),
