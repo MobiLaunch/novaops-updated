@@ -48,7 +48,7 @@ export default function Inventory() {
   const [onSite, setOnSite] = useState<Map<number, boolean>>(new Map());
   const [webCats, setWebCats] = useState<{ id: string; name: string }[]>([]);
   const [web, setWeb] = useState({ on: false, category: "", description: "", image: "", featured: false, compare: "" });
-  const userId = useAppStore((s) => s.user?.id);
+  const userId = useAppStore((s) => s.ownerId || s.user?.id);
 
   useEffect(() => {
     const sb = getSupabase();

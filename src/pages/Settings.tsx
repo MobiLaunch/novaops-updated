@@ -18,6 +18,7 @@ import { DeviceCatalogManager } from "@/components/app/DeviceCatalogManager";
 import { DocumentsSettings } from "@/components/app/DocumentsSettings";
 import { DriverSetupDialog } from "@/components/app/DriverSetupDialog";
 import { PageHead } from "@/components/app/PageHead";
+import { StaffManager } from "@/components/app/StaffManager";
 import { AVATAR_KEY } from "@/lib/documents";
 import { fileToDataUrl } from "@/lib/tickets";
 import { useSupabaseConnect } from "@/hooks/useSupabaseConnect";
@@ -213,6 +214,7 @@ export default function SettingsPage() {
             <TabsTrigger value="printing">Printing</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="account">Account</TabsTrigger>
             <TabsTrigger value="system">System</TabsTrigger>
           </TabsList>
@@ -327,6 +329,8 @@ export default function SettingsPage() {
             <div><Button variant="danger" onClick={() => setSignOut(true)}><LogOut size={14} />Sign out</Button></div>
           </div>
         </TabsContent>
+
+        <TabsContent value="team"><StaffManager /></TabsContent>
 
         <TabsContent value="system">
           <div className="nv-stack" style={{ marginTop: 16, maxWidth: 680, gap: 16 }}>

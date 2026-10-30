@@ -8,6 +8,11 @@ export async function ensureProfile(user: User, businessName = ""): Promise<bool
 
   if (!sb) return false;
 
+  // Staff sign-ins must never get a profile row: it would grant owner-level access.
+  const { data: staff } = await sb.from("staff_members").select("user_id").eq("user_id", user.id).maybeSingle();
+
+  if (staff) return false;
+
   const { error } = await sb.from("profiles").select("id").eq("id", user.id).single();
 
   if (error?.code !== "PGRST116") return false;

@@ -47,6 +47,8 @@ const GROUPS: { label: string; items: NavItem[] }[] = [
     { to: "/tools", label: "Tools", icon: Wrench },
   ] },
 ];
+/** Staff sign-ins don't get revenue, web orders or settings. */
+const STAFF_BLOCKED = ["/analytics", "/website", "/settings"];
 const NAV: NavItem[] = GROUPS.flatMap((g) => g.items);
 const byTo = (to: string) => NAV.find((n) => n.to === to)!;
 
@@ -62,6 +64,7 @@ export function AppShell() {
   const { pathname } = useLocation();
   const businessName = useAppStore((s) => s.settings.businessName);
   const email = useAppStore((s) => s.user?.email as string | undefined);
+  const isStaff = useAppStore((s) => s.role === "staff");
   const [theme, setTheme] = useState<Theme>(readTheme);
   const dialog = useUi((u) => u.quickAction);
   const setDialog = useUi((u) => u.openQuickAction);
@@ -75,6 +78,10 @@ export function AppShell() {
 
   // A handheld scanner types the code very fast and ends with Enter. On any page except the register
   // (which handles it itself), open the scan dialog with the result.
+  useEffect(() => {
+    if (isStaff && STAFF_BLOCKED.some((p) => pathname.startsWith(p))) navigate("/dashboard", { replace: true });
+  }, [isStaff, pathname, navigate]);
+
   useEffect(() => {
     let buf = "";
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -169,7 +176,7 @@ export function AppShell() {
       <aside className="nv-side">
         <div className="nv-brand"><span className="nv-brand-mark">N</span>{name}</div>
         <nav className="nv-nav" aria-label="Main">
-          {GROUPS.map((g) => (
+          {GROUPS.map((g) => ({ ...g, items: g.items.filter((n) => !isStaff || !STAFF_BLOCKED.includes(n.to)) })).filter((g) => g.items.length).map((g) => (
             <div key={g.label} className="nv-nav-group" data-group={g.label.toLowerCase()} role="group" aria-label={g.label}>
               <span className="nv-nav-label">{g.label}</span>
               {g.items.map((n) => {
@@ -186,9 +193,9 @@ export function AppShell() {
             </div>
           ))}
         </nav>
-        <SideWidgets counts={counts} />
+        {!isStaff && <SideWidgets counts={counts} />}
         <div className="nv-side-foot">
-          <NavLink to="/settings" className="nv-link"><Settings size={17} />Settings</NavLink>
+          {!isStaff && <NavLink to="/settings" className="nv-link"><Settings size={17} />Settings</NavLink>}
         </div>
       </aside>
 

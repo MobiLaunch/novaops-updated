@@ -26,6 +26,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const open = useUi((u) => u.openQuickAction);
   const { tickets, customers, inventory, appointments, settings } = useAppStore();
+  const isStaff = useAppStore((s) => s.role === "staff");
   const weather = useWeather();
   const cur = settings.currency || "$";
 
@@ -103,7 +104,7 @@ export default function Dashboard() {
         {d.waiting.slice(0, 2).map((t) => <Alert key={`p${t.id}`} tone="danger" title={`#${t.id} · ${t.device}`}>Waiting for parts</Alert>)}
 
         <div className="nv-grid cols-4">
-          <StatCard label="Revenue" value={formatCurrency(d.revenue, cur)} context={`${d.jobs} completed ${d.jobs === 1 ? "job" : "jobs"}`} />
+          {!isStaff && <StatCard label="Revenue" value={formatCurrency(d.revenue, cur)} context={`${d.jobs} completed ${d.jobs === 1 ? "job" : "jobs"}`} />}
           <MetricCard label="Active tickets" value={d.active} context={`${d.doneToday} finished today`} />
           <MetricCard label="Customers" value={customers.length} context="In your list" />
           <MetricCard label="Low stock" value={d.lowStock} context={`${d.upcoming} upcoming ${d.upcoming === 1 ? "appointment" : "appointments"}`} />
@@ -127,7 +128,7 @@ export default function Dashboard() {
           <div className="nv-table-wrap">
             <SortableDataTable rows={rows} columns={columns} rowKey="id" caption="Recent tickets" emptyMessage="No tickets yet. Create your first one." />
           </div>
-          <p className="nv-muted" style={{ margin: "12px 0 0", fontSize: 13 }}>Today: {formatCurrency(d.todayRevenue, cur)} collected · {d.doneToday} completed</p>
+          <p className="nv-muted" style={{ margin: "12px 0 0", fontSize: 13 }}>{isStaff ? "" : `Today: ${formatCurrency(d.todayRevenue, cur)} collected · `}{d.doneToday} completed</p>
         </div>
       </div>
     </>

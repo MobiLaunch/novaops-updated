@@ -148,7 +148,7 @@ export function TradeInWizard({ open, onOpenChange, onSaved }: Props) {
     setSaving(true);
     try {
       const { error } = await sb.from("trade_ins").insert({
-        profile_id: user.id, customer_id: f.customerId, brand: f.brand, model: f.model, model_number: f.modelNumber, imei: f.imei,
+        profile_id: useAppStore.getState().ownerId || user.id, customer_id: f.customerId, brand: f.brand, model: f.model, model_number: f.modelNumber, imei: f.imei,
         storage: f.storage, color: f.color, condition_grade: f.grade, age_years: f.age, screen_condition: f.screen, battery_health: f.battery,
         functional_issues: f.functional, cosmetic_issues: f.cosmetic, accessories: f.accessories, icloud_locked: f.icloudLocked, frp_locked: f.frpLocked,
         market_price: market || null, repair_cost_est: f.repairCost || 0, offer_price: f.offer || calc.offer,
