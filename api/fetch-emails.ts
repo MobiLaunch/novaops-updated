@@ -1,4 +1,4 @@
-import { wrap, createError, getQuery, runtimeConfig } from "./_lib/nitro.js";
+import { wrap, createError, getQuery, requireUser, runtimeConfig } from "./_lib/nitro.js";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
@@ -12,8 +12,10 @@ import { wrap, createError, getQuery, runtimeConfig } from "./_lib/nitro.js";
  *   maxResults — how many messages to fetch per folder (default: 50)
  */
 export default wrap(async (event: any) => {
+  const user = await requireUser(event)
   const query = getQuery(event)
-  const { profileId, maxResults = '50' } = query as Record<string, string>
+  const { maxResults = '50' } = query as Record<string, string>
+  const profileId = user.id
 
   if (!profileId) {
     throw createError({ statusCode: 400, statusMessage: 'Missing profileId' })

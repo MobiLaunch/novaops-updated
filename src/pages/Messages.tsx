@@ -10,6 +10,7 @@ import { Textarea } from "@/components/arc/textarea/textarea";
 import { PageHead } from "@/components/app/PageHead";
 import { openMailto } from "@/lib/contact";
 import { toast } from "@/hooks/useToast";
+import { authedFetch } from "@/lib/api";
 import { getSupabase } from "@/lib/supabase";
 import { useAppStore } from "@/lib/store";
 
@@ -109,7 +110,7 @@ export default function Messages() {
     // Also email the reply, so customers who aren't looking at the chat still hear back.
     if (thread.email) {
       try {
-        const res = await fetch("/api/send-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ to: thread.email, subject: "Reply from the shop", body: text, profileId: userId }) });
+        const res = await authedFetch("/api/send-email", { method: "POST", body: JSON.stringify({ to: thread.email, subject: "Reply from the shop", body: text }) });
         const out = await res.json().catch(() => ({}));
 
         if (res.ok && out?.delivered) toast.success("Reply sent", `Also emailed to ${thread.email}`);

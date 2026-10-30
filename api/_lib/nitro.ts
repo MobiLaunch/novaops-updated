@@ -70,3 +70,25 @@ export const wrap = (handler: Handler) => async (req: VercelRequest, res: Vercel
     res.status(statusCode).json({ statusCode, statusMessage, message: statusMessage });
   }
 };
+
+/**
+ * Requires a signed-in NovaOps user. Verifies the bearer token with Supabase Auth and returns the user.
+ * Fails closed: if the server has no Supabase URL and public key, nothing is allowed through.
+ */
+export async function requireUser(event: Event): Promise<{ id: string; email?: string }> {
+  const header = getHeader(event, "authorization") || "";
+  const token = header.startsWith("Bearer ") ? header.slice(7) : "";
+  const url = (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "").replace(/\/$/, "");
+  const anon = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || "";
+
+  if (!token) throw createError({ statusCode: 401, statusMessage: "Sign in to use this." });
+  if (!url || !anon) throw createError({ statusCode: 503, statusMessage: "The server is missing its Supabase settings (VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY)." });
+  const res = await fetch(`${url}/auth/v1/user`, { headers: { apikey: anon, Authorization: `Bearer ${token}` } });
+
+  if (!res.ok) throw createError({ statusCode: 401, statusMessage: "Your session has expired. Sign in again." });
+  const user = await res.json().catch(() => null) as { id?: string; email?: string } | null;
+
+  if (!user?.id) throw createError({ statusCode: 401, statusMessage: "Your session has expired. Sign in again." });
+
+  return { id: user.id, email: user.email };
+}

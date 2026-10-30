@@ -1,4 +1,4 @@
-import { wrap, createError, readBody, runtimeConfig } from "./_lib/nitro.js";
+import { wrap, createError, readBody, requireUser, runtimeConfig } from "./_lib/nitro.js";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
@@ -14,8 +14,11 @@ import { wrap, createError, readBody, runtimeConfig } from "./_lib/nitro.js";
  * Env:  SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM
  */
 export default wrap(async (event: any) => {
+    // Only a signed-in shop user may send mail. Otherwise this would be an open relay for the shop's mailbox.
+    const user = await requireUser(event)
     const body = await readBody(event)
-    const { to, subject, body: emailBody, from, profileId } = body || {}
+    const { to, subject, body: emailBody, from } = body || {}
+    const profileId = user.id
 
     if (!to || !emailBody) {
         throw createError({ statusCode: 400, statusMessage: 'Missing required fields: to, body' })
