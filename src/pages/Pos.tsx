@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Banknote, CreditCard, Hash, Minus, Plus, Printer, ShoppingBag, Trash2, Wallet } from "lucide-react";
+import { Banknote, CreditCard, Gift, Hash, Minus, Plus, Printer, ShoppingBag, Trash2, Wallet } from "lucide-react";
 
 import { Alert } from "@/components/arc/alert/alert";
 import { Button } from "@/components/arc/button/button";
@@ -17,6 +17,8 @@ import { formatCurrency } from "@/lib/format";
 import { printReceipt, type ReceiptData } from "@/lib/print";
 import { useAppStore } from "@/lib/store";
 import { attachStock } from "@/lib/offlineQueue";
+import { issueGiftCard, lookupGiftCard, redeemGiftCard, type GiftCard } from "@/lib/giftCards";
+import { Input } from "@/components/arc/input/input";
 import { getSupabase } from "@/lib/supabase";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -27,7 +29,7 @@ const METHODS = [
   { value: "Other", label: "Other", icon: Hash },
 ];
 
-interface CartLine { id: string | number | null; name: string; price: number; quantity: number; sku?: string; isService?: boolean; isTicket?: boolean; ticketId?: number }
+interface CartLine { id: string | number | null; name: string; price: number; quantity: number; sku?: string; isService?: boolean; isTicket?: boolean; ticketId?: number; giftCard?: boolean }
 
 export default function Pos() {
   const navigate = useNavigate();
@@ -44,7 +46,11 @@ export default function Pos() {
   const [processing, setProcessing] = useState(false);
   const [status, setStatus] = useState("");
   const [keypad, setKeypad] = useState<string | null>(null);
-  const [result, setResult] = useState<{ id: number; amount: number; method: string; customer?: string } | null>(null);
+  const [result, setResult] = useState<{ id: number; amount: number; method: string; customer?: string; giftCodes?: string[] } | null>(null);
+  const [gift, setGift] = useState<GiftCard | null>(null);
+  const [giftCode, setGiftCode] = useState("");
+  const [giftBusy, setGiftBusy] = useState(false);
+  const [sellGift, setSellGift] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<ReceiptData | null>(null);
   const [ticketMode, setTicketMode] = useState<number | null>(null);
   const [cardReady, setCardReady] = useState(false);
@@ -73,8 +79,11 @@ export default function Pos() {
 
   const taxRate = Number(settings.taxRate) || 0;
   const subtotal = cart.reduce((a, i) => a + i.price * i.quantity, 0);
-  const tax = subtotal * (taxRate / 100);
+  const tax = cart.reduce((a, i) => a + (i.giftCard ? 0 : i.price * i.quantity), 0) * (taxRate / 100);
   const total = subtotal + tax;
+  const giftApplied = gift ? Math.min(gift.balance, total) : 0;
+  const due = Math.max(0, Math.round((total - giftApplied) * 100) / 100);
+  const giftCovers = giftApplied > 0 && due < 0.005;
 
   const add = useCallback((item: any) => {
     const isService = (item.itemType || "product") === "service";
@@ -194,13 +203,13 @@ export default function Pos() {
 
       return () => { alive = false; clearTimeout(t); void sq.destroyCard(); };
     }
-    if (method === "Afterpay" && sdkReady && total > 0) {
-      const t = setTimeout(() => void sq.attachAfterpay("#afterpay-button", total).catch(() => undefined), 120);
+    if (method === "Afterpay" && sdkReady && due > 0) {
+      const t = setTimeout(() => void sq.attachAfterpay("#afterpay-button", due).catch(() => undefined), 120);
 
       return () => { clearTimeout(t); void sq.destroyAfterpay(); };
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [method, sdkReady, method === "Afterpay" ? total : 0]);
+  }, [method, sdkReady, method === "Afterpay" ? due : 0]);
 
   useEffect(() => () => { void sq.destroyAll(); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -208,9 +217,11 @@ export default function Pos() {
   // ── Sale ──
   const cartRef = useRef(cart);
   const totals = useRef({ subtotal, tax, total });
+  const giftRef = useRef({ gift, giftApplied });
 
   cartRef.current = cart;
   totals.current = { subtotal, tax, total };
+  giftRef.current = { gift, giftApplied };
 
   const finishSale = async (finalMethod: string) => {
     const st = useAppStore.getState();
@@ -218,10 +229,21 @@ export default function Pos() {
     const t = totals.current;
     const customer = customerId ? st.customers.find((c) => c.id === customerId)?.name : undefined;
     const note = lines.map((i) => `${i.quantity}× ${i.name}`).join(", ");
-    const sale = await st.createPosSale({ customerId, items: lines.map((i) => ({ name: i.name, price: i.price, quantity: i.quantity, sku: i.sku || undefined })), subtotal: t.subtotal, tax: t.tax, total: t.total, paymentMethod: finalMethod, note });
+    const { gift: g, giftApplied: applied } = giftRef.current;
+    const stored = applied > 0 && g ? applied : 0;
+    const payLabel = stored > 0 ? (stored >= t.total - 0.005 ? "Gift card" : `${finalMethod} + Gift card`) : finalMethod;
+    const giftLines = lines.filter((i) => i.giftCard);
+
+    if (stored > 0 && g) await redeemGiftCard(g.code, stored, "pos");
+    const sale = await st.createPosSale({ customerId, items: lines.map((i) => ({ name: i.name, price: i.price, quantity: i.quantity, sku: i.sku || undefined })), subtotal: t.subtotal, tax: t.tax, total: t.total, paymentMethod: payLabel, note: stored > 0 && g ? `${note} · Gift card ${g.code} −${stored.toFixed(2)}` : note });
+    const giftCodes: string[] = [];
+
+    for (const l of giftLines) {
+      try { giftCodes.push((await issueGiftCard(l.price, customerId, `S-${sale.id}`)).code); } catch (e) { toast.danger("Gift card not issued", (e as Error).message); }
+    }
 
     // Deduct stock for physical products. Offline, the deductions wait with the sale and apply on reconnect.
-    const physical = lines.filter((i) => typeof i.id === "number" && !i.isService && !i.isTicket);
+    const physical = lines.filter((i) => typeof i.id === "number" && !i.isService && !i.isTicket && !i.giftCard);
 
     if ((sale as any).offline) attachStock(String(sale.id), physical.map((i) => ({ id: i.id as number, qty: i.quantity })));
     else await Promise.all(physical.map((i) => {
@@ -233,21 +255,23 @@ export default function Pos() {
     if (ticketMode) {
       const src: any = st.tickets.find((x) => x.id === ticketMode);
 
-      if (src) await st.updateTicket(ticketMode, { payments: [...(src.payments || []), { amount: t.total, method: finalMethod, note: `Collected via POS · Sale #${sale.id}`, date: new Date().toISOString() }], status: "Completed" });
+      if (src) await st.updateTicket(ticketMode, { payments: [...(src.payments || []), { amount: t.total, method: payLabel, note: `Collected via POS · Sale #${sale.id}`, date: new Date().toISOString() }], status: "Completed" });
       setTicketMode(null);
     }
 
     const data: ReceiptData = {
       businessName: st.settings.businessName || "NovaOps", businessAddress: st.settings.address || "", businessPhone: st.settings.phone || "",
-      date: new Date().toLocaleString(), items: lines.map((i) => ({ name: i.name, qty: i.quantity, price: i.price })),
+      date: new Date().toLocaleString(), items: [...lines.map((i) => ({ name: i.name, qty: i.quantity, price: i.price })), ...(stored > 0 ? [{ name: "Gift card applied", qty: 1, price: -stored }] : [])],
       subtotal: t.subtotal, tax: t.tax, total: t.total, currency: st.settings.currency || "$", customerName: customer, ticketRef: `S-${sale.id}`,
     };
 
     setReceipt(data);
     try { if (JSON.parse(localStorage.getItem("novaops_printer_settings") || "{}").autoPrintReceipt) void printReceipt(data); } catch { /* ignore */ }
-    addNotification("New sale", `${formatCurrency(t.total, data.currency)} via ${finalMethod}`, "success", "newSale");
-    setResult({ id: sale.id, amount: t.total, method: finalMethod, customer });
+    addNotification("New sale", `${formatCurrency(t.total, data.currency)} via ${payLabel}`, "success", "newSale");
+    setResult({ id: sale.id, amount: t.total, method: payLabel, customer, giftCodes });
     clear();
+    setGift(null);
+    setGiftCode("");
     setStatus("");
     setMobile("products");
   };
@@ -260,7 +284,7 @@ export default function Pos() {
 
     if (squareConfigured) { headers["x-square-access-token"] = settings.squareAccessToken; headers["x-square-location-id"] = settings.squareLocationId; }
 
-    const res = await fetch("/api/square/payment", { method: "POST", headers, body: JSON.stringify({ sourceId, amountCents: Math.round(total * 100), referenceId: `novaops-${via.toLowerCase()}-${Date.now()}`, note: cart.map((i) => `${i.quantity}× ${i.name}`).join(", ") }) });
+    const res = await fetch("/api/square/payment", { method: "POST", headers, body: JSON.stringify({ sourceId, amountCents: Math.round(due * 100), referenceId: `novaops-${via.toLowerCase()}-${Date.now()}`, note: cart.map((i) => `${i.quantity}× ${i.name}`).join(", ") }) });
 
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || `${via} charge failed`);
     await finishSale(via);
@@ -270,7 +294,9 @@ export default function Pos() {
     if (!cart.length || processing) return;
     setProcessing(true);
     try {
-      if (method === "Card") {
+      if (giftCovers) {
+        await finishSale("Gift card");
+      } else if (method === "Card") {
         if (!sq.hasCard()) return void toast.warning("Card form", "The card form isn't ready yet.");
         setStatus("Processing card…");
         await remoteCharge(await sq.tokenizeCard(), "Card");
@@ -289,6 +315,19 @@ export default function Pos() {
     }
   };
 
+  const applyGift = async () => {
+    if (!giftCode.trim()) return;
+    setGiftBusy(true);
+    try { setGift(await lookupGiftCard(giftCode)); setGiftCode(""); } catch (e) { toast.danger("Gift card", (e as Error).message); } finally { setGiftBusy(false); }
+  };
+  const addGiftCard = () => {
+    const amt = parseFloat(sellGift || "0");
+
+    if (amt > 0) setCart((c) => [...c, { id: `gift-${Date.now()}`, name: `Gift card ${m(amt)}`, price: amt, quantity: 1, isService: true, giftCard: true }]);
+    setSellGift(null);
+    setMobile("cart");
+  };
+
   const keypadAdd = () => {
     const amt = parseFloat(keypad || "0") / 100;
 
@@ -305,13 +344,14 @@ export default function Pos() {
     return cur2 === "0" ? k : cur2 + k;
   });
 
-  const cta = ({ Cash: `Collect ${m(total)} cash`, Card: `Charge ${m(total)} to card`, Afterpay: `Pay ${m(total)} with Afterpay`, Other: `Complete sale for ${m(total)}` } as Record<string, string>)[method];
+  const cta = giftCovers ? `Pay ${m(total)} with gift card` : ({ Cash: `Collect ${m(due)} cash`, Card: `Charge ${m(due)} to card`, Afterpay: `Pay ${m(due)} with Afterpay`, Other: `Complete sale for ${m(due)}` } as Record<string, string>)[method];
 
   return (
     <>
       <PageHead title="Point of sale" subtitle={sandbox ? "Square sandbox mode" : "Ring up products, services and tickets"}>
         <div className="nv-mobile-only"><SegmentedControl label="Panel" value={mobile} onValueChange={(v: string) => setMobile(v as "products" | "cart")} options={[{ value: "products", label: "Products" }, { value: "cart", label: `Cart (${cart.length})` }]} /></div>
         <Button variant="secondary" onClick={() => setKeypad("0")}>Custom amount</Button>
+        <Button variant="secondary" onClick={() => setSellGift("25")}><Gift size={14} />Gift card</Button>
       </PageHead>
 
       <div className="nv-pos">
@@ -356,18 +396,31 @@ export default function Pos() {
               <div className="nv-total"><span className="nv-muted">Subtotal</span><span>{m(subtotal)}</span></div>
               <div className="nv-total"><span className="nv-muted">Tax ({taxRate}%)</span><span>{m(tax)}</span></div>
               <div className="nv-total strong"><span>Total</span><span>{m(total)}</span></div>
+              {giftApplied > 0 && <>
+                <div className="nv-total"><span className="nv-muted">Gift card {gift?.code}</span><span>−{m(giftApplied)}</span></div>
+                <div className="nv-total strong"><span>Due now</span><span>{m(due)}</span></div>
+              </>}
             </div>
+          )}
+
+          {gift ? (
+            <div className="nv-row"><div className="nv-row-main"><strong><Gift size={14} /> {gift.code}</strong><span>{m(gift.balance)} available</span></div><Button size="sm" variant="ghost" onClick={() => setGift(null)}>Remove</Button></div>
+          ) : (
+            <form className="nv-actions" onSubmit={(e) => { e.preventDefault(); void applyGift(); }}>
+              <Input label="Gift card code" value={giftCode} onChange={(e) => setGiftCode(e.target.value)} placeholder="GC-XXXX-XXXX" />
+              <Button type="submit" variant="secondary" loading={giftBusy} disabled={!giftCode.trim()}>Apply</Button>
+            </form>
           )}
 
           <SegmentedControl label="Payment method" value={method} onValueChange={(v: string) => setMethod(v)} options={METHODS.map((x) => ({ value: x.value, label: x.label }))} />
 
-          {method === "Card" && (sdkReady ? (
+          {!giftCovers && method === "Card" && (sdkReady ? (
             <div><div id="card-container" style={{ minHeight: 90 }} />{!cardReady && <span className="nv-muted">Loading secure card form…</span>}</div>
           ) : <Alert tone="warning" title={squareConfigured ? "Add your Square Application ID in Settings" : "Connect Square in Settings to take cards"} />)}
-          {method === "Afterpay" && (sdkReady ? <div id="afterpay-button" /> : <Alert tone="warning" title="Connect Square in Settings to use Afterpay" />)}
+          {!giftCovers && method === "Afterpay" && (sdkReady ? <div id="afterpay-button" /> : <Alert tone="warning" title="Connect Square in Settings to use Afterpay" />)}
           {status && <p className="nv-muted" role="status" style={{ margin: 0 }}>{status}</p>}
 
-          <Button size="lg" onClick={checkout} loading={processing} disabled={!cart.length || total <= 0 || (method === "Card" && !cardReady) || (method === "Afterpay" && !sdkReady)}>{cta}</Button>
+          <Button size="lg" onClick={checkout} loading={processing} disabled={!cart.length || total <= 0 || (!giftCovers && ((method === "Card" && !cardReady) || (method === "Afterpay" && !sdkReady)))}>{cta}</Button>
         </aside>
       </div>
 
@@ -383,12 +436,23 @@ export default function Pos() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={sellGift !== null} onOpenChange={(o) => !o && setSellGift(null)}>
+        <DialogContent title="Sell a gift card" description="Pick an amount. The code is created when the sale completes.">
+          <div className="nv-stack">
+            <div className="nv-actions">{[25, 50, 100].map((a) => <Button key={a} variant="secondary" onClick={() => setSellGift(String(a))}>{m(a)}</Button>)}</div>
+            <Input label="Amount" type="number" min="1" step="1" value={sellGift || ""} onChange={(e) => setSellGift(e.target.value)} />
+            <Button size="lg" onClick={addGiftCard} disabled={!(parseFloat(sellGift || "0") > 0)}>Add to cart</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!result} onOpenChange={(o) => !o && setResult(null)}>
         <DialogContent title="Sale complete" description={`Receipt S-${result?.id}`}>
           {result && (
             <div className="nv-stack">
               <div style={{ fontSize: 28, fontWeight: 500 }}>{m(result.amount)}</div>
               <span className="nv-muted">Paid by {result.method}{result.customer ? ` · ${result.customer}` : ""}</span>
+              {result.giftCodes && result.giftCodes.length > 0 && <Alert tone="success" title={`Gift card${result.giftCodes.length > 1 ? "s" : ""} issued: ${result.giftCodes.join(", ")}`}>Give the customer this code — it works as store credit at the register.</Alert>}
               <div className="nv-actions">
                 <Button variant="secondary" onClick={() => receipt && void printReceipt(receipt)}><Printer size={14} />Print receipt</Button>
                 <Button onClick={() => setResult(null)}>New sale</Button>
