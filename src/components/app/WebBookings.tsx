@@ -64,7 +64,7 @@ export function WebBookings() {
 
   return (
     <div style={{ display: "grid", gap: 16, gridTemplateColumns: "minmax(0, 1fr)" }}>
-      <div className="nv-actions" style={{ justifyContent: "space-between" }}>
+      <div className="nv-actions nv-toolbar" style={{ justifyContent: "space-between" }}>
         <span className="nv-actions" style={{ gap: 8 }}>
           <Button size="sm" variant={show === "open" ? "primary" : "secondary"} onClick={() => setShow("open")}>Upcoming{pending ? ` (${pending} to confirm)` : ""}</Button>
           <Button size="sm" variant={show === "all" ? "primary" : "secondary"} onClick={() => setShow("all")}>All</Button>

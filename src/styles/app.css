@@ -61,6 +61,31 @@ a { color: inherit; text-decoration: none; }
   .nv-row[role="button"], .nv-row[style*="cursor"] { min-height: 52px; }
   .nv-tabbar a, .nv-tab-more { min-height: 52px; justify-content: center; }
   .nv-actions { gap: 10px; }
+
+  /* Page header actions: an even two-column grid of equal buttons instead of a ragged wrap. */
+  .nv-page-head { margin-bottom: var(--space-4, 16px); gap: 12px; }
+  .nv-page-head > div:first-child { flex: 1 1 100%; }
+  .nv-page-head .nv-actions { flex: 1 1 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .nv-page-head .nv-actions > * { width: 100%; justify-content: center; min-width: 0; }
+  .nv-page-head .nv-actions > :only-child, .nv-page-head .nv-actions > .nv-mobile-only { grid-column: 1 / -1; }
+  .nv-page-head .nv-actions > .nv-mobile-only > * { width: 100%; }
+
+  /* Stat cards: two across and compact, so a screen isn't four full-height blocks. */
+  .nv-grid:has(> article), .nv-grid:has(> .nv-stat) { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px; }
+  .nv-grid:has(> article) > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .nv-grid > .nv-stat { min-height: 0; padding: 14px; gap: 8px; border-radius: var(--radius-panel, 20px); justify-content: flex-start; }
+  .nv-grid > .nv-stat .nv-stat-value { font-size: 24px; line-height: 1.15; white-space: nowrap; }
+  .nv-grid > .nv-stat .nv-stat-context { font-size: 12px; }
+  .nv-grid.nv-quick { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px; }
+  .nv-grid.nv-quick > button { width: 100%; padding-inline: 8px; }
+  .nv-grid > article { padding: 14px; }
+  .nv-grid > article > :first-child { margin-bottom: 8px; }
+  .nv-grid > article > :nth-child(2), .nv-grid > article > :nth-child(2) * { font-size: 24px !important; line-height: 1.15 !important; white-space: nowrap; }
+  .nv-span-mobile { grid-column: 1 / -1; }
+  .nv-page-head .nv-actions > :not(button) { grid-column: 1 / -1; }
+  .nv-toolbar { display: grid !important; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; }
+  .nv-toolbar > div { min-width: 0 !important; }
+  .nv-grid > article > p { margin-top: 6px; font-size: 12px; }
   .nv-top > :nth-child(n+4) { flex-shrink: 0; }
 }
 @media (min-width: 861px) { .nv-tabbar { display: none; } }

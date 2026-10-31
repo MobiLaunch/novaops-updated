@@ -110,7 +110,7 @@ export default function Dashboard() {
           <MetricCard label="Low stock" value={d.lowStock} context={`${d.upcoming} upcoming ${d.upcoming === 1 ? "appointment" : "appointments"}`} />
         </div>
 
-        <div className="nv-grid cols-3">
+        <div className="nv-grid cols-3 nv-quick">
           {actions.map((a) => (
             <Button key={a.label} variant="secondary" size="lg" onClick={a.go}><a.icon size={16} />{a.label}</Button>
           ))}

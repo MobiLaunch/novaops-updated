@@ -109,7 +109,7 @@ export function WebOrders() {
         <MetricCard label={`Web sales (${cur})`} value={Math.round(stats.sales)} context="Excludes cancelled and refunded" />
       </div>
 
-      <div className="nv-actions" style={{ justifyContent: "space-between" }}>
+      <div className="nv-actions nv-toolbar" style={{ justifyContent: "space-between" }}>
         <div style={{ minWidth: 200 }}>
           <Select label="Status" value={filter} onValueChange={setFilter} options={[{ value: "all", label: `All orders (${orders.length})` }, ...[...MANUAL, "refunded", "payment_failed"].map((s) => ({ value: s, label: `${cap(s)} (${orders.filter((o) => o.status === s).length})` }))]} />
         </div>
