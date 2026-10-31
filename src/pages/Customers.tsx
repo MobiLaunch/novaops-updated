@@ -103,7 +103,7 @@ export default function Customers() {
       </div>
 
       <Drawer open={!!sel} onOpenChange={(o) => !o && setSelected(null)}>
-        <DrawerContent title={sel?.name ?? ""} description={sel ? `Customer since ${formatDate(sel.created_at)}` : undefined}>
+        <DrawerContent title={sel?.name ?? ""} description={sel ? `Customer since ${formatDate(sel.created_at)}${sel.loyaltyPoints ? ` · ${sel.loyaltyPoints} loyalty points` : ""}` : undefined}>
           {sel && (
             <div className="nv-stack" style={{ gap: 16 }}>
               <div className="nv-stack">

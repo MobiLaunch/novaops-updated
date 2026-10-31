@@ -19,6 +19,7 @@ export interface Customer {
   tags: string[]
   notes: string
   created_at?: string
+  loyaltyPoints?: number
 }
 
 export interface Ticket {
@@ -42,7 +43,8 @@ export interface Ticket {
     text: string
     timestamp: string
     author: string
-  }>
+    createdByName?: string
+}>
   parts: any[]
   payments: any[]
   timeLog: any[]

@@ -7,6 +7,8 @@ export interface ShopConfig {
   /** Where happy customers are sent to leave a review, for example a Google review link. */
   reviewUrl: string;
   emailjs: { serviceId: string; bookingTemplate: string; orderTemplate: string; publicKey: string };
+  /** Loyalty points: earn on register sales, redeem as a discount. Off by default. */
+  loyalty: { enabled: boolean; pointsPerDollar: number; redeemPoints: number; redeemValue: number };
 }
 
 export const SHOP_CONFIG_ID = "shop-config";
@@ -17,6 +19,7 @@ export const emptyShopConfig = (): ShopConfig => ({
   stripePublishableKey: "",
   reviewUrl: "",
   emailjs: { serviceId: "", bookingTemplate: "", orderTemplate: "", publicKey: "" },
+  loyalty: { enabled: false, pointsPerDollar: 1, redeemPoints: 100, redeemValue: 5 },
 });
 
 export async function loadShopConfig(): Promise<ShopConfig> {
@@ -27,7 +30,7 @@ export async function loadShopConfig(): Promise<ShopConfig> {
   const { data } = await sb.from("site_settings").select("content").eq("id", SHOP_CONFIG_ID).maybeSingle();
   const c = (data?.content || {}) as Partial<ShopConfig>;
 
-  return { ...base, ...c, emailjs: { ...base.emailjs, ...(c.emailjs || {}) } };
+  return { ...base, ...c, emailjs: { ...base.emailjs, ...(c.emailjs || {}) }, loyalty: { ...base.loyalty, ...(c.loyalty || {}) } };
 }
 
 export async function saveShopConfig(config: ShopConfig): Promise<void> {

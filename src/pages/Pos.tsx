@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { authedFetch } from "@/lib/api";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Banknote, CreditCard, Gift, Hash, Minus, Plus, Printer, ShoppingBag, Trash2, Wallet } from "lucide-react";
+import { Banknote, CreditCard, Gift, Hash, Star, Minus, Plus, Printer, ShoppingBag, Trash2, Wallet } from "lucide-react";
 
 import { Alert } from "@/components/arc/alert/alert";
 import { Button } from "@/components/arc/button/button";
@@ -18,6 +18,7 @@ import { formatCurrency } from "@/lib/format";
 import { printReceipt, type ReceiptData } from "@/lib/print";
 import { useAppStore } from "@/lib/store";
 import { attachStock } from "@/lib/offlineQueue";
+import { emptyShopConfig, loadShopConfig } from "@/lib/shopConfig";
 import { issueGiftCard, lookupGiftCard, redeemGiftCard, type GiftCard } from "@/lib/giftCards";
 import { Input } from "@/components/arc/input/input";
 import { CloseOut } from "@/components/app/CloseOut";
@@ -33,12 +34,12 @@ const METHODS = [
   { value: "Other", label: "Other", icon: Hash },
 ];
 
-interface CartLine { id: string | number | null; name: string; price: number; quantity: number; sku?: string; isService?: boolean; isTicket?: boolean; ticketId?: number; giftCard?: boolean }
+interface CartLine { id: string | number | null; name: string; price: number; quantity: number; sku?: string; isService?: boolean; isTicket?: boolean; ticketId?: number; giftCard?: boolean; loyaltyPoints?: number }
 
 export default function Pos() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const { inventory, services, settings, tickets } = useAppStore();
+  const { inventory, services, settings, tickets, customers } = useAppStore();
   const cur = settings.currency || "$";
   const m = (n: number) => formatCurrency(n, cur);
 
@@ -50,7 +51,8 @@ export default function Pos() {
   const [processing, setProcessing] = useState(false);
   const [status, setStatus] = useState("");
   const [keypad, setKeypad] = useState<string | null>(null);
-  const [result, setResult] = useState<{ id: number; amount: number; method: string; customer?: string; giftCodes?: string[] } | null>(null);
+  const [result, setResult] = useState<{ id: number; amount: number; method: string; customer?: string; giftCodes?: string[]; pointsEarned?: number } | null>(null);
+  const [loy, setLoy] = useState(emptyShopConfig().loyalty);
   const [gift, setGift] = useState<GiftCard | null>(null);
   const [giftCode, setGiftCode] = useState("");
   const [giftBusy, setGiftBusy] = useState(false);
@@ -175,6 +177,8 @@ export default function Pos() {
     setCart([{ id: `tkt-${t.id}`, name: `Ticket #${t.id} · ${t.device}`, price: Math.max((t.price || 0) - paid, 0), quantity: 1, isTicket: true, ticketId: t.id, isService: true }]);
     setMobile("cart");
   };
+  useEffect(() => { void loadShopConfig().then((c) => setLoy(c.loyalty)).catch(() => undefined); }, []);
+
   const bootstrapped = useRef(false);
 
   useEffect(() => {
@@ -255,10 +259,25 @@ export default function Pos() {
     const stored = applied > 0 && g ? applied : 0;
     const payLabel = stored > 0 ? (stored >= t.total - 0.005 ? "Gift card" : `${finalMethod} + Gift card`) : finalMethod;
     const giftLines = lines.filter((i) => i.giftCard);
+    const redeemedPts = lines.reduce((a, i) => a + (i.loyaltyPoints || 0), 0);
+    const earnBase = lines.filter((i) => !i.giftCard).reduce((a, i) => a + i.price * i.quantity, 0);
+    const earnedPts = loy.enabled && customerId ? Math.max(0, Math.floor(earnBase * loy.pointsPerDollar)) : 0;
 
     if (stored > 0 && g) await redeemGiftCard(g.code, stored, "pos");
-    const sale = await st.createPosSale({ customerId, items: lines.map((i) => ({ name: i.name, price: i.price, quantity: i.quantity, sku: i.sku || undefined })), subtotal: t.subtotal, tax: t.tax, total: t.total, paymentMethod: payLabel, note: stored > 0 && g ? `${note} · Gift card ${g.code} −${stored.toFixed(2)}` : note });
+    const sale = await st.createPosSale({ customerId, items: lines.map((i) => ({ name: i.name, price: i.price, quantity: i.quantity, sku: i.sku || undefined })), subtotal: t.subtotal, tax: t.tax, total: t.total, paymentMethod: payLabel, note: stored > 0 && g ? `${note} · Gift card ${g.code} −${stored.toFixed(2)}` : note, loyaltyEarned: earnedPts, loyaltyRedeemed: redeemedPts });
     const giftCodes: string[] = [];
+
+    if (customerId && (earnedPts || redeemedPts)) {
+      if ((sale as any).offline) toast.warning("Loyalty points", "This sale was saved offline, so points weren't added or spent.");
+      else {
+        try {
+          const { data: bal, error } = await getSupabase()!.rpc("adjust_loyalty", { p_customer: customerId, p_delta: earnedPts - redeemedPts, p_reason: "sale", p_sale_ref: `S-${sale.id}` });
+
+          if (error) throw error;
+          useAppStore.setState((x) => ({ customers: x.customers.map((c) => (c.id === customerId ? { ...c, loyaltyPoints: Number(bal) } : c)) }));
+        } catch (e) { toast.warning("Loyalty points not updated", (e as Error).message); }
+      }
+    }
 
     for (const l of giftLines) {
       try { giftCodes.push((await issueGiftCard(l.price, customerId, `S-${sale.id}`)).code); } catch (e) { toast.danger("Gift card not issued", (e as Error).message); }
@@ -290,7 +309,7 @@ export default function Pos() {
     setReceipt(data);
     try { if (JSON.parse(localStorage.getItem("novaops_printer_settings") || "{}").autoPrintReceipt) void printReceipt(data); } catch { /* ignore */ }
     addNotification("New sale", `${formatCurrency(t.total, data.currency)} via ${payLabel}`, "success", "newSale");
-    setResult({ id: sale.id, amount: t.total, method: payLabel, customer, giftCodes });
+    setResult({ id: sale.id, amount: t.total, method: payLabel, customer, giftCodes, pointsEarned: earnedPts });
     clear();
     setGift(null);
     setGiftCode("");
@@ -413,6 +432,19 @@ export default function Pos() {
             return (
               <div className="nv-stack nv-muted" style={{ fontSize: 13, gap: 8 }}>
                 <span>{past} past ticket{past === 1 ? "" : "s"}{open.length ? ` · ${open.length} open` : ""}</span>
+                {loy.enabled && (() => {
+                  const cust = customers.find((c) => c.id === customerId);
+                  const queued = cart.reduce((a, l) => a + (l.loyaltyPoints || 0), 0);
+                  const avail = (cust?.loyaltyPoints ?? 0) - queued;
+                  const canRedeem = avail >= loy.redeemPoints && loy.redeemValue > 0 && subtotal - 0 >= loy.redeemValue;
+
+                  return (
+                    <>
+                      <span><Star size={13} aria-hidden="true" /> {avail} loyalty point{avail === 1 ? "" : "s"}{queued ? ` (${queued} in this sale)` : ""}</span>
+                      {canRedeem && <Button size="sm" variant="secondary" style={{ justifyContent: "flex-start" }} onClick={() => setCart((c) => [...c, { id: `loyalty-${Date.now()}`, name: `Loyalty reward (${loy.redeemPoints} pts)`, price: -loy.redeemValue, quantity: 1, isService: true, loyaltyPoints: loy.redeemPoints }])}>Redeem {loy.redeemPoints} points for {m(loy.redeemValue)} off</Button>}
+                    </>
+                  );
+                })()}
                 {open.slice(0, 3).map((t: any) => <Button key={t.id} size="sm" variant="secondary" style={{ justifyContent: "flex-start" }} onClick={() => collectTicket(t)}>Collect #{t.id} · {t.device}</Button>)}
               </div>
             );
@@ -492,6 +524,7 @@ export default function Pos() {
             <div className="nv-stack">
               <div style={{ fontSize: 28, fontWeight: 500 }}>{m(result.amount)}</div>
               <span className="nv-muted">Paid by {result.method}{result.customer ? ` · ${result.customer}` : ""}</span>
+              {!!result.pointsEarned && <span className="nv-muted"><Star size={13} aria-hidden="true" /> {result.customer} earned {result.pointsEarned} loyalty points</span>}
               {result.giftCodes && result.giftCodes.length > 0 && <Alert tone="success" title={`Gift card${result.giftCodes.length > 1 ? "s" : ""} issued: ${result.giftCodes.join(", ")}`}>Give the customer this code — it works as store credit at the register.</Alert>}
               <div className="nv-actions">
                 <Button variant="secondary" onClick={() => receipt && void printReceipt(receipt)}><Printer size={14} />Print receipt</Button>
