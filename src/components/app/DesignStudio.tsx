@@ -70,6 +70,8 @@ export function DesignStudio() {
   const [editing, setEditing] = useState<string | null>(null);
   const [group, setGroup] = useState(COPY[0].group);
   const [pagePath, setPagePath] = useState("/");
+  const [policies, setPolicies] = useState<Record<string, Json>>({});
+  const [outlines, setOutlines] = useState<Record<string, Json>>({});
   const frame = useRef<HTMLIFrameElement>(null);
 
   const load = useCallback(async () => {
@@ -84,6 +86,7 @@ export function DesignStudio() {
     setAppearance({ ...(defaults as any).appearance, ...(content.appearance || {}) });
     setHero({ ...(defaults as any).hero, ...(content.hero || {}) });
     setCopy(content.copy || {});
+    setPolicies(content.policies || {});
     setLoading(false);
   }, []);
 
@@ -91,8 +94,8 @@ export function DesignStudio() {
 
   const send = useCallback(() => {
     if (!site || !frame.current?.contentWindow || !appearance) return;
-    frame.current.contentWindow.postMessage({ source: "novaops-design", appearance, copy, sections, hero: { ...(sections.hero || {}), mediaType: hero?.mediaType, mediaUrl: hero?.mediaUrl, mediaPoster: hero?.mediaPoster, mediaDim: hero?.mediaDim } }, site);
-  }, [site, appearance, hero, copy, sections]);
+    frame.current.contentWindow.postMessage({ source: "novaops-design", appearance, copy, policies, sections, hero: { ...(sections.hero || {}), mediaType: hero?.mediaType, mediaUrl: hero?.mediaUrl, mediaPoster: hero?.mediaPoster, mediaDim: hero?.mediaDim } }, site);
+  }, [site, appearance, hero, copy, policies, sections]);
 
   // Push the draft to the preview on every change, and again shortly after load (the page fetches its saved design first).
   useEffect(() => {
@@ -104,7 +107,9 @@ export function DesignStudio() {
   useEffect(() => {
     const onMsg = (e: MessageEvent) => {
       if (e.origin !== site || e.data?.source !== "mobicare-site") return;
-      if (e.data.type === "edit" && typeof e.data.path === "string") setEditing(e.data.path); else send();
+      if (e.data.type === "edit" && typeof e.data.path === "string") setEditing(e.data.path);
+      else if (e.data.type === "policy-outline") setOutlines((o) => ({ ...o, [e.data.path]: { ...(o[e.data.path] || {}), ...e.data.outline, sections: e.data.outline.sections ?? o[e.data.path]?.sections } }));
+      else send();
     };
 
     window.addEventListener("message", onMsg);
@@ -126,6 +131,27 @@ export function DesignStudio() {
 
       return entry ? { label: `${entry.group}: ${entry.label}`, value: copy[key] ?? entry.text, long: !!entry.long, set: (v: string) => setCopyKey(key, v), reset: copy[key] !== undefined ? () => { setCopy((c) => { const n = { ...c }; delete n[key]; return n; }); setDirty(true); } : undefined } : null;
     }
+    if (editing.startsWith("policy:")) {
+      const [, pagePathKey, field] = editing.split(":");
+      const ov = policies[pagePathKey];
+      const out = outlines[pagePathKey];
+      const m = /^s\.(\d+)\.(title|body)$/.exec(field);
+      const idx = m ? Number(m[1]) : -1;
+      const base = ov ?? (out ? { title: out.title, lead: out.lead, sections: out.sections } : null);
+      const value = m ? base?.sections?.[idx]?.[m[2]] : base?.[field];
+      const name = pagePathKey.replace("/", "");
+
+      if (typeof value !== "string") return { label: `${name} page`, value: "", long: false, set: () => undefined, reset: undefined, note: "Reopen this page in the preview so its text can load, then click it again." };
+      const edit = (v: string) => {
+        const cur = clone(ov ?? { title: out.title, lead: out.lead, sections: out.sections ?? [] });
+
+        if (m) { cur.sections = cur.sections || []; cur.sections[idx] = { ...(cur.sections[idx] || { title: "", body: "" }), [m[2]]: v }; } else cur[field] = v;
+        setPolicies((p) => ({ ...p, [pagePathKey]: cur }));
+        setDirty(true);
+      };
+
+      return { label: `${name[0].toUpperCase()}${name.slice(1)} page · ${m ? `section ${idx + 1} ${m[2]}` : field}`, value, long: m?.[2] === "body" || field === "lead", set: edit, reset: ov ? () => { setPolicies((p) => { const n = { ...p }; delete n[pagePathKey]; return n; }); setDirty(true); } : undefined, note: ov ? undefined : "Editing starts a custom version of this page. Use Restore to go back to the built-in text.", resetLabel: "Restore this page's original text" };
+    }
     const path = editing.split(".");
     const sec = sectionValue(path[0]);
     const value = getIn(sec, path.slice(1));
@@ -135,7 +161,7 @@ export function DesignStudio() {
 
     return { label: `${SECTION_NAMES[path[0]] || path[0]}${field ? ` · ${field.replace(/([A-Z])/g, " $1").toLowerCase()}` : ""}`, value, long: value.length > 70, set: (v: string) => setSectionPath(path, v), reset: undefined };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editing, copy, sections, saved]);
+  }, [editing, copy, sections, saved, policies, outlines]);
 
   const activePalette = useMemo(() => PALETTES.find((p) => Object.entries(p.values).every(([k, v]) => (appearance?.[k] || "") === v))?.id, [appearance]);
 
@@ -147,7 +173,7 @@ export function DesignStudio() {
     try {
       const { data: latest } = await sb.from("site_settings").select("content").eq("id", CONFIG_ID).maybeSingle();
       const base = (latest?.content as Record<string, Json>) || {};
-      const next: Record<string, Json> = { ...base, appearance: { ...(base.appearance || {}), ...appearance }, hero: { ...((defaults as any).hero), ...(base.hero || {}), ...(sections.hero || {}), mediaType: hero.mediaType, mediaUrl: hero.mediaUrl, mediaPoster: hero.mediaPoster, mediaDim: hero.mediaDim }, copy };
+      const next: Record<string, Json> = { ...base, appearance: { ...(base.appearance || {}), ...appearance }, hero: { ...((defaults as any).hero), ...(base.hero || {}), ...(sections.hero || {}), mediaType: hero.mediaType, mediaUrl: hero.mediaUrl, mediaPoster: hero.mediaPoster, mediaDim: hero.mediaDim }, copy, policies };
       Object.entries(sections).forEach(([name, v]) => { if (name !== "hero") next[name] = v; });
       const { error } = await sb.from("site_settings").upsert({ id: CONFIG_ID, content: next, updated_at: new Date().toISOString() });
 
@@ -228,7 +254,7 @@ export function DesignStudio() {
       </div>
 
       <div className="nv-design-preview">
-        <Select label="Preview page" value={pagePath} onValueChange={setPagePath} options={[["/", "Home"], ["/repairs", "Repairs"], ["/about", "About"], ["/protection", "Protection"], ["/shop", "Shop"]].map(([value, label]) => ({ value, label }))} />
+        <Select label="Preview page" value={pagePath} onValueChange={setPagePath} options={[["/", "Home"], ["/repairs", "Repairs"], ["/about", "About"], ["/protection", "Protection"], ["/shop", "Shop"], ["/shipping", "Shipping policy"], ["/returns", "Returns policy"], ["/refunds", "Refund policy"], ["/privacy", "Privacy policy"]].map(([value, label]) => ({ value, label }))} />
         <SegmentedControl label="Preview size" value={device} onValueChange={setDevice} options={seg([["phone", "Phone"], ["wide", "Desktop"]])} />
         {target && (
           <div className="nv-panel nv-stack nv-editpanel" role="group" aria-label="Edit text">
@@ -239,7 +265,8 @@ export function DesignStudio() {
             {target.long
               ? <Textarea autoFocus label="Text" rows={4} value={target.value} onChange={(e) => target.set(e.target.value)} />
               : <Input autoFocus label="Text" value={target.value} onChange={(e) => target.set(e.target.value)} />}
-            {target.reset && <div><Button size="sm" variant="ghost" onClick={target.reset}>Restore original wording</Button></div>}
+            {(target as any).note && <p className="nv-muted" style={{ margin: 0, fontSize: 13 }}>{(target as any).note}</p>}
+            {target.reset && <div><Button size="sm" variant="ghost" onClick={target.reset}>{(target as any).resetLabel || "Restore original wording"}</Button></div>}
           </div>
         )}
         <div className="nv-design-frame" data-device={device}>
