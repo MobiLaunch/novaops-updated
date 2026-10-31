@@ -202,7 +202,6 @@ export function AppShell() {
       <div className="nv-main">
         <OfflineBanner />
         <header className="nv-top">
-          <span className="nv-mobile-only nv-brand"><span className="nv-brand-mark">N</span></span>
           <Button variant="secondary" size="sm" className="nv-hide-mobile" onClick={() => setPalette(true)}><Command size={14} /><span className="nv-hide-mobile">Search</span><span className="nv-muted nv-hide-mobile">⌘K</span></Button>
           <Button variant="secondary" size="sm" aria-label="Scan an item" onClick={() => { setScanCode(""); setScanOpen(true); }}><ScanLine size={14} /><span className="nv-hide-mobile">Scan</span></Button>
           <div className="nv-top-spacer" />
@@ -248,11 +247,13 @@ export function AppShell() {
 
       <Drawer open={more} onOpenChange={setMore}>
         <DrawerContent side="bottom" title="More" description={businessName || "NovaOps"}>
-          <div className="nv-stack">
-            {[byTo("/customers"), byTo("/inventory"), byTo("/website"), byTo("/analytics"), byTo("/library"), byTo("/tools")].map((n) => (
-              <NavLink key={n.to} to={n.to} className="nv-link" onClick={() => setMore(false)}><n.icon size={17} />{n.label}</NavLink>
-            ))}
-            <NavLink to="/settings" className="nv-link" onClick={() => setMore(false)}><Settings size={17} />Settings</NavLink>
+          <div className="nv-stack nv-more">
+            <div className="nv-more-grid">
+              {[byTo("/customers"), byTo("/inventory"), byTo("/website"), byTo("/analytics"), byTo("/library"), byTo("/tools")].filter((n) => !isStaff || !STAFF_BLOCKED.includes(n.to)).map((n) => (
+                <NavLink key={n.to} to={n.to} className="nv-link" onClick={() => setMore(false)}><n.icon size={17} />{n.label}</NavLink>
+              ))}
+              {!isStaff && <NavLink to="/settings" className="nv-link" onClick={() => setMore(false)}><Settings size={17} />Settings</NavLink>}
+            </div>
             <div className="nv-actions" style={{ justifyContent: "space-between", padding: "4px 10px" }}>
               <span className="nv-muted">Appearance</span>
               <ThemeSwitch theme={theme} onThemeChange={setTheme} label="Theme" />
