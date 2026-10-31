@@ -181,6 +181,10 @@ export default function Pos() {
     if (bootstrapped.current) return;
     bootstrapped.current = true;
 
+    const giftParam = params.get("gift");
+
+    if (giftParam) { void lookupGiftCard(giftParam).then(setGift).catch((e: Error) => toast.danger("Gift card", e.message)); params.delete("gift"); setParams(params, { replace: true }); }
+    if (params.get("sales")) { setRecent(true); params.delete("sales"); setParams(params, { replace: true }); }
     const cid = Number(params.get("customer"));
 
     if (cid) { setCustomerId(cid); params.delete("customer"); setParams(params, { replace: true }); }
