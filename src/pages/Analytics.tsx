@@ -131,7 +131,7 @@ export default function Analytics() {
     <>
       <PageHead title="Analytics" subtitle={PERIOD[range]}>
         <SegmentedControl label="Range" value={range} onValueChange={(v: string) => setRange(v)} options={RANGES} />
-        <Button variant="secondary" onClick={exportReport}><Download size={14} />Export CSV</Button>
+        <Button variant="secondary" className="nv-span-mobile" onClick={exportReport}><Download size={14} />Export CSV</Button>
       </PageHead>
 
       <Tabs value={tab} onValueChange={setTab}>

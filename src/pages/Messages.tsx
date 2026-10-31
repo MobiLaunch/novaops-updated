@@ -132,7 +132,7 @@ export default function Messages() {
     <div>
       <PageHead title="Messages" subtitle={unreadTotal ? `${unreadTotal} unread from website customers` : "Website chat with customers"}>
         <SegmentedControl label="Show" options={[{ value: "chat", label: "Website chat" }, { value: "all", label: "All messages" }]} value={scope} onValueChange={(v) => setScope(v as "chat" | "all")} />
-        <Button variant="secondary" onClick={() => void load()}><RefreshCw size={14} aria-hidden="true" />Refresh</Button>
+        <Button variant="secondary" className="nv-span-mobile" onClick={() => void load()}><RefreshCw size={14} aria-hidden="true" />Refresh</Button>
       </PageHead>
 
       {loading ? <ListSkeleton label="Loading messages" rows={5} /> : threads.length === 0 ? (

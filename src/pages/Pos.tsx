@@ -366,9 +366,9 @@ export default function Pos() {
         <div className="nv-mobile-only"><SegmentedControl label="Panel" value={mobile} onValueChange={(v: string) => setMobile(v as "products" | "cart")} options={[{ value: "products", label: "Products" }, { value: "cart", label: `Cart (${cart.length})` }]} /></div>
         <Button variant="secondary" onClick={() => setKeypad("0")}>Custom amount</Button>
         <Button variant="secondary" onClick={() => setSellGift("25")}><Gift size={14} />Gift card</Button>
-        <Button variant="ghost" onClick={() => setGiftList(true)}>Balances</Button>
-        <Button variant="ghost" onClick={() => setRecent(true)}>Recent sales</Button>
-        <Button variant="ghost" onClick={() => setCloseOut(true)}>Close out</Button>
+        <Button variant="secondary" onClick={() => setGiftList(true)}>Balances</Button>
+        <Button variant="secondary" onClick={() => setRecent(true)}>Recent sales</Button>
+        <Button variant="secondary" className="nv-span-mobile" onClick={() => setCloseOut(true)}>Close out</Button>
       </PageHead>
 
       <div className="nv-pos">
