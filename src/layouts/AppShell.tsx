@@ -1,6 +1,7 @@
+import { getSupabase } from "@/lib/supabase";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { BarChart3, BookOpen, CalendarDays, Command, ScanLine, Ellipsis, LayoutDashboard, Globe, LogOut, MessageSquare, Package, Plus, Receipt, Settings, Users, Wrench } from "lucide-react";
+import { BarChart3, BookOpen, Search, CalendarDays, Command, ScanLine, Ellipsis, LayoutDashboard, Globe, LogOut, MessageSquare, Package, Plus, Receipt, Settings, Users, Wrench } from "lucide-react";
 
 import { Drawer, DrawerContent } from "@/components/arc/drawer/drawer";
 import { Avatar } from "@/components/arc/avatar/avatar";
@@ -30,6 +31,7 @@ import { isElectron } from "@/lib/supabase";
 type NavItem = { to: string; label: string; icon: typeof Package; badge?: keyof ShopCounts };
 
 // Grouped by what the owner is doing, not by when each page was built.
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const GROUPS: { label: string; items: NavItem[] }[] = [
   { label: "Workspace", items: [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -150,6 +152,31 @@ export function AppShell() {
   const customerList = useAppStore((st) => st.customers);
   const inventory = useAppStore((st) => st.inventory);
 
+  // Gift cards, register sales and web orders load only when search opens.
+  const [extra, setExtra] = useState<Array<{ id: string; label: string; description?: string; group: string; keywords?: string[] }>>([]);
+
+  useEffect(() => {
+    const sb = getSupabase();
+
+    if (!palette || !sb) return;
+    let live = true;
+
+    void Promise.all([
+      sb.from("gift_cards").select("code,balance,status").order("created_at", { ascending: false }).limit(100),
+      sb.from("pos_sales").select("id,total,payment_method,created_at").order("created_at", { ascending: false }).limit(100),
+      sb.from("orders").select("id,customer_name,customer_email,status,total").order("created_at", { ascending: false }).limit(100),
+    ]).then(([g, s, o]) => {
+      if (!live) return;
+      setExtra([
+        ...((g.data as any[]) || []).map((c) => ({ id: `gift:${c.code}`, label: c.code, description: `Gift card · ${c.status === "void" ? "void" : `${Number(c.balance).toFixed(2)} left`}`, group: "Gift cards" })),
+        ...((s.data as any[]) || []).map((x) => ({ id: `sale:${x.id}`, label: `Sale S-${x.id}`, description: `${Number(x.total).toFixed(2)} · ${x.payment_method} · ${new Date(x.created_at).toLocaleDateString()}`, group: "Register sales", keywords: [`S-${x.id}`, String(x.id)] })),
+        ...((o.data as any[]) || []).map((x) => ({ id: `order:${x.id}`, label: `Order ${String(x.id).slice(0, 8).toUpperCase()}`, description: `${x.customer_name || x.customer_email || "Customer"} · ${x.status} · ${Number(x.total).toFixed(2)}`, group: "Web orders", keywords: [String(x.id), x.customer_email || ""] })),
+      ]);
+    });
+
+    return () => { live = false; };
+  }, [palette]);
+
   const commands = useMemo(() => [
     ...NAV.map((n) => ({ id: `go:${n.to}`, label: n.label, group: "Go to", icon: <n.icon size={16} /> })),
     { id: "go:/settings", label: "Settings", group: "Go to", icon: <Settings size={16} />, shortcut: "⌘," },
@@ -160,7 +187,8 @@ export function AppShell() {
     ...tickets.slice(0, 200).map((t) => ({ id: `ticket:${t.id}`, label: `#${t.id} ${t.device} ${t.deviceModel || ""}`.trim(), description: `${customerList.find((c) => c.id === t.customerId)?.name || "Unknown"} · ${t.status}`, group: "Tickets", keywords: [String(t.id), t.issue, t.deviceModel || ""] })),
     ...customerList.slice(0, 200).map((c) => ({ id: `customer:${c.id}`, label: c.name, description: [c.phone, c.email].filter(Boolean).join(" · "), group: "Customers", keywords: [c.phone, c.email].filter(Boolean) })),
     ...inventory.slice(0, 200).map((i: any) => ({ id: `item:${i.id}`, label: i.name, description: `SKU ${i.sku || "none"} · ${i.category}`, group: "Inventory", keywords: [i.sku || "", i.category || ""] })),
-  ], [tickets, customerList, inventory]);
+    ...extra,
+  ], [tickets, customerList, inventory, extra]);
 
   const onCommand = (id: string) => {
     setPalette(false);
@@ -169,6 +197,9 @@ export function AppShell() {
     else if (id.startsWith("ticket:")) navigate(`/bookings?ticket=${id.slice(7)}`);
     else if (id.startsWith("customer:")) navigate(`/customers?highlight=${id.slice(9)}`);
     else if (id.startsWith("item:")) navigate("/inventory");
+    else if (id.startsWith("gift:")) navigate(`/pos?gift=${encodeURIComponent(id.slice(5))}`);
+    else if (id.startsWith("sale:")) navigate("/pos?sales=1");
+    else if (id.startsWith("order:")) navigate("/website?tab=orders");
     else setDialog(id.slice(4) as "ticket" | "housecall" | "customer");
   };
 
@@ -207,6 +238,7 @@ export function AppShell() {
         <OfflineBanner />
         <header className="nv-top">
           <Button variant="secondary" size="sm" className="nv-hide-mobile" onClick={() => setPalette(true)}><Command size={14} /><span className="nv-hide-mobile">Search</span><span className="nv-muted nv-hide-mobile">⌘K</span></Button>
+          <Button variant="secondary" size="sm" className="nv-mobile-only" aria-label="Search" onClick={() => setPalette(true)}><Search size={16} /></Button>
           <Button variant="secondary" size="sm" aria-label="Scan an item" onClick={() => { setScanCode(""); setScanOpen(true); }}><ScanLine size={14} /><span className="nv-hide-mobile">Scan</span></Button>
           <div className="nv-top-spacer" />
           <DropdownMenu
@@ -271,7 +303,7 @@ export function AppShell() {
 
       {palette && (
         <Dialog open onOpenChange={setPalette}>
-          <DialogContent title="Search" description="Jump to a page or create something">
+          <DialogContent title="Search" description="Find a customer, ticket, sale, gift card or order, or jump to a page">
             <CommandPalette items={commands} autoFocus onSelect={(i) => onCommand(i.id)} onClose={() => setPalette(false)} />
           </DialogContent>
         </Dialog>
