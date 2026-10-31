@@ -30,7 +30,7 @@ export function CloseOut({ open, onOpenChange }: { open: boolean; onOpenChange: 
 
     start.setHours(0, 0, 0, 0);
     void (async () => {
-      const { data } = (await getSupabase()?.from("pos_sales").select("total,payment_method,note,status").gte("created_at", start.toISOString()).neq("status", "voided")) ?? { data: [] };
+      const { data } = (await getSupabase()?.from("pos_sales").select("total,payment_method,note,status,staff_name").gte("created_at", start.toISOString()).neq("status", "voided")) ?? { data: [] };
 
       setSales((data as any[]) || []);
     })();
@@ -39,6 +39,9 @@ export function CloseOut({ open, onOpenChange }: { open: boolean; onOpenChange: 
   const byMethod = new Map<string, number>();
 
   (sales || []).forEach((s) => byMethod.set(s.payment_method, (byMethod.get(s.payment_method) || 0) + Number(s.total)));
+  const byStaff = new Map<string, { n: number; total: number }>();
+
+  (sales || []).forEach((s) => { const k = s.staff_name || "Unknown"; const e = byStaff.get(k) ?? { n: 0, total: 0 }; e.n += 1; e.total += Number(s.total); byStaff.set(k, e); });
   const cash = (sales || []).reduce((a, s) => a + cashPart(s), 0);
   const expected = (parseFloat(float) || 0) + cash;
   const diff = (parseFloat(counted) || 0) - expected;
@@ -51,6 +54,7 @@ export function CloseOut({ open, onOpenChange }: { open: boolean; onOpenChange: 
             <div>
               {[...byMethod.entries()].map(([k, v]) => <div key={k} className="nv-total"><span className="nv-muted">{k}</span><span>{m(v)}</span></div>)}
               {byMethod.size === 0 && <p className="nv-muted">No sales yet today.</p>}
+              {byStaff.size > 1 && [...byStaff.entries()].map(([k, v]) => <div key={k} className="nv-total"><span className="nv-muted">{k} ({v.n})</span><span>{m(v.total)}</span></div>)}
               <div className="nv-total strong"><span>Total sales ({sales.length})</span><span>{m(sales.reduce((a, s) => a + Number(s.total), 0))}</span></div>
             </div>
             <Input label="Starting cash in drawer" type="number" min="0" step="0.01" value={float} onChange={(e) => setFloat(e.target.value)} />

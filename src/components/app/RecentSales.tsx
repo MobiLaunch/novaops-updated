@@ -63,6 +63,16 @@ export function RecentSales({ open, onOpenChange }: { open: boolean; onOpenChang
 
       return inv ? st.updateInventoryItem(inv.id, { stock: inv.stock + Number(i.quantity || 0) }).catch(() => null) : null;
     }));
+    // Take back points earned and give back points spent, if loyalty was used on this sale.
+    if (s.customer_id && (s.loyalty_earned || s.loyalty_redeemed)) {
+      const sb = getSupabase()!;
+      const call = (delta: number) => sb.rpc("adjust_loyalty", { p_customer: s.customer_id, p_delta: delta, p_reason: "void", p_sale_ref: `S-${s.id}` });
+      let res = await call((s.loyalty_redeemed || 0) - (s.loyalty_earned || 0));
+
+      // The customer may have spent the earned points already; still give back what they paid.
+      if (res.error && s.loyalty_redeemed) res = await call(s.loyalty_redeemed);
+      if (!res.error) useAppStore.setState((x) => ({ customers: x.customers.map((c) => (c.id === s.customer_id ? { ...c, loyaltyPoints: Number(res.data) } : c)) }));
+    }
     toast.success("Sale voided", "Stock restored.");
     await load();
   };
@@ -76,7 +86,7 @@ export function RecentSales({ open, onOpenChange }: { open: boolean; onOpenChang
           <div style={{ maxHeight: 420, overflow: "auto" }}>
             {sales.map((s) => (
               <div key={s.id} className="nv-row">
-                <div className="nv-row-main"><strong>S-{s.id} · {m(Number(s.total))}</strong><span>{new Date(s.created_at).toLocaleString()} · {s.payment_method}</span></div>
+                <div className="nv-row-main"><strong>S-{s.id} · {m(Number(s.total))}</strong><span>{new Date(s.created_at).toLocaleString()} · {s.payment_method}{s.staff_name ? ` · ${s.staff_name}` : ""}</span></div>
                 {s.status === "voided" ? <Badge tone="danger">Voided</Badge> : <>
                   <Button size="sm" variant="ghost" aria-label="Reprint receipt" onClick={() => void printReceipt(receiptFor(s))}><Printer size={14} /></Button>
                   <Button size="sm" variant="ghost" aria-label="Email receipt" onClick={() => void email(s)}><Mail size={14} /></Button>

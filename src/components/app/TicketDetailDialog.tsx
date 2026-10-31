@@ -145,7 +145,7 @@ export function TicketDetailDialog({ ticketId, onClose }: Props) {
 
   return (
     <Drawer open={!!ticket} onOpenChange={(o) => !o && onClose()}>
-      <DrawerContent className="nv-drawer-wide" title={ticket ? `Ticket #${ticket.id}` : ""} description={ticket ? `${ticket.device} ${ticket.deviceModel || ""} · ${customer?.name || "Unknown customer"}` : undefined}>
+      <DrawerContent className="nv-drawer-wide" title={ticket ? `Ticket #${ticket.id}` : ""} description={ticket ? `${ticket.device} ${ticket.deviceModel || ""} · ${customer?.name || "Unknown customer"}${ticket.createdByName ? ` · opened by ${ticket.createdByName}` : ""}` : undefined}>
         {ticket && (
           <div className="nv-stack" style={{ gap: 16 }}>
             <div className="nv-actions" style={{ justifyContent: "space-between" }}>

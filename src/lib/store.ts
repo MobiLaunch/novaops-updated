@@ -77,6 +77,7 @@ const SQUARE_CACHE = "novaops_square_config";
 // ── Row normalisers: Supabase snake_case → the camelCase the UI expects ───────
 const normalizeTicket = (t: any): Ticket => ({
   ...t,
+  createdByName: t.created_by_name ?? t.createdByName ?? "",
   customerId: t.customer_id ?? t.customerId,
   createdAt: t.created_at ?? t.createdAt,
   updatedAt: t.updated_at ?? t.updatedAt,
@@ -98,6 +99,7 @@ const normalizeTicket = (t: any): Ticket => ({
 
 const normalizeCustomer = (c: any): Customer => ({
   ...c,
+  loyaltyPoints: c.loyalty_points ?? c.loyaltyPoints ?? 0,
   driversLicense: c.drivers_license ?? c.driversLicense ?? "",
   tags: c.tags ?? [],
   notes: c.notes ?? "",
@@ -167,6 +169,8 @@ interface AppState {
   /** "staff" sign-ins work the owner's data but can't see revenue, orders, expenses or settings. */
   role: "owner" | "staff";
   ownerId: string | null;
+  /** Shown on sales and tickets as who did the work. */
+  staffName: string;
   isLoaded: boolean;
   isLoading: boolean;
   trackedDevices: string[];
@@ -212,6 +216,8 @@ interface AppState {
     total: number;
     paymentMethod: string;
     note?: string;
+    loyaltyEarned?: number;
+    loyaltyRedeemed?: number;
   }) => Promise<any>;
   saveSettings: (patch?: Partial<AppSettings>) => Promise<void>;
   saveAll: () => Promise<void>;
@@ -305,6 +311,7 @@ export const useAppStore = create<AppState>((set, get) => {
     user: null,
     role: "owner" as const,
     ownerId: null,
+    staffName: "Owner",
     isLoading: false,
     trackedDevices: [],
 
@@ -367,10 +374,10 @@ export const useAppStore = create<AppState>((set, get) => {
 
       // A staff sign-in reads and writes the owner's data, scoped by the database's staff policies.
       const me = get().user!.id as string;
-      const staffRow = await sb.from("staff_members").select("owner_id").eq("user_id", me).eq("active", true).maybeSingle();
+      const staffRow = await sb.from("staff_members").select("owner_id,name,email").eq("user_id", me).eq("active", true).maybeSingle();
       const staffOwner = (staffRow.data as any)?.owner_id as string | undefined;
 
-      set({ role: staffOwner ? "staff" : "owner", ownerId: staffOwner || null });
+      set({ role: staffOwner ? "staff" : "owner", ownerId: staffOwner || null, staffName: staffOwner ? ((staffRow.data as any).name || (staffRow.data as any).email || "Staff") : "Owner" });
       const id = staffOwner || me;
       const isStaff = !!staffOwner;
 
@@ -483,6 +490,7 @@ export const useAppStore = create<AppState>((set, get) => {
         time_log: d.timeLog || [],
         priority: d.priority || "normal",
         tracking: d.tracking || null,
+        created_by_name: get().staffName,
       }).select().single();
 
       if (error) {
@@ -778,6 +786,9 @@ export const useAppStore = create<AppState>((set, get) => {
         payment_method: sale.paymentMethod,
         note: sale.note || "",
         status: "completed",
+        staff_name: get().staffName,
+        loyalty_earned: sale.loyaltyEarned || 0,
+        loyalty_redeemed: sale.loyaltyRedeemed || 0,
       };
       let res: { data: any; error: any };
 
