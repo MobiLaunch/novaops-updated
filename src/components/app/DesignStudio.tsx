@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { RotateCcw, Save, X } from "lucide-react";
+import { ArrowDown, ArrowUp, RotateCcw, Save, X } from "lucide-react";
 
 import { Button } from "@/components/arc/button/button";
 import { Input } from "@/components/arc/input/input";
 import { Select } from "@/components/arc/select/select";
+import { Switch } from "@/components/arc/switch/switch";
 import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
 import { Textarea } from "@/components/arc/textarea/textarea";
 import { UploadButton } from "@/components/app/UploadButton";
@@ -41,6 +42,7 @@ const setIn = (o: Json, path: string[], v: Json): Json => {
 
   return next;
 };
+const HOME_BLOCKS: [string, string][] = [["hero", "Banner and trust bar"], ["services", "Repair services"], ["how", "How it works"], ["featured", "Best sellers"], ["protect", "Protection promo"], ["cta", "Bottom banner"]];
 const seg = (items: [string, string][]) => items.map(([value, label]) => ({ value, label }));
 
 function Color({ name, label, value, onChange }: { name: string; label: string; value: string; onChange: (v: string) => void }) {
@@ -73,6 +75,7 @@ export function DesignStudio() {
   const [policies, setPolicies] = useState<Record<string, Json>>({});
   const [outlines, setOutlines] = useState<Record<string, Json>>({});
   const [textMap, setTextMap] = useState<Record<string, string>>({});
+  const [layout, setLayout] = useState<Json>({});
   const frame = useRef<HTMLIFrameElement>(null);
 
   const load = useCallback(async () => {
@@ -89,6 +92,7 @@ export function DesignStudio() {
     setCopy(content.copy || {});
     setPolicies(content.policies || {});
     setTextMap(content.textMap || {});
+    setLayout(content.layout || {});
     setLoading(false);
   }, []);
 
@@ -96,8 +100,8 @@ export function DesignStudio() {
 
   const send = useCallback(() => {
     if (!site || !frame.current?.contentWindow || !appearance) return;
-    frame.current.contentWindow.postMessage({ source: "novaops-design", appearance, copy, policies, textMap, sections, hero: { ...(sections.hero || {}), mediaType: hero?.mediaType, mediaUrl: hero?.mediaUrl, mediaPoster: hero?.mediaPoster, mediaDim: hero?.mediaDim } }, site);
-  }, [site, appearance, hero, copy, policies, textMap, sections]);
+    frame.current.contentWindow.postMessage({ source: "novaops-design", appearance, copy, policies, textMap, layout, sections, hero: { ...(sections.hero || {}), mediaType: hero?.mediaType, mediaUrl: hero?.mediaUrl, mediaPoster: hero?.mediaPoster, mediaDim: hero?.mediaDim } }, site);
+  }, [site, appearance, hero, copy, policies, textMap, layout, sections]);
 
   // Push the draft to the preview on every change, and again shortly after load (the page fetches its saved design first).
   useEffect(() => {
@@ -178,6 +182,23 @@ export function DesignStudio() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing, copy, sections, saved, policies, outlines, textMap]);
 
+  const homeOrder: string[] = useMemo(() => {
+    const o: string[] = (layout.home?.order || []).filter((id: string) => HOME_BLOCKS.some(([b]) => b === id));
+
+    return [...o, ...HOME_BLOCKS.map(([id]) => id).filter((id) => !o.includes(id))];
+  }, [layout]);
+  const homeHidden: string[] = layout.home?.hidden || [];
+  const setHome = (order: string[], hidden: string[]) => { setLayout((l: Json) => ({ ...l, home: { order, hidden } })); setDirty(true); };
+  const move = (id: string, d: number) => {
+    const i = homeOrder.indexOf(id);
+    const j = i + d;
+
+    if (j < 0 || j >= homeOrder.length) return;
+    const next = [...homeOrder];
+
+    [next[i], next[j]] = [next[j], next[i]];
+    setHome(next, homeHidden);
+  };
   const activePalette = useMemo(() => PALETTES.find((p) => Object.entries(p.values).every(([k, v]) => (appearance?.[k] || "") === v))?.id, [appearance]);
 
   const save = async () => {
@@ -188,7 +209,7 @@ export function DesignStudio() {
     try {
       const { data: latest } = await sb.from("site_settings").select("content").eq("id", CONFIG_ID).maybeSingle();
       const base = (latest?.content as Record<string, Json>) || {};
-      const next: Record<string, Json> = { ...base, appearance: { ...(base.appearance || {}), ...appearance }, hero: { ...((defaults as any).hero), ...(base.hero || {}), ...(sections.hero || {}), mediaType: hero.mediaType, mediaUrl: hero.mediaUrl, mediaPoster: hero.mediaPoster, mediaDim: hero.mediaDim }, copy, policies, textMap };
+      const next: Record<string, Json> = { ...base, appearance: { ...(base.appearance || {}), ...appearance }, hero: { ...((defaults as any).hero), ...(base.hero || {}), ...(sections.hero || {}), mediaType: hero.mediaType, mediaUrl: hero.mediaUrl, mediaPoster: hero.mediaPoster, mediaDim: hero.mediaDim }, copy, policies, textMap, layout };
       Object.entries(sections).forEach(([name, v]) => { if (name !== "hero") next[name] = v; });
       const { error } = await sb.from("site_settings").upsert({ id: CONFIG_ID, content: next, updated_at: new Date().toISOString() });
 
@@ -251,6 +272,20 @@ export function DesignStudio() {
           {media === "video" && <div className="nv-uprow"><Input label="Poster image URL (shown while loading)" placeholder="https://…" value={hero.mediaPoster || ""} onChange={(e) => setH({ mediaPoster: e.target.value })} /><UploadButton kind="image" onUploaded={(u) => setH({ mediaPoster: u })} /></div>}
           {media !== "none" && <Input description="Higher is more readable text over the media." label="Overlay strength (0–100)" max={100} min={0} type="number" value={hero.mediaDim ?? 55} onChange={(e) => setH({ mediaDim: Math.max(0, Math.min(100, Number(e.target.value))) })} />}
           <div className="nv-uprow"><Input label="Logo image URL" placeholder="https://…" value={appearance.logoUrl || ""} onChange={(e) => setA({ logoUrl: e.target.value, logoType: e.target.value ? "image" : appearance.logoType })} /><UploadButton kind="image" onUploaded={(u) => setA({ logoUrl: u, logoType: "image" })} /></div>
+        </section>
+
+        <section className="nv-stack">
+          <strong>Homepage layout</strong>
+          <p className="nv-muted" style={{ margin: 0, fontSize: 13 }}>Reorder the homepage sections or hide the ones you don't want. The preview updates as you go.</p>
+          {homeOrder.map((id, i) => (
+            <div key={id} className="nv-row" style={{ opacity: homeHidden.includes(id) ? 0.55 : 1 }}>
+              <div className="nv-row-main"><strong>{HOME_BLOCKS.find(([b]) => b === id)?.[1]}</strong></div>
+              <Button aria-label={`Move ${id} up`} disabled={i === 0} size="sm" variant="ghost" onClick={() => move(id, -1)}><ArrowUp size={14} aria-hidden="true" /></Button>
+              <Button aria-label={`Move ${id} down`} disabled={i === homeOrder.length - 1} size="sm" variant="ghost" onClick={() => move(id, 1)}><ArrowDown size={14} aria-hidden="true" /></Button>
+              <Switch aria-label={`Show ${id}`} checked={!homeHidden.includes(id)} onCheckedChange={(v: boolean) => setHome(homeOrder, v ? homeHidden.filter((h) => h !== id) : [...homeHidden, id])} />
+            </div>
+          ))}
+          {(layout.home?.order?.length || homeHidden.length) ? <div><Button size="sm" variant="ghost" onClick={() => { setLayout((l: Json) => ({ ...l, home: undefined })); setDirty(true); }}>Restore default layout</Button></div> : null}
         </section>
 
         <section className="nv-stack">
