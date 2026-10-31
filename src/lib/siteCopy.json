@@ -273,6 +273,265 @@
     "long": false
   },
   {
+    "key": "nav.home",
+    "group": "Menu",
+    "label": "Home link",
+    "text": "Home",
+    "long": false
+  },
+  {
+    "key": "nav.home.hint",
+    "group": "Menu",
+    "label": "Home hint",
+    "text": "Start here",
+    "long": false
+  },
+  {
+    "key": "nav.shop",
+    "group": "Menu",
+    "label": "Shop link",
+    "text": "Shop",
+    "long": false
+  },
+  {
+    "key": "nav.shop.hint",
+    "group": "Menu",
+    "label": "Shop hint",
+    "text": "Chargers, cases and more",
+    "long": false
+  },
+  {
+    "key": "nav.repairs",
+    "group": "Menu",
+    "label": "Repairs link",
+    "text": "Repairs",
+    "long": false
+  },
+  {
+    "key": "nav.repairs.hint",
+    "group": "Menu",
+    "label": "Repairs hint",
+    "text": "Screens, batteries, water damage",
+    "long": false
+  },
+  {
+    "key": "nav.protection",
+    "group": "Menu",
+    "label": "Protection link",
+    "text": "Protection",
+    "long": false
+  },
+  {
+    "key": "nav.protection.hint",
+    "group": "Menu",
+    "label": "Protection hint",
+    "text": "Plans from $5 a month",
+    "long": false
+  },
+  {
+    "key": "nav.about",
+    "group": "Menu",
+    "label": "About link",
+    "text": "About",
+    "long": false
+  },
+  {
+    "key": "nav.about.hint",
+    "group": "Menu",
+    "label": "About hint",
+    "text": "Our story and shop",
+    "long": false
+  },
+  {
+    "key": "footer.link.shop.all",
+    "group": "Footer",
+    "label": "Link: All products",
+    "text": "All products",
+    "long": false
+  },
+  {
+    "key": "footer.link.shop.chargers",
+    "group": "Footer",
+    "label": "Link: Chargers",
+    "text": "Chargers",
+    "long": false
+  },
+  {
+    "key": "footer.link.shop.cases",
+    "group": "Footer",
+    "label": "Link: Cases",
+    "text": "Cases",
+    "long": false
+  },
+  {
+    "key": "footer.link.shop.screen",
+    "group": "Footer",
+    "label": "Link: Screen protectors",
+    "text": "Screen protectors",
+    "long": false
+  },
+  {
+    "key": "footer.link.shop.cables",
+    "group": "Footer",
+    "label": "Link: Cables",
+    "text": "Cables",
+    "long": false
+  },
+  {
+    "key": "footer.link.rep.all",
+    "group": "Footer",
+    "label": "Link: All services",
+    "text": "All services",
+    "long": false
+  },
+  {
+    "key": "footer.link.rep.screen",
+    "group": "Footer",
+    "label": "Link: Screen repair",
+    "text": "Screen repair",
+    "long": false
+  },
+  {
+    "key": "footer.link.rep.battery",
+    "group": "Footer",
+    "label": "Link: Battery replacement",
+    "text": "Battery replacement",
+    "long": false
+  },
+  {
+    "key": "footer.link.rep.water",
+    "group": "Footer",
+    "label": "Link: Water damage",
+    "text": "Water damage",
+    "long": false
+  },
+  {
+    "key": "footer.link.rep.protect",
+    "group": "Footer",
+    "label": "Link: Device protection",
+    "text": "Device protection",
+    "long": false
+  },
+  {
+    "key": "footer.link.pol.shipping",
+    "group": "Footer",
+    "label": "Link: Shipping",
+    "text": "Shipping",
+    "long": false
+  },
+  {
+    "key": "footer.link.pol.returns",
+    "group": "Footer",
+    "label": "Link: Returns and exchanges",
+    "text": "Returns and exchanges",
+    "long": false
+  },
+  {
+    "key": "footer.link.pol.refunds",
+    "group": "Footer",
+    "label": "Link: Refunds",
+    "text": "Refunds",
+    "long": false
+  },
+  {
+    "key": "footer.link.pol.privacy",
+    "group": "Footer",
+    "label": "Link: Privacy",
+    "text": "Privacy",
+    "long": false
+  },
+  {
+    "key": "wizard.title",
+    "group": "Booking form",
+    "label": "Form title",
+    "text": "Book a repair",
+    "long": false
+  },
+  {
+    "key": "wizard.back",
+    "group": "Booking form",
+    "label": "Back button",
+    "text": "Back",
+    "long": false
+  },
+  {
+    "key": "wizard.continue",
+    "group": "Booking form",
+    "label": "Continue button",
+    "text": "Continue",
+    "long": false
+  },
+  {
+    "key": "wizard.confirm",
+    "group": "Booking form",
+    "label": "Confirm button",
+    "text": "Confirm booking",
+    "long": false
+  },
+  {
+    "key": "wizard.done",
+    "group": "Booking form",
+    "label": "Done button",
+    "text": "Done",
+    "long": false
+  },
+  {
+    "key": "wizard.another",
+    "group": "Booking form",
+    "label": "Book another button",
+    "text": "Book another repair",
+    "long": false
+  },
+  {
+    "key": "wizard.after",
+    "group": "Booking form",
+    "label": "Message after booking",
+    "text": "We'll confirm by phone or email within 2 hours during business hours.",
+    "long": true
+  },
+  {
+    "key": "wizard.step.device",
+    "group": "Booking form",
+    "label": "Step: Device",
+    "text": "Device",
+    "long": false
+  },
+  {
+    "key": "wizard.step.repair",
+    "group": "Booking form",
+    "label": "Step: Repair",
+    "text": "Repair",
+    "long": false
+  },
+  {
+    "key": "wizard.step.schedule",
+    "group": "Booking form",
+    "label": "Step: Schedule",
+    "text": "Schedule",
+    "long": false
+  },
+  {
+    "key": "wizard.step.address",
+    "group": "Booking form",
+    "label": "Step: Address",
+    "text": "Address",
+    "long": false
+  },
+  {
+    "key": "wizard.step.contact",
+    "group": "Booking form",
+    "label": "Step: Contact",
+    "text": "Contact",
+    "long": false
+  },
+  {
+    "key": "wizard.step.confirm",
+    "group": "Booking form",
+    "label": "Step: Confirm",
+    "text": "Confirm",
+    "long": false
+  },
+  {
     "key": "protection.kicker",
     "group": "Protection page",
     "label": "Top badge",
