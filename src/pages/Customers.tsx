@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Mail, Pencil, Plus, Ticket as TicketIcon } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Mail, Pencil, Plus, Receipt, Ticket as TicketIcon } from "lucide-react";
 
 import { Avatar } from "@/components/arc/avatar/avatar";
 import { Badge } from "@/components/arc/badge/badge";
@@ -9,8 +9,10 @@ import { Drawer, DrawerContent } from "@/components/arc/drawer/drawer";
 import { EmptyState } from "@/components/arc/empty-state/empty-state";
 import { MetricCard } from "@/components/arc/metric-card/metric-card";
 import { SearchField } from "@/components/arc/search-field/search-field";
+import { CustomerRegisterActivity } from "@/components/app/CustomerRegisterActivity";
 import { CustomerWebActivity } from "@/components/app/CustomerWebActivity";
 import { CustomerEditDialog } from "@/components/app/CustomerEditDialog";
+import { TicketDetailDialog } from "@/components/app/TicketDetailDialog";
 import { NewTicketDialog } from "@/components/app/NewTicketDialog";
 import { PageHead } from "@/components/app/PageHead";
 import { StatCard } from "@/components/app/StatCard";
@@ -28,7 +30,9 @@ export default function Customers() {
   const [selected, setSelected] = useState<Customer | null>(null);
   const [editing, setEditing] = useState<Customer | null | undefined>(undefined);
   const [ticketFor, setTicketFor] = useState<number | null>(null);
+  const [detail, setDetail] = useState<number | null>(null);
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const id = Number(params.get("highlight"));
@@ -112,18 +116,20 @@ export default function Customers() {
               <div className="nv-actions">
                 <Button size="sm" onClick={() => contact(sel)} disabled={!sel.email && !sel.phone}><Mail size={14} />Contact</Button>
                 <Button size="sm" variant="secondary" onClick={() => { setTicketFor(sel.id); }}><TicketIcon size={14} />New ticket</Button>
+                <Button size="sm" variant="secondary" onClick={() => navigate(`/pos?customer=${sel.id}`)}><Receipt size={14} />Start a sale</Button>
                 <Button size="sm" variant="secondary" onClick={() => setEditing(sel)}><Pencil size={14} />Edit</Button>
               </div>
               <div>
                 <h2 style={{ fontSize: 15, fontWeight: 500, margin: "0 0 8px" }}>Tickets ({selTickets.length})</h2>
                 {selTickets.length === 0 ? <p className="nv-muted">No tickets yet.</p> : selTickets.slice(0, 10).map((t) => (
-                  <div key={t.id} className="nv-row">
+                  <div key={t.id} className="nv-row" style={{ cursor: "pointer" }} onClick={() => setDetail(t.id)}>
                     <div className="nv-row-main"><strong>#{t.id} · {t.device} {t.deviceModel}</strong><span>{t.issue}</span></div>
                     <Badge tone={statusTone(t.status)}>{t.status}</Badge>
                     <span>{formatCurrency(t.price, cur)}</span>
                   </div>
                 ))}
               </div>
+              <CustomerRegisterActivity customerId={sel.id} cur={cur} onNavigate={() => setSelected(null)} />
               <CustomerWebActivity cur={cur} email={sel.email || ""} />
             </div>
           )}
@@ -131,6 +137,7 @@ export default function Customers() {
       </Drawer>
 
       <CustomerEditDialog open={editing !== undefined} onOpenChange={(o) => !o && setEditing(undefined)} customer={editing ?? null} onDeleted={() => setSelected(null)} />
+      <TicketDetailDialog ticketId={detail} onClose={() => setDetail(null)} />
       <NewTicketDialog open={ticketFor !== null} onOpenChange={(o) => !o && setTicketFor(null)} presetCustomerId={ticketFor} />
     </>
   );

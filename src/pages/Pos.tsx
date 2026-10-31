@@ -181,6 +181,10 @@ export default function Pos() {
     if (bootstrapped.current) return;
     bootstrapped.current = true;
 
+    const cid = Number(params.get("customer"));
+
+    if (cid) { setCustomerId(cid); params.delete("customer"); setParams(params, { replace: true }); }
+
     const tid = Number(params.get("ticketId") || params.get("ticket"));
 
     if (tid) {
@@ -403,9 +407,9 @@ export default function Pos() {
             const past = tickets.filter((t: any) => t.customerId === customerId).length;
 
             return (
-              <div className="nv-muted" style={{ fontSize: 13 }}>
-                {past} past ticket{past === 1 ? "" : "s"}{open.length ? ` · ${open.length} open` : ""}
-                {open.slice(0, 3).map((t: any) => <Button key={t.id} size="sm" variant="ghost" onClick={() => collectTicket(t)}>Collect #{t.id} · {t.device}</Button>)}
+              <div className="nv-stack nv-muted" style={{ fontSize: 13, gap: 8 }}>
+                <span>{past} past ticket{past === 1 ? "" : "s"}{open.length ? ` · ${open.length} open` : ""}</span>
+                {open.slice(0, 3).map((t: any) => <Button key={t.id} size="sm" variant="secondary" style={{ justifyContent: "flex-start" }} onClick={() => collectTicket(t)}>Collect #{t.id} · {t.device}</Button>)}
               </div>
             );
           })()}
