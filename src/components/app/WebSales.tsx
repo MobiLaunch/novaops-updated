@@ -65,7 +65,7 @@ export function WebSales() {
   const maxRev = Math.max(...report.top.map((p) => p.revenue), 1);
 
   return (
-    <div style={{ display: "grid", gap: 16 }}>
+    <div style={{ display: "grid", gap: 16, gridTemplateColumns: "minmax(0, 1fr)" }}>
       <div className="nv-actions" style={{ justifyContent: "space-between" }}>
         <SegmentedControl label="Period" value={days} onValueChange={setDays} options={[{ value: "7", label: "7 days" }, { value: "30", label: "30 days" }, { value: "90", label: "90 days" }]} />
         <Button variant="secondary" onClick={() => void load()}><RefreshCw size={14} aria-hidden="true" />Refresh</Button>

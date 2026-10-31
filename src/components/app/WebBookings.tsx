@@ -63,7 +63,7 @@ export function WebBookings() {
   const pending = rows.filter((r) => r.status === "pending").length;
 
   return (
-    <div style={{ display: "grid", gap: 16 }}>
+    <div style={{ display: "grid", gap: 16, gridTemplateColumns: "minmax(0, 1fr)" }}>
       <div className="nv-actions" style={{ justifyContent: "space-between" }}>
         <span className="nv-actions" style={{ gap: 8 }}>
           <Button size="sm" variant={show === "open" ? "primary" : "secondary"} onClick={() => setShow("open")}>Upcoming{pending ? ` (${pending} to confirm)` : ""}</Button>

@@ -203,7 +203,7 @@ export function AppShell() {
         <OfflineBanner />
         <header className="nv-top">
           <span className="nv-mobile-only nv-brand"><span className="nv-brand-mark">N</span></span>
-          <Button variant="secondary" size="sm" onClick={() => setPalette(true)}><Command size={14} /><span className="nv-hide-mobile">Search</span><span className="nv-muted nv-hide-mobile">⌘K</span></Button>
+          <Button variant="secondary" size="sm" className="nv-hide-mobile" onClick={() => setPalette(true)}><Command size={14} /><span className="nv-hide-mobile">Search</span><span className="nv-muted nv-hide-mobile">⌘K</span></Button>
           <Button variant="secondary" size="sm" aria-label="Scan an item" onClick={() => { setScanCode(""); setScanOpen(true); }}><ScanLine size={14} /><span className="nv-hide-mobile">Scan</span></Button>
           <div className="nv-top-spacer" />
           <DropdownMenu
@@ -218,7 +218,7 @@ export function AppShell() {
           />
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm" aria-label={`Upcoming, ${upcoming.length}`}><CalendarDays size={16} />{upcoming.length > 0 && <span>{upcoming.length}</span>}</Button>
+              <Button variant="ghost" size="sm" className="nv-hide-mobile" aria-label={`Upcoming, ${upcoming.length}`}><CalendarDays size={16} />{upcoming.length > 0 && <span>{upcoming.length}</span>}</Button>
             </PopoverTrigger>
             <PopoverContent align="end">
               <div className="nv-stack" style={{ minWidth: 260 }}>
@@ -234,7 +234,7 @@ export function AppShell() {
           </Popover>
           <NotificationsButton />
           <ThemeSwitch theme={theme} onThemeChange={setTheme} iconOnly label="Theme" />
-          <Avatar name={email || name} size="sm" src={(() => { try { return localStorage.getItem("novaops_account_avatar") || undefined; } catch { return undefined; } })()} />
+          <Avatar className="nv-hide-mobile" name={email || name} size="sm" src={(() => { try { return localStorage.getItem("novaops_account_avatar") || undefined; } catch { return undefined; } })()} />
         </header>
         <main className="nv-content" key={pathname}><Outlet /></main>
       </div>
