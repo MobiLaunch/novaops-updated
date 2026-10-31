@@ -10,6 +10,7 @@ import { Textarea } from "@/components/arc/textarea/textarea";
 import { UploadButton } from "@/components/app/UploadButton";
 import { PagesEditor, type PageDef } from "@/components/app/PagesEditor";
 import copyRegistry from "@/lib/siteCopy.json";
+import faqDefaults from "@/lib/siteFaqs.json";
 import { toast } from "@/hooks/useToast";
 import defaults from "@/lib/siteDefaults.json";
 import { loadShopConfig } from "@/lib/shopConfig";
@@ -46,6 +47,12 @@ const setIn = (o: Json, path: string[], v: Json): Json => {
 const HOME_BLOCKS: [string, string][] = [["hero", "Banner and trust bar"], ["services", "Repair services"], ["how", "How it works"], ["featured", "Best sellers"], ["protect", "Protection promo"], ["cta", "Bottom banner"]];
 const META_PAGES: [string, string][] = [["/", "Home"], ["/shop", "Shop"], ["/repairs", "Repairs"], ["/protection", "Protection"], ["/about", "About"], ["/repair-status", "Repair status"], ["/shipping", "Shipping policy"], ["/returns", "Returns policy"], ["/refunds", "Refund policy"], ["/privacy", "Privacy policy"], ["/login", "Sign in"], ["/signup", "Sign up"]];
 const MENU_ITEMS: [string, string][] = [["/", "Home"], ["/shop", "Shop"], ["/repairs", "Repairs"], ["/protection", "Protection"], ["/about", "About"]];
+const PAGE_SECTIONS: { path: string; label: string; items: [string, string][] }[] = [
+  { path: "/about", label: "About page", items: [["values", "Why choose us cards"], ["story", "Our story and contact"], ["popular", "Popular repairs"]] },
+  { path: "/repairs", label: "Repairs page", items: [["faq", "Questions"]] },
+  { path: "/protection", label: "Protection page", items: [["plans", "Plans"], ["coverage", "What's covered"], ["compare", "How it compares"], ["faq", "Questions"]] },
+];
+const FAQ_PAGES: [string, string][] = [["repairs", "Repairs page"], ["protection", "Protection page"]];
 const seg = (items: [string, string][]) => items.map(([value, label]) => ({ value, label }));
 
 function Color({ name, label, value, onChange }: { name: string; label: string; value: string; onChange: (v: string) => void }) {
@@ -82,6 +89,8 @@ export function DesignStudio() {
   const [announcement, setAnnouncement] = useState<Json>({ enabled: false, text: "", link: "", linkLabel: "", tone: "brand" });
   const [pages, setPages] = useState<PageDef[]>([]);
   const [meta, setMeta] = useState<Record<string, Json>>({});
+  const [faqs, setFaqs] = useState<Record<string, Array<{ q: string; a: string }>>>({});
+  const [faqPage, setFaqPage] = useState("repairs");
   const [menu, setMenu] = useState<Json>({});
   const [mode, setMode] = useState("edit");
   const frame = useRef<HTMLIFrameElement>(null);
@@ -104,6 +113,7 @@ export function DesignStudio() {
     setAnnouncement({ enabled: false, text: "", link: "", linkLabel: "", tone: "brand", ...(content.announcement || {}) });
     setPages(content.pages || []);
     setMeta(content.meta || {});
+    setFaqs(content.faqs || {});
     setMenu(content.menu || {});
     setLoading(false);
   }, []);
@@ -112,8 +122,8 @@ export function DesignStudio() {
 
   const send = useCallback(() => {
     if (!site || !frame.current?.contentWindow || !appearance) return;
-    frame.current.contentWindow.postMessage({ source: "novaops-design", appearance, copy, policies, textMap, layout, announcement, pages, meta, menu, mode, sections, hero: { ...(sections.hero || {}), mediaType: hero?.mediaType, mediaUrl: hero?.mediaUrl, mediaPoster: hero?.mediaPoster, mediaDim: hero?.mediaDim } }, site);
-  }, [site, appearance, hero, copy, policies, textMap, layout, announcement, pages, meta, menu, mode, sections]);
+    frame.current.contentWindow.postMessage({ source: "novaops-design", appearance, copy, policies, textMap, layout, announcement, pages, meta, menu, faqs, mode, sections, hero: { ...(sections.hero || {}), mediaType: hero?.mediaType, mediaUrl: hero?.mediaUrl, mediaPoster: hero?.mediaPoster, mediaDim: hero?.mediaDim } }, site);
+  }, [site, appearance, hero, copy, policies, textMap, layout, announcement, pages, meta, menu, faqs, mode, sections]);
 
   // Push the draft to the preview on every change, and again shortly after load (the page fetches its saved design first).
   useEffect(() => {
@@ -242,6 +252,16 @@ export function DesignStudio() {
     [next[i], next[j]] = [next[j], next[i]];
     setMenuState(next, menuHidden);
   };
+  const pageHidden = (path: string): string[] => layout.pages?.[path]?.hidden || [];
+  const setPageHidden = (path: string, id: string, show: boolean) => {
+    const cur = pageHidden(path);
+    const hidden = show ? cur.filter((x) => x !== id) : [...cur, id];
+
+    setLayout((l: Json) => ({ ...l, pages: { ...(l.pages || {}), [path]: { hidden } } }));
+    setDirty(true);
+  };
+  const faqList = (page: string) => faqs[page] ?? (faqDefaults as any)[page] ?? [];
+  const setFaqList = (page: string, list: Array<{ q: string; a: string }>) => { setFaqs((f) => ({ ...f, [page]: list })); setDirty(true); };
   const setMetaField = (path: string, field: "title" | "description", v: string) => { setMeta((m) => ({ ...m, [path]: { ...(m[path] || {}), [field]: v } })); setDirty(true); };
   const activePalette = useMemo(() => PALETTES.find((p) => Object.entries(p.values).every(([k, v]) => (appearance?.[k] || "") === v))?.id, [appearance]);
 
@@ -253,7 +273,7 @@ export function DesignStudio() {
     try {
       const { data: latest } = await sb.from("site_settings").select("content").eq("id", CONFIG_ID).maybeSingle();
       const base = (latest?.content as Record<string, Json>) || {};
-      const next: Record<string, Json> = { ...base, appearance: { ...(base.appearance || {}), ...appearance }, hero: { ...((defaults as any).hero), ...(base.hero || {}), ...(sections.hero || {}), mediaType: hero.mediaType, mediaUrl: hero.mediaUrl, mediaPoster: hero.mediaPoster, mediaDim: hero.mediaDim }, copy, policies, textMap, layout, announcement, pages, meta, menu };
+      const next: Record<string, Json> = { ...base, appearance: { ...(base.appearance || {}), ...appearance }, hero: { ...((defaults as any).hero), ...(base.hero || {}), ...(sections.hero || {}), mediaType: hero.mediaType, mediaUrl: hero.mediaUrl, mediaPoster: hero.mediaPoster, mediaDim: hero.mediaDim }, copy, policies, textMap, layout, announcement, pages, meta, menu, faqs };
       Object.entries(sections).forEach(([name, v]) => { if (name !== "hero") next[name] = v; });
       const { error } = await sb.from("site_settings").upsert({ id: CONFIG_ID, content: next, updated_at: new Date().toISOString() });
 
@@ -346,6 +366,38 @@ export function DesignStudio() {
             </div>
           ))}
           {(layout.home?.order?.length || homeHidden.length) ? <div><Button size="sm" variant="ghost" onClick={() => { setLayout((l: Json) => ({ ...l, home: undefined })); setDirty(true); }}>Restore default layout</Button></div> : null}
+        </section>
+
+        <section className="nv-stack">
+          <strong>Show or hide page sections</strong>
+          {PAGE_SECTIONS.map((pg) => (
+            <div key={pg.path} className="nv-stack">
+              <span className="nv-muted" style={{ fontSize: 13 }}>{pg.label}</span>
+              {pg.items.map(([id, name]) => (
+                <div key={id} className="nv-row"><div className="nv-row-main"><strong>{name}</strong></div><Switch aria-label={`Show ${name} on ${pg.label}`} checked={!pageHidden(pg.path).includes(id)} onCheckedChange={(v: boolean) => setPageHidden(pg.path, id, v)} /></div>
+              ))}
+            </div>
+          ))}
+        </section>
+
+        <section className="nv-stack">
+          <strong>Questions and answers (FAQ)</strong>
+          <Select label="Page" value={faqPage} onValueChange={setFaqPage} options={FAQ_PAGES.map(([value, label]) => ({ value, label }))} />
+          {faqList(faqPage).map((f: { q: string; a: string }, i: number) => (
+            <div key={i} className="nv-panel nv-stack">
+              <Input label="Question" value={f.q} onChange={(e) => setFaqList(faqPage, faqList(faqPage).map((x: any, j: number) => (j === i ? { ...x, q: e.target.value } : x)))} />
+              <Textarea label="Answer" rows={3} value={f.a} onChange={(e) => setFaqList(faqPage, faqList(faqPage).map((x: any, j: number) => (j === i ? { ...x, a: e.target.value } : x)))} />
+              <div className="nv-actions">
+                <Button aria-label="Move question up" disabled={i === 0} size="sm" variant="ghost" onClick={() => { const n = [...faqList(faqPage)]; [n[i - 1], n[i]] = [n[i], n[i - 1]]; setFaqList(faqPage, n); }}><ArrowUp size={14} aria-hidden="true" /></Button>
+                <Button aria-label="Move question down" disabled={i === faqList(faqPage).length - 1} size="sm" variant="ghost" onClick={() => { const n = [...faqList(faqPage)]; [n[i + 1], n[i]] = [n[i], n[i + 1]]; setFaqList(faqPage, n); }}><ArrowDown size={14} aria-hidden="true" /></Button>
+                <Button aria-label="Remove question" size="sm" variant="ghost" onClick={() => setFaqList(faqPage, faqList(faqPage).filter((_: any, j: number) => j !== i))}>Remove</Button>
+              </div>
+            </div>
+          ))}
+          <div className="nv-actions">
+            <Button size="sm" variant="secondary" onClick={() => setFaqList(faqPage, [...faqList(faqPage), { q: "New question", a: "Answer" }])}>Add a question</Button>
+            {faqs[faqPage] && <Button size="sm" variant="ghost" onClick={() => { setFaqs((f) => { const n = { ...f }; delete n[faqPage]; return n; }); setDirty(true); }}>Restore original questions</Button>}
+          </div>
         </section>
 
         <section className="nv-stack">

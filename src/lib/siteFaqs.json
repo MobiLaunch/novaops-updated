@@ -1,0 +1,54 @@
+{
+  "repairs": [
+    {
+      "q": "How long do repairs take?",
+      "a": "Most screen and battery replacements are completed same-day, typically within 1–2 hours. Water damage recovery or data extraction can take 24–48 hours."
+    },
+    {
+      "q": "Do you offer a warranty on repairs?",
+      "a": "Yes — every part we install is backed by a 90-day warranty. If that part fails within 90 days, we'll replace it at no charge. Labor for unrelated issues isn't covered."
+    },
+    {
+      "q": "Do you fix all phone brands?",
+      "a": "We repair iPhones, Samsung Galaxy, Google Pixel, Motorola, LG, OnePlus, as well as iPads and Android tablets."
+    },
+    {
+      "q": "Is there a diagnostic fee?",
+      "a": "Yes, a flat $35 bench fee covers a full diagnostic on any device. We'll give you a clear, no-obligation quote before starting any work."
+    },
+    {
+      "q": "Do you offer refunds?",
+      "a": "We don't offer refunds. Every part we install is covered by a 90-day parts warranty — if the part fails, we replace it at no charge. Labor and the bench fee are non-refundable. See our Refund policy for details."
+    },
+    {
+      "q": "Do I need an appointment?",
+      "a": "Walk-ins are always welcome! However, booking ahead reserves your parts and guarantees immediate service when you arrive."
+    }
+  ],
+  "protection": [
+    {
+      "q": "Can I protect older, used, or unlocked phones?",
+      "a": "Yes! Unlike AppleCare or carrier insurance that must be purchased within 30–60 days of buying a brand new phone, AKKO covers new, used, refurbished, and unlocked phones regardless of when you bought them."
+    },
+    {
+      "q": "How does theft coverage work?",
+      "a": "Theft coverage is fully included in AKKO plans. To maintain theft eligibility, you simply need to download the AKKO app and ensure location services are enabled on your covered device."
+    },
+    {
+      "q": "How do repairs work at Mobicare?",
+      "a": "When your phone breaks, file a quick 60-second claim on the AKKO app. Select Mobicare Device Recovery as your authorized service provider. Bring your device to our Fairfield shop (or book a home visit), and AKKO pays us directly for the repair while you only pay your low deductible ($29–$99)."
+    },
+    {
+      "q": "What devices can I add to the 'Everything Protected' plan?",
+      "a": "You can cover 1 phone plus up to 25 other personal electronics: laptops, tablets, iPads, smartwatches, AirPods, headphones, TVs, gaming consoles, cameras, lenses, and e-readers."
+    },
+    {
+      "q": "Is there a long-term contract?",
+      "a": "No. All AKKO plans are month-to-month subscriptions. You can upgrade, downgrade, or cancel at any time with no penalties."
+    },
+    {
+      "q": "How do I sign up?",
+      "a": "You can sign up online in under 2 minutes through our partner portal or ask our technicians at Mobicare during your next repair visit."
+    }
+  ]
+}
