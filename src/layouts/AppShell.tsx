@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { BarChart3, BookOpen, CalendarDays, Command, ScanLine, Ellipsis, LayoutDashboard, Globe, LogOut, MessageSquare, Package, Plus, Receipt, Settings, Users, Wrench } from "lucide-react";
 
 import { Drawer, DrawerContent } from "@/components/arc/drawer/drawer";
 import { Avatar } from "@/components/arc/avatar/avatar";
 import { Button } from "@/components/arc/button/button";
+import { Skeleton } from "@/components/arc/skeleton/skeleton";
 import { Dialog, DialogContent } from "@/components/arc/dialog/dialog";
 import { CommandPalette } from "@/components/arc/command-palette/command-palette";
 import { DropdownMenu } from "@/components/arc/dropdown-menu/dropdown-menu";
@@ -78,6 +79,9 @@ export function AppShell() {
 
   // A handheld scanner types the code very fast and ends with Enter. On any page except the register
   // (which handles it itself), open the scan dialog with the result.
+  // The More sheet closes on every route change, even if a tap on its link didn't reach onClick.
+  useEffect(() => { setMore(false); }, [pathname]);
+
   useEffect(() => {
     if (isStaff && STAFF_BLOCKED.some((p) => pathname.startsWith(p))) navigate("/dashboard", { replace: true });
   }, [isStaff, pathname, navigate]);
@@ -202,7 +206,6 @@ export function AppShell() {
       <div className="nv-main">
         <OfflineBanner />
         <header className="nv-top">
-          <span className="nv-mobile-only nv-brand"><span className="nv-brand-mark">N</span></span>
           <Button variant="secondary" size="sm" className="nv-hide-mobile" onClick={() => setPalette(true)}><Command size={14} /><span className="nv-hide-mobile">Search</span><span className="nv-muted nv-hide-mobile">⌘K</span></Button>
           <Button variant="secondary" size="sm" aria-label="Scan an item" onClick={() => { setScanCode(""); setScanOpen(true); }}><ScanLine size={14} /><span className="nv-hide-mobile">Scan</span></Button>
           <div className="nv-top-spacer" />
@@ -236,7 +239,7 @@ export function AppShell() {
           <ThemeSwitch theme={theme} onThemeChange={setTheme} iconOnly label="Theme" />
           <Avatar className="nv-hide-mobile" name={email || name} size="sm" src={(() => { try { return localStorage.getItem("novaops_account_avatar") || undefined; } catch { return undefined; } })()} />
         </header>
-        <main className="nv-content" key={pathname}><Outlet /></main>
+        <main className="nv-content" key={pathname}><Suspense fallback={<div className="nv-center" aria-busy="true"><Skeleton lines={4} /></div>}><Outlet /></Suspense></main>
       </div>
 
       <nav className="nv-tabbar" aria-label="Primary">
@@ -248,11 +251,13 @@ export function AppShell() {
 
       <Drawer open={more} onOpenChange={setMore}>
         <DrawerContent side="bottom" title="More" description={businessName || "NovaOps"}>
-          <div className="nv-stack">
-            {[byTo("/customers"), byTo("/inventory"), byTo("/website"), byTo("/analytics"), byTo("/library"), byTo("/tools")].map((n) => (
-              <NavLink key={n.to} to={n.to} className="nv-link" onClick={() => setMore(false)}><n.icon size={17} />{n.label}</NavLink>
-            ))}
-            <NavLink to="/settings" className="nv-link" onClick={() => setMore(false)}><Settings size={17} />Settings</NavLink>
+          <div className="nv-stack nv-more">
+            <div className="nv-more-grid">
+              {[byTo("/customers"), byTo("/inventory"), byTo("/website"), byTo("/analytics"), byTo("/library"), byTo("/tools")].filter((n) => !isStaff || !STAFF_BLOCKED.includes(n.to)).map((n) => (
+                <NavLink key={n.to} to={n.to} className="nv-link" onClick={() => setMore(false)}><n.icon size={17} />{n.label}</NavLink>
+              ))}
+              {!isStaff && <NavLink to="/settings" className="nv-link" onClick={() => setMore(false)}><Settings size={17} />Settings</NavLink>}
+            </div>
             <div className="nv-actions" style={{ justifyContent: "space-between", padding: "4px 10px" }}>
               <span className="nv-muted">Appearance</span>
               <ThemeSwitch theme={theme} onThemeChange={setTheme} label="Theme" />
