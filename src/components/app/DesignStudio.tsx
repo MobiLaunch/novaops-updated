@@ -47,10 +47,10 @@ const setIn = (o: Json, path: string[], v: Json): Json => {
 const HOME_BLOCKS: [string, string][] = [["hero", "Banner and trust bar"], ["services", "Repair services"], ["how", "How it works"], ["featured", "Best sellers"], ["protect", "Protection promo"], ["cta", "Bottom banner"]];
 const META_PAGES: [string, string][] = [["/", "Home"], ["/shop", "Shop"], ["/repairs", "Repairs"], ["/protection", "Protection"], ["/about", "About"], ["/repair-status", "Repair status"], ["/shipping", "Shipping policy"], ["/returns", "Returns policy"], ["/refunds", "Refund policy"], ["/privacy", "Privacy policy"], ["/login", "Sign in"], ["/signup", "Sign up"]];
 const MENU_ITEMS: [string, string][] = [["/", "Home"], ["/shop", "Shop"], ["/repairs", "Repairs"], ["/protection", "Protection"], ["/about", "About"]];
-const PAGE_SECTIONS: { path: string; label: string; items: [string, string][] }[] = [
-  { path: "/about", label: "About page", items: [["values", "Why choose us cards"], ["story", "Our story and contact"], ["popular", "Popular repairs"]] },
+const PAGE_SECTIONS: { path: string; label: string; movable?: boolean; items: [string, string][] }[] = [
+  { path: "/about", label: "About page", movable: true, items: [["values", "Why choose us cards"], ["story", "Our story and contact"], ["popular", "Popular repairs"]] },
   { path: "/repairs", label: "Repairs page", items: [["faq", "Questions"]] },
-  { path: "/protection", label: "Protection page", items: [["plans", "Plans"], ["coverage", "What's covered"], ["compare", "How it compares"], ["faq", "Questions"]] },
+  { path: "/protection", label: "Protection page", movable: true, items: [["plans", "Plans"], ["coverage", "What's covered"], ["compare", "How it compares"], ["faq", "Questions"], ["cta", "Sign up banner"]] },
 ];
 const FAQ_PAGES: [string, string][] = [["repairs", "Repairs page"], ["protection", "Protection page"]];
 const seg = (items: [string, string][]) => items.map(([value, label]) => ({ value, label }));
@@ -257,7 +257,24 @@ export function DesignStudio() {
     const cur = pageHidden(path);
     const hidden = show ? cur.filter((x) => x !== id) : [...cur, id];
 
-    setLayout((l: Json) => ({ ...l, pages: { ...(l.pages || {}), [path]: { hidden } } }));
+    setLayout((l: Json) => ({ ...l, pages: { ...(l.pages || {}), [path]: { ...(l.pages?.[path] || {}), hidden } } }));
+    setDirty(true);
+  };
+  const pageOrder = (pg: { path: string; items: [string, string][] }): string[] => {
+    const o: string[] = (layout.pages?.[pg.path]?.order || []).filter((id: string) => pg.items.some(([i]) => i === id));
+
+    return [...o, ...pg.items.map(([i]) => i).filter((i) => !o.includes(i))];
+  };
+  const movePageSection = (pg: { path: string; items: [string, string][] }, id: string, d: number) => {
+    const cur = pageOrder(pg);
+    const i = cur.indexOf(id);
+    const j = i + d;
+
+    if (j < 0 || j >= cur.length) return;
+    const next = [...cur];
+
+    [next[i], next[j]] = [next[j], next[i]];
+    setLayout((l: Json) => ({ ...l, pages: { ...(l.pages || {}), [pg.path]: { ...(l.pages?.[pg.path] || {}), order: next } } }));
     setDirty(true);
   };
   const faqList = (page: string) => faqs[page] ?? (faqDefaults as any)[page] ?? [];
@@ -373,8 +390,10 @@ export function DesignStudio() {
           {PAGE_SECTIONS.map((pg) => (
             <div key={pg.path} className="nv-stack">
               <span className="nv-muted" style={{ fontSize: 13 }}>{pg.label}</span>
-              {pg.items.map(([id, name]) => (
-                <div key={id} className="nv-row"><div className="nv-row-main"><strong>{name}</strong></div><Switch aria-label={`Show ${name} on ${pg.label}`} checked={!pageHidden(pg.path).includes(id)} onCheckedChange={(v: boolean) => setPageHidden(pg.path, id, v)} /></div>
+              {(pg.movable ? pageOrder(pg).map((id) => pg.items.find(([i]) => i === id)!) : pg.items).map(([id, name], idx, arr) => (
+                <div key={id} className="nv-row"><div className="nv-row-main"><strong>{name}</strong></div>
+                  {pg.movable && <><Button aria-label={`Move ${name} up on ${pg.label}`} disabled={idx === 0} size="sm" variant="ghost" onClick={() => movePageSection(pg, id, -1)}><ArrowUp size={14} aria-hidden="true" /></Button><Button aria-label={`Move ${name} down on ${pg.label}`} disabled={idx === arr.length - 1} size="sm" variant="ghost" onClick={() => movePageSection(pg, id, 1)}><ArrowDown size={14} aria-hidden="true" /></Button></>}
+                  <Switch aria-label={`Show ${name} on ${pg.label}`} checked={!pageHidden(pg.path).includes(id)} onCheckedChange={(v: boolean) => setPageHidden(pg.path, id, v)} /></div>
               ))}
             </div>
           ))}
