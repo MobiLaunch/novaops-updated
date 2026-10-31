@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { BarChart3, BookOpen, CalendarDays, Command, ScanLine, Ellipsis, LayoutDashboard, Globe, LogOut, MessageSquare, Package, Plus, Receipt, Settings, Users, Wrench } from "lucide-react";
 
 import { Drawer, DrawerContent } from "@/components/arc/drawer/drawer";
 import { Avatar } from "@/components/arc/avatar/avatar";
 import { Button } from "@/components/arc/button/button";
+import { Skeleton } from "@/components/arc/skeleton/skeleton";
 import { Dialog, DialogContent } from "@/components/arc/dialog/dialog";
 import { CommandPalette } from "@/components/arc/command-palette/command-palette";
 import { DropdownMenu } from "@/components/arc/dropdown-menu/dropdown-menu";
@@ -78,6 +79,9 @@ export function AppShell() {
 
   // A handheld scanner types the code very fast and ends with Enter. On any page except the register
   // (which handles it itself), open the scan dialog with the result.
+  // The More sheet closes on every route change, even if a tap on its link didn't reach onClick.
+  useEffect(() => { setMore(false); }, [pathname]);
+
   useEffect(() => {
     if (isStaff && STAFF_BLOCKED.some((p) => pathname.startsWith(p))) navigate("/dashboard", { replace: true });
   }, [isStaff, pathname, navigate]);
@@ -235,7 +239,7 @@ export function AppShell() {
           <ThemeSwitch theme={theme} onThemeChange={setTheme} iconOnly label="Theme" />
           <Avatar className="nv-hide-mobile" name={email || name} size="sm" src={(() => { try { return localStorage.getItem("novaops_account_avatar") || undefined; } catch { return undefined; } })()} />
         </header>
-        <main className="nv-content" key={pathname}><Outlet /></main>
+        <main className="nv-content" key={pathname}><Suspense fallback={<div className="nv-center" aria-busy="true"><Skeleton lines={4} /></div>}><Outlet /></Suspense></main>
       </div>
 
       <nav className="nv-tabbar" aria-label="Primary">
