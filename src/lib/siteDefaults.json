@@ -298,5 +298,12 @@
       "id": "custom",
       "label": "Custom URL"
     }
-  ]
+  ],
+  "announcement": {
+    "enabled": false,
+    "text": "",
+    "link": "",
+    "linkLabel": "",
+    "tone": "brand"
+  }
 }

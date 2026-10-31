@@ -8,6 +8,7 @@ import { Switch } from "@/components/arc/switch/switch";
 import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
 import { Textarea } from "@/components/arc/textarea/textarea";
 import { UploadButton } from "@/components/app/UploadButton";
+import { PagesEditor, type PageDef } from "@/components/app/PagesEditor";
 import copyRegistry from "@/lib/siteCopy.json";
 import { toast } from "@/hooks/useToast";
 import defaults from "@/lib/siteDefaults.json";
@@ -76,6 +77,8 @@ export function DesignStudio() {
   const [outlines, setOutlines] = useState<Record<string, Json>>({});
   const [textMap, setTextMap] = useState<Record<string, string>>({});
   const [layout, setLayout] = useState<Json>({});
+  const [announcement, setAnnouncement] = useState<Json>({ enabled: false, text: "", link: "", linkLabel: "", tone: "brand" });
+  const [pages, setPages] = useState<PageDef[]>([]);
   const frame = useRef<HTMLIFrameElement>(null);
 
   const load = useCallback(async () => {
@@ -93,6 +96,8 @@ export function DesignStudio() {
     setPolicies(content.policies || {});
     setTextMap(content.textMap || {});
     setLayout(content.layout || {});
+    setAnnouncement({ enabled: false, text: "", link: "", linkLabel: "", tone: "brand", ...(content.announcement || {}) });
+    setPages(content.pages || []);
     setLoading(false);
   }, []);
 
@@ -100,8 +105,8 @@ export function DesignStudio() {
 
   const send = useCallback(() => {
     if (!site || !frame.current?.contentWindow || !appearance) return;
-    frame.current.contentWindow.postMessage({ source: "novaops-design", appearance, copy, policies, textMap, layout, sections, hero: { ...(sections.hero || {}), mediaType: hero?.mediaType, mediaUrl: hero?.mediaUrl, mediaPoster: hero?.mediaPoster, mediaDim: hero?.mediaDim } }, site);
-  }, [site, appearance, hero, copy, policies, textMap, layout, sections]);
+    frame.current.contentWindow.postMessage({ source: "novaops-design", appearance, copy, policies, textMap, layout, announcement, pages, sections, hero: { ...(sections.hero || {}), mediaType: hero?.mediaType, mediaUrl: hero?.mediaUrl, mediaPoster: hero?.mediaPoster, mediaDim: hero?.mediaDim } }, site);
+  }, [site, appearance, hero, copy, policies, textMap, layout, announcement, pages, sections]);
 
   // Push the draft to the preview on every change, and again shortly after load (the page fetches its saved design first).
   useEffect(() => {
@@ -136,6 +141,20 @@ export function DesignStudio() {
       const entry = COPY.find((c) => c.key === key);
 
       return entry ? { label: `${entry.group}: ${entry.label}`, value: copy[key] ?? entry.text, long: !!entry.long, set: (v: string) => setCopyKey(key, v), reset: copy[key] !== undefined ? () => { setCopy((c) => { const n = { ...c }; delete n[key]; return n; }); setDirty(true); } : undefined } : null;
+    }
+    if (editing === "announcement.text") {
+      return { label: "Announcement bar", value: announcement.text || "", long: false, set: (v: string) => { setAnnouncement((a: Json) => ({ ...a, text: v })); setDirty(true); }, reset: undefined };
+    }
+    if (editing.startsWith("page:")) {
+      const [, slug, field] = editing.split(":");
+      const pi = pages.findIndex((p) => p.slug === slug);
+      const pg = pages[pi];
+      const m = /^b\.(\d+)\.(\w+)$/.exec(field);
+      const value = pg ? (m ? pg.blocks[Number(m[1])]?.[m[2]] : (pg as any)[field]) : undefined;
+
+      if (typeof value !== "string") return null;
+
+      return { label: `${pg.title} · ${m ? m[2] : field}`, value, long: m?.[2] === "text" || field === "description", set: (v: string) => { setPages((all) => all.map((p, i) => (i !== pi ? p : m ? { ...p, blocks: p.blocks.map((b, j) => (j === Number(m[1]) ? { ...b, [m[2]]: v } : b)) } : { ...p, [field]: v }))); setDirty(true); }, reset: undefined };
     }
     if (editing.startsWith("text:")) {
       const original = editing.slice(5);
@@ -180,7 +199,7 @@ export function DesignStudio() {
 
     return { label: `${SECTION_NAMES[path[0]] || path[0]}${field ? ` · ${field.replace(/([A-Z])/g, " $1").toLowerCase()}` : ""}`, value, long: value.length > 70, set: (v: string) => setSectionPath(path, v), reset: undefined };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editing, copy, sections, saved, policies, outlines, textMap]);
+  }, [editing, copy, sections, saved, policies, outlines, textMap, announcement, pages]);
 
   const homeOrder: string[] = useMemo(() => {
     const o: string[] = (layout.home?.order || []).filter((id: string) => HOME_BLOCKS.some(([b]) => b === id));
@@ -209,7 +228,7 @@ export function DesignStudio() {
     try {
       const { data: latest } = await sb.from("site_settings").select("content").eq("id", CONFIG_ID).maybeSingle();
       const base = (latest?.content as Record<string, Json>) || {};
-      const next: Record<string, Json> = { ...base, appearance: { ...(base.appearance || {}), ...appearance }, hero: { ...((defaults as any).hero), ...(base.hero || {}), ...(sections.hero || {}), mediaType: hero.mediaType, mediaUrl: hero.mediaUrl, mediaPoster: hero.mediaPoster, mediaDim: hero.mediaDim }, copy, policies, textMap, layout };
+      const next: Record<string, Json> = { ...base, appearance: { ...(base.appearance || {}), ...appearance }, hero: { ...((defaults as any).hero), ...(base.hero || {}), ...(sections.hero || {}), mediaType: hero.mediaType, mediaUrl: hero.mediaUrl, mediaPoster: hero.mediaPoster, mediaDim: hero.mediaDim }, copy, policies, textMap, layout, announcement, pages };
       Object.entries(sections).forEach(([name, v]) => { if (name !== "hero") next[name] = v; });
       const { error } = await sb.from("site_settings").upsert({ id: CONFIG_ID, content: next, updated_at: new Date().toISOString() });
 
@@ -275,6 +294,22 @@ export function DesignStudio() {
         </section>
 
         <section className="nv-stack">
+          <strong>Announcement bar</strong>
+          <div className="nv-row"><div className="nv-row-main"><strong>Show a banner above the header</strong><span>For sales, holiday hours or notices. Visitors can dismiss it.</span></div><Switch aria-label="Show announcement" checked={!!announcement.enabled} onCheckedChange={(v: boolean) => { setAnnouncement((a: Json) => ({ ...a, enabled: v })); setDirty(true); }} /></div>
+          <Input label="Message" value={announcement.text || ""} onChange={(e) => { setAnnouncement((a: Json) => ({ ...a, text: e.target.value })); setDirty(true); }} />
+          <div className="nv-form-row">
+            <Input label="Link text (optional)" value={announcement.linkLabel || ""} onChange={(e) => { setAnnouncement((a: Json) => ({ ...a, linkLabel: e.target.value })); setDirty(true); }} />
+            <Input label="Link address" placeholder="/shop or https://…" value={announcement.link || ""} onChange={(e) => { setAnnouncement((a: Json) => ({ ...a, link: e.target.value })); setDirty(true); }} />
+          </div>
+          <SegmentedControl label="Style" value={announcement.tone || "brand"} onValueChange={(v: string) => { setAnnouncement((a: Json) => ({ ...a, tone: v })); setDirty(true); }} options={seg([["brand", "Brand color"], ["dark", "Dark"], ["warning", "Amber"]])} />
+        </section>
+
+        <section className="nv-stack">
+          <strong>Extra pages</strong>
+          <PagesEditor pages={pages} onChange={(p) => { setPages(p); setDirty(true); }} onPreview={(slug) => setPagePath(`/p/${slug}`)} />
+        </section>
+
+        <section className="nv-stack">
           <strong>Homepage layout</strong>
           <p className="nv-muted" style={{ margin: 0, fontSize: 13 }}>Reorder the homepage sections or hide the ones you don't want. The preview updates as you go.</p>
           {homeOrder.map((id, i) => (
@@ -317,7 +352,7 @@ export function DesignStudio() {
       </div>
 
       <div className="nv-design-preview">
-        <Select label="Preview page" value={pagePath} onValueChange={setPagePath} options={[["/", "Home"], ["/repairs", "Repairs"], ["/about", "About"], ["/protection", "Protection"], ["/shop", "Shop"], ["/shipping", "Shipping policy"], ["/returns", "Returns policy"], ["/refunds", "Refund policy"], ["/privacy", "Privacy policy"]].map(([value, label]) => ({ value, label }))} />
+        <Select label="Preview page" value={pagePath} onValueChange={setPagePath} options={[["/", "Home"], ["/repairs", "Repairs"], ["/about", "About"], ["/protection", "Protection"], ["/shop", "Shop"], ["/shipping", "Shipping policy"], ["/returns", "Returns policy"], ["/refunds", "Refund policy"], ["/privacy", "Privacy policy"], ...pages.map((p) => [`/p/${p.slug}`, `${p.title}${p.published ? "" : " (draft)"}`])].map(([value, label]) => ({ value, label }))} />
         <SegmentedControl label="Preview size" value={device} onValueChange={setDevice} options={seg([["phone", "Phone"], ["wide", "Desktop"]])} />
         {target && (
           <div className="nv-panel nv-stack nv-editpanel" role="group" aria-label="Edit text">
