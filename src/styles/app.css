@@ -336,3 +336,5 @@ button.nv-panel:active { transform: scale(.995); }
 }
 .nv-design-controls > section > * { max-width: 100%; min-width: 0; }
 .nv-design-controls > section > [class*="control"], .nv-design-controls > section > div:has(> [role="radio"]), .nv-design-controls > section > div:has(> button[role]) { overflow-x: auto; scrollbar-width: none; }
+.nv-uprow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+.nv-editpanel { border-color: var(--accent); }
