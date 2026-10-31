@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import confetti from "canvas-confetti";
-import { ExternalLink, Mail, Printer, Star, Trash2, Wallet } from "lucide-react";
+import { ExternalLink, Link2, Mail, Printer, Star, Trash2, Wallet } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { Badge } from "@/components/arc/badge/badge";
@@ -115,9 +115,11 @@ export function TicketDetailDialog({ ticketId, onClose }: Props) {
     if (status === "Completed") {
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
       if (customer?.email && readyEmailEnabled()) {
-        const mail = emails.ticketReady(customer.name, ticket.device, ticket.id);
+        void loadShopConfig().then(({ storefrontUrl }) => {
+          const mail = emails.ticketReady(customer.name, ticket.device, ticket.id, `${storefrontUrl.replace(/\/$/, "")}/repair-status?ticket=${ticket.id}`);
 
-        void notifyCustomer(customer.email, mail.subject, mail.body);
+          return notifyCustomer(customer.email, mail.subject, mail.body);
+        });
       }
     }
   };
@@ -166,6 +168,12 @@ export function TicketDetailDialog({ ticketId, onClose }: Props) {
                   await notifyCustomer(customer.email, mail.subject, mail.body);
                 }}><Star size={14} />Ask for a review</Button>
               )}
+              <Button size="sm" variant="secondary" onClick={async () => {
+                const { storefrontUrl } = await loadShopConfig();
+                const url = `${storefrontUrl.replace(/\/$/, "")}/repair-status?ticket=${ticket.id}`;
+
+                try { await navigator.clipboard.writeText(url); toast.success("Status link copied", "Send it to the customer. They add the last 4 digits of their phone."); } catch { toast.warning("Couldn't copy", url); }
+              }}><Link2 size={14} />Status link</Button>
               <Button size="sm" variant="secondary" onClick={() => void printBarcodeLabel({ sku: `TKT-${ticket.id}`, name: `Ticket #${ticket.id} - ${ticket.device}`, price: labor + partsTotal, customerName: customer?.name || "Unknown", format: "CODE128" })}><Printer size={14} />Label</Button>
             </div>
 
