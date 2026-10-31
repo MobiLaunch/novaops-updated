@@ -31,7 +31,7 @@ const PALETTES: { id: string; label: string; values: Record<string, string> }[] 
 const COLOR_KEYS: [string, string][] = [["accentColor", "Accent"], ["accentColorDeep", "Accent (hover)"], ["bgBase", "Page background"], ["bgSurface", "Card background"], ["bgElevated", "Raised background"]];
 type CopyEntry = { key: string; group: string; label: string; text: string; long?: boolean };
 const COPY = copyRegistry as CopyEntry[];
-const SECTION_NAMES: Record<string, string> = { hero: "Homepage banner", heroPoints: "Banner highlight", trustItems: "Trust bar", howItWorks: "How it works step", ctaStrip: "Bottom banner" };
+const SECTION_NAMES: Record<string, string> = { business: "Business info", footer: "Footer", about: "About page", hero: "Homepage banner", heroPoints: "Banner highlight", trustItems: "Trust bar", howItWorks: "How it works step", ctaStrip: "Bottom banner" };
 const clone = (v: Json) => JSON.parse(JSON.stringify(v ?? null));
 const getIn = (o: Json, path: string[]): Json => path.reduce((a, k) => (a == null ? a : a[k]), o);
 const setIn = (o: Json, path: string[], v: Json): Json => {
@@ -44,6 +44,8 @@ const setIn = (o: Json, path: string[], v: Json): Json => {
   return next;
 };
 const HOME_BLOCKS: [string, string][] = [["hero", "Banner and trust bar"], ["services", "Repair services"], ["how", "How it works"], ["featured", "Best sellers"], ["protect", "Protection promo"], ["cta", "Bottom banner"]];
+const META_PAGES: [string, string][] = [["/", "Home"], ["/shop", "Shop"], ["/repairs", "Repairs"], ["/protection", "Protection"], ["/about", "About"], ["/repair-status", "Repair status"], ["/shipping", "Shipping policy"], ["/returns", "Returns policy"], ["/refunds", "Refund policy"], ["/privacy", "Privacy policy"], ["/login", "Sign in"], ["/signup", "Sign up"]];
+const MENU_ITEMS: [string, string][] = [["/", "Home"], ["/shop", "Shop"], ["/repairs", "Repairs"], ["/protection", "Protection"], ["/about", "About"]];
 const seg = (items: [string, string][]) => items.map(([value, label]) => ({ value, label }));
 
 function Color({ name, label, value, onChange }: { name: string; label: string; value: string; onChange: (v: string) => void }) {
@@ -79,6 +81,9 @@ export function DesignStudio() {
   const [layout, setLayout] = useState<Json>({});
   const [announcement, setAnnouncement] = useState<Json>({ enabled: false, text: "", link: "", linkLabel: "", tone: "brand" });
   const [pages, setPages] = useState<PageDef[]>([]);
+  const [meta, setMeta] = useState<Record<string, Json>>({});
+  const [menu, setMenu] = useState<Json>({});
+  const [mode, setMode] = useState("edit");
   const frame = useRef<HTMLIFrameElement>(null);
 
   const load = useCallback(async () => {
@@ -98,6 +103,8 @@ export function DesignStudio() {
     setLayout(content.layout || {});
     setAnnouncement({ enabled: false, text: "", link: "", linkLabel: "", tone: "brand", ...(content.announcement || {}) });
     setPages(content.pages || []);
+    setMeta(content.meta || {});
+    setMenu(content.menu || {});
     setLoading(false);
   }, []);
 
@@ -105,8 +112,8 @@ export function DesignStudio() {
 
   const send = useCallback(() => {
     if (!site || !frame.current?.contentWindow || !appearance) return;
-    frame.current.contentWindow.postMessage({ source: "novaops-design", appearance, copy, policies, textMap, layout, announcement, pages, sections, hero: { ...(sections.hero || {}), mediaType: hero?.mediaType, mediaUrl: hero?.mediaUrl, mediaPoster: hero?.mediaPoster, mediaDim: hero?.mediaDim } }, site);
-  }, [site, appearance, hero, copy, policies, textMap, layout, announcement, pages, sections]);
+    frame.current.contentWindow.postMessage({ source: "novaops-design", appearance, copy, policies, textMap, layout, announcement, pages, meta, menu, mode, sections, hero: { ...(sections.hero || {}), mediaType: hero?.mediaType, mediaUrl: hero?.mediaUrl, mediaPoster: hero?.mediaPoster, mediaDim: hero?.mediaDim } }, site);
+  }, [site, appearance, hero, copy, policies, textMap, layout, announcement, pages, meta, menu, mode, sections]);
 
   // Push the draft to the preview on every change, and again shortly after load (the page fetches its saved design first).
   useEffect(() => {
@@ -218,6 +225,24 @@ export function DesignStudio() {
     [next[i], next[j]] = [next[j], next[i]];
     setHome(next, homeHidden);
   };
+  const menuOrder: string[] = useMemo(() => {
+    const o: string[] = (menu.order || []).filter((id: string) => MENU_ITEMS.some(([m]) => m === id));
+
+    return [...o, ...MENU_ITEMS.map(([id]) => id).filter((id) => !o.includes(id))];
+  }, [menu]);
+  const menuHidden: string[] = menu.hidden || [];
+  const setMenuState = (order: string[], hidden: string[]) => { setMenu({ order, hidden }); setDirty(true); };
+  const moveMenu = (id: string, d: number) => {
+    const i = menuOrder.indexOf(id);
+    const j = i + d;
+
+    if (j < 0 || j >= menuOrder.length) return;
+    const next = [...menuOrder];
+
+    [next[i], next[j]] = [next[j], next[i]];
+    setMenuState(next, menuHidden);
+  };
+  const setMetaField = (path: string, field: "title" | "description", v: string) => { setMeta((m) => ({ ...m, [path]: { ...(m[path] || {}), [field]: v } })); setDirty(true); };
   const activePalette = useMemo(() => PALETTES.find((p) => Object.entries(p.values).every(([k, v]) => (appearance?.[k] || "") === v))?.id, [appearance]);
 
   const save = async () => {
@@ -228,7 +253,7 @@ export function DesignStudio() {
     try {
       const { data: latest } = await sb.from("site_settings").select("content").eq("id", CONFIG_ID).maybeSingle();
       const base = (latest?.content as Record<string, Json>) || {};
-      const next: Record<string, Json> = { ...base, appearance: { ...(base.appearance || {}), ...appearance }, hero: { ...((defaults as any).hero), ...(base.hero || {}), ...(sections.hero || {}), mediaType: hero.mediaType, mediaUrl: hero.mediaUrl, mediaPoster: hero.mediaPoster, mediaDim: hero.mediaDim }, copy, policies, textMap, layout, announcement, pages };
+      const next: Record<string, Json> = { ...base, appearance: { ...(base.appearance || {}), ...appearance }, hero: { ...((defaults as any).hero), ...(base.hero || {}), ...(sections.hero || {}), mediaType: hero.mediaType, mediaUrl: hero.mediaUrl, mediaPoster: hero.mediaPoster, mediaDim: hero.mediaDim }, copy, policies, textMap, layout, announcement, pages, meta, menu };
       Object.entries(sections).forEach(([name, v]) => { if (name !== "hero") next[name] = v; });
       const { error } = await sb.from("site_settings").upsert({ id: CONFIG_ID, content: next, updated_at: new Date().toISOString() });
 
@@ -324,6 +349,36 @@ export function DesignStudio() {
         </section>
 
         <section className="nv-stack">
+          <strong>Site menu</strong>
+          <p className="nv-muted" style={{ margin: 0, fontSize: 13 }}>Reorder or hide the main menu links. Extra pages are added to the menu from their own settings.</p>
+          {menuOrder.map((id, i) => (
+            <div key={id} className="nv-row" style={{ opacity: menuHidden.includes(id) ? 0.55 : 1 }}>
+              <div className="nv-row-main"><strong>{MENU_ITEMS.find(([m]) => m === id)?.[1]}</strong></div>
+              <Button aria-label={`Move ${id} up in menu`} disabled={i === 0} size="sm" variant="ghost" onClick={() => moveMenu(id, -1)}><ArrowUp size={14} aria-hidden="true" /></Button>
+              <Button aria-label={`Move ${id} down in menu`} disabled={i === menuOrder.length - 1} size="sm" variant="ghost" onClick={() => moveMenu(id, 1)}><ArrowDown size={14} aria-hidden="true" /></Button>
+              <Switch aria-label={`Show ${id} in menu`} checked={!menuHidden.includes(id)} onCheckedChange={(v: boolean) => setMenuState(menuOrder, v ? menuHidden.filter((h) => h !== id) : [...menuHidden, id])} />
+            </div>
+          ))}
+        </section>
+
+        <section className="nv-stack">
+          <strong>Page titles and search descriptions</strong>
+          <p className="nv-muted" style={{ margin: 0, fontSize: 13 }}>What shows in the browser tab and in Google results. Leave blank to keep the built-in wording.</p>
+          <details>
+            <summary style={{ cursor: "pointer" }}>Edit for each page</summary>
+            <div className="nv-stack" style={{ marginTop: 10 }}>
+              {META_PAGES.map(([path, name]) => (
+                <div key={path} className="nv-stack">
+                  <strong style={{ fontWeight: 500 }}>{name}</strong>
+                  <Input label="Title" placeholder="Built-in title" value={meta[path]?.title || ""} onChange={(e) => setMetaField(path, "title", e.target.value)} />
+                  <Textarea label="Description" placeholder="Built-in description" rows={2} value={meta[path]?.description || ""} onChange={(e) => setMetaField(path, "description", e.target.value)} />
+                </div>
+              ))}
+            </div>
+          </details>
+        </section>
+
+        <section className="nv-stack">
           <strong>Page text</strong>
           <p className="nv-muted" style={{ margin: 0, fontSize: 13 }}>Click any text in the preview to change it. Wording you change by clicking applies everywhere that exact text appears. These pages are also listed here.</p>
           {Object.keys(textMap).length > 0 && (
@@ -352,7 +407,8 @@ export function DesignStudio() {
       </div>
 
       <div className="nv-design-preview">
-        <Select label="Preview page" value={pagePath} onValueChange={setPagePath} options={[["/", "Home"], ["/repairs", "Repairs"], ["/about", "About"], ["/protection", "Protection"], ["/shop", "Shop"], ["/shipping", "Shipping policy"], ["/returns", "Returns policy"], ["/refunds", "Refund policy"], ["/privacy", "Privacy policy"], ...pages.map((p) => [`/p/${p.slug}`, `${p.title}${p.published ? "" : " (draft)"}`])].map(([value, label]) => ({ value, label }))} />
+        <Select label="Preview page" value={pagePath} onValueChange={setPagePath} options={[["/", "Home"], ["/repairs", "Repairs"], ["/about", "About"], ["/protection", "Protection"], ["/shop", "Shop"], ["/repair-status", "Repair status"], ["/login", "Sign in"], ["/signup", "Sign up"], ["/shipping", "Shipping policy"], ["/returns", "Returns policy"], ["/refunds", "Refund policy"], ["/privacy", "Privacy policy"], ...pages.map((p) => [`/p/${p.slug}`, `${p.title}${p.published ? "" : " (draft)"}`])].map(([value, label]) => ({ value, label }))} />
+        <SegmentedControl label="Preview mode" value={mode} onValueChange={setMode} options={seg([["edit", "Edit text"], ["browse", "Browse (open menus, cart, forms)"]])} />
         <SegmentedControl label="Preview size" value={device} onValueChange={setDevice} options={seg([["phone", "Phone"], ["wide", "Desktop"]])} />
         {target && (
           <div className="nv-panel nv-stack nv-editpanel" role="group" aria-label="Edit text">
