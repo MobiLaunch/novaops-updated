@@ -10,7 +10,11 @@
     "headlineAccent": "Upgrade.",
     "description": "Southern Illinois' premier device repair shop. Cracked screen? Dead battery? Water damage? We fix it fast — and stock everything you need to keep your devices safe after.",
     "primaryCta": "Shop Accessories",
-    "secondaryCta": "Call 618-204-1497"
+    "secondaryCta": "Call 618-204-1497",
+    "mediaType": "none",
+    "mediaUrl": "",
+    "mediaPoster": "",
+    "mediaDim": 55
   },
   "heroPoints": [
     "90-day parts warranty",
@@ -214,7 +218,12 @@
     "bgElevated": "",
     "fontFamily": "system",
     "fontUrl": "",
-    "colorScheme": "light"
+    "colorScheme": "light",
+    "radiusControl": "",
+    "radiusSurface": "",
+    "texture": "none",
+    "motion": "full",
+    "spinner": "ring"
   },
   "__fonts": [
     {
@@ -244,6 +253,46 @@
     {
       "id": "geist",
       "label": "Geist"
+    },
+    {
+      "id": "manrope",
+      "label": "Manrope"
+    },
+    {
+      "id": "space-grotesk",
+      "label": "Space Grotesk"
+    },
+    {
+      "id": "plus-jakarta",
+      "label": "Plus Jakarta Sans"
+    },
+    {
+      "id": "sora",
+      "label": "Sora"
+    },
+    {
+      "id": "nunito",
+      "label": "Nunito"
+    },
+    {
+      "id": "raleway",
+      "label": "Raleway"
+    },
+    {
+      "id": "playfair",
+      "label": "Playfair Display (serif)"
+    },
+    {
+      "id": "lora",
+      "label": "Lora (serif)"
+    },
+    {
+      "id": "fraunces",
+      "label": "Fraunces (serif)"
+    },
+    {
+      "id": "jetbrains",
+      "label": "JetBrains Mono (mono)"
     },
     {
       "id": "custom",
