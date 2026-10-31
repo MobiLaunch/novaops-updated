@@ -102,7 +102,7 @@ export function WebOrders() {
   };
 
   return (
-    <div style={{ display: "grid", gap: 16 }}>
+    <div style={{ display: "grid", gap: 16, gridTemplateColumns: "minmax(0, 1fr)" }}>
       <div className="nv-grid cols-3">
         <MetricCard label="To ship" value={stats.toShip} context="Paid or processing" />
         <MetricCard label="Shipped" value={stats.shipped} context="On the way" />
