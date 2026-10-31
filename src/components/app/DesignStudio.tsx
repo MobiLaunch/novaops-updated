@@ -72,6 +72,7 @@ export function DesignStudio() {
   const [pagePath, setPagePath] = useState("/");
   const [policies, setPolicies] = useState<Record<string, Json>>({});
   const [outlines, setOutlines] = useState<Record<string, Json>>({});
+  const [textMap, setTextMap] = useState<Record<string, string>>({});
   const frame = useRef<HTMLIFrameElement>(null);
 
   const load = useCallback(async () => {
@@ -87,6 +88,7 @@ export function DesignStudio() {
     setHero({ ...(defaults as any).hero, ...(content.hero || {}) });
     setCopy(content.copy || {});
     setPolicies(content.policies || {});
+    setTextMap(content.textMap || {});
     setLoading(false);
   }, []);
 
@@ -94,8 +96,8 @@ export function DesignStudio() {
 
   const send = useCallback(() => {
     if (!site || !frame.current?.contentWindow || !appearance) return;
-    frame.current.contentWindow.postMessage({ source: "novaops-design", appearance, copy, policies, sections, hero: { ...(sections.hero || {}), mediaType: hero?.mediaType, mediaUrl: hero?.mediaUrl, mediaPoster: hero?.mediaPoster, mediaDim: hero?.mediaDim } }, site);
-  }, [site, appearance, hero, copy, policies, sections]);
+    frame.current.contentWindow.postMessage({ source: "novaops-design", appearance, copy, policies, textMap, sections, hero: { ...(sections.hero || {}), mediaType: hero?.mediaType, mediaUrl: hero?.mediaUrl, mediaPoster: hero?.mediaPoster, mediaDim: hero?.mediaDim } }, site);
+  }, [site, appearance, hero, copy, policies, textMap, sections]);
 
   // Push the draft to the preview on every change, and again shortly after load (the page fetches its saved design first).
   useEffect(() => {
@@ -131,6 +133,19 @@ export function DesignStudio() {
 
       return entry ? { label: `${entry.group}: ${entry.label}`, value: copy[key] ?? entry.text, long: !!entry.long, set: (v: string) => setCopyKey(key, v), reset: copy[key] !== undefined ? () => { setCopy((c) => { const n = { ...c }; delete n[key]; return n; }); setDirty(true); } : undefined } : null;
     }
+    if (editing.startsWith("text:")) {
+      const original = editing.slice(5);
+      const has = textMap[original] !== undefined;
+
+      return {
+        label: `Wording: “${original.length > 48 ? `${original.slice(0, 48)}…` : original}”`,
+        value: has ? textMap[original] : original,
+        long: original.length > 70,
+        set: (v: string) => { setTextMap((m) => ({ ...m, [original]: v })); setDirty(true); },
+        reset: has ? () => { setTextMap((m) => { const n = { ...m }; delete n[original]; return n; }); setDirty(true); } : undefined,
+        note: "Changes this wording everywhere it appears on the site.",
+      };
+    }
     if (editing.startsWith("policy:")) {
       const [, pagePathKey, field] = editing.split(":");
       const ov = policies[pagePathKey];
@@ -161,7 +176,7 @@ export function DesignStudio() {
 
     return { label: `${SECTION_NAMES[path[0]] || path[0]}${field ? ` · ${field.replace(/([A-Z])/g, " $1").toLowerCase()}` : ""}`, value, long: value.length > 70, set: (v: string) => setSectionPath(path, v), reset: undefined };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editing, copy, sections, saved, policies, outlines]);
+  }, [editing, copy, sections, saved, policies, outlines, textMap]);
 
   const activePalette = useMemo(() => PALETTES.find((p) => Object.entries(p.values).every(([k, v]) => (appearance?.[k] || "") === v))?.id, [appearance]);
 
@@ -173,7 +188,7 @@ export function DesignStudio() {
     try {
       const { data: latest } = await sb.from("site_settings").select("content").eq("id", CONFIG_ID).maybeSingle();
       const base = (latest?.content as Record<string, Json>) || {};
-      const next: Record<string, Json> = { ...base, appearance: { ...(base.appearance || {}), ...appearance }, hero: { ...((defaults as any).hero), ...(base.hero || {}), ...(sections.hero || {}), mediaType: hero.mediaType, mediaUrl: hero.mediaUrl, mediaPoster: hero.mediaPoster, mediaDim: hero.mediaDim }, copy, policies };
+      const next: Record<string, Json> = { ...base, appearance: { ...(base.appearance || {}), ...appearance }, hero: { ...((defaults as any).hero), ...(base.hero || {}), ...(sections.hero || {}), mediaType: hero.mediaType, mediaUrl: hero.mediaUrl, mediaPoster: hero.mediaPoster, mediaDim: hero.mediaDim }, copy, policies, textMap };
       Object.entries(sections).forEach(([name, v]) => { if (name !== "hero") next[name] = v; });
       const { error } = await sb.from("site_settings").upsert({ id: CONFIG_ID, content: next, updated_at: new Date().toISOString() });
 
@@ -240,7 +255,20 @@ export function DesignStudio() {
 
         <section className="nv-stack">
           <strong>Page text</strong>
-          <p className="nv-muted" style={{ margin: 0, fontSize: 13 }}>Click any text in the preview to edit it, or pick a page here. Banner, trust bar, how-it-works and bottom-banner text are edited the same way by clicking.</p>
+          <p className="nv-muted" style={{ margin: 0, fontSize: 13 }}>Click any text in the preview to change it. Wording you change by clicking applies everywhere that exact text appears. These pages are also listed here.</p>
+          {Object.keys(textMap).length > 0 && (
+            <details>
+              <summary style={{ cursor: "pointer" }}>Custom wording ({Object.keys(textMap).length})</summary>
+              <div className="nv-stack" style={{ marginTop: 8 }}>
+                {Object.entries(textMap).map(([orig, now]) => (
+                  <div key={orig} className="nv-row">
+                    <div className="nv-row-main"><strong>{now}</strong><span>was: {orig}</span></div>
+                    <Button size="sm" variant="ghost" aria-label={`Restore ${orig}`} onClick={() => { setTextMap((m) => { const n = { ...m }; delete n[orig]; return n; }); setDirty(true); }}>Restore</Button>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
           <Select label="Page" value={group} onValueChange={setGroup} options={[...new Set(COPY.map((c) => c.group))].map((g) => ({ value: g, label: g }))} />
           {COPY.filter((c) => c.group === group).map((c) => c.long
             ? <Textarea key={c.key} label={c.label} rows={3} value={copy[c.key] ?? c.text} onChange={(e) => setCopyKey(c.key, e.target.value)} />
@@ -259,7 +287,7 @@ export function DesignStudio() {
         {target && (
           <div className="nv-panel nv-stack nv-editpanel" role="group" aria-label="Edit text">
             <div className="nv-actions" style={{ justifyContent: "space-between" }}>
-              <strong style={{ fontWeight: 500, textTransform: "capitalize" }}>{target.label}</strong>
+              <strong style={{ fontWeight: 500, textTransform: target.label.startsWith("Wording") ? "none" : "capitalize" }}>{target.label}</strong>
               <Button aria-label="Close editor" size="sm" variant="ghost" onClick={() => setEditing(null)}><X size={14} aria-hidden="true" /></Button>
             </div>
             {target.long
